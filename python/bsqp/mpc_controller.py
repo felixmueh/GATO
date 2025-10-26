@@ -297,6 +297,9 @@ class MPC_GATO:
             return 0
             
         # Simulate all hypotheses
+        # print x_last and u_last shapes
+        # print(f"x_last shape: {x_last.shape}")
+        # print(f"u_last shape: {u_last.shape}")
         x_next_batch = self.solver.sim_forward(x_last, u_last, dt)
         
         # Calculate errors

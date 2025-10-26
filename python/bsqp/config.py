@@ -31,6 +31,12 @@ IIWA14_START_CONFIGS = {
     'home': np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]),
 }
 
+# Standard starting configurations for Flexiv Rizon 4s
+FLEXIV_RIZON_4S_START_CONFIGS = {
+    'zero': np.zeros(7),
+    'home': np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]),
+}
+
 # MPC solver parameters
 DEFAULT_SOLVER_PARAMS = {
     'max_sqp_iters': 1,
