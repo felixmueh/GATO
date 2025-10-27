@@ -297,7 +297,7 @@ namespace plant {
                 T* s_eePos_cost = s_cost_vec + threadsNeeded + 3;
                 T* s_scratch = s_eePos_cost + 6;
 
-                grid::end_effector_pose_device<T>(s_eePos_cost, s_xu, s_scratch, d_robotModel);
+                grid::end_effector_pose_device<T>(s_eePos_cost, s_xu, d_robotModel);
 
                 for (int i = threadIdx.x; i < threadsNeeded; i += blockDim.x) {
                         if (i < state_size / 2) {
@@ -362,8 +362,8 @@ namespace plant {
 
                 const uint32_t threads_needed = grid::NX + grid::NU * computeR;
 
-                grid::end_effector_pose_device<T>(s_eePos, s_xu, s_scratch, (grid::robotModel<T>*)d_robotModel);
-                grid::end_effector_pose_gradient_device<T>(s_eePos_grad, s_xu, s_scratch, (grid::robotModel<T>*)d_robotModel);
+                grid::end_effector_pose_device<T>(s_eePos, s_xu, (grid::robotModel<T>*)d_robotModel);
+                grid::end_effector_pose_gradient_device<T>(s_eePos_grad, s_xu, (grid::robotModel<T>*)d_robotModel);
 
                 // Gradient (qk, rk)
                 for (int i = threadIdx.x; i < threads_needed; i += blockDim.x) {
