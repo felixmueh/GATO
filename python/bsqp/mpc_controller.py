@@ -425,6 +425,10 @@ class MPC_GATO:
         else:
             q = x_start[:self.nq]
             dq = x_start[self.nq:]
+
+        q_robot = q[:self.nq_robot] if self.has_pendulum else q
+        ee_pos = self.solver.ee_pos(q_robot)
+        print(f"Starting EE position: [{ee_pos[0]:.4f}, {ee_pos[1]:.4f}, {ee_pos[2]:.4f}]m")
         
         # Solver uses robot-only state
         x_curr = x_start
