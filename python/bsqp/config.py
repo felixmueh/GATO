@@ -72,6 +72,23 @@ PICKPLACE_SOLVER_PARAMS = {
     'rho': 0.001
 }
 
+# PICKPLACE_SOLVER_PARAMS = {
+#     'max_sqp_iters': 5,
+#     'kkt_tol': 0.0,
+#     'max_pcg_iters': 100,
+#     'pcg_tol': 1e-6,
+#     'solve_ratio': 1.0,
+#     'mu': 10.0,
+#     'q_cost': 0.0,
+#     'qd_cost': 0e-4,
+#     'u_cost': 0e-7,
+#     'N_cost': 0.0,
+#     'q_lim_cost': 0.0,
+#     'vel_lim_cost': 0.0,
+#     'ctrl_lim_cost': 0.0,
+#     'rho': 0.001
+# }
+
 PICKPLACE_MPC_DEFAULTS = {
     'goal_timeout': 5.0,
     'goal_threshold': 0.05,

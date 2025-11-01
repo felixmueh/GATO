@@ -68,6 +68,7 @@ class MPC_GATO:
         solver_cfg = DEFAULT_SOLVER_PARAMS.copy()
         if solver_params is not None:
             solver_cfg.update(solver_params)
+            # print("Using custom solver parameters:")
 
         self.solver = BSQP(
             model_path=model_path,
@@ -595,7 +596,10 @@ class MPC_GATO:
         
         # Print summary
         goals_reached = sum(1 for o in stats['goal_outcomes'] if o == 'reached')
-        print(f"Goals reached: {goals_reached}/{len(goals)}")
+        print(f"GOALS reached: {goals_reached}/{len(goals)}")
+        if len(stats['ee_actual']) > 0:
+            ee_final = stats['ee_actual'][-1]
+            print(f"EE final: [{ee_final[0]:.4f}, {ee_final[1]:.4f}, {ee_final[2]:.4f}]m")
         if len(stats['solve_times']) > 0:
             print(f"Avg solve time: {np.mean(stats['solve_times']):.3f}ms")
         
