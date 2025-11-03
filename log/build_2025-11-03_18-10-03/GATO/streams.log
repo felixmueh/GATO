@@ -1,0 +1,149 @@
+[0.006s] Invoking command in '/home/gabriel/workspace_iiwa/src/GATO/build/GATO': CONDA_PROMPT_MODIFIER=(GATO6) /home/gabriel/miniconda3/envs/GATO6/bin/cmake /home/gabriel/workspace_iiwa/src/GATO -DCMAKE_BUILD_TYPE=Release -DPYBIND11_TEST=OFF -DBUILD_TESTING=OFF -DPYTHON_EXECUTABLE=/home/gabriel/miniconda3/envs/GATO6/bin/python -DCMAKE_CUDA_COMPILER=/usr/local/cuda-12.6/bin/nvcc -DCMAKE_INSTALL_PREFIX=/home/gabriel/miniconda3/envs/GATO6
+[0.045s] -- The CXX compiler identification is GNU 11.4.0
+[0.541s] -- The CUDA compiler identification is NVIDIA 12.6.85
+[0.544s] -- Detecting CXX compiler ABI info
+[0.593s] -- Detecting CXX compiler ABI info - done
+[0.597s] -- Check for working CXX compiler: /usr/bin/c++ - skipped
+[0.597s] -- Detecting CXX compile features
+[0.597s] -- Detecting CXX compile features - done
+[0.599s] -- Detecting CUDA compiler ABI info
+[1.056s] -- Detecting CUDA compiler ABI info - done
+[1.073s] -- Check for working CUDA compiler: /usr/local/cuda-12.6/bin/nvcc - skipped
+[1.073s] -- Detecting CUDA compile features
+[1.074s] -- Detecting CUDA compile features - done
+[1.074s] -- Targeting CUDA Architectures: 89;86;75
+[1.697s] -- Found Python3: /home/gabriel/miniconda3/envs/GATO6/bin/python3.10 (found version "3.10.12") found components: Interpreter Development NumPy Development.Module Development.Embed 
+[1.731s] -- Performing Test HAS_FLTO
+[1.799s] -- Performing Test HAS_FLTO - Success
+[1.799s] -- Found pybind11: /home/gabriel/miniconda3/envs/GATO6/include (found version "2.14.0dev1")
+[1.811s] -- Looking for C++ include pthread.h
+[1.859s] -- Looking for C++ include pthread.h - found
+[1.859s] -- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+[1.905s] -- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
+[1.905s] -- Found Threads: TRUE  
+[1.915s] -- Found CUDA: /usr/local/cuda (found version "12.6") 
+[1.915s] -- CUDA include dirs: /usr/local/cuda/include
+[1.915s] -- CUDA libraries: /usr/local/cuda/lib64/libcudart_static.a;Threads::Threads;dl;/usr/lib/x86_64-linux-gnu/librt.a
+[1.915s] -- Configuring Python modules for PLANT='indy7;iiwa14;flexiv_rizon4s;flexiv_rizon10s' KNOTS='8;16;32;64;128'
+[1.915s] -- Configuring Python module: bsqpN8_indy7
+[1.915s] -- Configuring Python module: bsqpN16_indy7
+[1.915s] -- Configuring Python module: bsqpN32_indy7
+[1.916s] -- Configuring Python module: bsqpN64_indy7
+[1.916s] -- Configuring Python module: bsqpN128_indy7
+[1.916s] -- Configuring Python module: bsqpN8_iiwa14
+[1.916s] -- Configuring Python module: bsqpN16_iiwa14
+[1.916s] -- Configuring Python module: bsqpN32_iiwa14
+[1.916s] -- Configuring Python module: bsqpN64_iiwa14
+[1.916s] -- Configuring Python module: bsqpN128_iiwa14
+[1.916s] -- Configuring Python module: bsqpN8_flexiv_rizon4s
+[1.917s] -- Configuring Python module: bsqpN16_flexiv_rizon4s
+[1.917s] -- Configuring Python module: bsqpN32_flexiv_rizon4s
+[1.917s] -- Configuring Python module: bsqpN64_flexiv_rizon4s
+[1.917s] -- Configuring Python module: bsqpN128_flexiv_rizon4s
+[1.917s] -- Configuring Python module: bsqpN8_flexiv_rizon10s
+[1.917s] -- Configuring Python module: bsqpN16_flexiv_rizon10s
+[1.917s] -- Configuring Python module: bsqpN32_flexiv_rizon10s
+[1.917s] -- Configuring Python module: bsqpN64_flexiv_rizon10s
+[1.918s] -- Configuring Python module: bsqpN128_flexiv_rizon10s
+[1.918s] -- Configuring done
+[1.932s] -- Generating done
+[1.933s] [33mCMake Warning:
+[1.934s]   Manually-specified variables were not used by the project:
+[1.934s] 
+[1.934s]     BUILD_TESTING
+[1.934s]     PYBIND11_TEST
+[1.934s]     PYTHON_EXECUTABLE
+[1.934s] 
+[1.934s] [0m
+[1.934s] -- Build files have been written to: /home/gabriel/workspace_iiwa/src/GATO/build/GATO
+[1.936s] Invoked command in '/home/gabriel/workspace_iiwa/src/GATO/build/GATO' returned '0': CONDA_PROMPT_MODIFIER=(GATO6) /home/gabriel/miniconda3/envs/GATO6/bin/cmake /home/gabriel/workspace_iiwa/src/GATO -DCMAKE_BUILD_TYPE=Release -DPYBIND11_TEST=OFF -DBUILD_TESTING=OFF -DPYTHON_EXECUTABLE=/home/gabriel/miniconda3/envs/GATO6/bin/python -DCMAKE_CUDA_COMPILER=/usr/local/cuda-12.6/bin/nvcc -DCMAKE_INSTALL_PREFIX=/home/gabriel/miniconda3/envs/GATO6
+[1.938s] Invoking command in '/home/gabriel/workspace_iiwa/src/GATO/build/GATO': CONDA_PROMPT_MODIFIER=(GATO6) /home/gabriel/miniconda3/envs/GATO6/bin/cmake --build /home/gabriel/workspace_iiwa/src/GATO/build/GATO -- -j24 -l24
+[1.961s] [  2%] [32mBuilding CUDA object CMakeFiles/bsqpN64_indy7.dir/python/bindings.cu.o[0m
+[1.961s] [  4%] [32mBuilding CUDA object CMakeFiles/bsqpN8_indy7.dir/python/bindings.cu.o[0m
+[1.961s] [  9%] [32mBuilding CUDA object CMakeFiles/bsqpN64_iiwa14.dir/python/bindings.cu.o[0m
+[1.961s] [  9%] [32mBuilding CUDA object CMakeFiles/bsqpN8_iiwa14.dir/python/bindings.cu.o[0m
+[1.961s] [ 11%] [32mBuilding CUDA object CMakeFiles/bsqpN128_indy7.dir/python/bindings.cu.o[0m
+[1.962s] [ 14%] [32mBuilding CUDA object CMakeFiles/bsqp.dir/examples/bsqp.cu.o[0m
+[1.962s] [ 16%] [32mBuilding CUDA object CMakeFiles/bsqpN32_indy7.dir/python/bindings.cu.o[0m
+[1.962s] [ 19%] [32mBuilding CUDA object CMakeFiles/bsqpN16_iiwa14.dir/python/bindings.cu.o[0m
+[1.963s] [ 23%] [32mBuilding CUDA object CMakeFiles/bsqpN128_iiwa14.dir/python/bindings.cu.o[0m
+[1.963s] [ 23%] [32mBuilding CUDA object CMakeFiles/bsqpN128_flexiv_rizon4s.dir/python/bindings.cu.o[0m
+[1.963s] [ 26%] [32mBuilding CUDA object CMakeFiles/bsqpN32_flexiv_rizon4s.dir/python/bindings.cu.o[0m
+[1.963s] [ 28%] [32mBuilding CUDA object CMakeFiles/bsqpN16_indy7.dir/python/bindings.cu.o[0m
+[1.963s] [ 30%] [32mBuilding CUDA object CMakeFiles/bsqpN32_iiwa14.dir/python/bindings.cu.o[0m
+[1.963s] [ 33%] [32mBuilding CUDA object CMakeFiles/bsqpN32_flexiv_rizon10s.dir/python/bindings.cu.o[0m
+[1.963s] [ 35%] [32mBuilding CUDA object CMakeFiles/bsqpN16_flexiv_rizon4s.dir/python/bindings.cu.o[0m
+[1.964s] [ 38%] [32mBuilding CUDA object CMakeFiles/bsqpN64_flexiv_rizon10s.dir/python/bindings.cu.o[0m
+[1.964s] [ 40%] [32mBuilding CUDA object CMakeFiles/bsqpN8_flexiv_rizon10s.dir/python/bindings.cu.o[0m
+[1.964s] [ 42%] [32mBuilding CUDA object CMakeFiles/bsqpN8_flexiv_rizon4s.dir/python/bindings.cu.o[0m
+[1.964s] [ 45%] [32mBuilding CUDA object CMakeFiles/bsqpN64_flexiv_rizon4s.dir/python/bindings.cu.o[0m
+[1.965s] [ 47%] [32mBuilding CUDA object CMakeFiles/bsqpN16_flexiv_rizon10s.dir/python/bindings.cu.o[0m
+[1.965s] [ 50%] [32mBuilding CUDA object CMakeFiles/bsqpN128_flexiv_rizon10s.dir/python/bindings.cu.o[0m
+[28.233s] [ 52%] [32m[1mLinking CUDA executable bsqp[0m
+[28.320s] [ 52%] Built target bsqp
+[179.964s] 
+[179.964s] 
+[179.964s] Compilation terminated.
+[179.964s] Compilation terminated.
+[179.988s] nvcc error   : '"$CICC_PATH/cicc"' died due to signal 2 
+[179.993s] nvcc error   : '"$CICC_PATH/cicc"' died due to signal 2 
+[180.002s] gmake[2]: *** [CMakeFiles/bsqpN32_indy7.dir/build.make:76: CMakeFiles/bsqpN32_indy7.dir/python/bindings.cu.o] Interrupt
+[180.002s] nvcc error   : '"$CICC_PATH/cicc"' died due to signal 2 
+[180.004s] nvcc error   : '"$CICC_PATH/cicc"' died due to signal 2 
+[180.004s] gmake[1]: *** [CMakeFiles/Makefile2:201: CMakeFiles/bsqpN32_indy7.dir/all] Interrupt
+[180.005s] nvcc error   : '"$CICC_PATH/cicc"' died due to signal 2 
+[180.005s] nvcc error   : '"$CICC_PATH/cicc"' died due to signal 2 
+[180.005s] nvcc error   : '"$CICC_PATH/cicc"' died due to signal 2 
+[180.006s] nvcc error   : '"$CICC_PATH/cicc"' died due to signal 2 
+[180.006s] nvcc error   : '"$CICC_PATH/cicc"' died due to signal 2 
+[180.008s] nvcc error   : '"$CICC_PATH/cicc"' died due to signal 2 
+[180.011s] gmake[2]: *** [CMakeFiles/bsqpN8_indy7.dir/build.make:76: CMakeFiles/bsqpN8_indy7.dir/python/bindings.cu.o] Interrupt
+[180.013s] gmake[1]: *** [CMakeFiles/Makefile2:149: CMakeFiles/bsqpN8_indy7.dir/all] Interrupt
+[180.016s] gmake[2]: *** [CMakeFiles/bsqpN128_flexiv_rizon4s.dir/build.make:76: CMakeFiles/bsqpN128_flexiv_rizon4s.dir/python/bindings.cu.o] Interrupt
+[180.016s] gmake[1]: *** [CMakeFiles/Makefile2:513: CMakeFiles/bsqpN128_flexiv_rizon4s.dir/all] Interrupt
+[180.021s] gmake[2]: *** [CMakeFiles/bsqpN16_flexiv_rizon10s.dir/build.make:76: CMakeFiles/bsqpN16_flexiv_rizon10s.dir/python/bindings.cu.o] Interrupt
+[180.021s] gmake[1]: *** [CMakeFiles/Makefile2:565: CMakeFiles/bsqpN16_flexiv_rizon10s.dir/all] Interrupt
+[180.022s] gmake[2]: *** [CMakeFiles/bsqpN8_flexiv_rizon4s.dir/build.make:76: CMakeFiles/bsqpN8_flexiv_rizon4s.dir/python/bindings.cu.o] Interrupt
+[180.023s] gmake[1]: *** [CMakeFiles/Makefile2:409: CMakeFiles/bsqpN8_flexiv_rizon4s.dir/all] Interrupt
+[180.025s] gmake[2]: *** [CMakeFiles/bsqpN8_iiwa14.dir/build.make:76: CMakeFiles/bsqpN8_iiwa14.dir/python/bindings.cu.o] Interrupt
+[180.025s] gmake[1]: *** [CMakeFiles/Makefile2:279: CMakeFiles/bsqpN8_iiwa14.dir/all] Interrupt
+[180.026s] gmake[2]: *** [CMakeFiles/bsqpN16_iiwa14.dir/build.make:76: CMakeFiles/bsqpN16_iiwa14.dir/python/bindings.cu.o] Interrupt
+[180.026s] gmake[1]: *** [CMakeFiles/Makefile2:305: CMakeFiles/bsqpN16_iiwa14.dir/all] Interrupt
+[180.026s] gmake[2]: *** [CMakeFiles/bsqpN64_iiwa14.dir/build.make:76: CMakeFiles/bsqpN64_iiwa14.dir/python/bindings.cu.o] Interrupt
+[180.026s] gmake[2]: *** [CMakeFiles/bsqpN128_flexiv_rizon10s.dir/build.make:76: CMakeFiles/bsqpN128_flexiv_rizon10s.dir/python/bindings.cu.o] Interrupt
+[180.026s] gmake[2]: *** [CMakeFiles/bsqpN32_flexiv_rizon10s.dir/build.make:76: CMakeFiles/bsqpN32_flexiv_rizon10s.dir/python/bindings.cu.o] Interrupt
+[180.028s] gmake[1]: *** [CMakeFiles/Makefile2:357: CMakeFiles/bsqpN64_iiwa14.dir/all] Interrupt
+[180.028s] gmake[1]: *** [CMakeFiles/Makefile2:591: CMakeFiles/bsqpN32_flexiv_rizon10s.dir/all] Interrupt
+[180.028s] gmake[1]: *** [CMakeFiles/Makefile2:643: CMakeFiles/bsqpN128_flexiv_rizon10s.dir/all] Interrupt
+[180.032s] nvcc error   : 'ptxas' died due to signal 2 
+[180.034s] nvcc error   : 'ptxas' died due to signal 2 
+[180.034s] nvcc error   : 'ptxas' died due to signal 2 
+[180.037s] nvcc error   : 'ptxas' died due to signal 2 
+[180.038s] nvcc error   : 'ptxas' died due to signal 2 
+[180.038s] nvcc error   : 'ptxas' died due to signal 2 
+[180.039s] nvcc error   : 'ptxas' died due to signal 2 
+[180.039s] nvcc error   : 'ptxas' died due to signal 2 
+[180.045s] gmake[2]: *** [CMakeFiles/bsqpN64_indy7.dir/build.make:76: CMakeFiles/bsqpN64_indy7.dir/python/bindings.cu.o] Interrupt
+[180.045s] gmake[1]: *** [CMakeFiles/Makefile2:227: CMakeFiles/bsqpN64_indy7.dir/all] Interrupt
+[180.046s] gmake[2]: *** [CMakeFiles/bsqpN128_iiwa14.dir/build.make:76: CMakeFiles/bsqpN128_iiwa14.dir/python/bindings.cu.o] Interrupt
+[180.046s] gmake[1]: *** [CMakeFiles/Makefile2:383: CMakeFiles/bsqpN128_iiwa14.dir/all] Interrupt
+[180.046s] gmake[2]: *** [CMakeFiles/bsqpN32_iiwa14.dir/build.make:76: CMakeFiles/bsqpN32_iiwa14.dir/python/bindings.cu.o] Interrupt
+[180.046s] gmake[1]: *** [CMakeFiles/Makefile2:331: CMakeFiles/bsqpN32_iiwa14.dir/all] Interrupt
+[180.047s] gmake[2]: *** [CMakeFiles/bsqpN64_flexiv_rizon10s.dir/build.make:76: CMakeFiles/bsqpN64_flexiv_rizon10s.dir/python/bindings.cu.o] Interrupt
+[180.047s] gmake[1]: *** [CMakeFiles/Makefile2:617: CMakeFiles/bsqpN64_flexiv_rizon10s.dir/all] Interrupt
+[180.048s] gmake[2]: *** [CMakeFiles/bsqpN8_flexiv_rizon10s.dir/build.make:76: CMakeFiles/bsqpN8_flexiv_rizon10s.dir/python/bindings.cu.o] Interrupt
+[180.048s] gmake[1]: *** [CMakeFiles/Makefile2:539: CMakeFiles/bsqpN8_flexiv_rizon10s.dir/all] Interrupt
+[180.049s] gmake[2]: *** [CMakeFiles/bsqpN32_flexiv_rizon4s.dir/build.make:76: CMakeFiles/bsqpN32_flexiv_rizon4s.dir/python/bindings.cu.o] Interrupt
+[180.049s] gmake[1]: *** [CMakeFiles/Makefile2:461: CMakeFiles/bsqpN32_flexiv_rizon4s.dir/all] Interrupt
+[180.050s] gmake[2]: *** [CMakeFiles/bsqpN16_flexiv_rizon4s.dir/build.make:76: CMakeFiles/bsqpN16_flexiv_rizon4s.dir/python/bindings.cu.o] Interrupt
+[180.050s] gmake[1]: *** [CMakeFiles/Makefile2:435: CMakeFiles/bsqpN16_flexiv_rizon4s.dir/all] Interrupt
+[180.051s] gmake[2]: *** [CMakeFiles/bsqpN64_flexiv_rizon4s.dir/build.make:76: CMakeFiles/bsqpN64_flexiv_rizon4s.dir/python/bindings.cu.o] Interrupt
+[180.051s] gmake[1]: *** [CMakeFiles/Makefile2:487: CMakeFiles/bsqpN64_flexiv_rizon4s.dir/all] Interrupt
+[180.071s] nvcc error   : '"$CICC_PATH/cicc"' died due to signal 2 
+[180.071s] nvcc error   : '"$CICC_PATH/cicc"' died due to signal 2 
+[180.078s] gmake[2]: *** [CMakeFiles/bsqpN16_indy7.dir/build.make:76: CMakeFiles/bsqpN16_indy7.dir/python/bindings.cu.o] Interrupt
+[180.078s] gmake[1]: *** [CMakeFiles/Makefile2:175: CMakeFiles/bsqpN16_indy7.dir/all] Interrupt
+[180.078s] gmake[2]: *** [CMakeFiles/bsqpN128_indy7.dir/build.make:76: CMakeFiles/bsqpN128_indy7.dir/python/bindings.cu.o] Interrupt
+[180.078s] gmake[1]: *** [CMakeFiles/Makefile2:253: CMakeFiles/bsqpN128_indy7.dir/all] Interrupt
+[180.078s] gmake: *** [Makefile:136: all] Interrupt
+[180.087s] Invoked command in '/home/gabriel/workspace_iiwa/src/GATO/build/GATO' returned '-2': CONDA_PROMPT_MODIFIER=(GATO6) /home/gabriel/miniconda3/envs/GATO6/bin/cmake --build /home/gabriel/workspace_iiwa/src/GATO/build/GATO -- -j24 -l24

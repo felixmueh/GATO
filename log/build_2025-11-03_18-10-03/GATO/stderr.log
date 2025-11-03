@@ -1,0 +1,73 @@
+[33mCMake Warning:
+  Manually-specified variables were not used by the project:
+
+    BUILD_TESTING
+    PYBIND11_TEST
+    PYTHON_EXECUTABLE
+
+[0m
+
+
+Compilation terminated.
+Compilation terminated.
+nvcc error   : '"$CICC_PATH/cicc"' died due to signal 2 
+nvcc error   : '"$CICC_PATH/cicc"' died due to signal 2 
+gmake[2]: *** [CMakeFiles/bsqpN32_indy7.dir/build.make:76: CMakeFiles/bsqpN32_indy7.dir/python/bindings.cu.o] Interrupt
+nvcc error   : '"$CICC_PATH/cicc"' died due to signal 2 
+nvcc error   : '"$CICC_PATH/cicc"' died due to signal 2 
+gmake[1]: *** [CMakeFiles/Makefile2:201: CMakeFiles/bsqpN32_indy7.dir/all] Interrupt
+nvcc error   : '"$CICC_PATH/cicc"' died due to signal 2 
+nvcc error   : '"$CICC_PATH/cicc"' died due to signal 2 
+nvcc error   : '"$CICC_PATH/cicc"' died due to signal 2 
+nvcc error   : '"$CICC_PATH/cicc"' died due to signal 2 
+nvcc error   : '"$CICC_PATH/cicc"' died due to signal 2 
+nvcc error   : '"$CICC_PATH/cicc"' died due to signal 2 
+gmake[2]: *** [CMakeFiles/bsqpN8_indy7.dir/build.make:76: CMakeFiles/bsqpN8_indy7.dir/python/bindings.cu.o] Interrupt
+gmake[1]: *** [CMakeFiles/Makefile2:149: CMakeFiles/bsqpN8_indy7.dir/all] Interrupt
+gmake[2]: *** [CMakeFiles/bsqpN128_flexiv_rizon4s.dir/build.make:76: CMakeFiles/bsqpN128_flexiv_rizon4s.dir/python/bindings.cu.o] Interrupt
+gmake[1]: *** [CMakeFiles/Makefile2:513: CMakeFiles/bsqpN128_flexiv_rizon4s.dir/all] Interrupt
+gmake[2]: *** [CMakeFiles/bsqpN16_flexiv_rizon10s.dir/build.make:76: CMakeFiles/bsqpN16_flexiv_rizon10s.dir/python/bindings.cu.o] Interrupt
+gmake[1]: *** [CMakeFiles/Makefile2:565: CMakeFiles/bsqpN16_flexiv_rizon10s.dir/all] Interrupt
+gmake[2]: *** [CMakeFiles/bsqpN8_flexiv_rizon4s.dir/build.make:76: CMakeFiles/bsqpN8_flexiv_rizon4s.dir/python/bindings.cu.o] Interrupt
+gmake[1]: *** [CMakeFiles/Makefile2:409: CMakeFiles/bsqpN8_flexiv_rizon4s.dir/all] Interrupt
+gmake[2]: *** [CMakeFiles/bsqpN8_iiwa14.dir/build.make:76: CMakeFiles/bsqpN8_iiwa14.dir/python/bindings.cu.o] Interrupt
+gmake[1]: *** [CMakeFiles/Makefile2:279: CMakeFiles/bsqpN8_iiwa14.dir/all] Interrupt
+gmake[2]: *** [CMakeFiles/bsqpN16_iiwa14.dir/build.make:76: CMakeFiles/bsqpN16_iiwa14.dir/python/bindings.cu.o] Interrupt
+gmake[1]: *** [CMakeFiles/Makefile2:305: CMakeFiles/bsqpN16_iiwa14.dir/all] Interrupt
+gmake[2]: *** [CMakeFiles/bsqpN64_iiwa14.dir/build.make:76: CMakeFiles/bsqpN64_iiwa14.dir/python/bindings.cu.o] Interrupt
+gmake[2]: *** [CMakeFiles/bsqpN128_flexiv_rizon10s.dir/build.make:76: CMakeFiles/bsqpN128_flexiv_rizon10s.dir/python/bindings.cu.o] Interrupt
+gmake[2]: *** [CMakeFiles/bsqpN32_flexiv_rizon10s.dir/build.make:76: CMakeFiles/bsqpN32_flexiv_rizon10s.dir/python/bindings.cu.o] Interrupt
+gmake[1]: *** [CMakeFiles/Makefile2:357: CMakeFiles/bsqpN64_iiwa14.dir/all] Interrupt
+gmake[1]: *** [CMakeFiles/Makefile2:591: CMakeFiles/bsqpN32_flexiv_rizon10s.dir/all] Interrupt
+gmake[1]: *** [CMakeFiles/Makefile2:643: CMakeFiles/bsqpN128_flexiv_rizon10s.dir/all] Interrupt
+nvcc error   : 'ptxas' died due to signal 2 
+nvcc error   : 'ptxas' died due to signal 2 
+nvcc error   : 'ptxas' died due to signal 2 
+nvcc error   : 'ptxas' died due to signal 2 
+nvcc error   : 'ptxas' died due to signal 2 
+nvcc error   : 'ptxas' died due to signal 2 
+nvcc error   : 'ptxas' died due to signal 2 
+nvcc error   : 'ptxas' died due to signal 2 
+gmake[2]: *** [CMakeFiles/bsqpN64_indy7.dir/build.make:76: CMakeFiles/bsqpN64_indy7.dir/python/bindings.cu.o] Interrupt
+gmake[1]: *** [CMakeFiles/Makefile2:227: CMakeFiles/bsqpN64_indy7.dir/all] Interrupt
+gmake[2]: *** [CMakeFiles/bsqpN128_iiwa14.dir/build.make:76: CMakeFiles/bsqpN128_iiwa14.dir/python/bindings.cu.o] Interrupt
+gmake[1]: *** [CMakeFiles/Makefile2:383: CMakeFiles/bsqpN128_iiwa14.dir/all] Interrupt
+gmake[2]: *** [CMakeFiles/bsqpN32_iiwa14.dir/build.make:76: CMakeFiles/bsqpN32_iiwa14.dir/python/bindings.cu.o] Interrupt
+gmake[1]: *** [CMakeFiles/Makefile2:331: CMakeFiles/bsqpN32_iiwa14.dir/all] Interrupt
+gmake[2]: *** [CMakeFiles/bsqpN64_flexiv_rizon10s.dir/build.make:76: CMakeFiles/bsqpN64_flexiv_rizon10s.dir/python/bindings.cu.o] Interrupt
+gmake[1]: *** [CMakeFiles/Makefile2:617: CMakeFiles/bsqpN64_flexiv_rizon10s.dir/all] Interrupt
+gmake[2]: *** [CMakeFiles/bsqpN8_flexiv_rizon10s.dir/build.make:76: CMakeFiles/bsqpN8_flexiv_rizon10s.dir/python/bindings.cu.o] Interrupt
+gmake[1]: *** [CMakeFiles/Makefile2:539: CMakeFiles/bsqpN8_flexiv_rizon10s.dir/all] Interrupt
+gmake[2]: *** [CMakeFiles/bsqpN32_flexiv_rizon4s.dir/build.make:76: CMakeFiles/bsqpN32_flexiv_rizon4s.dir/python/bindings.cu.o] Interrupt
+gmake[1]: *** [CMakeFiles/Makefile2:461: CMakeFiles/bsqpN32_flexiv_rizon4s.dir/all] Interrupt
+gmake[2]: *** [CMakeFiles/bsqpN16_flexiv_rizon4s.dir/build.make:76: CMakeFiles/bsqpN16_flexiv_rizon4s.dir/python/bindings.cu.o] Interrupt
+gmake[1]: *** [CMakeFiles/Makefile2:435: CMakeFiles/bsqpN16_flexiv_rizon4s.dir/all] Interrupt
+gmake[2]: *** [CMakeFiles/bsqpN64_flexiv_rizon4s.dir/build.make:76: CMakeFiles/bsqpN64_flexiv_rizon4s.dir/python/bindings.cu.o] Interrupt
+gmake[1]: *** [CMakeFiles/Makefile2:487: CMakeFiles/bsqpN64_flexiv_rizon4s.dir/all] Interrupt
+nvcc error   : '"$CICC_PATH/cicc"' died due to signal 2 
+nvcc error   : '"$CICC_PATH/cicc"' died due to signal 2 
+gmake[2]: *** [CMakeFiles/bsqpN16_indy7.dir/build.make:76: CMakeFiles/bsqpN16_indy7.dir/python/bindings.cu.o] Interrupt
+gmake[1]: *** [CMakeFiles/Makefile2:175: CMakeFiles/bsqpN16_indy7.dir/all] Interrupt
+gmake[2]: *** [CMakeFiles/bsqpN128_indy7.dir/build.make:76: CMakeFiles/bsqpN128_indy7.dir/python/bindings.cu.o] Interrupt
+gmake[1]: *** [CMakeFiles/Makefile2:253: CMakeFiles/bsqpN128_indy7.dir/all] Interrupt
+gmake: *** [Makefile:136: all] Interrupt

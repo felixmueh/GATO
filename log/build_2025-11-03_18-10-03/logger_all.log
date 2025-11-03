@@ -1,0 +1,64 @@
+[0.068s] [34mcolcon[0m [1;30mDEBUG[0m [32mCommand line arguments: ['/home/gabriel/miniconda3/envs/GATO6/bin/colcon', 'build', '--merge-install', '--install-base', '/home/gabriel/miniconda3/envs/GATO6', '--cmake-args', '-DCMAKE_BUILD_TYPE=Release', '-DPYBIND11_TEST=OFF', '-DBUILD_TESTING=OFF', '-DPYTHON_EXECUTABLE=/home/gabriel/miniconda3/envs/GATO6/bin/python', '-DCMAKE_CUDA_COMPILER=/usr/local/cuda-12.6/bin/nvcc'][0m
+[0.068s] [34mcolcon[0m [1;30mDEBUG[0m [32mParsed command line arguments: Namespace(log_base=None, log_level=None, verb_name='build', build_base='build', install_base='/home/gabriel/miniconda3/envs/GATO6', merge_install=True, symlink_install=False, test_result_base=None, continue_on_error=False, executor='parallel', parallel_workers=24, event_handlers=None, ignore_user_meta=False, metas=['./colcon.meta'], base_paths=['.'], packages_ignore=None, packages_ignore_regex=None, paths=None, packages_up_to=None, packages_up_to_regex=None, packages_above=None, packages_above_and_dependencies=None, packages_above_depth=None, packages_select_by_dep=None, packages_skip_by_dep=None, packages_skip_up_to=None, packages_select_build_failed=False, packages_skip_build_finished=False, packages_select_test_failures=False, packages_skip_test_passed=False, packages_select=None, packages_skip=None, packages_select_regex=None, packages_skip_regex=None, packages_start=None, packages_end=None, cmake_args=['-DCMAKE_BUILD_TYPE=Release', '-DPYBIND11_TEST=OFF', '-DBUILD_TESTING=OFF', '-DPYTHON_EXECUTABLE=/home/gabriel/miniconda3/envs/GATO6/bin/python', '-DCMAKE_CUDA_COMPILER=/usr/local/cuda-12.6/bin/nvcc'], cmake_target=None, cmake_target_skip_unavailable=False, cmake_clean_cache=False, cmake_clean_first=False, cmake_force_configure=False, ament_cmake_args=None, catkin_cmake_args=None, catkin_skip_building_tests=False, verb_parser=<colcon_defaults.argument_parser.defaults.DefaultArgumentsDecorator object at 0x7f67c8cb3820>, verb_extension=<colcon_core.verb.build.BuildVerb object at 0x7f67c8df81c0>, main=<bound method BuildVerb.main of <colcon_core.verb.build.BuildVerb object at 0x7f67c8df81c0>>)[0m
+[0.086s] [34mcolcon.colcon_core.package_discovery[0m [1;30mLevel 1[0m discover_packages(colcon_meta) check parameters
+[0.086s] [34mcolcon.colcon_core.package_discovery[0m [1;30mLevel 1[0m discover_packages(recursive) check parameters
+[0.086s] [34mcolcon.colcon_core.package_discovery[0m [1;30mLevel 1[0m discover_packages(ignore) check parameters
+[0.086s] [34mcolcon.colcon_core.package_discovery[0m [1;30mLevel 1[0m discover_packages(path) check parameters
+[0.086s] [34mcolcon.colcon_core.package_discovery[0m [1;30mLevel 1[0m discover_packages(colcon_meta) discover
+[0.086s] [34mcolcon.colcon_core.package_discovery[0m [1;30mLevel 1[0m discover_packages(recursive) discover
+[0.086s] [34mcolcon.colcon_core.package_discovery[0m [1;30mINFO[0m Crawling recursively for packages in '/home/gabriel/workspace_iiwa/src/GATO'
+[0.086s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(.) by extensions ['ignore', 'ignore_ament_install']
+[0.086s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(.) by extension 'ignore'
+[0.086s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(.) by extension 'ignore_ament_install'
+[0.086s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(.) by extensions ['colcon_pkg']
+[0.086s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(.) by extension 'colcon_pkg'
+[0.086s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(.) by extensions ['colcon_meta']
+[0.086s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(.) by extension 'colcon_meta'
+[0.086s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(.) by extensions ['ros']
+[0.086s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(.) by extension 'ros'
+[0.099s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(.) by extensions ['cmake', 'python']
+[0.099s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(.) by extension 'cmake'
+[0.100s] [34mcolcon.colcon_core.package_identification[0m [1;30mLevel 1[0m _identify(.) by extension 'python'
+[0.100s] [34mcolcon.colcon_core.package_identification[0m [1;30mDEBUG[0m [32mPackage '.' with type 'cmake' and name 'GATO'[0m
+[0.100s] [34mcolcon.colcon_core.package_discovery[0m [1;30mLevel 1[0m discover_packages(recursive) using defaults
+[0.100s] [34mcolcon.colcon_core.package_discovery[0m [1;30mLevel 1[0m discover_packages(ignore) discover
+[0.100s] [34mcolcon.colcon_core.package_discovery[0m [1;30mLevel 1[0m discover_packages(ignore) using defaults
+[0.100s] [34mcolcon.colcon_core.package_discovery[0m [1;30mLevel 1[0m discover_packages(path) discover
+[0.100s] [34mcolcon.colcon_core.package_discovery[0m [1;30mLevel 1[0m discover_packages(path) using defaults
+[0.108s] [34mcolcon.colcon_core.verb[0m [1;30mLevel 5[0m set package 'GATO' build argument 'cmake_args' from command line to '['-DCMAKE_BUILD_TYPE=Release', '-DPYBIND11_TEST=OFF', '-DBUILD_TESTING=OFF', '-DPYTHON_EXECUTABLE=/home/gabriel/miniconda3/envs/GATO6/bin/python', '-DCMAKE_CUDA_COMPILER=/usr/local/cuda-12.6/bin/nvcc']'
+[0.108s] [34mcolcon.colcon_core.verb[0m [1;30mLevel 5[0m set package 'GATO' build argument 'cmake_target' from command line to 'None'
+[0.108s] [34mcolcon.colcon_core.verb[0m [1;30mLevel 5[0m set package 'GATO' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[0.108s] [34mcolcon.colcon_core.verb[0m [1;30mLevel 5[0m set package 'GATO' build argument 'cmake_clean_cache' from command line to 'False'
+[0.108s] [34mcolcon.colcon_core.verb[0m [1;30mLevel 5[0m set package 'GATO' build argument 'cmake_clean_first' from command line to 'False'
+[0.108s] [34mcolcon.colcon_core.verb[0m [1;30mLevel 5[0m set package 'GATO' build argument 'cmake_force_configure' from command line to 'False'
+[0.108s] [34mcolcon.colcon_core.verb[0m [1;30mLevel 5[0m set package 'GATO' build argument 'ament_cmake_args' from command line to 'None'
+[0.108s] [34mcolcon.colcon_core.verb[0m [1;30mLevel 5[0m set package 'GATO' build argument 'catkin_cmake_args' from command line to 'None'
+[0.108s] [34mcolcon.colcon_core.verb[0m [1;30mLevel 5[0m set package 'GATO' build argument 'catkin_skip_building_tests' from command line to 'False'
+[0.108s] [34mcolcon.colcon_core.verb[0m [1;30mDEBUG[0m [32mBuilding package 'GATO' with the following arguments: {'ament_cmake_args': None, 'build_base': '/home/gabriel/workspace_iiwa/src/GATO/build/GATO', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': ['-DCMAKE_BUILD_TYPE=Release', '-DPYBIND11_TEST=OFF', '-DBUILD_TESTING=OFF', '-DPYTHON_EXECUTABLE=/home/gabriel/miniconda3/envs/GATO6/bin/python', '-DCMAKE_CUDA_COMPILER=/usr/local/cuda-12.6/bin/nvcc'], 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/home/gabriel/miniconda3/envs/GATO6', 'merge_install': True, 'path': '/home/gabriel/workspace_iiwa/src/GATO', 'symlink_install': False, 'test_result_base': None}[0m
+[0.108s] [34mcolcon.colcon_core.executor[0m [1;30mINFO[0m Executing jobs using 'parallel' executor
+[0.108s] [34mcolcon.colcon_parallel_executor.executor.parallel[0m [1;30mDEBUG[0m [32mrun_until_complete[0m
+[0.108s] [34mcolcon.colcon_cmake.task.cmake.build[0m [1;30mINFO[0m Building CMake package in '/home/gabriel/workspace_iiwa/src/GATO'
+[0.110s] [34mcolcon.colcon_core.plugin_system[0m [1;30mINFO[0m Skipping extension 'colcon_core.shell.bat': Not used on non-Windows systems
+[0.110s] [34mcolcon.colcon_core.shell[0m [1;30mINFO[0m Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[0.110s] [34mcolcon.colcon_core.shell[0m [1;30mDEBUG[0m [32mSkip shell extension 'dsv' for command environment[0m
+[0.115s] [34mcolcon.colcon_core.event_handler.log_command[0m [1;30mDEBUG[0m [32mInvoking command in '/home/gabriel/workspace_iiwa/src/GATO/build/GATO': CONDA_PROMPT_MODIFIER=(GATO6) /home/gabriel/miniconda3/envs/GATO6/bin/cmake /home/gabriel/workspace_iiwa/src/GATO -DCMAKE_BUILD_TYPE=Release -DPYBIND11_TEST=OFF -DBUILD_TESTING=OFF -DPYTHON_EXECUTABLE=/home/gabriel/miniconda3/envs/GATO6/bin/python -DCMAKE_CUDA_COMPILER=/usr/local/cuda-12.6/bin/nvcc -DCMAKE_INSTALL_PREFIX=/home/gabriel/miniconda3/envs/GATO6[0m
+[2.045s] [34mcolcon.colcon_core.event_handler.log_command[0m [1;30mDEBUG[0m [32mInvoked command in '/home/gabriel/workspace_iiwa/src/GATO/build/GATO' returned '0': CONDA_PROMPT_MODIFIER=(GATO6) /home/gabriel/miniconda3/envs/GATO6/bin/cmake /home/gabriel/workspace_iiwa/src/GATO -DCMAKE_BUILD_TYPE=Release -DPYBIND11_TEST=OFF -DBUILD_TESTING=OFF -DPYTHON_EXECUTABLE=/home/gabriel/miniconda3/envs/GATO6/bin/python -DCMAKE_CUDA_COMPILER=/usr/local/cuda-12.6/bin/nvcc -DCMAKE_INSTALL_PREFIX=/home/gabriel/miniconda3/envs/GATO6[0m
+[2.047s] [34mcolcon.colcon_core.event_handler.log_command[0m [1;30mDEBUG[0m [32mInvoking command in '/home/gabriel/workspace_iiwa/src/GATO/build/GATO': CONDA_PROMPT_MODIFIER=(GATO6) /home/gabriel/miniconda3/envs/GATO6/bin/cmake --build /home/gabriel/workspace_iiwa/src/GATO/build/GATO -- -j24 -l24[0m
+[180.064s] [34mcolcon.colcon_parallel_executor.executor.parallel[0m [1;30mDEBUG[0m [32mrun_until_complete was interrupted[0m
+[180.072s] [34mcolcon.colcon_parallel_executor.executor.parallel[0m [1;30mDEBUG[0m [32mrun_until_complete again[0m
+[180.196s] [34mcolcon.colcon_core.event_handler.log_command[0m [1;30mDEBUG[0m [32mInvoked command in '/home/gabriel/workspace_iiwa/src/GATO/build/GATO' returned '-2': CONDA_PROMPT_MODIFIER=(GATO6) /home/gabriel/miniconda3/envs/GATO6/bin/cmake --build /home/gabriel/workspace_iiwa/src/GATO/build/GATO -- -j24 -l24[0m
+[180.198s] [34mcolcon.colcon_parallel_executor.executor.parallel[0m [1;30mDEBUG[0m [32mrun_until_complete finished[0m
+[180.198s] [34mcolcon.colcon_parallel_executor.executor.parallel[0m [1;30mDEBUG[0m [32mclosing loop[0m
+[180.198s] [34mcolcon.colcon_parallel_executor.executor.parallel[0m [1;30mDEBUG[0m [32mloop closed[0m
+[180.198s] [34mcolcon.colcon_core.event_reactor[0m [1;30mDEBUG[0m [32mjoining thread[0m
+[180.198s] [34mcolcon.colcon_core.event_reactor[0m [1;30mDEBUG[0m [32mjoined thread[0m
+[180.199s] [34mcolcon.colcon_core.shell[0m [1;30mINFO[0m Creating prefix script '/home/gabriel/miniconda3/envs/GATO6/local_setup.ps1'
+[180.199s] [34mcolcon.colcon_core.shell[0m [1;30mINFO[0m Creating prefix util module '/home/gabriel/miniconda3/envs/GATO6/_local_setup_util_ps1.py'
+[180.201s] [34mcolcon.colcon_core.shell[0m [1;30mINFO[0m Creating prefix chain script '/home/gabriel/miniconda3/envs/GATO6/setup.ps1'
+[180.201s] [34mcolcon.colcon_core.shell[0m [1;30mINFO[0m Creating prefix script '/home/gabriel/miniconda3/envs/GATO6/local_setup.sh'
+[180.201s] [34mcolcon.colcon_core.shell[0m [1;30mINFO[0m Creating prefix util module '/home/gabriel/miniconda3/envs/GATO6/_local_setup_util_sh.py'
+[180.202s] [34mcolcon.colcon_core.shell[0m [1;30mINFO[0m Creating prefix chain script '/home/gabriel/miniconda3/envs/GATO6/setup.sh'
+[180.202s] [34mcolcon.colcon_core.shell[0m [1;30mINFO[0m Creating prefix script '/home/gabriel/miniconda3/envs/GATO6/local_setup.bash'
+[180.203s] [34mcolcon.colcon_core.shell[0m [1;30mINFO[0m Creating prefix chain script '/home/gabriel/miniconda3/envs/GATO6/setup.bash'
+[180.203s] [34mcolcon.colcon_core.shell[0m [1;30mINFO[0m Creating prefix script '/home/gabriel/miniconda3/envs/GATO6/local_setup.zsh'
+[180.203s] [34mcolcon.colcon_core.shell[0m [1;30mINFO[0m Creating prefix chain script '/home/gabriel/miniconda3/envs/GATO6/setup.zsh'

@@ -18,7 +18,7 @@ from bsqp.mpc_controller import MPC_GATO
 from bsqp.config import (
     PICKPLACE_DEFAULT_GOALS, 
     PENDULUM_DEFAULT_PARAMS, 
-    FLEXIV_RIZON_4S_START_CONFIGS, 
+    FLEXIV_RIZON_10S_START_CONFIGS, 
     PICKPLACE_SOLVER_PARAMS
 )
 
@@ -108,11 +108,11 @@ goals = PICKPLACE_DEFAULT_GOALS
 total_time = len(goals) * 5.0
 
 # Starting configuration
-x_start = np.hstack((FLEXIV_RIZON_4S_START_CONFIGS['zero'], np.zeros(7)))
+x_start = np.hstack((FLEXIV_RIZON_10S_START_CONFIGS['zero'], np.zeros(7)))
 
 # Pendulum configuration
 pendulum_config = PENDULUM_DEFAULT_PARAMS.copy()
-print(f"Robot: Flexiv Rizon 4s (7-DOF)")
+print(f"Robot: Flexiv Rizon 10s (7-DOF)")
 print(f"Goals: {len(goals)}")
 print(f"MPC: N={N}, dt={dt}s")
 print(f"Pendulum: mass={pendulum_config['mass']}kg, length={pendulum_config['length']}m")

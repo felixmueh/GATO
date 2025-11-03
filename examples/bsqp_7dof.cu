@@ -8,7 +8,7 @@ int main()
 {
     // Define constants
     const uint32_t BatchSize = 16;
-    const uint32_t TRAJ_SIZE = ((12 + 6) * (BatchSize - 1) + 12);
+    const uint32_t TRAJ_SIZE = ((14 + 7) * (BatchSize - 1) + 14 );
 
     T        dt = 0.03;
     uint32_t N = 16;
@@ -23,37 +23,37 @@ int main()
     BSQP<T, 16> bsqp(dt, max_sqp_iters, kkt_tol, max_pcg_iters, pcg_tol, solve_ratio, mu, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
 
     // Generate synthetic reference trajectory data instead of loading from file
-    std::vector<T> reference_traj(7 * N * batch_size, 0.0);
+    std::vector<T> reference_traj(6 * N * batch_size, 0.0);
     // Fill with some simple pattern
     for (uint32_t i = 0; i < reference_traj.size(); i++) {
-        reference_traj[i] = 0.1 * (i % 7);
+        reference_traj[i] = 0.1 * (i % 6);
     }
     
     T* d_reference_traj_batch;
-    gpuErrchk(cudaMalloc(&d_reference_traj_batch, 7 * N * batch_size * sizeof(T)));
-    gpuErrchk(cudaMemcpy(d_reference_traj_batch, reference_traj.data(), 7 * N * batch_size * sizeof(T), cudaMemcpyHostToDevice));
+    gpuErrchk(cudaMalloc(&d_reference_traj_batch, 6 * N * batch_size * sizeof(T)));
+    gpuErrchk(cudaMemcpy(d_reference_traj_batch, reference_traj.data(), 6 * N * batch_size * sizeof(T), cudaMemcpyHostToDevice));
 
     // Use sample initial state
     std::vector<T> x_0 = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-    std::vector<T> x_0_batch(14 * batch_size);
-    for (uint32_t i = 0; i < batch_size; i++) { std::copy(x_0.begin(), x_0.end(), x_0_batch.begin() + i * 14); }
+    std::vector<T> x_0_batch(14  * batch_size);
+    for (uint32_t i = 0; i < batch_size; i++) { std::copy(x_0.begin(), x_0.end(), x_0_batch.begin() + i * 14 ); }
     T* d_x_0_batch;
-    gpuErrchk(cudaMalloc(&d_x_0_batch, 14 * batch_size * sizeof(T)));
-    gpuErrchk(cudaMemcpy(d_x_0_batch, x_0_batch.data(), 14 * batch_size * sizeof(T), cudaMemcpyHostToDevice));
+    gpuErrchk(cudaMalloc(&d_x_0_batch, 14  * batch_size * sizeof(T)));
+    gpuErrchk(cudaMemcpy(d_x_0_batch, x_0_batch.data(), 14  * batch_size * sizeof(T), cudaMemcpyHostToDevice));
 
     std::vector<T> zeros(7, 0);
-    std::vector<T> xu_traj_batch((14 + 7) * (N - 1) * batch_size + 14 * batch_size);
+    std::vector<T> xu_traj_batch((14 + 7) * (N - 1) * batch_size + 14  * batch_size);
     for (uint32_t b = 0; b < batch_size; b++) {
             for (uint32_t i = 0; i < N - 1; i++) {
-                    std::copy(x_0.begin(), x_0.end(), xu_traj_batch.begin() + b * ((14 + 7) * (N - 1) + 14) + i * (14 + 7));
-                    std::copy(zeros.begin(), zeros.end(), xu_traj_batch.begin() + b * ((14 + 7) * (N - 1) + 14) + i * (14 + 7) + 14);
+                    std::copy(x_0.begin(), x_0.end(), xu_traj_batch.begin() + b * ((14 + 7) * (N - 1) + 14 ) + i * (14 + 7));
+                    std::copy(zeros.begin(), zeros.end(), xu_traj_batch.begin() + b * ((14 + 7) * (N - 1) + 14 ) + i * (14 + 7) + 14 );
             }
-            std::copy(x_0.begin(), x_0.end(), xu_traj_batch.begin() + b * ((14 + 7) * (N - 1) + 14) + (N - 1) * (14 + 7));
+            std::copy(x_0.begin(), x_0.end(), xu_traj_batch.begin() + b * ((14 + 7) * (N - 1) + 14 ) + (N - 1) * (14 + 7));
     }
 
     T* d_xu_traj_batch;
-    gpuErrchk(cudaMalloc(&d_xu_traj_batch, ((14 + 7) * (N - 1) + 14) * batch_size * sizeof(T)));
-    gpuErrchk(cudaMemcpy(d_xu_traj_batch, xu_traj_batch.data(), ((14 + 7) * (N - 1) + 14) * batch_size * sizeof(T), cudaMemcpyHostToDevice));
+    gpuErrchk(cudaMalloc(&d_xu_traj_batch, ((14 + 7) * (N - 1) + 14 ) * batch_size * sizeof(T)));
+    gpuErrchk(cudaMemcpy(d_xu_traj_batch, xu_traj_batch.data(), ((14 + 7) * (N - 1) + 14 ) * batch_size * sizeof(T), cudaMemcpyHostToDevice));
 
     ProblemInputs<T, BatchSize> inputs;
     inputs.timestep = dt;
