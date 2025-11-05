@@ -94,7 +94,7 @@ np.set_printoptions(linewidth=200)
 np.random.seed(42)
 
 #  Robot model
-urdf_path = "flexiv_description/flexiv_rizon4s_kinematics_vz.urdf"
+urdf_path = "flexiv_description/flexiv_rizon4s_kinematics_zaxis.urdf"
 model_dir = "flexiv_description/"
 robot = RobotWrapper.BuildFromURDF(urdf_path, model_dir)
 

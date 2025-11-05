@@ -161,6 +161,12 @@ class MPC_GATO:
         x_curr = x_start
         q = x_start[:self.nq]
         dq = x_start[self.nq:self.nx]
+
+        ee_pos = self.solver.ee_pos(q)
+
+        # Print starting state
+        print(f"Starting joint positions: [{q[0]:.4f}, {q[1]:.4f}, {q[2]:.4f}, {q[3]:.4f}, {q[4]:.4f}, {q[5]:.4f}, {q[6]:.4f}]rad")
+        print(f"Starting EE position: [{ee_pos[0]:.4f}, {ee_pos[1]:.4f}, {ee_pos[2]:.4f}]m")
         
         # Prepare batch inputs
         x_curr_batch = np.tile(x_curr, (self.batch_size, 1))
@@ -238,7 +244,11 @@ class MPC_GATO:
             solve_time = time.time() - start
             
             # Select best trajectory
-            best_id = self.evaluate_best_trajectory(x_last, u_last, x_curr, max(sim_dt, round(timestep / sim_dt) * sim_dt))
+            best_id = self.evaluate_best_trajectory(
+                x_last, 
+                u_last, 
+                x_curr, 
+                max(sim_dt, round(timestep / sim_dt) * sim_dt))
             XU_best = XU_batch_new[best_id, :]
             XU_batch[:, :] = XU_best
             
