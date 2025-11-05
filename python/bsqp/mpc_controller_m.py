@@ -560,6 +560,30 @@ class MPC_GATO:
         q = x_curr[:self.nq]
         dq = x_curr[self.nq:]
 
+        # Simulate forward with current control
+        timestep = self.dt
+        nsteps = int(timestep/sim_dt)
+        
+        for i in range(nsteps):
+            offset = int(i/(self.dt/sim_dt))
+            u_idx = self.nx + (self.nx+self.nu)*min(offset, self.N-1)
+            u = XU_best[u_idx:u_idx+self.nu]
+            q, dq = rk4(self.model, self.data, q, dq, u, sim_dt, self.actual_f_ext)
+            total_sim_time += sim_dt
+            
+        # Handle residual time
+        if timestep % sim_dt > 1e-5:
+            accumulated_time += timestep % sim_dt
+            if accumulated_time >= sim_dt:
+                accumulated_time = 0.0
+                offset = int(nsteps/(self.dt/sim_dt))
+                u_idx = self.nx + (self.nx+self.nu)*min(offset, self.N-1)
+                u = XU_best[u_idx:u_idx+self.nu]
+                q, dq = rk4(self.model, self.data, q, dq, u, sim_dt, self.actual_f_ext)
+                total_sim_time += sim_dt
+                
+        x_curr = np.concatenate([q, dq])
+
         # Check if trajectory is complete
         eepos_offset = int(total_sim_time / self.dt)
         if eepos_offset >= len(fig8_traj)/6 - 6*self.N:
@@ -575,10 +599,17 @@ class MPC_GATO:
         self.update_force_batch(q)
         self.solver.reset_rho()
         
-        XU_batch_new, gpu_solve_time = self.solver.solve(x_curr_batch, ee_g_batch, XU_batch)
+        XU_batch_new, gpu_solve_time = self.solver.solve(
+            x_curr_batch, 
+            ee_g_batch, 
+            XU_batch)
         
         # Select best trajectory
-        best_id = self.evaluate_best_trajectory(x_last, u_last, x_curr, max(sim_dt, round(timestep / sim_dt) * sim_dt))
+        best_id = self.evaluate_best_trajectory(
+            x_last, 
+            u_last, 
+            x_curr, 
+            max(sim_dt, round(timestep / sim_dt) * sim_dt))
         XU_best = XU_batch_new[best_id, :]
         XU_batch[:, :] = XU_best
 
@@ -586,10 +617,21 @@ class MPC_GATO:
         ee_pos = self.solver.ee_pos(q)
         goal_dist = np.linalg.norm(ee_pos[:3] - ee_g[6:9])
 
+        stats['timestamps'].append(total_sim_time)
+        stats['solve_times'].append(gpu_solve_time/1000.0)  # Convert to ms
         stats['goal_distances'].append(goal_dist)
         stats['ee_actual'].append(ee_pos.copy())
         stats['joint_positions'].append(q.copy())
         stats['joint_velocities'].append(dq.copy())
+
+        if self.track_full_stats:
+                solver_stats = self.solver.get_stats()
+                # Get first element from batch for sqp_iters
+                sqp_iters = solver_stats['sqp_iters']
+                if isinstance(sqp_iters, np.ndarray):
+                    stats['sqp_iters'].append(int(sqp_iters[0]))
+                else:
+                    stats['sqp_iters'].append(int(sqp_iters))
 
         return XU_best, XU_batch, run_flag  
 

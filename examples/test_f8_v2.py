@@ -103,35 +103,30 @@ for batch_size in config['batch_sizes']:
         ee_g
     )
 
-    mpc_flag = True
+    XU_batch = ws_XU_batch
+    XU_best = ws_XU_best
 
-    mpc_state = MPCState(x_curr=x_curr,
-                         x_last=np.zeros_like(x_curr),
-                         u_last=np.zeros_like(ws_XU_best[mpc.nx:mpc.nx + mpc.nu]),
-                         XU_batch=ws_XU_batch,
-                         XU_best=ws_XU_best,
-                         ee_g=ee_g,
-                         ee_g_batch=ee_g_batch,
-                         total_sim_time=0.0,
-                         current_goal_idx=0,
-                         goal_start_time=0.0
-                         )
-    while mpc_flag == True and mpc_state.total_sim_time < config['sim_time']:
+    mpc_flag = True     
+    total_sim_time = 0.0
 
-        mpc_state.x_last = mpc_state.x_curr
-        mpc_state.u_last = mpc_state.u_last
+    while mpc_flag == True and total_sim_time < config['sim_time']:
+
+        x_last = x_curr
+        u_last = XU_best[mpc.nx:mpc.nx + mpc.nu]
 
         # Run MPC for the current goal
-        mpc_flag = mpc.srun_mpc_figure8(
-            state=mpc_state,
-            goals=fig8_traj,
-            sim_dt=config['sim_dt'],
-            sim_time=config['sim_time'],
-            stats=stats
+        XU_best, XU_batch,mpc_flag = mpc.srun_mpc_figure8(
+            x_last,
+            u_last,
+            x_curr,
+            XU_batch,
+            ee_g_batch,
+            total_sim_time,
+            fig8_traj,
+            stats,
+            sim_dt=config['sim_dt']
         )
 
-        if mpc_flag == False:
-            break
     # Convert to numpy arrays
     for key in stats:
         if stats[key]:

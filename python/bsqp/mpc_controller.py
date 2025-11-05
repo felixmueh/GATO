@@ -240,7 +240,10 @@ class MPC_GATO:
             self.solver.reset_rho()
             
             start = time.time()
-            XU_batch_new, gpu_solve_time = self.solver.solve(x_curr_batch, ee_g_batch, XU_batch)
+            XU_batch_new, gpu_solve_time = self.solver.solve(
+                x_curr_batch, 
+                ee_g_batch, 
+                XU_batch)
             solve_time = time.time() - start
             
             # Select best trajectory

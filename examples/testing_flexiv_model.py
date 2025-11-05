@@ -3,10 +3,10 @@ import time
 import numpy as np
 import pinocchio as pin
 from pinocchio.visualize import MeshcatVisualizer
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-import meshcat.geometry as g
-import meshcat.transformations as tf
+# import matplotlib.pyplot as plt
+# from mpl_toolkits.mplot3d import Axes3D
+# import meshcat.geometry as g
+# import meshcat.transformations as tf
 
 from pinocchio.robot_wrapper import RobotWrapper
 
