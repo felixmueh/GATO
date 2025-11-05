@@ -49,3 +49,5 @@ python/gato.egg-info/
 uv.lock
 
 deprecated/
+
+plots/tracking_error_gato.py
