@@ -223,9 +223,11 @@ try:
         mpc_state.x_curr = np.hstack((np.array(s.q), np.array(s.dq)))
 
         # Run MPC for the current goal
-        mpc_flag = mpc_1.srun_mpc_goals(
+        mpc_flag = mpc_1.srun_mpc_figure8(
             state=mpc_state,
             goals=fig8_traj,
+            sim_dt=robot.dt,
+            sim_time=max_time,
             stats=mpc_stats_1
         )
 
@@ -256,6 +258,7 @@ try:
         robot.set_cmd(cmd)
 
         if args.mode == "sim":
+            dt = mpc_state.solve_time
             num_steps = int(dt // robot.dt)
             # print("num_steps", num_steps)
             for i in range(num_steps):
