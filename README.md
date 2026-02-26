@@ -22,17 +22,19 @@ Docker
 
 ```sh
 ./tools/docker.sh
-'''
+```
 
 Manual Installation
-'''sh
-git submodule update --init --recursive
-uv sync
+
+```sh
+uv sync                  # install Python dependencies into .venv
 source .venv/bin/activate
-docker build -t gato . # build image
+docker build -t gato .   # build image
 docker run -d -it --gpus all --network host -e DISPLAY=:0 -v $(pwd):/workspace -v /tmp/.X11-unix:/tmp/.X11-unix --name gato-container gato # run container
-docker exec -it gato-container bash # enter container
-docker exec -it --workdir /workspace gato-container bash # enter container in the workspace directory
+docker exec -it --workdir /workspace gato-container bash # enter container
+
+# inside the container, build the CUDA extensions:
+mkdir -p build && cd build && cmake .. && cmake --build . --parallel
 
 docker stop gato-container && docker rm gato-container # stop and remove
 ```
@@ -61,7 +63,8 @@ Built Python modules are written to `python/bsqp/` as `bsqpN{N}_{plant}.so`.
 ### Requirements
 
 - Ubuntu 22.04
-- CUDA 12.6
+- CUDA 12.9
+- CMake 3.24+
 - C++17
 - gcc 11.4.0
 - Python 3.10.12
@@ -80,12 +83,12 @@ See [batch_sqp.cu](examples/bsqp.cu) for a minimal example of a batched trajecto
 
 ```bibtex
 @misc{du2025gatogpuacceleratedbatchedtrajectory,
-      title={GATO: GPU-Accelerated and Batched Trajectory Optimization for Scalable Edge Model Predictive Control}, 
+      title={GATO: GPU-Accelerated and Batched Trajectory Optimization for Scalable Edge Model Predictive Control},
       author={Alexander Du and Emre Adabag and Gabriel Bravo and Brian Plancher},
       year={2025},
       eprint={2510.07625},
       archivePrefix={arXiv},
       primaryClass={cs.RO},
-      url={https://arxiv.org/abs/2510.07625}, 
+      url={https://arxiv.org/abs/2510.07625},
 }
 ```
