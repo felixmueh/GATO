@@ -4,8 +4,7 @@
 #include <cstdio>
 #include <iostream>
 
-#ifndef NDEBUG //disable gpuAssert in No Debug mode
-void gpuAssert(cudaError_t code, const char *file, int line, bool abort=true)
+inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=true)
 {
    if (code != cudaSuccess) 
    {
@@ -14,9 +13,6 @@ void gpuAssert(cudaError_t code, const char *file, int line, bool abort=true)
    }
 }
 #define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
-#else
-#define gpuErrchk(ans) ans
-#endif
 
 void printDeviceInfo() {
    int deviceCount = 0;
