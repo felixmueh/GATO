@@ -53,6 +53,12 @@ cmake --build . --parallel
 
 - `PLANT`: semicolon-separated list of plant targets (`indy7`, `iiwa14`).
 - `KNOTS`: semicolon-separated list of horizon lengths.
+- `CMAKE_CUDA_ARCHITECTURES`: override the default portable CUDA architecture
+  list when building for a specific GPU or deployment target.
+
+```sh
+cmake -S . -B build -DCMAKE_CUDA_ARCHITECTURES=61
+```
 
 Built Python modules are written to `python/bsqp/` as `bsqpN{N}_{plant}.so`.
 

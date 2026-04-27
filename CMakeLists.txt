@@ -3,6 +3,11 @@
 #
 
 cmake_minimum_required(VERSION 3.18)
+
+if(NOT DEFINED CMAKE_CUDA_ARCHITECTURES)
+  set(CMAKE_CUDA_ARCHITECTURES "61-real;75-real;86-real;89-real;89-virtual")
+endif()
+
 project(GATO LANGUAGES CXX CUDA)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -20,8 +25,6 @@ set(CMAKE_CXX_FLAGS_DEBUG
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -fPIC -DNDEBUG")
 set(CMAKE_CUDA_FLAGS_DEBUG "${CMAKE_CUDA_FLAGS_DEBUG} -G -g")
 set(CMAKE_CUDA_FLAGS_RELEASE "${CMAKE_CUDA_FLAGS_RELEASE} -use_fast_math -O3")
-
-set(CMAKE_CUDA_ARCHITECTURES 89 86 75)
 message(STATUS "Targeting CUDA Architectures: ${CMAKE_CUDA_ARCHITECTURES}")
 
 find_package(Python3 REQUIRED COMPONENTS Interpreter Development NumPy)
