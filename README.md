@@ -61,6 +61,10 @@ cmake -S . -B build -DCMAKE_CUDA_ARCHITECTURES=61
 ```
 
 Built Python modules are written to `python/bsqp/` as `bsqpN{N}_{plant}.so`.
+After `./tools/build.sh`, the repo also runs `./tools/test_cuda_compatibility.sh`
+to validate that the built artifacts are compatible with the currently visible
+GPU. Set `GATO_SKIP_CUDA_COMPATIBILITY_TEST=1` to skip that validation when
+needed.
 
 ### Reference Environment
 
