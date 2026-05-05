@@ -49,3 +49,8 @@ python/gato.egg-info/
 uv.lock
 
 deprecated/
+
+*.md
+!README.md
+felixtools/
+.githooks/
