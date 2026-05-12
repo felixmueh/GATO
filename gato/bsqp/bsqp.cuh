@@ -5,12 +5,18 @@
 #include <chrono>
 #include <vector>
 #include <cstring>
+#include <cstdlib>
+#include <fstream>
+#include <sstream>
 #include "settings.h"
 #include "constants.h"
 #include "types.cuh"
 #include "kernels/setup_kkt.cuh"
 #include "kernels/schur_linsys.cuh"
 #include "kernels/pcg.cuh"
+#if defined(GATO_LINSYS_QDLDL)
+#include "kernels/qdldl_linsys.cuh"
+#endif
 #include "kernels/merit.cuh"
 #include "kernels/line_search.cuh"
 #include "kernels/sim.cuh"
@@ -24,7 +30,7 @@ class BSQP {
         BSQP()
             : dt_(0.01), max_sqp_iters_(5), kkt_tol_(0.0001), max_pcg_iters_(100), pcg_tol_(1e-5), solve_ratio_(1.0), mu_(10.0), 
               q_cost_(1.0), qd_cost_(1e-3), u_cost_(1e-6), N_cost_(50.0), q_lim_cost_(1e-3), vel_lim_cost_(0.0), ctrl_lim_cost_(0.0), 
-              rho_(1e-3), adapt_rho_(true)
+              rho_(1e-3), adapt_rho_(true), debug_schur_dump_count_(0)
         {
                 gpuErrchk(cudaStreamCreate(&stream_));
                 allocateMemory();
@@ -43,7 +49,7 @@ class BSQP {
 
         BSQP(T dt, uint32_t max_sqp_iters, T kkt_tol, uint32_t max_pcg_iters, T pcg_tol, T solve_ratio, T mu, T q_cost, T qd_cost, T u_cost, T N_cost, T q_lim_cost, T vel_lim_cost, T ctrl_lim_cost, T rho)
             : dt_(dt), max_sqp_iters_(max_sqp_iters), kkt_tol_(kkt_tol), max_pcg_iters_(max_pcg_iters), pcg_tol_(pcg_tol), solve_ratio_(solve_ratio), mu_(mu), q_cost_(q_cost), qd_cost_(qd_cost),
-              u_cost_(u_cost), N_cost_(N_cost), q_lim_cost_(q_lim_cost), vel_lim_cost_(vel_lim_cost), ctrl_lim_cost_(ctrl_lim_cost), rho_(rho), adapt_rho_(true)
+              u_cost_(u_cost), N_cost_(N_cost), q_lim_cost_(q_lim_cost), vel_lim_cost_(vel_lim_cost), ctrl_lim_cost_(ctrl_lim_cost), rho_(rho), adapt_rho_(true), debug_schur_dump_count_(0)
         {
                 gpuErrchk(cudaStreamCreate(&stream_));
                 allocateMemory();
@@ -124,8 +130,52 @@ class BSQP {
                         setupKKTSystemBatched<T, BatchSize>(kkt_system_batch_, inputs, d_xu_traj_batch, d_f_ext_batch_, d_GRiD_mem_, q_cost_, qd_cost_, u_cost_, N_cost_, q_lim_cost_, vel_lim_cost_, ctrl_lim_cost_, stream_);
                         formSchurSystemBatched<T, BatchSize>(schur_system_batch_, kkt_system_batch_, d_rho_penalty_batch_, stream_);
 
+                        std::vector<T> debug_lambda_before;
+                        std::vector<T> debug_trace_rho;
+                        std::vector<T> debug_trace_denom;
+                        std::vector<T> debug_trace_alpha;
+                        T*             d_debug_trace_rho = nullptr;
+                        T*             d_debug_trace_denom = nullptr;
+                        T*             d_debug_trace_alpha = nullptr;
+                        uint32_t       debug_trace_stride = 0;
+#if !defined(GATO_LINSYS_QDLDL)
+                        const bool debug_wants_dump = debugSchurDumpEnabled();
+                        if (debug_wants_dump && debugSchurShouldWatchIteration(i)) {
+                                debug_lambda_before.resize(VEC_SIZE_PADDED * BatchSize);
+                                gpuErrchk(cudaMemcpyAsync(debug_lambda_before.data(), d_lambda_batch_, debug_lambda_before.size() * sizeof(T), cudaMemcpyDeviceToHost, stream_));
+                                debug_trace_stride = max_pcg_iters_ + 1;
+                                const size_t trace_size = debug_trace_stride * BatchSize;
+                                debug_trace_rho.resize(trace_size, static_cast<T>(0));
+                                debug_trace_denom.resize(trace_size, static_cast<T>(0));
+                                debug_trace_alpha.resize(trace_size, static_cast<T>(0));
+                                gpuErrchk(cudaMalloc(&d_debug_trace_rho, trace_size * sizeof(T)));
+                                gpuErrchk(cudaMalloc(&d_debug_trace_denom, trace_size * sizeof(T)));
+                                gpuErrchk(cudaMalloc(&d_debug_trace_alpha, trace_size * sizeof(T)));
+                                gpuErrchk(cudaMemsetAsync(d_debug_trace_rho, 0, trace_size * sizeof(T), stream_));
+                                gpuErrchk(cudaMemsetAsync(d_debug_trace_denom, 0, trace_size * sizeof(T), stream_));
+                                gpuErrchk(cudaMemsetAsync(d_debug_trace_alpha, 0, trace_size * sizeof(T), stream_));
+                        }
+#endif
+
                         // gpuErrchk(cudaEventRecord(pcg_start_event_));
-                        solvePCGBatched<T, BatchSize>(d_lambda_batch_, schur_system_batch_, d_pcg_tol_batch_, max_pcg_iters_, d_kkt_converged_batch_, d_pcg_iterations_, stream_);
+#if defined(GATO_LINSYS_QDLDL)
+                        auto linsys_start_time = std::chrono::high_resolution_clock::now();
+                        gato::qdldl_linsys::solveQDLDLBatched<T, BatchSize>(d_lambda_batch_, schur_system_batch_, d_pcg_iterations_, stream_);
+                        gpuErrchk(cudaStreamSynchronize(stream_));
+                        auto linsys_end_time = std::chrono::high_resolution_clock::now();
+#else
+                        solvePCGBatched<T, BatchSize>(d_lambda_batch_,
+                                                      schur_system_batch_,
+                                                      d_pcg_tol_batch_,
+                                                      max_pcg_iters_,
+                                                      d_kkt_converged_batch_,
+                                                      d_pcg_iterations_,
+                                                      stream_,
+                                                      d_debug_trace_rho,
+                                                      d_debug_trace_denom,
+                                                      d_debug_trace_alpha,
+                                                      debug_trace_stride);
+#endif
                         // gpuErrchk(cudaEventRecord(pcg_stop_event_));
                         // gpuErrchk(cudaEventSynchronize(pcg_stop_event_));
 
@@ -137,7 +187,21 @@ class BSQP {
                         // gpuErrchk(cudaMemcpy(h_r_batch_, kkt_system_batch_.d_r_batch, CONTROL_P_KNOTS * BatchSize * sizeof(T), cudaMemcpyDeviceToHost));
 
                         gpuErrchk(cudaMemcpyAsync(pcg_stats.num_iterations.data(), d_pcg_iterations_, sizeof(uint32_t) * BatchSize, cudaMemcpyDeviceToHost, stream_));
+#if defined(GATO_LINSYS_QDLDL)
+                        pcg_stats.solve_time_us = std::chrono::duration_cast<std::chrono::microseconds>(linsys_end_time - linsys_start_time).count();
+#else
                         pcg_stats.solve_time_us = 0;
+                        if (debug_trace_stride > 0) {
+                                const size_t trace_size = debug_trace_stride * BatchSize;
+                                gpuErrchk(cudaMemcpyAsync(debug_trace_rho.data(), d_debug_trace_rho, trace_size * sizeof(T), cudaMemcpyDeviceToHost, stream_));
+                                gpuErrchk(cudaMemcpyAsync(debug_trace_denom.data(), d_debug_trace_denom, trace_size * sizeof(T), cudaMemcpyDeviceToHost, stream_));
+                                gpuErrchk(cudaMemcpyAsync(debug_trace_alpha.data(), d_debug_trace_alpha, trace_size * sizeof(T), cudaMemcpyDeviceToHost, stream_));
+                        }
+                        debugMaybeDumpSchur(i, debug_lambda_before, pcg_stats.num_iterations, debug_trace_rho, debug_trace_denom, debug_trace_alpha, debug_trace_stride);
+                        if (d_debug_trace_rho != nullptr) { gpuErrchk(cudaFree(d_debug_trace_rho)); }
+                        if (d_debug_trace_denom != nullptr) { gpuErrchk(cudaFree(d_debug_trace_denom)); }
+                        if (d_debug_trace_alpha != nullptr) { gpuErrchk(cudaFree(d_debug_trace_alpha)); }
+#endif
                         sqp_stats.pcg_stats.push_back(pcg_stats);
 
                         // KKT condition check on cpu is async with gpu
@@ -199,6 +263,111 @@ class BSQP {
         }
 
       private:
+        bool debugSchurDumpEnabled() const { return std::getenv("GATO_DEBUG_DUMP_SCHUR_DIR") != nullptr; }
+
+        bool debugSchurShouldWatchIteration(uint32_t sqp_iter) const
+        {
+                const char* target_iter = std::getenv("GATO_DEBUG_DUMP_SQP_ITER");
+                if (target_iter == nullptr) { return true; }
+                return sqp_iter == static_cast<uint32_t>(std::strtoul(target_iter, nullptr, 10));
+        }
+
+        static void debugWriteBinary(const std::string& path, const void* data, size_t bytes)
+        {
+                std::ofstream f(path, std::ios::binary);
+                f.write(static_cast<const char*>(data), static_cast<std::streamsize>(bytes));
+        }
+
+        void debugMaybeDumpSchur(uint32_t sqp_iter,
+                                 const std::vector<T>& lambda_before,
+                                 const std::vector<int>& pcg_iterations,
+                                 const std::vector<T>& trace_rho,
+                                 const std::vector<T>& trace_denom,
+                                 const std::vector<T>& trace_alpha,
+                                 uint32_t trace_stride)
+        {
+                const char* dump_dir_env = std::getenv("GATO_DEBUG_DUMP_SCHUR_DIR");
+                if (dump_dir_env == nullptr || !debugSchurShouldWatchIteration(sqp_iter)) { return; }
+
+                gpuErrchk(cudaStreamSynchronize(stream_));
+
+                const bool first_cap_only = std::getenv("GATO_DEBUG_DUMP_ALL_SCHUR") == nullptr;
+                bool hit_cap = false;
+                for (uint32_t b = 0; b < BatchSize; ++b) {
+                        if (pcg_iterations[b] >= static_cast<int>(max_pcg_iters_)) {
+                                hit_cap = true;
+                                break;
+                        }
+                }
+                if (first_cap_only && (!hit_cap || debug_schur_dump_count_ > 0)) { return; }
+
+                std::vector<T> h_S(B3D_MATRIX_SIZE_PADDED * BatchSize);
+                std::vector<T> h_P_inv(B3D_MATRIX_SIZE_PADDED * BatchSize);
+                std::vector<T> h_gamma(VEC_SIZE_PADDED * BatchSize);
+                std::vector<T> h_lambda_after(VEC_SIZE_PADDED * BatchSize);
+
+                gpuErrchk(cudaMemcpyAsync(h_S.data(), schur_system_batch_.d_S_batch, h_S.size() * sizeof(T), cudaMemcpyDeviceToHost, stream_));
+                gpuErrchk(cudaMemcpyAsync(h_P_inv.data(), schur_system_batch_.d_P_inv_batch, h_P_inv.size() * sizeof(T), cudaMemcpyDeviceToHost, stream_));
+                gpuErrchk(cudaMemcpyAsync(h_gamma.data(), schur_system_batch_.d_gamma_batch, h_gamma.size() * sizeof(T), cudaMemcpyDeviceToHost, stream_));
+                gpuErrchk(cudaMemcpyAsync(h_lambda_after.data(), d_lambda_batch_, h_lambda_after.size() * sizeof(T), cudaMemcpyDeviceToHost, stream_));
+                gpuErrchk(cudaStreamSynchronize(stream_));
+
+                std::ostringstream prefix;
+                prefix << dump_dir_env << "/schur_dump_" << debug_schur_dump_count_ << "_sqp" << sqp_iter;
+                const std::string prefix_str = prefix.str();
+                debugWriteBinary(prefix_str + "_S.bin", h_S.data(), h_S.size() * sizeof(T));
+                debugWriteBinary(prefix_str + "_P_inv.bin", h_P_inv.data(), h_P_inv.size() * sizeof(T));
+                debugWriteBinary(prefix_str + "_gamma.bin", h_gamma.data(), h_gamma.size() * sizeof(T));
+                debugWriteBinary(prefix_str + "_lambda_after.bin", h_lambda_after.data(), h_lambda_after.size() * sizeof(T));
+                if (!lambda_before.empty()) {
+                        debugWriteBinary(prefix_str + "_lambda_before.bin", lambda_before.data(), lambda_before.size() * sizeof(T));
+                }
+                if (trace_stride > 0 && !trace_rho.empty()) {
+                        debugWriteBinary(prefix_str + "_trace_rho.bin", trace_rho.data(), trace_rho.size() * sizeof(T));
+                        debugWriteBinary(prefix_str + "_trace_denom.bin", trace_denom.data(), trace_denom.size() * sizeof(T));
+                        debugWriteBinary(prefix_str + "_trace_alpha.bin", trace_alpha.data(), trace_alpha.size() * sizeof(T));
+                }
+
+                std::ofstream manifest(prefix_str + "_manifest.json");
+                manifest << "{\n";
+                manifest << "  \"sqp_iter\": " << sqp_iter << ",\n";
+                manifest << "  \"dump_index\": " << debug_schur_dump_count_ << ",\n";
+                manifest << "  \"batch_size\": " << BatchSize << ",\n";
+                manifest << "  \"knot_points\": " << KNOT_POINTS << ",\n";
+                manifest << "  \"state_size\": " << STATE_SIZE << ",\n";
+                manifest << "  \"control_size\": " << CONTROL_SIZE << ",\n";
+                manifest << "  \"vec_size_padded\": " << VEC_SIZE_PADDED << ",\n";
+                manifest << "  \"block_row_r_dim\": " << BLOCK_ROW_R_DIM << ",\n";
+                manifest << "  \"block_row_size\": " << BLOCK_ROW_SIZE << ",\n";
+                manifest << "  \"b3d_matrix_size_padded\": " << B3D_MATRIX_SIZE_PADDED << ",\n";
+                manifest << "  \"max_pcg_iters\": " << max_pcg_iters_ << ",\n";
+                manifest << "  \"trace_stride\": " << trace_stride << ",\n";
+                manifest << "  \"pcg_iterations\": [";
+                for (uint32_t b = 0; b < BatchSize; ++b) {
+                        if (b > 0) { manifest << ", "; }
+                        manifest << pcg_iterations[b];
+                }
+                manifest << "],\n";
+                manifest << "  \"files\": {\n";
+                manifest << "    \"S\": \"" << prefix_str << "_S.bin\",\n";
+                manifest << "    \"P_inv\": \"" << prefix_str << "_P_inv.bin\",\n";
+                manifest << "    \"gamma\": \"" << prefix_str << "_gamma.bin\",\n";
+                manifest << "    \"lambda_before\": \"" << prefix_str << "_lambda_before.bin\",\n";
+                manifest << "    \"lambda_after\": \"" << prefix_str << "_lambda_after.bin\"";
+                if (trace_stride > 0 && !trace_rho.empty()) {
+                        manifest << ",\n";
+                        manifest << "    \"trace_rho\": \"" << prefix_str << "_trace_rho.bin\",\n";
+                        manifest << "    \"trace_denom\": \"" << prefix_str << "_trace_denom.bin\",\n";
+                        manifest << "    \"trace_alpha\": \"" << prefix_str << "_trace_alpha.bin\"\n";
+                } else {
+                        manifest << "\n";
+                }
+                manifest << "  }\n";
+                manifest << "}\n";
+
+                ++debug_schur_dump_count_;
+        }
+
         void allocateMemory()
         {
                 size_t BT = BatchSize * sizeof(T);
@@ -353,4 +522,5 @@ class BSQP {
         T           ctrl_lim_cost_;
         T           rho_;
         bool        adapt_rho_;
+        uint32_t    debug_schur_dump_count_;
 };

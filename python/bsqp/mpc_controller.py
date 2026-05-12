@@ -28,6 +28,10 @@ class MPC_GATO:
         plant_type='indy7',
         pendulum_config=None,
         solver_params=None,
+        reset_dual_each_tick=False,
+        warm_start_policy='previous_solution',
+        control_timestep_policy='solve_time',
+        saturate_controls=False,
     ):
         """
         Initialize MPC controller.
@@ -43,6 +47,15 @@ class MPC_GATO:
             plant_type: Plant identifier used for selecting dynamics (e.g., 'indy7', 'iiwa14')
             pendulum_config: Optional dict with keys: mass, length, damping, initial_angle
         """
+        if warm_start_policy not in ("previous_solution", "repeat_current"):
+            raise ValueError(
+                "warm_start_policy must be 'previous_solution' or 'repeat_current'"
+            )
+        if control_timestep_policy not in ("solve_time", "fixed_dt"):
+            raise ValueError(
+                "control_timestep_policy must be 'solve_time' or 'fixed_dt'"
+            )
+
         # Store original model for solver (without pendulum)
         self.solver_model = model
         
@@ -69,7 +82,52 @@ class MPC_GATO:
         if solver_params is not None:
             solver_cfg.update(solver_params)
 
-        self.solver = BSQP(
+        self.solver = self._make_solver(
+            model_path=model_path,
+            batch_size=batch_size,
+            N=N,
+            dt=dt,
+            plant_type=plant_type,
+            solver_cfg=solver_cfg,
+        )
+        self.trajectory_solver = self.solver
+        if batch_size != 1:
+            self.trajectory_solver = self._make_solver(
+                model_path=model_path,
+                batch_size=1,
+                N=N,
+                dt=dt,
+                plant_type=plant_type,
+                solver_cfg=solver_cfg,
+            )
+
+        self.solver_params = solver_cfg
+        
+        self.nq = self.model.nq
+        self.nv = self.model.nv
+        self.nx = self.nq_robot + self.nv_robot  # Solver state dimension (robot only)
+        self.nu = self.solver_model.nv  # Control dimension (robot only)
+        self.N = N
+        self.dt = dt
+        self.batch_size = batch_size
+        self.track_full_stats = track_full_stats
+        self.plant_type = plant_type
+        self.reset_dual_each_tick = reset_dual_each_tick
+        self.warm_start_policy = warm_start_policy
+        self.control_timestep_policy = control_timestep_policy
+        self.saturate_controls = saturate_controls
+        self.control_limits = np.asarray(self.solver_model.effortLimit[:self.nu], dtype=float)
+        self.force_hypotheses_gato = np.zeros((self.batch_size, 6), dtype=np.float32)
+        self.selected_force_hypothesis = np.zeros(6, dtype=np.float32)
+        
+        # Setup external forces if provided
+        self.setup_external_forces(constant_f_ext)
+        
+        # Setup force estimator for batch > 1
+        self.setup_force_estimator()
+
+    def _make_solver(self, model_path, batch_size, N, dt, plant_type, solver_cfg):
+        return BSQP(
             model_path=model_path,
             batch_size=batch_size,
             N=N,
@@ -90,24 +148,6 @@ class MPC_GATO:
             ctrl_lim_cost=solver_cfg['ctrl_lim_cost'],
             rho=solver_cfg['rho'],
         )
-
-        self.solver_params = solver_cfg
-        
-        self.nq = self.model.nq
-        self.nv = self.model.nv
-        self.nx = self.nq_robot + self.nv_robot  # Solver state dimension (robot only)
-        self.nu = self.solver_model.nv  # Control dimension (robot only)
-        self.N = N
-        self.dt = dt
-        self.batch_size = batch_size
-        self.track_full_stats = track_full_stats
-        self.plant_type = plant_type
-        
-        # Setup external forces if provided
-        self.setup_external_forces(constant_f_ext)
-        
-        # Setup force estimator for batch > 1
-        self.setup_force_estimator()
         
     def setup_external_forces(self, constant_f_ext):
         """Setup external forces for simulation."""
@@ -154,6 +194,8 @@ class MPC_GATO:
             'ee_actual': [],          # Actual end-effector positions
             'joint_positions': [],    # Joint positions over time
             'joint_velocities': [],   # Joint velocities over time
+            'planned_controls': [],   # First raw control from the selected trajectory
+            'applied_controls': [],   # First control applied from the selected trajectory
         }
         
         # Add SQP iterations only if tracking full stats
@@ -168,25 +210,29 @@ class MPC_GATO:
         q = x_start[:self.nq]
         dq = x_start[self.nq:self.nx]
         
-        # Prepare batch inputs
-        x_curr_batch = np.tile(x_curr, (self.batch_size, 1))
+        # Prepare optimization inputs. Force hypotheses may be batched, but
+        # trajectory optimization is intentionally solved only for one wrench.
+        x_curr_single = x_curr[None, :]
         ee_g = fig8_traj[:6*self.N]
-        ee_g_batch = np.tile(ee_g, (self.batch_size, 1))
+        ee_g_single = ee_g[None, :]
         
         # Initialize warm start
         XU = np.zeros(self.N*(self.nx+self.nu)-self.nu)
         for i in range(self.N):
             start_idx = i * (self.nx + self.nu)
             XU[start_idx:start_idx+self.nx] = x_curr
-        XU_batch = np.tile(XU, (self.batch_size, 1))
+        XU_single = XU[None, :]
         
         # Reset solver
         self.solver.reset_dual()
+        if self.trajectory_solver is not self.solver:
+            self.trajectory_solver.reset_dual()
         
         # Warm up solve
         self.update_force_batch(q)
-        XU_batch, _ = self.solver.solve(x_curr_batch, ee_g_batch, XU_batch)
-        XU_best = XU_batch[0, :]
+        self.set_trajectory_force_hypothesis(0)
+        XU_single, _ = self.trajectory_solver.solve(x_curr_single, ee_g_single, XU_single)
+        XU_best = XU_single[0, :]
         
         print(f"\nRunning MPC: N={self.N}, batch={self.batch_size}, time={sim_time}s")
         if np.any(self.constant_f_ext_world):
@@ -201,13 +247,13 @@ class MPC_GATO:
             u_last = XU_best[self.nx:self.nx+self.nu]
             
             # Simulate forward with current control
-            timestep = solve_time
+            timestep = self.dt if self.control_timestep_policy == "fixed_dt" else solve_time
             nsteps = int(timestep/sim_dt)
             
             for i in range(nsteps):
                 offset = int(i/(self.dt/sim_dt))
                 u_idx = self.nx + (self.nx+self.nu)*min(offset, self.N-1)
-                u = XU_best[u_idx:u_idx+self.nu]
+                u = self.limit_control(XU_best[u_idx:u_idx+self.nu])
                 q, dq = rk4(self.model, self.data, q, dq, u, sim_dt, self.actual_f_ext)
                 total_sim_time += sim_dt
                 
@@ -218,7 +264,7 @@ class MPC_GATO:
                     accumulated_time = 0.0
                     offset = int(nsteps/(self.dt/sim_dt))
                     u_idx = self.nx + (self.nx+self.nu)*min(offset, self.N-1)
-                    u = XU_best[u_idx:u_idx+self.nu]
+                    u = self.limit_control(XU_best[u_idx:u_idx+self.nu])
                     q, dq = rk4(self.model, self.data, q, dq, u, sim_dt, self.actual_f_ext)
                     total_sim_time += sim_dt
                     
@@ -230,23 +276,37 @@ class MPC_GATO:
                 break
                 
             # Prepare next optimization
-            x_curr_batch = np.tile(x_curr, (self.batch_size, 1))
+            x_curr_single = x_curr[None, :]
             ee_g = fig8_traj[6*eepos_offset:6*(eepos_offset+self.N)]
-            ee_g_batch[:, :] = ee_g
-            XU_batch[:, :self.nx] = x_curr
-            
-            # Update forces and solve
+            ee_g_single = ee_g[None, :]
+            if self.warm_start_policy == "repeat_current":
+                XU = np.zeros(self.N*(self.nx+self.nu)-self.nu)
+                for i in range(self.N):
+                    start_idx = i * (self.nx + self.nu)
+                    XU[start_idx:start_idx+self.nx] = x_curr
+                XU_single[:, :] = XU
+            else:
+                XU_single[:, :self.nx] = x_curr
+
+            # First select the force hypothesis from the previous transition,
+            # then solve a single trajectory optimization for that wrench.
             self.update_force_batch(q)
-            self.solver.reset_rho()
-            
+            best_id = self.evaluate_best_trajectory(
+                x_last,
+                u_last,
+                x_curr,
+                max(sim_dt, round(timestep / sim_dt) * sim_dt),
+            )
+            self.set_trajectory_force_hypothesis(best_id)
+            self.trajectory_solver.reset_rho()
+            if self.reset_dual_each_tick:
+                self.trajectory_solver.reset_dual()
+
             start = time.time()
-            XU_batch_new, gpu_solve_time = self.solver.solve(x_curr_batch, ee_g_batch, XU_batch)
+            XU_single_new, gpu_solve_time = self.trajectory_solver.solve(x_curr_single, ee_g_single, XU_single)
             solve_time = time.time() - start
-            
-            # Select best trajectory
-            best_id = self.evaluate_best_trajectory(x_last, u_last, x_curr, max(sim_dt, round(timestep / sim_dt) * sim_dt))
-            XU_best = XU_batch_new[best_id, :]
-            XU_batch[:, :] = XU_best
+            XU_best = XU_single_new[0, :]
+            XU_single[:, :] = XU_best
             
             # Collect essential statistics
             ee_pos = self.solver.ee_pos(q)
@@ -258,9 +318,11 @@ class MPC_GATO:
             stats['ee_actual'].append(ee_pos.copy())
             stats['joint_positions'].append(q.copy())
             stats['joint_velocities'].append(dq.copy())
+            stats['planned_controls'].append(XU_best[self.nx:self.nx+self.nu].copy())
+            stats['applied_controls'].append(self.limit_control(XU_best[self.nx:self.nx+self.nu]).copy())
             
             if self.track_full_stats:
-                solver_stats = self.solver.get_stats()
+                solver_stats = self.trajectory_solver.get_stats()
                 # Get first element from batch for sqp_iters
                 sqp_iters = solver_stats['sqp_iters']
                 if isinstance(sqp_iters, np.ndarray):
@@ -282,10 +344,17 @@ class MPC_GATO:
         print(f"Avg solve time: {np.mean(stats['solve_times']):.3f}ms")
         
         return None, stats  # Return None for trajectory (not needed)
+
+    def limit_control(self, u):
+        """Apply actuator saturation for simulation/logging when requested."""
+        if not self.saturate_controls:
+            return u
+        return np.clip(u, -self.control_limits, self.control_limits)
     
     def update_force_batch(self, q):
         """Update force hypotheses for batch solving."""
         if self.batch_size == 1 or self.force_estimator is None:
+            self.force_hypotheses_gato = np.zeros((1, 6), dtype=np.float32)
             return
             
         # Generate force batch
@@ -295,8 +364,19 @@ class MPC_GATO:
         transformed_batch = np.zeros_like(force_batch)
         for i in range(self.batch_size):
             transformed_batch[i, :] = self.transform_force_to_gato_frame(q, force_batch[i, :])
-            
+        self.force_hypotheses_gato = transformed_batch.astype(np.float32, copy=False)
         self.solver.set_f_ext_B(transformed_batch)
+
+    def set_trajectory_force_hypothesis(self, best_id):
+        """Set the single-trajectory optimizer to the selected force hypothesis."""
+        if self.batch_size == 1 or self.force_estimator is None:
+            self.selected_force_hypothesis = np.zeros(6, dtype=np.float32)
+            return
+
+        best_id = int(best_id)
+        selected = self.force_hypotheses_gato[best_id:best_id + 1]
+        self.selected_force_hypothesis = selected[0].copy()
+        self.trajectory_solver.set_f_ext_B(selected)
         
     def evaluate_best_trajectory(self, x_last, u_last, x_curr, dt):
         """Evaluate which trajectory best matches reality."""

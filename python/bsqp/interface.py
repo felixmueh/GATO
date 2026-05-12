@@ -61,6 +61,7 @@ class BSQP:
         self.lib = base
         self.solver_class = getattr(base, class_name)
         self.plant_type = plant_type
+        self.linsys_solver = getattr(base, "LINSYS_SOLVER", "PCG")
 
         self.solver = self.solver_class(
             dt,

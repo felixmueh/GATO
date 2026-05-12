@@ -3,7 +3,7 @@
 #
 
 cmake_minimum_required(VERSION 3.24)
-project(GATO LANGUAGES CXX CUDA)
+project(GATO LANGUAGES C CXX CUDA)
 
 include(CTest)
 
@@ -67,6 +67,40 @@ message(STATUS "CUDA include dirs: ${CUDA_INCLUDE_DIRS}")
 message(STATUS "CUDA libraries: ${CUDA_LIBRARIES}")
 
 include_directories(${CMAKE_SOURCE_DIR}/gato)
+
+set(GATO_LINSYS_SOLVER
+    "PCG"
+    CACHE STRING "Linear system solver backend: PCG or QDLDL")
+set_property(CACHE GATO_LINSYS_SOLVER PROPERTY STRINGS PCG QDLDL)
+string(TOUPPER "${GATO_LINSYS_SOLVER}" GATO_LINSYS_SOLVER)
+if(NOT GATO_LINSYS_SOLVER STREQUAL "PCG" AND NOT GATO_LINSYS_SOLVER STREQUAL "QDLDL")
+  message(FATAL_ERROR "Unsupported GATO_LINSYS_SOLVER='${GATO_LINSYS_SOLVER}'. Use PCG or QDLDL.")
+endif()
+message(STATUS "GATO linear system solver backend: ${GATO_LINSYS_SOLVER}")
+
+if(GATO_LINSYS_SOLVER STREQUAL "QDLDL")
+  include(FetchContent)
+  set(QDLDL_BUILD_SHARED_LIB
+      OFF
+      CACHE BOOL "" FORCE)
+  set(QDLDL_BUILD_DEMO_EXE
+      OFF
+      CACHE BOOL "" FORCE)
+  set(QDLDL_UNITTESTS
+      OFF
+      CACHE BOOL "" FORCE)
+  set(QDLDL_FLOAT
+      ON
+      CACHE BOOL "" FORCE)
+  set(QDLDL_LONG
+      OFF
+      CACHE BOOL "" FORCE)
+  FetchContent_Declare(
+    qdldl
+    GIT_REPOSITORY https://github.com/osqp/qdldl.git
+    GIT_TAG df481005111f2864770a3eccb05ed4120727eff6)
+  FetchContent_MakeAvailable(qdldl)
+endif()
 
 # output directory for executables (relative to build directory)
 # set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
@@ -155,6 +189,10 @@ function(add_gato_python_module plant knot)
     ${MODULE_NAME} PROPERTIES LIBRARY_OUTPUT_DIRECTORY
                               ${CMAKE_SOURCE_DIR}/python/bsqp)
   target_link_libraries(${MODULE_NAME} PRIVATE ${CUDA_LIBRARIES})
+  if(GATO_LINSYS_SOLVER STREQUAL "QDLDL")
+    target_compile_definitions(${MODULE_NAME} PRIVATE GATO_LINSYS_QDLDL=1)
+    target_link_libraries(${MODULE_NAME} PRIVATE qdldlstatic)
+  endif()
 endfunction()
 
 foreach(plant ${PLANT})

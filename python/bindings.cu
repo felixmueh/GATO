@@ -249,6 +249,11 @@ class PyBSQP {
 PYBIND11_MODULE(MODULE_NAME(KNOT_POINTS, PLANT_SUFFIX), m)
 {
         m.attr("KNOT_POINTS") = KNOT_POINTS;  // to check num knots for current module
+#if defined(GATO_LINSYS_QDLDL)
+        m.attr("LINSYS_SOLVER") = "QDLDL";
+#else
+        m.attr("LINSYS_SOLVER") = "PCG";
+#endif
 
 
 #ifdef USE_DOUBLES

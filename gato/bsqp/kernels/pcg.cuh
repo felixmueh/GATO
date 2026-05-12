@@ -18,7 +18,11 @@ __global__ __launch_bounds__(PCG_THREADS) void solvePCGBatchedKernel(uint32_t* _
                                                                     const T* __restrict__        d_b_batch,
                                                                     const T* __restrict__        d_epsilon_batch,
                                                                     uint32_t                     max_pcg_iters,
-                                                                    int32_t* __restrict__        d_kkt_converged_batch)
+                                                                    int32_t* __restrict__        d_kkt_converged_batch,
+                                                                    T* __restrict__              d_trace_rho,
+                                                                    T* __restrict__              d_trace_denom,
+                                                                    T* __restrict__              d_trace_alpha,
+                                                                    uint32_t                     trace_stride)
 {
         const uint32_t solve_idx = blockIdx.x;
         const T        epsilon = d_epsilon_batch[solve_idx];
@@ -89,7 +93,12 @@ __global__ __launch_bounds__(PCG_THREADS) void solvePCGBatchedKernel(uint32_t* _
         }
 
         // initial residual norm for relative tolerance
-        if (threadIdx.x == 0) { s_rho_init = abs(s_rho); }
+        if (threadIdx.x == 0) {
+                s_rho_init = abs(s_rho);
+                if (d_trace_rho != nullptr && trace_stride > 0) {
+                        d_trace_rho[solve_idx * trace_stride] = s_rho;
+                }
+        }
         __syncthreads();
 
         // ----- PCG Loop -----
@@ -103,7 +112,16 @@ __global__ __launch_bounds__(PCG_THREADS) void solvePCGBatchedKernel(uint32_t* _
                 // alpha = rho / (p^T * A_p)
                 block::dot<T>(&s_alpha, s_p_vector, s_A_p_vector, s_scratch, VEC_SIZE_PADDED);
                 __syncthreads();
-                if (threadIdx.x == 0) { s_alpha = s_rho / s_alpha; }
+                if (threadIdx.x == 0) {
+                        const T denom = s_alpha;
+                        s_alpha = s_rho / s_alpha;
+                        if (d_trace_denom != nullptr && trace_stride > 0) {
+                                d_trace_denom[solve_idx * trace_stride + i] = denom;
+                        }
+                        if (d_trace_alpha != nullptr && trace_stride > 0) {
+                                d_trace_alpha[solve_idx * trace_stride + i] = s_alpha;
+                        }
+                }
                 __syncthreads();
 
                 // x = x + alpha * p
@@ -122,6 +140,9 @@ __global__ __launch_bounds__(PCG_THREADS) void solvePCGBatchedKernel(uint32_t* _
                 // rho_new = r^T * z
                 block::dot<T>(&s_rho_new, s_r_vector, s_z_vector, s_scratch, VEC_SIZE_PADDED);
                 __syncthreads();
+                if (threadIdx.x == 0 && d_trace_rho != nullptr && trace_stride > 0) {
+                        d_trace_rho[solve_idx * trace_stride + i + 1] = s_rho_new;
+                }
 
                 // check for convergence using absolute and relative tolerance
                 if (abs(s_rho_new) < (abs_tol + epsilon * s_rho_init)) { break; }
@@ -155,12 +176,33 @@ __host__ size_t getSolvePCGBatchedSMemSize()
 }
 
 template<typename T, uint32_t BatchSize>
-__host__ void solvePCGBatched(T* d_lambda_batch, SchurSystem<T, BatchSize> schur, T* d_epsilon_batch, uint32_t max_pcg_iters, int32_t* d_kkt_converged_batch, uint32_t* d_iterations, cudaStream_t stream)
+__host__ void solvePCGBatched(T* d_lambda_batch,
+                              SchurSystem<T, BatchSize> schur,
+                              T* d_epsilon_batch,
+                              uint32_t max_pcg_iters,
+                              int32_t* d_kkt_converged_batch,
+                              uint32_t* d_iterations,
+                              cudaStream_t stream,
+                              T* d_trace_rho = nullptr,
+                              T* d_trace_denom = nullptr,
+                              T* d_trace_alpha = nullptr,
+                              uint32_t trace_stride = 0)
 {
         dim3           grid(BatchSize);
         dim3           thread_block(PCG_THREADS);
         const uint32_t s_mem_size = getSolvePCGBatchedSMemSize<T>();
 
         solvePCGBatchedKernel<T, BatchSize>
-            <<<grid, thread_block, s_mem_size, stream>>>(d_iterations, d_lambda_batch, schur.d_S_batch, schur.d_P_inv_batch, schur.d_gamma_batch, d_epsilon_batch, max_pcg_iters, d_kkt_converged_batch);
+            <<<grid, thread_block, s_mem_size, stream>>>(d_iterations,
+                                                         d_lambda_batch,
+                                                         schur.d_S_batch,
+                                                         schur.d_P_inv_batch,
+                                                         schur.d_gamma_batch,
+                                                         d_epsilon_batch,
+                                                         max_pcg_iters,
+                                                         d_kkt_converged_batch,
+                                                         d_trace_rho,
+                                                         d_trace_denom,
+                                                         d_trace_alpha,
+                                                         trace_stride);
 }

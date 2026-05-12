@@ -14,6 +14,7 @@ namespace grid {
     constexpr int NU = NUM_JOINTS;
     constexpr int NEE = 6;
     constexpr int EE_POS_SIZE = 6;
+    constexpr int DEE_POS_SHARED_MEM_COUNT = DEE_POS_DYNAMIC_SHARED_MEM_COUNT + 16;
 }  // namespace grid
 
 #include "utils/linalg.cuh"
@@ -128,7 +129,7 @@ namespace plant {
         {
                 T* s_XmatsHom = s_workspace;
                 T* s_dXmatsHom = s_XmatsHom + 128;
-                T* s_temp = s_dXmatsHom + 112;
+                T* s_temp = s_dXmatsHom + 128;
                 grid::load_update_XmatsHom_helpers<T>(s_XmatsHom, s_dXmatsHom, s_q_grid, d_robotModel, s_temp);
                 grid::end_effector_pose_inner_arm_right_tool_joint<T>(s_eePos, s_q_grid, s_XmatsHom, s_temp);
                 grid::end_effector_pose_gradient_inner_arm_right_tool_joint<T>(s_eePos_grad, s_q_grid, s_XmatsHom, s_dXmatsHom, s_temp);
@@ -470,7 +471,7 @@ namespace plant {
 
         __host__ __device__ constexpr unsigned trackingCostGradientAndHessian_TempMemSize_Shared()
         {
-                return grid::EE_POS_SIZE + 6 * grid::NUM_JOINTS + grid::DEE_POS_DYNAMIC_SHARED_MEM_COUNT;
+                return grid::EE_POS_SIZE + 6 * grid::NUM_JOINTS + grid::DEE_POS_SHARED_MEM_COUNT;
         }
 
 }  // namespace plant
