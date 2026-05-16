@@ -35,7 +35,7 @@ fi
 
 echo -e "----------------------------------------"
 echo -e "Building ..."
-docker exec ${CONTAINER_NAME} bash -c "cd /workspace && make build"
+docker exec ${CONTAINER_NAME} bash -c "cd /workspace && ./tools/build.sh"
 
 echo -e "----------------------------------------"
 echo -e "Setup complete."
