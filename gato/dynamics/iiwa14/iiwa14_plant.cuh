@@ -159,7 +159,7 @@ namespace plant {
         {
 
                 T* s_XImats = s_XITemp;
-                T* s_temp = &s_XITemp[1008];
+                T* s_temp = &s_XITemp[504];
                 grid::load_update_XImats_helpers<T>(s_XImats, s_q, (grid::robotModel<T>*)d_dynMem_const, s_temp);
                 __syncthreads();
 
@@ -172,7 +172,7 @@ namespace plant {
         {
 
                 T* s_XImats = s_XITemp;
-                T* s_temp = &s_XITemp[1008];
+                T* s_temp = &s_XITemp[504];
                 grid::load_update_XImats_helpers<T>(s_XImats, s_q, (grid::robotModel<T>*)d_dynMem_const, s_temp);
                 __syncthreads();
 
