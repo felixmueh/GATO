@@ -2,7 +2,7 @@
 # mkdir build && cd build cmake .. cmake --build . --parallel
 #
 
-cmake_minimum_required(VERSION 3.24)
+cmake_minimum_required(VERSION 3.22)
 project(GATO LANGUAGES CXX CUDA)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -22,10 +22,15 @@ set(CMAKE_CUDA_FLAGS_DEBUG "${CMAKE_CUDA_FLAGS_DEBUG} -G -g")
 set(CMAKE_CUDA_FLAGS_RELEASE "${CMAKE_CUDA_FLAGS_RELEASE} -use_fast_math -O3")
 
 # "native" (CMake 3.24+) detects the local GPU at configure time and compiles
-# only for that architecture. Override at configure time with: cmake
+# only for that architecture. On older CMake (e.g. 3.22 on Ubuntu 22.04), fall
+# back to a broad list of recent arches. Override at configure time with: cmake
 # -DCMAKE_CUDA_ARCHITECTURES="75;86;87;89;100;120" ..
 if(NOT DEFINED CMAKE_CUDA_ARCHITECTURES)
-  set(CMAKE_CUDA_ARCHITECTURES native)
+  if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.24")
+    set(CMAKE_CUDA_ARCHITECTURES native)
+  else()
+    set(CMAKE_CUDA_ARCHITECTURES 75 86 89)
+  endif()
 endif()
 message(STATUS "Targeting CUDA Architectures: ${CMAKE_CUDA_ARCHITECTURES}")
 
