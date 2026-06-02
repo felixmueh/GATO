@@ -144,6 +144,8 @@ def summarize(stats, model):
     solve_times = np.asarray(stats["solve_times"], dtype=np.float64)
     joints = np.asarray(stats["joint_positions"], dtype=np.float64)
     velocities = np.asarray(stats["joint_velocities"], dtype=np.float64)
+    applied_controls = np.asarray(stats["applied_controls"], dtype=np.float64)
+    planned_controls = np.asarray(stats["planned_controls"], dtype=np.float64)
     sqp_iters = np.asarray(stats.get("sqp_iters", []), dtype=np.float64)
 
     joint_min = np.min(joints, axis=0)
@@ -152,6 +154,9 @@ def summarize(stats, model):
     lower = model.lowerPositionLimit.astype(np.float64)
     upper = model.upperPositionLimit.astype(np.float64)
     velocity_limit = model.velocityLimit.astype(np.float64)
+    effort_limit = model.effortLimit.astype(np.float64)
+    max_abs_applied_control = np.max(np.abs(applied_controls), axis=0)
+    max_abs_planned_control = np.max(np.abs(planned_controls), axis=0)
 
     return {
         "iterations": int(errors.size),
@@ -168,6 +173,11 @@ def summarize(stats, model):
         "max_abs_joint_velocity_rad_s": [float(v) for v in max_abs_velocity],
         "joint_velocity_limit_rad_s": [float(v) for v in velocity_limit],
         "max_joint_velocity_violation_rad_s": float(np.max(np.maximum(max_abs_velocity - velocity_limit, 0.0))),
+        "max_abs_applied_torque_nm": [float(v) for v in max_abs_applied_control],
+        "max_abs_planned_torque_nm": [float(v) for v in max_abs_planned_control],
+        "torque_limit_nm": [float(v) for v in effort_limit],
+        "max_applied_torque_violation_nm": float(np.max(np.maximum(max_abs_applied_control - effort_limit, 0.0))),
+        "max_planned_torque_violation_nm": float(np.max(np.maximum(max_abs_planned_control - effort_limit, 0.0))),
     }
 
 
@@ -190,6 +200,24 @@ def save_csvs(output_dir, batch_size, stats, reference_points, reference_indices
     np.savetxt(
         output_dir / f"batch_{batch_size}_joints.csv",
         np.column_stack([timestamps, joints, velocities]),
+        delimiter=",",
+        header=",".join(header),
+        comments="",
+    )
+
+    applied_controls = np.asarray(stats["applied_controls"], dtype=np.float64)
+    planned_controls = np.asarray(stats["planned_controls"], dtype=np.float64)
+    header = ["t"] + [f"u{i}" for i in range(applied_controls.shape[1])]
+    np.savetxt(
+        output_dir / f"batch_{batch_size}_applied_controls.csv",
+        np.column_stack([timestamps, applied_controls]),
+        delimiter=",",
+        header=",".join(header),
+        comments="",
+    )
+    np.savetxt(
+        output_dir / f"batch_{batch_size}_planned_controls.csv",
+        np.column_stack([timestamps, planned_controls]),
         delimiter=",",
         header=",".join(header),
         comments="",
@@ -296,6 +324,9 @@ def run(args):
     cfg = plant_config(args.plant, args.dt)
     if args.batch_sizes is not None:
         cfg["batch_sizes"] = args.batch_sizes
+    solver_params = dict(DEFAULT_SOLVER_PARAMS)
+    solver_params["vel_lim_cost"] = args.vel_lim_cost
+    solver_params["ctrl_lim_cost"] = args.ctrl_lim_cost
 
     model = load_model(cfg["model_path"])
     reference = cfg["reference"].astype(np.float32)
@@ -325,6 +356,7 @@ def run(args):
             constant_f_ext=cfg["f_ext"],
             track_full_stats=True,
             plant_type=args.plant,
+            solver_params=solver_params,
         )
         mpc.force_estimator = None
         _, stats = mpc.run_mpc_fig8(x_start=x_start, fig8_traj=reference, sim_dt=args.sim_dt, sim_time=args.sim_time)
@@ -345,7 +377,7 @@ def run(args):
         "sim_time": args.sim_time,
         "batch_sizes": cfg["batch_sizes"],
         "constant_f_ext": [float(v) for v in cfg["f_ext"]],
-        "solver_params": dict(DEFAULT_SOLVER_PARAMS),
+        "solver_params": solver_params,
         "reference_extent_m": [float(v) for v in np.ptp(reference.reshape(-1, 6)[:, :3], axis=0)],
         "reference_metadata": cfg["reference_metadata"],
         "summary_by_batch": summaries,
@@ -373,6 +405,8 @@ def parse_args():
     parser.add_argument("--batch-sizes", nargs="+", type=int, default=None)
     parser.add_argument("--output-root", type=Path, default=OUTPUT_ROOT)
     parser.add_argument("--output-label", default=None)
+    parser.add_argument("--vel-lim-cost", type=float, default=0.0)
+    parser.add_argument("--ctrl-lim-cost", type=float, default=0.0)
     parser.add_argument("--no-gif", action="store_true")
     return parser.parse_args()
 

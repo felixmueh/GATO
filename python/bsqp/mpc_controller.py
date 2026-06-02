@@ -154,6 +154,8 @@ class MPC_GATO:
             'ee_actual': [],          # Actual end-effector positions
             'joint_positions': [],    # Joint positions over time
             'joint_velocities': [],   # Joint velocities over time
+            'applied_controls': [],   # First control applied over the last interval
+            'planned_controls': [],   # First control planned for the next interval
         }
         
         # Add SQP iterations only if tracking full stats
@@ -199,6 +201,7 @@ class MPC_GATO:
             # Store state for force estimation
             x_last = x_curr
             u_last = XU_best[self.nx:self.nx+self.nu]
+            applied_u = u_last.copy()
             
             # Simulate forward with current control
             timestep = solve_time
@@ -247,6 +250,7 @@ class MPC_GATO:
             best_id = self.evaluate_best_trajectory(x_last, u_last, x_curr, max(sim_dt, round(timestep / sim_dt) * sim_dt))
             XU_best = XU_batch_new[best_id, :]
             XU_batch[:, :] = XU_best
+            planned_u = XU_best[self.nx:self.nx+self.nu].copy()
             
             # Collect essential statistics
             ee_pos = self.solver.ee_pos(q)
@@ -258,6 +262,8 @@ class MPC_GATO:
             stats['ee_actual'].append(ee_pos.copy())
             stats['joint_positions'].append(q.copy())
             stats['joint_velocities'].append(dq.copy())
+            stats['applied_controls'].append(applied_u)
+            stats['planned_controls'].append(planned_u)
             
             if self.track_full_stats:
                 solver_stats = self.solver.get_stats()
