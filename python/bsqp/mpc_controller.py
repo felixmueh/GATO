@@ -161,6 +161,9 @@ class MPC_GATO:
         # Add SQP iterations only if tracking full stats
         if self.track_full_stats:
             stats['sqp_iters'] = []
+            stats['pcg_iters'] = []
+            stats['pcg_times_us'] = []
+            stats['kkt_converged'] = []
             
         # Initialize simulation
         total_sim_time = 0.0
@@ -273,6 +276,24 @@ class MPC_GATO:
                     stats['sqp_iters'].append(int(sqp_iters[0]))
                 else:
                     stats['sqp_iters'].append(int(sqp_iters))
+
+                pcg_iters = np.asarray(solver_stats.get('pcg_iters', []), dtype=np.int32)
+                if pcg_iters.size:
+                    if pcg_iters.ndim == 2:
+                        stats['pcg_iters'].append(pcg_iters[:, best_id].copy())
+                    else:
+                        stats['pcg_iters'].append(pcg_iters.reshape(-1).copy())
+                else:
+                    stats['pcg_iters'].append(np.array([], dtype=np.int32))
+
+                pcg_times = np.asarray(solver_stats.get('pcg_times_us', []), dtype=np.float32).reshape(-1)
+                stats['pcg_times_us'].append(pcg_times.copy())
+
+                kkt_converged = solver_stats.get('kkt_converged', [])
+                if isinstance(kkt_converged, np.ndarray):
+                    stats['kkt_converged'].append(int(kkt_converged[best_id]))
+                else:
+                    stats['kkt_converged'].append(int(kkt_converged) if kkt_converged != [] else 0)
                 
         # Convert to numpy arrays
         for key in stats:

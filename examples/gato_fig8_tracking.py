@@ -139,7 +139,18 @@ def reference_at_timestamps(reference, timestamps, dt):
     return points[indices], indices
 
 
-def summarize(stats, model):
+def stack_stat_rows(rows, fill_value, dtype):
+    rows = [np.asarray(row, dtype=dtype).reshape(-1) for row in rows]
+    if not rows:
+        return np.empty((0, 0), dtype=dtype)
+    width = max(row.size for row in rows)
+    out = np.full((len(rows), width), fill_value, dtype=dtype)
+    for idx, row in enumerate(rows):
+        out[idx, : row.size] = row
+    return out
+
+
+def summarize(stats, model, solver_params):
     errors = np.asarray(stats["goal_distances"], dtype=np.float64)
     solve_times = np.asarray(stats["solve_times"], dtype=np.float64)
     joints = np.asarray(stats["joint_positions"], dtype=np.float64)
@@ -147,6 +158,9 @@ def summarize(stats, model):
     applied_controls = np.asarray(stats["applied_controls"], dtype=np.float64)
     planned_controls = np.asarray(stats["planned_controls"], dtype=np.float64)
     sqp_iters = np.asarray(stats.get("sqp_iters", []), dtype=np.float64)
+    pcg_iters = stack_stat_rows(stats.get("pcg_iters", []), -1, np.int32)
+    pcg_times_us = stack_stat_rows(stats.get("pcg_times_us", []), -1.0, np.float32)
+    kkt_converged = np.asarray(stats.get("kkt_converged", []), dtype=np.int32)
 
     joint_min = np.min(joints, axis=0)
     joint_max = np.max(joints, axis=0)
@@ -157,6 +171,8 @@ def summarize(stats, model):
     effort_limit = model.effortLimit.astype(np.float64)
     max_abs_applied_control = np.max(np.abs(applied_controls), axis=0)
     max_abs_planned_control = np.max(np.abs(planned_controls), axis=0)
+    valid_pcg_iters = pcg_iters[pcg_iters >= 0]
+    valid_pcg_times_us = pcg_times_us[pcg_times_us >= 0.0]
 
     return {
         "iterations": int(errors.size),
@@ -167,6 +183,14 @@ def summarize(stats, model):
         "mean_solve_time_ms": float(np.mean(solve_times)),
         "p95_solve_time_ms": float(np.quantile(solve_times, 0.95)),
         "mean_sqp_iters": float(np.mean(sqp_iters)) if sqp_iters.size else None,
+        "kkt_converged_fraction": float(np.mean(kkt_converged > 0)) if kkt_converged.size else None,
+        "linear_solves": int(valid_pcg_iters.size),
+        "mean_pcg_iters": float(np.mean(valid_pcg_iters)) if valid_pcg_iters.size else None,
+        "p95_pcg_iters": float(np.quantile(valid_pcg_iters, 0.95)) if valid_pcg_iters.size else None,
+        "max_pcg_iters_observed": int(np.max(valid_pcg_iters)) if valid_pcg_iters.size else None,
+        "pcg_cap_hit_fraction": float(np.mean(valid_pcg_iters >= solver_params["max_pcg_iters"])) if valid_pcg_iters.size else None,
+        "mean_pcg_time_ms": float(np.mean(valid_pcg_times_us) / 1000.0) if valid_pcg_times_us.size else None,
+        "p95_pcg_time_ms": float(np.quantile(valid_pcg_times_us, 0.95) / 1000.0) if valid_pcg_times_us.size else None,
         "max_joint_position_violation_rad": float(
             np.max(np.maximum(np.maximum(lower - joint_min, 0.0), np.maximum(joint_max - upper, 0.0)))
         ),
@@ -222,6 +246,27 @@ def save_csvs(output_dir, batch_size, stats, reference_points, reference_indices
         header=",".join(header),
         comments="",
     )
+
+    pcg_iters = stack_stat_rows(stats.get("pcg_iters", []), -1, np.int32)
+    if pcg_iters.size:
+        np.savetxt(
+            output_dir / f"batch_{batch_size}_pcg_iters.csv",
+            np.column_stack([timestamps, pcg_iters]),
+            delimiter=",",
+            fmt=["%.9g"] + ["%d"] * pcg_iters.shape[1],
+            header="t," + ",".join([f"linear_solve_{i}" for i in range(pcg_iters.shape[1])]),
+            comments="",
+        )
+
+    pcg_times_us = stack_stat_rows(stats.get("pcg_times_us", []), -1.0, np.float32)
+    if pcg_times_us.size:
+        np.savetxt(
+            output_dir / f"batch_{batch_size}_pcg_times_us.csv",
+            np.column_stack([timestamps, pcg_times_us]),
+            delimiter=",",
+            header="t," + ",".join([f"linear_solve_{i}" for i in range(pcg_times_us.shape[1])]),
+            comments="",
+        )
 
 
 def save_renderings(output_dir, plant, reference, results, make_gif):
@@ -363,7 +408,7 @@ def run(args):
         timestamps = np.asarray(stats["timestamps"], dtype=np.float64)
         ref_points, ref_indices = reference_at_timestamps(reference, timestamps, args.dt)
         save_csvs(output_dir, batch_size, stats, ref_points, ref_indices)
-        summaries[str(batch_size)] = summarize(stats, model)
+        summaries[str(batch_size)] = summarize(stats, model, solver_params)
         results[batch_size] = {"stats": stats, "reference_points": ref_points}
 
     save_renderings(output_dir, args.plant, reference, results, make_gif=not args.no_gif)
