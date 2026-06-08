@@ -488,8 +488,6 @@ class MPC_GATO:
         # Start timing for the current goal
         goal_start_time = total_sim_time
         goal_dwell_start_time = None
-        solve_time = self.dt
-        
         # Main control loop
         while total_sim_time < goal_timeout * len(goals):
             
@@ -498,7 +496,7 @@ class MPC_GATO:
             u_last = XU_best[self.nx:self.nx+self.nu]
             
             # Simulate forward with current control
-            timestep = solve_time
+            timestep = self.dt
             nsteps = int(timestep/sim_dt)
             
             for i in range(nsteps):
@@ -585,7 +583,7 @@ class MPC_GATO:
             
             start = time.time()
             XU_batch_new, gpu_solve_time = self.solver.solve(x_curr_batch, ee_g_batch, XU_batch)
-            solve_time = time.time() - start
+            wall_solve_time = time.time() - start
             
             # Select best trajectory
             best_id = self.evaluate_best_trajectory(x_last, u_last, x_curr, max(sim_dt, round(timestep / sim_dt) * sim_dt))
