@@ -53,6 +53,7 @@ deprecated/
 *.md
 !README.md
 felixtools/
+felixnotes/
 .githooks/
 TiagoProURDF/
 example_artifacts/
