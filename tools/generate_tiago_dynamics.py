@@ -19,9 +19,11 @@ import sys
 import tempfile
 import xml.etree.ElementTree as ET
 from copy import deepcopy
+import math
 
 
 ARM_CHOICES = ("left", "right")
+GRIPPER_HANDLING_CHOICES = ("exclude", "sum", "include")
 REPO_ROOT = Path(__file__).resolve().parents[1]
 GRID_REQUIREMENTS = {
     "beautifulsoup4": "bs4",
@@ -74,6 +76,10 @@ def format_vector(values: list[float]) -> str:
     return " ".join(f"{value:.17g}" for value in values)
 
 
+def format_xml_float(value: float) -> str:
+    return f"{value:.17g}"
+
+
 def indent(elem: ET.Element) -> None:
     ET.indent(elem, space="  ")
 
@@ -103,6 +109,8 @@ def normalize_axis_for_grid(joint: ET.Element) -> AxisFlip | None:
     original_axis = axis.attrib["xyz"]
     axis_values = parse_vector(original_axis)
     non_zero = [idx for idx, value in enumerate(axis_values) if abs(value) > 1e-12]
+    if not non_zero and joint.attrib.get("type") == "fixed":
+        return None
     if len(non_zero) != 1:
         raise ValueError(
             f"Joint {joint.attrib['name']} has unsupported non-principal axis {original_axis}"
@@ -144,23 +152,190 @@ def normalize_axis_for_grid(joint: ET.Element) -> AxisFlip | None:
     )
 
 
-def build_arm_urdf(input_path: Path, arm: str, output_path: Path, normalize_axes_for_grid: bool) -> list[AxisFlip]:
+def rotation_from_rpy(raw: str | None):
+    import numpy as np
+
+    if raw is None:
+        return np.eye(3)
+    roll, pitch, yaw = parse_vector(raw)
+    cr, sr = math.cos(roll), math.sin(roll)
+    cp, sp = math.cos(pitch), math.sin(pitch)
+    cy, sy = math.cos(yaw), math.sin(yaw)
+    rx = np.array([[1.0, 0.0, 0.0], [0.0, cr, -sr], [0.0, sr, cr]])
+    ry = np.array([[cp, 0.0, sp], [0.0, 1.0, 0.0], [-sp, 0.0, cp]])
+    rz = np.array([[cy, -sy, 0.0], [sy, cy, 0.0], [0.0, 0.0, 1.0]])
+    return rz @ ry @ rx
+
+
+def origin_transform(origin: ET.Element | None):
+    import numpy as np
+
+    if origin is None:
+        return np.eye(3), np.zeros(3)
+    xyz = parse_vector(origin.attrib.get("xyz", "0 0 0"))
+    return rotation_from_rpy(origin.attrib.get("rpy")), np.array(xyz, dtype=float)
+
+
+def compose_transform(parent_transform, child_transform):
+    parent_rotation, parent_translation = parent_transform
+    child_rotation, child_translation = child_transform
+    return (
+        parent_rotation @ child_rotation,
+        parent_rotation @ child_translation + parent_translation,
+    )
+
+
+def inertia_matrix(inertia: ET.Element):
+    import numpy as np
+
+    ixx = float(inertia.attrib["ixx"])
+    ixy = float(inertia.attrib["ixy"])
+    ixz = float(inertia.attrib["ixz"])
+    iyy = float(inertia.attrib["iyy"])
+    iyz = float(inertia.attrib["iyz"])
+    izz = float(inertia.attrib["izz"])
+    return np.array([[ixx, ixy, ixz], [ixy, iyy, iyz], [ixz, iyz, izz]], dtype=float)
+
+
+def remove_inertial(link: ET.Element) -> None:
+    for child in list(link):
+        if child.tag == "inertial":
+            link.remove(child)
+
+
+def write_inertial(link: ET.Element, mass: float, com, inertia) -> None:
+    inertial = ET.Element("inertial")
+    ET.SubElement(
+        inertial,
+        "origin",
+        {
+            "xyz": format_vector([float(value) for value in com]),
+            "rpy": "0 0 0",
+        },
+    )
+    ET.SubElement(inertial, "mass", {"value": format_xml_float(mass)})
+    ET.SubElement(
+        inertial,
+        "inertia",
+        {
+            "ixx": format_xml_float(float(inertia[0, 0])),
+            "ixy": format_xml_float(float(inertia[0, 1])),
+            "ixz": format_xml_float(float(inertia[0, 2])),
+            "iyy": format_xml_float(float(inertia[1, 1])),
+            "iyz": format_xml_float(float(inertia[1, 2])),
+            "izz": format_xml_float(float(inertia[2, 2])),
+        },
+    )
+    remove_inertial(link)
+    link.insert(0, inertial)
+
+
+def lump_descendant_inertias_into_link(
+    tool_link: ET.Element,
+    link_by_name: dict[str, ET.Element],
+    joint_by_name: dict[str, ET.Element],
+    descendant_joint_names: list[str],
+) -> None:
+    import numpy as np
+
+    tool_link_name = tool_link.attrib["name"]
+    link_poses = {tool_link_name: (np.eye(3), np.zeros(3))}
+    for joint_name in descendant_joint_names:
+        joint = joint_by_name[joint_name]
+        parent = joint.find("parent")
+        child = joint.find("child")
+        if parent is None or child is None:
+            raise ValueError(f"Joint {joint_name} is missing a parent or child tag")
+        parent_link = parent.attrib["link"]
+        child_link = child.attrib["link"]
+        if parent_link not in link_poses:
+            raise ValueError(f"Parent link {parent_link} has no pose while lumping gripper inertia")
+        link_poses[child_link] = compose_transform(
+            link_poses[parent_link],
+            origin_transform(joint.find("origin")),
+        )
+
+    masses = []
+    centers = []
+    inertias_at_centers = []
+    for link_name, link_pose in link_poses.items():
+        link = tool_link if link_name == tool_link_name else link_by_name[link_name]
+        inertial = link.find("inertial")
+        if inertial is None:
+            continue
+        mass = inertial.find("mass")
+        inertia = inertial.find("inertia")
+        if mass is None or inertia is None:
+            raise ValueError(f"Link {link_name} has an incomplete inertial block")
+
+        inertial_pose = compose_transform(link_pose, origin_transform(inertial.find("origin")))
+        inertial_rotation, inertial_translation = inertial_pose
+        masses.append(float(mass.attrib["value"]))
+        centers.append(inertial_translation)
+        inertias_at_centers.append(inertial_rotation @ inertia_matrix(inertia) @ inertial_rotation.T)
+
+    if not masses:
+        return
+
+    total_mass = float(sum(masses))
+    if total_mass <= 0.0:
+        raise ValueError("Cannot lump gripper inertia with non-positive total mass")
+
+    composite_com = sum(mass * center for mass, center in zip(masses, centers)) / total_mass
+    composite_inertia = np.zeros((3, 3), dtype=float)
+    for mass, center, inertia in zip(masses, centers, inertias_at_centers):
+        offset = center - composite_com
+        composite_inertia += inertia + mass * ((offset @ offset) * np.eye(3) - np.outer(offset, offset))
+
+    write_inertial(tool_link, total_mass, composite_com, composite_inertia)
+
+
+def build_arm_urdf(
+    input_path: Path,
+    arm: str,
+    output_path: Path,
+    normalize_axes_for_grid: bool,
+    gripper_handling: str,
+) -> list[AxisFlip]:
     tree = ET.parse(input_path)
     root = tree.getroot()
 
     link_by_name: dict[str, ET.Element] = {}
     joint_by_name: dict[str, ET.Element] = {}
+    joints_by_parent: dict[str, list[str]] = {}
     for child in root:
         name = child.attrib.get("name")
         if child.tag == "link" and name:
             link_by_name[name] = child
         elif child.tag == "joint" and name:
             joint_by_name[name] = child
+            parent = child.find("parent")
+            if parent is not None and "link" in parent.attrib:
+                joints_by_parent.setdefault(parent.attrib["link"], []).append(name)
 
     root_link = "torso_lift_link"
     actuated_joint_names = [f"arm_{arm}_{idx}_joint" for idx in range(1, 8)]
     tool_joint = f"arm_{arm}_tool_joint"
-    all_joint_names = [*actuated_joint_names, tool_joint]
+    tool_link = f"arm_{arm}_tool_link"
+
+    ee_joint_names: list[str] = []
+    pending_links = [tool_link]
+    visited_links = set()
+    while pending_links:
+        parent_link = pending_links.pop(0)
+        if parent_link in visited_links:
+            continue
+        visited_links.add(parent_link)
+        for joint_name in joints_by_parent.get(parent_link, []):
+            joint = joint_by_name[joint_name]
+            child = joint.find("child")
+            if child is None:
+                raise ValueError(f"Joint {joint_name} is missing a child tag")
+            ee_joint_names.append(joint_name)
+            pending_links.append(child.attrib["link"])
+
+    extra_joint_names = ee_joint_names if gripper_handling == "include" else []
+    all_joint_names = [*actuated_joint_names, tool_joint, *extra_joint_names]
 
     missing_joints = [name for name in all_joint_names if name not in joint_by_name]
     if missing_joints:
@@ -191,7 +366,15 @@ def build_arm_urdf(input_path: Path, arm: str, output_path: Path, normalize_axes
     out_root.append(deepcopy(link_by_name[root_link]))
     for idx in range(1, 8):
         out_root.append(deepcopy(link_by_name[f"arm_{arm}_{idx}_link"]))
-    out_root.append(deepcopy(link_by_name[f"arm_{arm}_tool_link"]))
+
+    output_link_names = [tool_link]
+    if gripper_handling == "include":
+        output_link_names.extend(joint_by_name[name].find("child").attrib["link"] for name in ee_joint_names)
+    for link_name in output_link_names:
+        link_copy = deepcopy(link_by_name[link_name])
+        if link_name == tool_link and gripper_handling == "sum":
+            lump_descendant_inertias_into_link(link_copy, link_by_name, joint_by_name, ee_joint_names)
+        out_root.append(link_copy)
 
     flips: list[AxisFlip] = []
     for joint_name in all_joint_names:
@@ -208,8 +391,8 @@ def build_arm_urdf(input_path: Path, arm: str, output_path: Path, normalize_axes
     return flips
 
 
-def build_grid_urdf(input_path: Path, arm: str, output_path: Path) -> list[AxisFlip]:
-    return build_arm_urdf(input_path, arm, output_path, normalize_axes_for_grid=True)
+def build_grid_urdf(input_path: Path, arm: str, output_path: Path, gripper_handling: str) -> list[AxisFlip]:
+    return build_arm_urdf(input_path, arm, output_path, normalize_axes_for_grid=True, gripper_handling=gripper_handling)
 
 
 def extract_arm_limits(input_path: Path, arm: str) -> list[JointLimit]:
@@ -407,6 +590,10 @@ def default_arm_urdf_output_for_arm(arm: str) -> Path:
     return REPO_ROOT / "gato" / "dynamics" / f"tiago_{arm}" / f"tiago_{arm}_arm.urdf"
 
 
+def default_include_arm_urdf_output_for_arm(arm: str) -> Path:
+    return REPO_ROOT / "gato" / "dynamics" / f"tiago_{arm}" / f"tiago_{arm}_arm_include_gripper.urdf"
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -446,6 +633,25 @@ def parse_args() -> argparse.Namespace:
         help="Generated native arm-only URDF path. Defaults to gato/dynamics/tiago_<arm>/tiago_<arm>_arm.urdf.",
     )
     parser.add_argument(
+        "--include-urdf-output",
+        type=Path,
+        default=None,
+        help=(
+            "Generated right-arm-plus-gripper URDF path for validation. "
+            "Defaults to gato/dynamics/tiago_<arm>/tiago_<arm>_arm_include_gripper.urdf."
+        ),
+    )
+    parser.add_argument(
+        "--gripper-handling",
+        choices=GRIPPER_HANDLING_CHOICES,
+        default="sum",
+        help=(
+            "How to handle the gripper subtree after arm_<arm>_tool_link: "
+            "'exclude' drops it, 'sum' lumps its inertias into the tool link, "
+            "and 'include' keeps the full subtree."
+        ),
+    )
+    parser.add_argument(
         "--namespace",
         default="grid",
         help="C++ namespace and temporary header basename passed to GRiD.",
@@ -479,6 +685,11 @@ def main() -> None:
         if args.arm_urdf_output is not None
         else default_arm_urdf_output_for_arm(args.arm)
     )
+    include_urdf_output_path = (
+        args.include_urdf_output.resolve()
+        if args.include_urdf_output is not None
+        else default_include_arm_urdf_output_for_arm(args.arm)
+    )
 
     if not input_path.exists():
         raise SystemExit(f"Input URDF does not exist: {input_path}")
@@ -496,7 +707,7 @@ def main() -> None:
 
     try:
         grid_urdf = work_dir_path / f"tiago_{args.arm}_arm_grid.urdf"
-        flips = build_grid_urdf(input_path, args.arm, grid_urdf)
+        flips = build_grid_urdf(input_path, args.arm, grid_urdf, args.gripper_handling)
 
         generated = run_grid(
             grid_dir,
@@ -508,11 +719,27 @@ def main() -> None:
         )
         output_path.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(generated, output_path)
-        build_arm_urdf(input_path, args.arm, arm_urdf_output_path, normalize_axes_for_grid=False)
+        build_arm_urdf(
+            input_path,
+            args.arm,
+            arm_urdf_output_path,
+            normalize_axes_for_grid=False,
+            gripper_handling=args.gripper_handling,
+        )
+        if args.gripper_handling == "sum":
+            build_arm_urdf(
+                input_path,
+                args.arm,
+                include_urdf_output_path,
+                normalize_axes_for_grid=False,
+                gripper_handling="include",
+            )
         write_limits_header(limits_output_path, args.arm, extract_arm_limits(input_path, args.arm))
 
         print(f"Wrote {output_path}")
         print(f"Wrote {arm_urdf_output_path}")
+        if args.gripper_handling == "sum":
+            print(f"Wrote {include_urdf_output_path}")
         print(f"Wrote {limits_output_path}")
         if args.keep_temp is None:
             print("Temporary GRiD URDF was removed after generation.")

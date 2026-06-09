@@ -11,13 +11,13 @@ namespace plant {
 
         template<class T>
         __device__ constexpr T JOINT_LIMITS_DATA[TIAGO_LIMIT_JOINTS][2] = {
-            {static_cast<T>(-4.7123889438808), static_cast<T>(0.52359877154231105)},  // arm_right_1_joint
-            {static_cast<T>(-2.4434609338641202), static_cast<T>(1.1344640050083401)},  // arm_right_2_joint
-            {static_cast<T>(-2.61799385771155), static_cast<T>(2.61799385771155)},  // arm_right_3_joint
-            {static_cast<T>(-2.4434609338641202), static_cast<T>(1.1344640050083401)},  // arm_right_4_joint
-            {static_cast<T>(-1.5707963146269299), static_cast<T>(3.6651914007961799)},  // arm_right_5_joint
-            {static_cast<T>(-1.8849555775523199), static_cast<T>(3.0019662901759099)},  // arm_right_6_joint
-            {static_cast<T>(-2.61799385771155), static_cast<T>(2.61799385771155)},  // arm_right_7_joint
+            {static_cast<T>(-4.7123889803846897), static_cast<T>(0.52359877559829882)},  // arm_right_1_joint
+            {static_cast<T>(-2.4434609527920612), static_cast<T>(1.1344640137963142)},  // arm_right_2_joint
+            {static_cast<T>(-2.6179938779914944), static_cast<T>(2.6179938779914944)},  // arm_right_3_joint
+            {static_cast<T>(-2.4434609527920612), static_cast<T>(1.1344640137963142)},  // arm_right_4_joint
+            {static_cast<T>(-1.5707963267948966), static_cast<T>(3.6651914291880923)},  // arm_right_5_joint
+            {static_cast<T>(-1.8849555921538759), static_cast<T>(3.001966313430247)},  // arm_right_6_joint
+            {static_cast<T>(-2.6179938779914944), static_cast<T>(2.6179938779914944)},  // arm_right_7_joint
         };
 
         template<class T>

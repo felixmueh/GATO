@@ -168,12 +168,158 @@
       </geometry>
     </collision>
   </link>
-  <link name="arm_right_tool_link">
+  <link name="arm_right_tool_link" />
+  <link name="gripper_right_base_link">
     <inertial>
-      <origin xyz="-4.1383845090850401e-05 4.9337115718867118e-06 0.055165884735820722" rpy="0 0 0" />
-      <mass value="0.73294020568391793" />
-      <inertia ixx="0.0014180140239798678" ixy="-2.1090342807282372e-07" ixz="2.9128128307688258e-07" iyy="0.0011161263916423065" iyz="2.528774151947232e-07" izz="0.00065159379068213761" />
+      <origin rpy="0 0 0" xyz="-5.081E-05 6.06E-06 0.04330857" />
+      <mass value="0.59671873" />
+      <inertia ixx="0.00064209" ixy="-2.1E-07" ixz="6.5E-07" iyy="0.00060742" iyz="2.1E-07" izz="0.00037836" />
     </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0" />
+      <geometry>
+        <mesh filename="package://pal_pro_gripper_description/meshes/base_link_tc.stl" />
+      </geometry>
+      <material name="pal/DarkGrey" />
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0" />
+      <geometry>
+        <mesh filename="package://pal_pro_gripper_description/meshes/base_link_tc.stl" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="gripper_right_inner_finger_left_link">
+    <inertial>
+      <origin rpy="0 0 0" xyz="-1.7347E-18 0.024759 0" />
+      <mass value="0.018619" />
+      <inertia ixx="4.8806E-06" ixy="-7.6762E-22" ixz="1.0244E-22" iyy="2.5471E-07" iyz="-1.1841E-21" izz="4.9573E-06" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0" />
+      <geometry>
+        <mesh filename="package://pal_pro_gripper_description/meshes/inner_finger.stl" />
+      </geometry>
+      <material name="">
+        <color rgba="0.752941176470588 0.752941176470588 0.752941176470588 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0" />
+      <geometry>
+        <mesh filename="package://pal_pro_gripper_description/meshes/inner_finger.stl" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="gripper_right_outer_finger_left_link">
+    <inertial>
+      <origin rpy="0 0 0" xyz="-0.00128298420356912 0.0143974756929021 1.5011142385525E-15" />
+      <mass value="0.0159887772377711" />
+      <inertia ixx="5.98786243781872E-06" ixy="-5.21728921919786E-07" ixz="-7.65398863989897E-20" iyy="4.87250835241547E-07" iyz="-7.03393901384231E-19" izz="6.14972693188202E-06" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0" />
+      <geometry>
+        <mesh filename="package://pal_pro_gripper_description/meshes/outer_finger.stl" />
+      </geometry>
+      <material name="">
+        <color rgba="0.752941176470588 0.752941176470588 0.752941176470588 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0" />
+      <geometry>
+        <mesh filename="package://pal_pro_gripper_description/meshes/outer_finger.stl" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="gripper_right_inner_finger_right_link">
+    <inertial>
+      <origin rpy="0 0 0" xyz="-1.7347E-18 0.024759 0" />
+      <mass value="0.018619" />
+      <inertia ixx="4.8806E-06" ixy="-7.6762E-22" ixz="1.0244E-22" iyy="2.5471E-07" iyz="-1.1841E-21" izz="4.9573E-06" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0" />
+      <geometry>
+        <mesh filename="package://pal_pro_gripper_description/meshes/inner_finger.stl" />
+      </geometry>
+      <material name="">
+        <color rgba="0.752941176470588 0.752941176470588 0.752941176470588 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0" />
+      <geometry>
+        <mesh filename="package://pal_pro_gripper_description/meshes/inner_finger.stl" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="gripper_right_outer_finger_right_link">
+    <inertial>
+      <origin rpy="0 0 0" xyz="-0.00128298420356912 0.0143974756929021 1.5011142385525E-15" />
+      <mass value="0.0159887772377711" />
+      <inertia ixx="5.98786243781872E-06" ixy="-5.21728921919786E-07" ixz="-7.65398863989897E-20" iyy="4.87250835241547E-07" iyz="-7.03393901384231E-19" izz="6.14972693188202E-06" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0" />
+      <geometry>
+        <mesh filename="package://pal_pro_gripper_description/meshes/outer_finger.stl" />
+      </geometry>
+      <material name="">
+        <color rgba="0.752941176470588 0.752941176470588 0.752941176470588 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0" />
+      <geometry>
+        <mesh filename="package://pal_pro_gripper_description/meshes/outer_finger.stl" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="gripper_right_fingertip_left_link">
+    <inertial>
+      <origin rpy="0 0 0" xyz="-0.000864586242839444 0.0119290372347422 -2.732444563276E-11" />
+      <mass value="0.0335029606041878" />
+      <inertia ixx="3.6391786422032E-06" ixy="3.4052204633865E-07" ixz="-1.41918626749374E-14" iyy="1.70950026855986E-06" iyz="-4.24736685249643E-14" izz="2.84428135741107E-06" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0" />
+      <geometry>
+        <mesh filename="package://pal_pro_gripper_description/meshes/fingertip.stl" />
+      </geometry>
+      <material name="">
+        <color rgba="0.752941176470588 0.752941176470588 0.752941176470588 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0" />
+      <geometry>
+        <mesh filename="package://pal_pro_gripper_description/meshes/fingertip.stl" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="gripper_right_fingertip_right_link">
+    <inertial>
+      <origin rpy="0 0 0" xyz="-0.000864586242839444 0.0119290372347422 -2.732444563276E-11" />
+      <mass value="0.0335029606041878" />
+      <inertia ixx="3.6391786422032E-06" ixy="3.4052204633865E-07" ixz="-1.41918626749374E-14" iyy="1.70950026855986E-06" iyz="-4.24736685249643E-14" izz="2.84428135741107E-06" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0" />
+      <geometry>
+        <mesh filename="package://pal_pro_gripper_description/meshes/fingertip.stl" />
+      </geometry>
+      <material name="">
+        <color rgba="0.752941176470588 0.752941176470588 0.752941176470588 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0" />
+      <geometry>
+        <mesh filename="package://pal_pro_gripper_description/meshes/fingertip.stl" />
+      </geometry>
+    </collision>
   </link>
   <joint name="arm_right_1_joint" type="revolute">
     <origin rpy="-2.0679 -0.0 -1.9198899999999999" xyz="0.08976 -0.15918 -0.092008" />
@@ -242,5 +388,59 @@
     <parent link="arm_right_7_link" />
     <child link="arm_right_tool_link" />
     <origin rpy="0 0 0" xyz="0 0 0.017" />
+  </joint>
+  <joint name="gripper_right_base_joint" type="fixed">
+    <origin rpy="0 0 0" xyz="0.0 0.0 0.0" />
+    <parent link="arm_right_tool_link" />
+    <child link="gripper_right_base_link" />
+    <axis xyz="0 0 0" />
+  </joint>
+  <joint name="gripper_right_inner_finger_left_joint" type="revolute">
+    <origin rpy="1.5708 0.83776 -1.5708" xyz="0 -0.013977 0.078832" />
+    <parent link="gripper_right_base_link" />
+    <child link="gripper_right_inner_finger_left_link" />
+    <axis xyz="0 0 1" />
+    <limit effort="0.1" lower="0" upper="0.8028514559173916" velocity="2" />
+    <mimic joint="gripper_right_finger_joint" multiplier="1" offset="0" />
+  </joint>
+  <joint name="gripper_right_finger_joint" type="revolute">
+    <origin rpy="1.5708 0.83776 -1.5708" xyz="0 -0.0288 0.0743" />
+    <parent link="gripper_right_base_link" />
+    <child link="gripper_right_outer_finger_left_link" />
+    <axis xyz="0 0 1" />
+    <limit effort="0.1" lower="0" upper="0.8028514559173916" velocity="2" />
+    <dynamics damping="0.03" />
+  </joint>
+  <joint name="gripper_right_inner_finger_right_joint" type="revolute">
+    <origin rpy="1.5708 0.83776 1.5708" xyz="0 0.013977 0.078832" />
+    <parent link="gripper_right_base_link" />
+    <child link="gripper_right_inner_finger_right_link" />
+    <axis xyz="0 0 1" />
+    <limit effort="0.1" lower="0" upper="0.8028514559173916" velocity="2" />
+    <mimic joint="gripper_right_finger_joint" multiplier="1" offset="0" />
+  </joint>
+  <joint name="gripper_right_outer_finger_right_joint" type="revolute">
+    <origin rpy="1.5708 0.83776 1.5708" xyz="0 0.0288 0.0743" />
+    <parent link="gripper_right_base_link" />
+    <child link="gripper_right_outer_finger_right_link" />
+    <axis xyz="0 0 1" />
+    <limit effort="0.1" lower="0" upper="0.8028514559173916" velocity="2" />
+    <mimic joint="gripper_right_finger_joint" multiplier="1" offset="0" />
+  </joint>
+  <joint name="gripper_right_fingertip_left_joint" type="revolute">
+    <origin rpy="0 0 0.83776" xyz="0 0.05 0" />
+    <parent link="gripper_right_inner_finger_left_link" />
+    <child link="gripper_right_fingertip_left_link" />
+    <axis xyz="0 0 1" />
+    <limit effort="0.1" lower="-0.8028514559173916" upper="0" velocity="2" />
+    <mimic joint="gripper_right_finger_joint" multiplier="-1" offset="0" />
+  </joint>
+  <joint name="gripper_right_fingertip_right_joint" type="revolute">
+    <origin rpy="0 0 0.83776" xyz="0 0.05 0" />
+    <parent link="gripper_right_inner_finger_right_link" />
+    <child link="gripper_right_fingertip_right_link" />
+    <axis xyz="0 0 1" />
+    <limit effort="0.1" lower="-0.8028514559173916" upper="0" velocity="2" />
+    <mimic joint="gripper_right_finger_joint" multiplier="-1" offset="0" />
   </joint>
 </robot>
