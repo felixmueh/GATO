@@ -56,3 +56,6 @@ felixtools/
 .githooks/
 TiagoProURDF/
 example_artifacts/
+
+.agents
+.codex
