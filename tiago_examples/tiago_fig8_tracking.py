@@ -443,6 +443,7 @@ def run(args):
 
     results = {}
     summaries = {}
+    controller_state_summary = None
     try:
         for batch_size in cfg["batch_sizes"]:
             mpc = MPC_GATO(
@@ -473,6 +474,9 @@ def run(args):
     finally:
         if ros_controller is not None:
             ros_controller.close(timeout_sec=args.ros_controller_timeout)
+            controller_state_summary = ros_controller.write_state_history_csv(
+                output_dir / "controller_state_history.csv"
+            )
 
     save_renderings(output_dir, args.plant, reference, results, make_gif=not args.no_gif)
 
@@ -491,6 +495,7 @@ def run(args):
         "reference_extent_m": [float(v) for v in np.ptp(reference.reshape(-1, 6)[:, :3], axis=0)],
         "reference_metadata": cfg["reference_metadata"],
         "summary_by_batch": summaries,
+        "controller_state_history": controller_state_summary,
     }
     with (output_dir / "summary.json").open("w", encoding="utf-8") as f:
         json.dump(payload, f, indent=2, sort_keys=True)

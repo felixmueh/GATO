@@ -47,6 +47,7 @@ class ArmState:
     qd: np.ndarray
     stamp_sec: float
     received_monotonic_sec: float
+    seq: int = 0
 
     @property
     def age_sec(self) -> float:
@@ -187,6 +188,7 @@ class TiagoRightArmClient:
         self.cmd_vel_topic = cmd_vel_topic
         self.base_cmd_vel_unstamped_topic = base_cmd_vel_unstamped_topic
         self._latest_state: ArmState | None = None
+        self._state_seq = 0
 
         self.node = self.rclpy.create_node(node_name)
         self.node.create_subscription(
@@ -239,11 +241,13 @@ class TiagoRightArmClient:
             dtype=np.float32,
         )
         stamp_sec = float(msg.header.stamp.sec) + float(msg.header.stamp.nanosec) * 1e-9
+        self._state_seq += 1
         self._latest_state = ArmState(
             q=q,
             qd=qd,
             stamp_sec=stamp_sec,
             received_monotonic_sec=time.monotonic(),
+            seq=self._state_seq,
         )
 
     def spin_once(self, timeout_sec: float = 0.0) -> None:

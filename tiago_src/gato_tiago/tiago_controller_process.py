@@ -9,6 +9,7 @@ from __future__ import annotations
 import atexit
 from dataclasses import dataclass
 import multiprocessing as mp
+from pathlib import Path
 import queue
 import time
 from typing import Any, Sequence
@@ -29,6 +30,7 @@ class RobotState:
     command_rate_hz: float = 0.0
     max_period_sec: float = 0.0
     seq: int = 0
+    source_seq: int = 0
     error: str | None = None
 
     @property
@@ -49,6 +51,16 @@ class ControllerStatus:
     error: str | None = None
 
 
+@dataclass(frozen=True)
+class StateHistorySample:
+    source_seq: int
+    stamp_sec: float
+    received_monotonic_sec: float
+    controller_mode: str
+    q: np.ndarray
+    qd: np.ndarray
+
+
 class _SharedState:
     def __init__(self, ctx: mp.context.BaseContext) -> None:
         self.lock = ctx.Lock()
@@ -61,6 +73,7 @@ class _SharedState:
         self.command_rate_hz = ctx.Value("d", 0.0)
         self.max_period_sec = ctx.Value("d", 0.0)
         self.seq = ctx.Value("q", 0)
+        self.source_seq = ctx.Value("q", 0)
 
 
 def _put_latest(q: mp.Queue, item: Any) -> None:
@@ -95,6 +108,7 @@ def _write_state(
     command_count: int,
     command_rate_hz: float,
     max_period_sec: float,
+    source_seq: int,
 ) -> None:
     encoded_mode = mode.encode("ascii", errors="replace")[:31]
     with shared.lock:
@@ -107,6 +121,7 @@ def _write_state(
         shared.command_count.value = int(command_count)
         shared.command_rate_hz.value = float(command_rate_hz)
         shared.max_period_sec.value = float(max_period_sec)
+        shared.source_seq.value = int(source_seq)
         shared.seq.value += 1
 
 
@@ -126,6 +141,7 @@ def _read_state(shared: _SharedState) -> RobotState | None:
             command_rate_hz=float(shared.command_rate_hz.value),
             max_period_sec=float(shared.max_period_sec.value),
             seq=seq,
+            source_seq=int(shared.source_seq.value),
         )
 
 
@@ -214,9 +230,11 @@ class TiagoControllerOrchestrator:
         self._state = _SharedState(self._ctx)
         self._trajectory_q: mp.Queue = self._ctx.Queue(maxsize=1)
         self._status_q: mp.Queue = self._ctx.Queue(maxsize=8)
+        self._history_q: mp.Queue = self._ctx.Queue(maxsize=1)
         self._stop_event = self._ctx.Event()
         self._process: mp.Process | None = None
         self._latest_state: RobotState | None = None
+        self._state_history: list[StateHistorySample] = []
         self._closed = False
         self._cleanup_registered = False
 
@@ -240,6 +258,7 @@ class TiagoControllerOrchestrator:
                 "shared_state": self._state,
                 "trajectory_q": self._trajectory_q,
                 "status_q": self._status_q,
+                "history_q": self._history_q,
                 "stop_event": self._stop_event,
             },
         )
@@ -297,6 +316,48 @@ class TiagoControllerOrchestrator:
                 return self._latest_state
             time.sleep(0.01)
 
+    def state_history(self) -> list[StateHistorySample]:
+        self._drain_state_history()
+        return list(self._state_history)
+
+    def state_history_frequency_summary(
+        self,
+        *,
+        change_atol: float = 0.0,
+        running_only: bool = True,
+    ) -> dict[str, float | int | bool | None]:
+        return summarize_state_history_frequency(
+            self.state_history(),
+            change_atol=change_atol,
+            running_only=running_only,
+        )
+
+    def write_state_history_csv(
+        self,
+        path: str | Path,
+        *,
+        change_atol: float = 0.0,
+    ) -> dict[str, float | int | bool | None]:
+        history = self.state_history()
+        rows = _state_history_rows(history)
+        path = Path(path)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        header = (
+            "source_seq,stamp_sec,received_monotonic_sec,controller_mode_code,"
+            "q0,q1,q2,q3,q4,q5,q6,qd0,qd1,qd2,qd3,qd4,qd5,qd6"
+        )
+        np.savetxt(path, rows, delimiter=",", header=header, comments="", fmt="%.10g")
+        return summarize_state_history_frequency(
+            history,
+            change_atol=change_atol,
+            running_only=True,
+        )
+
+    def _drain_state_history(self) -> None:
+        latest = _get_latest(self._history_q)
+        if latest is not None:
+            self._state_history = list(latest)
+
     def close(self, timeout_sec: float = 5.0) -> None:
         if self._closed:
             return
@@ -307,6 +368,7 @@ class TiagoControllerOrchestrator:
             if self._process.is_alive():
                 self._process.terminate()
                 self._process.join(timeout=1.0)
+        self._drain_state_history()
 
     def __enter__(self) -> "TiagoControllerOrchestrator":
         self.initialize()
@@ -328,6 +390,7 @@ def _controller_main(
     shared_state: _SharedState,
     trajectory_q: mp.Queue,
     status_q: mp.Queue,
+    history_q: mp.Queue,
     stop_event: mp.Event,
 ) -> None:
     from gato_tiago.ros_tiago import TiagoRightArmClient
@@ -344,6 +407,8 @@ def _controller_main(
     last_publish_time: float | None = None
     command_rate_hz = 0.0
     max_period_sec = 0.0
+    state_history: list[StateHistorySample] = []
+    last_history_source_seq = 0
 
     def set_status(new_mode: str, error: str | None = None) -> None:
         nonlocal mode
@@ -382,7 +447,20 @@ def _controller_main(
                         command_count=command_count,
                         command_rate_hz=command_rate_hz,
                         max_period_sec=max_period_sec,
+                        source_seq=state.seq,
                     )
+                    if state.seq != last_history_source_seq:
+                        state_history.append(
+                            StateHistorySample(
+                                source_seq=state.seq,
+                                stamp_sec=state.stamp_sec,
+                                received_monotonic_sec=state.received_monotonic_sec,
+                                controller_mode=mode,
+                                q=state.q.astype(np.float64).copy(),
+                                qd=state.qd.astype(np.float64).copy(),
+                            )
+                        )
+                        last_history_source_seq = state.seq
 
                 if effort_active and (state is None or state.age_sec > stale_timeout_sec):
                     age = state.age_sec if state is not None else float("inf")
@@ -456,6 +534,7 @@ def _controller_main(
                     raise
             raise
         finally:
+            _put_latest(history_q, list(state_history))
             if restore_on_exit:
                 try:
                     arm.switch_to_default_control(timeout_sec=5.0)
@@ -463,3 +542,90 @@ def _controller_main(
                         set_status("RESTORED")
                 except BaseException as exc:
                     set_status("ERROR_RESTORE_FAILED", str(exc))
+
+
+# =======================================================
+# State history helpers
+# =======================================================
+
+
+def _state_history_rows(history: Sequence[StateHistorySample]) -> np.ndarray:
+    rows = []
+    for sample in history:
+        mode_code = {
+            "READY": 1.0,
+            "RUNNING": 2.0,
+            "RESTORED": 3.0,
+        }.get(sample.controller_mode, 0.0)
+        rows.append(
+            [
+                float(sample.source_seq),
+                float(sample.stamp_sec),
+                float(sample.received_monotonic_sec),
+                mode_code,
+                *[float(v) for v in sample.q],
+                *[float(v) for v in sample.qd],
+            ]
+        )
+    return np.asarray(rows, dtype=np.float64)
+
+
+def summarize_state_history_frequency(
+    history: Sequence[StateHistorySample],
+    *,
+    change_atol: float = 0.0,
+    running_only: bool = True,
+) -> dict[str, float | int | bool | None]:
+    samples = list(history)
+    if running_only:
+        samples = [sample for sample in samples if sample.controller_mode == "RUNNING"]
+    if len(samples) < 2:
+        return {
+            "running_only": bool(running_only),
+            "samples": len(samples),
+            "changed_samples": 0,
+            "changed_transitions": 0,
+            "lower_bound_hz": None,
+            "elapsed_stamp_sec": None,
+            "elapsed_wall_receive_sec": None,
+        }
+
+    values = np.asarray(
+        [np.concatenate([sample.q, sample.qd]).astype(np.float64) for sample in samples],
+        dtype=np.float64,
+    )
+    deltas = np.abs(np.diff(values, axis=0))
+    changed = np.any(deltas > change_atol, axis=1)
+    changed_transitions = np.flatnonzero(changed)
+    if changed_transitions.size == 0:
+        return {
+            "running_only": bool(running_only),
+            "samples": len(samples),
+            "changed_samples": 0,
+            "changed_transitions": 0,
+            "lower_bound_hz": 0.0,
+            "elapsed_stamp_sec": 0.0,
+            "elapsed_wall_receive_sec": 0.0,
+        }
+
+    first = samples[int(changed_transitions[0])]
+    last = samples[int(changed_transitions[-1] + 1)]
+    changed_transition_count = int(changed_transitions.size)
+    elapsed_stamp = float(last.stamp_sec - first.stamp_sec)
+    elapsed_wall = float(last.received_monotonic_sec - first.received_monotonic_sec)
+    if elapsed_stamp > 0.0:
+        lower_bound_hz = float(changed_transition_count / elapsed_stamp)
+    elif elapsed_wall > 0.0:
+        lower_bound_hz = float(changed_transition_count / elapsed_wall)
+    else:
+        lower_bound_hz = None
+    return {
+        "running_only": bool(running_only),
+        "samples": len(samples),
+        "changed_samples": changed_transition_count + 1,
+        "changed_transitions": changed_transition_count,
+        "lower_bound_hz": lower_bound_hz,
+        "elapsed_stamp_sec": elapsed_stamp,
+        "elapsed_wall_receive_sec": elapsed_wall,
+        "change_atol": float(change_atol),
+    }
