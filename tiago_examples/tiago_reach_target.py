@@ -11,12 +11,16 @@ import pinocchio as pin
 
 PROJECT_ROOT = Path(".")
 sys.path.insert(0, str(PROJECT_ROOT / "python"))
+sys.path.insert(0, str(PROJECT_ROOT / "tiago_src"))
 
 
 MODEL_PATH = Path("gato") / "dynamics" / "tiago_right" / "tiago_right_arm.urdf"
 OUTPUT_ROOT = Path("example_artifacts") / "tiago_reach_target"
 DEFAULT_TARGET_OFFSET = np.array([0.11, -0.085, 0.035], dtype=np.float64)
-DEFAULT_LIMIT_CLEARANCE = 0.10
+DEFAULT_LIMIT_CLEARANCE = 0.08
+DEFAULT_RUN_GOAL_COUNT = 2
+DEFAULT_RUN_GOAL_RADIUS = 0.22
+DEFAULT_RUN_GOAL_SEED = 13
 DEFAULT_GOAL_COUNT = 5
 DEFAULT_GOAL_CANDIDATES = 240
 DEFAULT_GOAL_SAMPLE_RADIUS = 0.30
@@ -51,7 +55,6 @@ ARM_JOINT_NAMES = [
     "arm_right_6_joint",
     "arm_right_7_joint",
 ]
-
 
 def load_model(model_path=MODEL_PATH):
     if not model_path.exists():
@@ -293,6 +296,72 @@ def sample_reachable_goals(model, start_q, start_ee, *, count, candidates, radiu
     }
 
 
+def sample_away_hemisphere_goals(
+    model,
+    start_q,
+    start_ee,
+    *,
+    count,
+    radius,
+    candidates,
+    required_clearance,
+    seed,
+):
+    rng = np.random.default_rng(seed)
+    start_ee = np.asarray(start_ee, dtype=np.float64)
+    goals = []
+    goal_checks = []
+    attempts = 0
+    max_attempts = max(candidates * max(count, 1), count)
+    min_radius = min(0.08, radius)
+
+    while len(goals) < count and attempts < max_attempts:
+        attempts += 1
+        direction = rng.normal(size=3)
+        direction[0] = abs(direction[0])
+        norm = np.linalg.norm(direction)
+        if norm <= 1e-12:
+            continue
+        direction /= norm
+        if direction[0] < 0.35:
+            continue
+
+        distance = rng.uniform(min_radius, radius)
+        target = start_ee + distance * direction
+        try:
+            check = preflight(
+                model,
+                start_q,
+                np.asarray([target], dtype=np.float64),
+                required_clearance=required_clearance,
+            )["goals"][0]
+        except RuntimeError:
+            continue
+        goals.append(target)
+        goal_checks.append(check)
+
+    if len(goals) < count:
+        raise RuntimeError(
+            f"Only sampled {len(goals)}/{count} away-hemisphere goals. "
+            "Try larger --goal-candidates, smaller --required-limit-clearance, "
+            "or smaller --run-goal-radius."
+        )
+
+    goals = np.asarray(goals, dtype=np.float64)
+    return goals, {
+        "mode": "away_hemisphere",
+        "frame": "torso_lift_link",
+        "away_axis": "+x",
+        "seed": int(seed),
+        "requested_goal_count": int(count),
+        "candidate_budget": int(max_attempts),
+        "radius_m": float(radius),
+        "selected_distances_from_start_m": [float(np.linalg.norm(goal - start_ee)) for goal in goals],
+        "selected_goals": [[float(v) for v in goal] for goal in goals],
+        "preflight_goals": goal_checks,
+    }
+
+
 def write_goals_csv(path, goals):
     path.parent.mkdir(parents=True, exist_ok=True)
     np.savetxt(path, np.asarray(goals, dtype=np.float64), delimiter=",", header="x,y,z", comments="")
@@ -320,13 +389,48 @@ def active_targets_for_timestamps(timestamps, goals, goal_reached_times):
     return target_rows
 
 
-def summarize(model, timestamps, goals, target_rows, ee_actual, distances, joints, velocities, solve_times, goal_outcomes, goal_reached_times, time_to_all_reached):
+def summarize(
+    model,
+    timestamps,
+    goals,
+    target_rows,
+    ee_actual,
+    distances,
+    joints,
+    velocities,
+    solve_times,
+    goal_outcomes,
+    goal_reached_times,
+    time_to_all_reached,
+    applied_controls=None,
+    planned_controls=None,
+):
     if timestamps.size == 0:
         return {
             "iterations": 0,
             "goal_outcomes": goal_outcomes,
             "goals": [[float(v) for v in goal] for goal in goals],
         }
+
+    effort_limit = model.effortLimit.astype(np.float64)
+    torque_limits = {
+        "checked": False,
+        "reason": "MPC_GATO.run_mpc_goals did not expose applied or planned controls in its stats.",
+    }
+    if applied_controls is not None and planned_controls is not None:
+        applied_controls = np.asarray(applied_controls, dtype=np.float64)
+        planned_controls = np.asarray(planned_controls, dtype=np.float64)
+        if applied_controls.size and planned_controls.size:
+            max_abs_applied = np.max(np.abs(applied_controls), axis=0)
+            max_abs_planned = np.max(np.abs(planned_controls), axis=0)
+            torque_limits = {
+                "checked": True,
+                "max_abs_applied_torque_nm": [float(v) for v in max_abs_applied],
+                "max_abs_planned_torque_nm": [float(v) for v in max_abs_planned],
+                "torque_limit_nm": [float(v) for v in effort_limit],
+                "max_applied_violation_nm": float(np.max(np.maximum(max_abs_applied - effort_limit, 0.0))),
+                "max_planned_violation_nm": float(np.max(np.maximum(max_abs_planned - effort_limit, 0.0))),
+            }
 
     return {
         "iterations": int(timestamps.size),
@@ -345,10 +449,7 @@ def summarize(model, timestamps, goals, target_rows, ee_actual, distances, joint
         "p95_solve_time_ms": float(np.quantile(solve_times, 0.95)),
         "joint_limits": joint_limit_summary(model, joints),
         "velocity_limits": velocity_limit_summary(model, velocities),
-        "torque_limits": {
-            "checked": False,
-            "reason": "MPC_GATO.run_mpc_goals does not expose applied or planned controls in its stats.",
-        },
+        "torque_limits": torque_limits,
     }
 
 
@@ -370,7 +471,19 @@ def jsonable_args(args):
     return result
 
 
-def save_run_data(expr_dir, metadata, timestamps, target_rows, ee_actual, distances, joints, velocities, solve_times):
+def save_run_data(
+    expr_dir,
+    metadata,
+    timestamps,
+    target_rows,
+    ee_actual,
+    distances,
+    joints,
+    velocities,
+    solve_times,
+    applied_controls=None,
+    planned_controls=None,
+):
     data_dir = expr_dir / "data"
     data_dir.mkdir(parents=True, exist_ok=True)
 
@@ -396,6 +509,26 @@ def save_run_data(expr_dir, metadata, timestamps, target_rows, ee_actual, distan
         header=",".join(header),
         comments="",
     )
+
+    if applied_controls is not None and planned_controls is not None:
+        applied_controls = np.asarray(applied_controls, dtype=np.float64)
+        planned_controls = np.asarray(planned_controls, dtype=np.float64)
+        if applied_controls.size and planned_controls.size:
+            header = ["t"] + [f"u{i}" for i in range(applied_controls.shape[1])]
+            np.savetxt(
+                data_dir / "applied_controls.csv",
+                np.column_stack([timestamps, applied_controls]),
+                delimiter=",",
+                header=",".join(header),
+                comments="",
+            )
+            np.savetxt(
+                data_dir / "planned_controls.csv",
+                np.column_stack([timestamps, planned_controls]),
+                delimiter=",",
+                header=",".join(header),
+                comments="",
+            )
 
 
 def save_trial_data(data_dir, trial_index, goal, timestamps, target_rows, ee_actual, distances, joints, velocities, solve_times):
@@ -632,9 +765,10 @@ def save_gif(expr_dir, timestamps, ee_actual, target_rows, goals, arm_points, jo
         return (*axis_lines, *allowed_ring_lines, *blocked_ring_lines, arm_line, trail, actual_point, goal_points, active_target_point)
 
     interval_ms = animation_interval_ms(timestamps[frame_ids], playback_speed) if interactive else 50.0
-    anim = animation.FuncAnimation(fig, update, frames=frame_ids.size, interval=interval_ms, blit=False)
     update(frame_ids.size - 1)
     fig.savefig(expr_dir / "reach_target_3d.png", dpi=160)
+    if write_gif or interactive:
+        anim = animation.FuncAnimation(fig, update, frames=frame_ids.size, interval=interval_ms, blit=False)
     if write_gif:
         anim.save(expr_dir / "reach_target.gif", writer=animation.PillowWriter(fps=20))
     if interactive:
@@ -644,8 +778,8 @@ def save_gif(expr_dir, timestamps, ee_actual, target_rows, goals, arm_points, jo
 
 
 def run_experiment(args):
-    from bsqp.config import TIAGO_RIGHT_START_CONFIGS, TIAGO_TRACKING_SOLVER_PARAMS
-    from bsqp.mpc_controller import MPC_GATO
+    from gato_tiago.config import TIAGO_RIGHT_START_CONFIGS, TIAGO_TRACKING_SOLVER_PARAMS
+    from gato_tiago.tiago_mpc_controller import MPC_GATO
 
     model = load_model()
     start_q = TIAGO_RIGHT_START_CONFIGS["comfortable"].astype(np.float32)
@@ -654,14 +788,28 @@ def run_experiment(args):
     target_offset = np.asarray(args.target_offset, dtype=np.float64)
     if args.goals_file is not None:
         goals = read_goals_csv(args.goals_file)
-        run_goal_sweep(args, model, start_q, start_ee, goals, {"mode": "goals_file", "goals_file": json_path(args.goals_file)})
-        return
+        goal_selection = {"mode": "goals_file", "goals_file": json_path(args.goals_file)}
+        if not args.ros_tiago:
+            run_goal_sweep(args, model, start_q, start_ee, goals, goal_selection)
+            return
+    elif args.goal_mode == "offset":
+        goals = np.vstack([start_ee + target_offset, start_ee + 2.0 * target_offset])
+        goal_selection = {
+            "mode": "offset",
+            "target_offset": [float(v) for v in target_offset],
+        }
+    else:
+        goals, goal_selection = sample_away_hemisphere_goals(
+            model,
+            start_q.astype(np.float64),
+            start_ee,
+            count=args.run_goal_count,
+            radius=args.run_goal_radius,
+            candidates=args.goal_candidates,
+            required_clearance=args.required_limit_clearance,
+            seed=args.goal_seed,
+        )
 
-    goals = np.vstack([start_ee + target_offset, start_ee + 2.0 * target_offset])
-    goal_selection = {
-        "mode": "offset",
-        "target_offset": [float(v) for v in target_offset],
-    }
     preflight_summary = preflight(model, start_q.astype(np.float64), goals, required_clearance=args.required_limit_clearance)
 
     solver_params = dict(TIAGO_TRACKING_SOLVER_PARAMS)
@@ -684,15 +832,39 @@ def run_experiment(args):
     )
     controller.force_estimator = None
 
-    _, stats = controller.run_mpc_goals(
-        x_start=x_start,
-        goals=[goal.astype(np.float32) for goal in goals],
-        sim_dt=args.sim_dt,
-        goal_timeout=args.goal_timeout,
-        goal_threshold=args.goal_threshold,
-        velocity_threshold=args.velocity_threshold,
-        goal_dwell_time=args.goal_dwell_time,
-    )
+    ros_controller = None
+    if args.ros_tiago:
+        from gato_tiago.tiago_controller_process import TiagoControllerOrchestrator
+
+        ros_controller = TiagoControllerOrchestrator(
+            target_hz=args.ros_target_hz,
+            reset_q=start_q,
+            reset_duration_sec=args.ros_reset_duration,
+            stale_timeout_sec=args.ros_stale_timeout,
+            max_abs_torque=args.ros_max_abs_torque,
+            clamp_torque=args.ros_clamp_torque,
+        )
+
+    expr_dir = expr_dir_from_args(args)
+    controller_state_summary = None
+    try:
+        _, stats = controller.run_mpc_goals(
+            x_start=x_start,
+            goals=[goal.astype(np.float32) for goal in goals],
+            sim_dt=args.sim_dt,
+            goal_timeout=args.goal_timeout,
+            goal_threshold=args.goal_threshold,
+            velocity_threshold=args.velocity_threshold,
+            goal_dwell_time=args.goal_dwell_time,
+            controller=ros_controller,
+            controller_timeout=args.ros_controller_timeout,
+        )
+    finally:
+        if ros_controller is not None:
+            ros_controller.close(timeout_sec=args.ros_controller_timeout)
+            controller_state_summary = ros_controller.write_state_history_csv(
+                expr_dir / "data" / "controller_state_history.csv"
+            )
 
     timestamps = np.asarray(stats.get("timestamps", []), dtype=np.float64)
     ee_actual = np.asarray(stats.get("ee_actual", []), dtype=np.float64)
@@ -700,13 +872,29 @@ def run_experiment(args):
     joints = np.asarray(stats.get("joint_positions", []), dtype=np.float64)
     velocities = np.asarray(stats.get("joint_velocities", []), dtype=np.float64)
     solve_times = np.asarray(stats.get("solve_times", []), dtype=np.float64)
+    applied_controls = np.asarray(stats.get("applied_controls", []), dtype=np.float64)
+    planned_controls = np.asarray(stats.get("planned_controls", []), dtype=np.float64)
     goal_outcomes = stats.get("goal_outcomes", [])
     goal_reached_times = stats.get("goal_reached_times", [])
     time_to_all_reached = stats.get("time_to_all_reached")
     target_rows = active_targets_for_timestamps(timestamps, goals, goal_reached_times)
-    summary = summarize(model, timestamps, goals, target_rows, ee_actual, distances, joints, velocities, solve_times, goal_outcomes, goal_reached_times, time_to_all_reached)
+    summary = summarize(
+        model,
+        timestamps,
+        goals,
+        target_rows,
+        ee_actual,
+        distances,
+        joints,
+        velocities,
+        solve_times,
+        goal_outcomes,
+        goal_reached_times,
+        time_to_all_reached,
+        applied_controls,
+        planned_controls,
+    )
 
-    expr_dir = expr_dir_from_args(args)
     metadata = {
         "args": {**jsonable_args(args), "output_root": json_path(args.output_root), "expr_dir": json_path(expr_dir) if args.expr_dir is not None else None},
         "model_path": json_path(MODEL_PATH),
@@ -718,10 +906,25 @@ def run_experiment(args):
             key: float(value) if isinstance(value, (int, float, np.floating)) else value
             for key, value in solver_params.items()
         },
+        "ros_tiago": bool(args.ros_tiago),
+        "ros_clamp_torque": bool(args.ros_clamp_torque),
+        "controller_state_history": controller_state_summary,
         "first_tunables_if_unstable": FIRST_TUNABLES_IF_UNSTABLE,
         "summary": summary,
     }
-    save_run_data(expr_dir, metadata, timestamps, target_rows, ee_actual, distances, joints, velocities, solve_times)
+    save_run_data(
+        expr_dir,
+        metadata,
+        timestamps,
+        target_rows,
+        ee_actual,
+        distances,
+        joints,
+        velocities,
+        solve_times,
+        applied_controls,
+        planned_controls,
+    )
 
     print(f"expr_dir: {expr_dir}")
     print(f"data_dir: {expr_dir / 'data'}")
@@ -737,7 +940,7 @@ def run_experiment(args):
 
 
 def run_single_goal_trial(model, start_q, goal, args, solver_params):
-    from bsqp.mpc_controller import MPC_GATO
+    from gato_tiago.tiago_mpc_controller import MPC_GATO
 
     controller = MPC_GATO(
         model=model,
@@ -767,6 +970,8 @@ def run_single_goal_trial(model, start_q, goal, args, solver_params):
     joints = np.asarray(stats.get("joint_positions", []), dtype=np.float64)
     velocities = np.asarray(stats.get("joint_velocities", []), dtype=np.float64)
     solve_times = np.asarray(stats.get("solve_times", []), dtype=np.float64)
+    applied_controls = np.asarray(stats.get("applied_controls", []), dtype=np.float64)
+    planned_controls = np.asarray(stats.get("planned_controls", []), dtype=np.float64)
     target_rows = np.tile(goal, (timestamps.size, 1))
     summary = summarize(
         model,
@@ -781,6 +986,8 @@ def run_single_goal_trial(model, start_q, goal, args, solver_params):
         stats.get("goal_outcomes", []),
         stats.get("goal_reached_times", []),
         stats.get("time_to_all_reached"),
+        applied_controls,
+        planned_controls,
     )
     return {
         "stats": stats,
@@ -796,7 +1003,7 @@ def run_single_goal_trial(model, start_q, goal, args, solver_params):
 
 
 def run_goal_sweep(args, model, start_q, start_ee, goals, goal_selection):
-    from bsqp.config import TIAGO_TRACKING_SOLVER_PARAMS
+    from gato_tiago.config import TIAGO_TRACKING_SOLVER_PARAMS
 
     solver_params = dict(TIAGO_TRACKING_SOLVER_PARAMS)
     if args.vel_lim_cost is not None:
@@ -878,7 +1085,7 @@ def close_seed_goals(model, start_q, start_ee, *, required_clearance, count):
 
 
 def sample_goals_command(args):
-    from bsqp.config import TIAGO_RIGHT_START_CONFIGS
+    from gato_tiago.config import TIAGO_RIGHT_START_CONFIGS
 
     model = load_model()
     start_q = TIAGO_RIGHT_START_CONFIGS["comfortable"].astype(np.float64)
@@ -920,22 +1127,21 @@ def create_plots(args):
     model = load_model(Path(metadata.get("model_path", MODEL_PATH)))
     save_error_plot(expr_dir, data["timestamps"], data["distances"], interactive=args.interactive)
 
-    if not args.no_gif or args.interactive:
-        arm_data = model.createData()
-        arm_points = np.asarray([arm_link_positions(model, arm_data, q) for q in data["joints"]], dtype=np.float64)
-        joint_axes = [joint_axis_overlays(model, arm_data, q) for q in data["joints"]]
-        save_gif(
-            expr_dir,
-            data["timestamps"],
-            data["ee_actual"],
-            data["target_rows"],
-            data["goals"],
-            arm_points,
-            joint_axes,
-            interactive=args.interactive,
-            write_gif=not args.no_gif,
-            playback_speed=args.playback_speed,
-        )
+    arm_data = model.createData()
+    arm_points = np.asarray([arm_link_positions(model, arm_data, q) for q in data["joints"]], dtype=np.float64)
+    joint_axes = [joint_axis_overlays(model, arm_data, q) for q in data["joints"]]
+    save_gif(
+        expr_dir,
+        data["timestamps"],
+        data["ee_actual"],
+        data["target_rows"],
+        data["goals"],
+        arm_points,
+        joint_axes,
+        interactive=args.interactive,
+        write_gif=not args.no_gif,
+        playback_speed=args.playback_speed,
+    )
 
     print(f"expr_dir: {expr_dir}")
     print(f"wrote: {expr_dir / 'target_error.png'}")
@@ -952,7 +1158,12 @@ def add_run_args(parser):
     parser.add_argument("--goal-threshold", type=float, default=0.02)
     parser.add_argument("--velocity-threshold", type=float, default=1.0)
     parser.add_argument("--goal-dwell-time", type=float, default=0.0)
+    parser.add_argument("--goal-mode", choices=("away-hemisphere", "offset"), default="away-hemisphere")
     parser.add_argument("--target-offset", nargs=3, type=float, default=DEFAULT_TARGET_OFFSET.tolist())
+    parser.add_argument("--run-goal-count", type=int, default=DEFAULT_RUN_GOAL_COUNT)
+    parser.add_argument("--run-goal-radius", type=float, default=DEFAULT_RUN_GOAL_RADIUS)
+    parser.add_argument("--goal-candidates", type=int, default=DEFAULT_GOAL_CANDIDATES)
+    parser.add_argument("--goal-seed", type=int, default=DEFAULT_RUN_GOAL_SEED)
     parser.add_argument("--goals-file", type=Path, default=None)
     parser.add_argument("--required-limit-clearance", type=float, default=DEFAULT_LIMIT_CLEARANCE)
     parser.add_argument("--vel-lim-cost", type=float, default=None)
@@ -960,6 +1171,13 @@ def add_run_args(parser):
     parser.add_argument("--output-root", type=Path, default=OUTPUT_ROOT)
     parser.add_argument("--output-label", default="default")
     parser.add_argument("--expr-dir", type=Path, default=None)
+    parser.add_argument("--ros-tiago", action="store_true")
+    parser.add_argument("--ros-target-hz", type=float, default=100.0)
+    parser.add_argument("--ros-reset-duration", type=float, default=2.0)
+    parser.add_argument("--ros-stale-timeout", type=float, default=0.25)
+    parser.add_argument("--ros-max-abs-torque", type=float, default=30.0)
+    parser.add_argument("--ros-clamp-torque", action="store_true")
+    parser.add_argument("--ros-controller-timeout", type=float, default=8.0)
 
 
 def add_sample_goal_args(parser):

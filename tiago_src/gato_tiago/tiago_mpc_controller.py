@@ -460,6 +460,8 @@ class MPC_GATO:
         goal_threshold=0.05,
         velocity_threshold=1.0,
         goal_dwell_time=0.0,
+        controller=None,
+        controller_timeout=2.0,
     ):
         """
         Run MPC controller tracking discrete goal positions.
@@ -481,6 +483,24 @@ class MPC_GATO:
                 - time_to_all_reached: total time if all succeeded, else None
                 - standard tracking stats (solve_times, timestamps, etc.)
         """
+        use_controller = controller is not None
+        if use_controller:
+            if self.has_pendulum:
+                raise ValueError("live controller mode does not support pendulum simulation")
+            controller.initialize()
+            controller_period = 1.0 / controller.target_hz
+            if self.dt < controller_period:
+                print(
+                    "WARNING: MPC dt "
+                    f"{self.dt:.6f}s is shorter than controller period "
+                    f"{controller_period:.6f}s. The controller cannot apply every "
+                    "planned torque knot."
+                )
+            state = controller.read_state(timeout_sec=controller_timeout)
+            if state is None:
+                raise RuntimeError("controller did not provide an initial state")
+            x_start = np.concatenate([state.q, state.qd]).astype(np.float32)
+
         # Initialize statistics
         stats = {
             'timestamps': [],
@@ -489,8 +509,14 @@ class MPC_GATO:
             'ee_actual': [],
             'joint_positions': [],
             'joint_velocities': [],
-            'best_trajectory_id': []
+            'best_trajectory_id': [],
+            'applied_controls': [],
+            'planned_controls': [],
         }
+        if use_controller:
+            stats['state_age_sec'] = []
+            stats['controller_command_rate_hz'] = []
+            stats['controller_max_period_sec'] = []
         
         if self.track_full_stats:
             stats['sqp_iters'] = []
@@ -539,6 +565,8 @@ class MPC_GATO:
         self.update_force_batch(q[:self.nq_robot] if self.has_pendulum else q)
         XU_batch, _ = self.solver.solve(x_curr_batch, ee_g_batch, XU_batch)
         XU_best = XU_batch[0, :]
+        if use_controller:
+            controller.send_trajectory(self.control_horizon_from_plan(XU_best), self.dt)
         
         print(f"\nRunning MPC: N={self.N}, batch={self.batch_size}, {len(goals)} goals")
         if self.has_pendulum:
@@ -548,57 +576,73 @@ class MPC_GATO:
         goal_start_time = total_sim_time
         goal_dwell_start_time = None
         # Main control loop
+        wall_start = time.perf_counter()
+        last_total_sim_time = 0.0
         while total_sim_time < goal_timeout * len(goals):
             
             # Store state for force estimation
             x_last = x_curr
             u_last = XU_best[self.nx:self.nx+self.nu]
-            
-            # Simulate forward with current control
-            timestep = self.dt
-            nsteps = int(timestep/sim_dt)
-            
-            for i in range(nsteps):
-                offset = int(i/(self.dt/sim_dt))
-                u_idx = self.nx + (self.nx+self.nu)*min(offset, self.N-1)
-                u = XU_best[u_idx:u_idx+self.nu]
-                
-                # Augment control with robot torques and pendulum damping if needed
-                if self.has_pendulum:
-                    damping = self.pendulum_config.get('damping', 0.4)
-                    u_aug = np.zeros(self.nv)
-                    u_aug[:self.nu] = u
-                    u_aug[self.nu:] = -damping * dq[self.nv_robot:]
-                else:
-                    u_aug = u
-                    
-                q, dq = rk4(self.model, self.data, q, dq, u_aug, sim_dt, self.actual_f_ext)
-                total_sim_time += sim_dt
-                
-            # Handle residual time
-            if timestep % sim_dt > 1e-5:
-                accumulated_time += timestep % sim_dt
-                if accumulated_time >= sim_dt:
-                    accumulated_time = 0.0
-                    offset = int(nsteps/(self.dt/sim_dt))
+            applied_u = u_last.copy()
+
+            if use_controller:
+                state = controller.read_state(timeout_sec=controller_timeout)
+                if state is None:
+                    raise RuntimeError("controller did not provide a current state")
+                q = state.q.astype(np.float32)
+                dq = state.qd.astype(np.float32)
+                x_curr = np.concatenate([q, dq]).astype(np.float32)
+                total_sim_time = time.perf_counter() - wall_start
+                timestep = max(total_sim_time - last_total_sim_time, sim_dt)
+                last_total_sim_time = total_sim_time
+                q_robot = q
+                dq_robot = dq
+            else:
+                # Simulate forward with current control
+                timestep = self.dt
+                nsteps = int(timestep/sim_dt)
+
+                for i in range(nsteps):
+                    offset = int(i/(self.dt/sim_dt))
                     u_idx = self.nx + (self.nx+self.nu)*min(offset, self.N-1)
                     u = XU_best[u_idx:u_idx+self.nu]
-                    
+
+                    # Augment control with robot torques and pendulum damping if needed
                     if self.has_pendulum:
                         damping = self.pendulum_config.get('damping', 0.4)
                         u_aug = np.zeros(self.nv)
                         u_aug[:self.nu] = u
-                        u_aug[self.nv_robot:] = -damping * dq[self.nv_robot:]
+                        u_aug[self.nu:] = -damping * dq[self.nv_robot:]
                     else:
                         u_aug = u
-                        
+
                     q, dq = rk4(self.model, self.data, q, dq, u_aug, sim_dt, self.actual_f_ext)
                     total_sim_time += sim_dt
-                    
-            # Update solver state (robot only)
-            q_robot = q[:self.nq_robot] if self.has_pendulum else q
-            dq_robot = dq[:self.nv_robot] if self.has_pendulum else dq
-            x_curr = np.concatenate([q_robot, dq_robot])
+
+                # Handle residual time
+                if timestep % sim_dt > 1e-5:
+                    accumulated_time += timestep % sim_dt
+                    if accumulated_time >= sim_dt:
+                        accumulated_time = 0.0
+                        offset = int(nsteps/(self.dt/sim_dt))
+                        u_idx = self.nx + (self.nx+self.nu)*min(offset, self.N-1)
+                        u = XU_best[u_idx:u_idx+self.nu]
+
+                        if self.has_pendulum:
+                            damping = self.pendulum_config.get('damping', 0.4)
+                            u_aug = np.zeros(self.nv)
+                            u_aug[:self.nu] = u
+                            u_aug[self.nv_robot:] = -damping * dq[self.nv_robot:]
+                        else:
+                            u_aug = u
+
+                        q, dq = rk4(self.model, self.data, q, dq, u_aug, sim_dt, self.actual_f_ext)
+                        total_sim_time += sim_dt
+
+                # Update solver state (robot only)
+                q_robot = q[:self.nq_robot] if self.has_pendulum else q
+                dq_robot = dq[:self.nv_robot] if self.has_pendulum else dq
+                x_curr = np.concatenate([q_robot, dq_robot])
             
             # Check goal reached or timeout
             ee_pos = self.solver.ee_pos(q_robot)
@@ -648,6 +692,9 @@ class MPC_GATO:
             best_id = self.evaluate_best_trajectory(x_last, u_last, x_curr, max(sim_dt, round(timestep / sim_dt) * sim_dt))
             XU_best = XU_batch_new[best_id, :]
             XU_batch[:, :] = XU_best
+            planned_u = XU_best[self.nx:self.nx+self.nu].copy()
+            if use_controller:
+                controller.send_trajectory(self.control_horizon_from_plan(XU_best), self.dt)
             
             # Collect statistics
             stats['timestamps'].append(total_sim_time)
@@ -657,6 +704,12 @@ class MPC_GATO:
             stats['joint_positions'].append(q_robot.copy())
             stats['joint_velocities'].append(dq_robot.copy())
             stats['best_trajectory_id'].append(best_id)
+            stats['applied_controls'].append(applied_u)
+            stats['planned_controls'].append(planned_u)
+            if use_controller:
+                stats['state_age_sec'].append(state.age_sec)
+                stats['controller_command_rate_hz'].append(state.command_rate_hz)
+                stats['controller_max_period_sec'].append(state.max_period_sec)
             
             if self.track_full_stats:
                 solver_stats = self.solver.get_stats()
