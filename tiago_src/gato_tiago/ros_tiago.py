@@ -363,9 +363,12 @@ class TiagoRightArmClient:
         self._wait_for_topic_subscription(self.effort_command_topic, timeout_sec)
 
     def switch_to_default_control(self, timeout_sec: float = 5.0) -> None:
+        effort_active = self._topic_has_subscription(self.effort_command_topic)
+        if self._topic_has_subscription(self.trajectory_topic) and not effort_active:
+            return
         self._switch_controllers(
             activate=["arm_right_controller"],
-            deactivate=[self.effort_controller],
+            deactivate=[self.effort_controller] if effort_active else [],
             strictness=1,
             timeout_sec=timeout_sec,
         )
