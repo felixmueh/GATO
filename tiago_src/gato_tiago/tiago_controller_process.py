@@ -11,6 +11,7 @@ from dataclasses import dataclass
 import multiprocessing as mp
 from pathlib import Path
 import queue
+import tempfile
 import time
 from typing import Any, Sequence
 
@@ -59,6 +60,16 @@ class StateHistorySample:
     controller_mode: str
     q: np.ndarray
     qd: np.ndarray
+
+
+_STATE_HISTORY_MODE_CODES = {
+    "READY": 1.0,
+    "RUNNING": 2.0,
+    "RESTORED": 3.0,
+}
+_STATE_HISTORY_MODES_BY_CODE = {
+    int(code): mode for mode, code in _STATE_HISTORY_MODE_CODES.items()
+}
 
 
 def elapsed_sim_time_from_stamp(
@@ -180,6 +191,50 @@ def _read_state(shared: _SharedState) -> RobotState | None:
         )
 
 
+def _state_history_row(sample: StateHistorySample) -> list[float]:
+    mode_code = _STATE_HISTORY_MODE_CODES.get(sample.controller_mode, 0.0)
+    return [
+        float(sample.source_seq),
+        float(sample.stamp_sec),
+        float(sample.received_monotonic_sec),
+        mode_code,
+        *[float(v) for v in sample.q],
+        *[float(v) for v in sample.qd],
+    ]
+
+
+def _format_state_history_row(sample: StateHistorySample) -> str:
+    return ",".join(f"{value:.10g}" for value in _state_history_row(sample)) + "\n"
+
+
+def _state_history_from_rows(rows: np.ndarray) -> list[StateHistorySample]:
+    rows = np.asarray(rows, dtype=np.float64)
+    if rows.size == 0:
+        return []
+    rows = np.atleast_2d(rows)
+    samples = []
+    for row in rows:
+        mode = _STATE_HISTORY_MODES_BY_CODE.get(int(row[3]), "UNKNOWN")
+        samples.append(
+            StateHistorySample(
+                source_seq=int(row[0]),
+                stamp_sec=float(row[1]),
+                received_monotonic_sec=float(row[2]),
+                controller_mode=mode,
+                q=np.asarray(row[4:11], dtype=np.float64),
+                qd=np.asarray(row[11:18], dtype=np.float64),
+            )
+        )
+    return samples
+
+
+def _load_state_history(path: Path) -> list[StateHistorySample]:
+    if not path.is_file() or path.stat().st_size == 0:
+        return []
+    rows = np.loadtxt(path, delimiter=",", ndmin=2)
+    return _state_history_from_rows(rows)
+
+
 def _validate_trajectory(
     traj: TorqueTrajectory,
     n_joints: int,
@@ -265,7 +320,8 @@ class TiagoControllerOrchestrator:
         self._state = _SharedState(self._ctx)
         self._trajectory_q: mp.Queue = self._ctx.Queue(maxsize=1)
         self._status_q: mp.Queue = self._ctx.Queue(maxsize=8)
-        self._history_q: mp.Queue = self._ctx.Queue(maxsize=1)
+        self._history_tmpdir = tempfile.TemporaryDirectory(prefix="gato_tiago_history_")
+        self._history_path = Path(self._history_tmpdir.name) / "state_history_rows.csv"
         self._stop_event = self._ctx.Event()
         self._process: mp.Process | None = None
         self._latest_state: RobotState | None = None
@@ -293,7 +349,7 @@ class TiagoControllerOrchestrator:
                 "shared_state": self._state,
                 "trajectory_q": self._trajectory_q,
                 "status_q": self._status_q,
-                "history_q": self._history_q,
+                "history_path": self._history_path,
                 "stop_event": self._stop_event,
             },
         )
@@ -352,7 +408,7 @@ class TiagoControllerOrchestrator:
             time.sleep(0.01)
 
     def state_history(self) -> list[StateHistorySample]:
-        self._drain_state_history()
+        self._state_history = _load_state_history(self._history_path)
         return list(self._state_history)
 
     def state_history_frequency_summary(
@@ -388,11 +444,6 @@ class TiagoControllerOrchestrator:
             running_only=True,
         )
 
-    def _drain_state_history(self) -> None:
-        latest = _get_latest(self._history_q)
-        if latest is not None:
-            self._state_history = list(latest)
-
     def close(self, timeout_sec: float = 5.0) -> None:
         if self._closed:
             return
@@ -403,7 +454,7 @@ class TiagoControllerOrchestrator:
             if self._process.is_alive():
                 self._process.terminate()
                 self._process.join(timeout=1.0)
-        self._drain_state_history()
+        self._state_history = _load_state_history(self._history_path)
 
     def __enter__(self) -> "TiagoControllerOrchestrator":
         self.initialize()
@@ -425,7 +476,7 @@ def _controller_main(
     shared_state: _SharedState,
     trajectory_q: mp.Queue,
     status_q: mp.Queue,
-    history_q: mp.Queue,
+    history_path: Path,
     stop_event: mp.Event,
 ) -> None:
     from gato_tiago.ros_tiago import TiagoRightArmClient
@@ -442,7 +493,6 @@ def _controller_main(
     last_publish_time: float | None = None
     command_rate_hz = 0.0
     max_period_sec = 0.0
-    state_history: list[StateHistorySample] = []
     last_history_source_seq = 0
 
     def set_status(new_mode: str, error: str | None = None) -> None:
@@ -450,7 +500,8 @@ def _controller_main(
         mode = new_mode
         _put_latest(status_q, ControllerStatus(mode=new_mode, error=error))
 
-    with TiagoRightArmClient(node_name="gato_tiago_controller_process") as arm:
+    history_file = Path(history_path).open("w", encoding="utf-8", buffering=1)
+    with history_file, TiagoRightArmClient(node_name="gato_tiago_controller_process") as arm:
         try:
             set_status("RESETTING")
             arm.switch_to_default_control(timeout_sec=5.0)
@@ -485,14 +536,16 @@ def _controller_main(
                         source_seq=state.seq,
                     )
                     if state.seq != last_history_source_seq:
-                        state_history.append(
-                            StateHistorySample(
-                                source_seq=state.seq,
-                                stamp_sec=state.stamp_sec,
-                                received_monotonic_sec=state.received_monotonic_sec,
-                                controller_mode=mode,
-                                q=state.q.astype(np.float64).copy(),
-                                qd=state.qd.astype(np.float64).copy(),
+                        history_file.write(
+                            _format_state_history_row(
+                                StateHistorySample(
+                                    source_seq=state.seq,
+                                    stamp_sec=state.stamp_sec,
+                                    received_monotonic_sec=state.received_monotonic_sec,
+                                    controller_mode=mode,
+                                    q=state.q.astype(np.float64),
+                                    qd=state.qd.astype(np.float64),
+                                )
                             )
                         )
                         last_history_source_seq = state.seq
@@ -569,7 +622,6 @@ def _controller_main(
                     raise
             raise
         finally:
-            _put_latest(history_q, list(state_history))
             if restore_on_exit:
                 try:
                     arm.switch_to_default_control(timeout_sec=5.0)
@@ -585,23 +637,7 @@ def _controller_main(
 
 
 def _state_history_rows(history: Sequence[StateHistorySample]) -> np.ndarray:
-    rows = []
-    for sample in history:
-        mode_code = {
-            "READY": 1.0,
-            "RUNNING": 2.0,
-            "RESTORED": 3.0,
-        }.get(sample.controller_mode, 0.0)
-        rows.append(
-            [
-                float(sample.source_seq),
-                float(sample.stamp_sec),
-                float(sample.received_monotonic_sec),
-                mode_code,
-                *[float(v) for v in sample.q],
-                *[float(v) for v in sample.qd],
-            ]
-        )
+    rows = [_state_history_row(sample) for sample in history]
     return np.asarray(rows, dtype=np.float64)
 
 
