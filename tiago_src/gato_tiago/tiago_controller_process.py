@@ -61,6 +61,41 @@ class StateHistorySample:
     qd: np.ndarray
 
 
+def elapsed_sim_time_from_stamp(
+    stamp_sec: float,
+    origin_stamp_sec: float,
+    previous_elapsed_sec: float | None = None,
+    *,
+    backward_tolerance_sec: float = 1e-9,
+) -> float:
+    """Return elapsed simulation time from a ROS message stamp."""
+    stamp = float(stamp_sec)
+    origin = float(origin_stamp_sec)
+    elapsed = stamp - origin
+    if not np.isfinite(elapsed):
+        raise ValueError(
+            f"non-finite simulation timestamp: stamp={stamp_sec!r} origin={origin_stamp_sec!r}"
+        )
+    if elapsed < 0.0:
+        if abs(elapsed) <= backward_tolerance_sec:
+            elapsed = 0.0
+        else:
+            raise RuntimeError(
+                "robot state simulation timestamp is before the initial stamp: "
+                f"stamp={stamp:.9f}s origin={origin:.9f}s"
+            )
+    if previous_elapsed_sec is not None:
+        previous = float(previous_elapsed_sec)
+        if elapsed < previous:
+            if previous - elapsed <= backward_tolerance_sec:
+                return previous
+            raise RuntimeError(
+                "robot state simulation timestamp moved backward: "
+                f"previous_elapsed={previous:.9f}s current_elapsed={elapsed:.9f}s"
+            )
+    return elapsed
+
+
 class _SharedState:
     def __init__(self, ctx: mp.context.BaseContext) -> None:
         self.lock = ctx.Lock()

@@ -10,6 +10,7 @@ import pinocchio as pin
 from bsqp.interface import BSQP
 from bsqp.common import rk4
 from bsqp.config import DEFAULT_SOLVER_PARAMS
+from gato_tiago.tiago_controller_process import elapsed_sim_time_from_stamp
 
 # Import force estimator if available
 sys.path.append('./examples')
@@ -160,6 +161,7 @@ class MPC_GATO:
         Returns only essential statistics for visualization and analysis.
         """
         use_controller = controller is not None
+        sim_stamp_origin_sec = None
         if use_controller:
             controller.initialize()
             controller_period = 1.0 / controller.target_hz
@@ -173,6 +175,7 @@ class MPC_GATO:
             state = controller.read_state(timeout_sec=controller_timeout)
             if state is None:
                 raise RuntimeError("controller did not provide an initial state")
+            sim_stamp_origin_sec = state.stamp_sec
             x_start = np.concatenate([state.q, state.qd]).astype(np.float32)
 
         # Initialize essential statistics
@@ -234,7 +237,6 @@ class MPC_GATO:
             
         # Main control loop
         solve_time = self.dt
-        wall_start = time.perf_counter()
         last_total_sim_time = 0.0
         while total_sim_time < sim_time:
             
@@ -250,7 +252,11 @@ class MPC_GATO:
                 q = state.q.astype(np.float32)
                 dq = state.qd.astype(np.float32)
                 x_curr = np.concatenate([q, dq]).astype(np.float32)
-                total_sim_time = time.perf_counter() - wall_start
+                total_sim_time = elapsed_sim_time_from_stamp(
+                    state.stamp_sec,
+                    sim_stamp_origin_sec,
+                    last_total_sim_time,
+                )
                 timestep = max(total_sim_time - last_total_sim_time, sim_dt)
                 last_total_sim_time = total_sim_time
             else:
@@ -489,6 +495,7 @@ class MPC_GATO:
                 - standard tracking stats (solve_times, timestamps, etc.)
         """
         use_controller = controller is not None
+        sim_stamp_origin_sec = None
         if use_controller:
             if self.has_pendulum:
                 raise ValueError("live controller mode does not support pendulum simulation")
@@ -504,6 +511,7 @@ class MPC_GATO:
             state = controller.read_state(timeout_sec=controller_timeout)
             if state is None:
                 raise RuntimeError("controller did not provide an initial state")
+            sim_stamp_origin_sec = state.stamp_sec
             x_start = np.concatenate([state.q, state.qd]).astype(np.float32)
 
         # Initialize statistics
@@ -581,7 +589,6 @@ class MPC_GATO:
         goal_start_time = total_sim_time
         goal_dwell_start_time = None
         # Main control loop
-        wall_start = time.perf_counter()
         last_total_sim_time = 0.0
         while total_sim_time < goal_timeout * len(goals):
             
@@ -597,7 +604,11 @@ class MPC_GATO:
                 q = state.q.astype(np.float32)
                 dq = state.qd.astype(np.float32)
                 x_curr = np.concatenate([q, dq]).astype(np.float32)
-                total_sim_time = time.perf_counter() - wall_start
+                total_sim_time = elapsed_sim_time_from_stamp(
+                    state.stamp_sec,
+                    sim_stamp_origin_sec,
+                    last_total_sim_time,
+                )
                 timestep = max(total_sim_time - last_total_sim_time, sim_dt)
                 last_total_sim_time = total_sim_time
                 q_robot = q

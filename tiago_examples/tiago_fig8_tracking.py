@@ -492,6 +492,9 @@ def run(args):
         "solver_params": solver_params,
         "ros_tiago": bool(args.ros_tiago),
         "ros_clamp_torque": bool(args.ros_clamp_torque),
+        "timestamp_source": (
+            "joint_state_header_stamp_elapsed" if args.ros_tiago else "offline_simulation_time"
+        ),
         "reference_extent_m": [float(v) for v in np.ptp(reference.reshape(-1, 6)[:, :3], axis=0)],
         "reference_metadata": cfg["reference_metadata"],
         "summary_by_batch": summaries,

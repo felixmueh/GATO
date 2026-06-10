@@ -908,6 +908,9 @@ def run_experiment(args):
         },
         "ros_tiago": bool(args.ros_tiago),
         "ros_clamp_torque": bool(args.ros_clamp_torque),
+        "timestamp_source": (
+            "joint_state_header_stamp_elapsed" if args.ros_tiago else "offline_simulation_time"
+        ),
         "controller_state_history": controller_state_summary,
         "first_tunables_if_unstable": FIRST_TUNABLES_IF_UNSTABLE,
         "summary": summary,
