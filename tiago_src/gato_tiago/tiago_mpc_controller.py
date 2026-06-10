@@ -1,3 +1,8 @@
+"""
+THIS IS A COPY OF THE MPC_GATO CLASS FROM THE GATO MPC REPO, WITH MODIFICATIONS FOR THE TIAGO ROBOT.
+"""
+
+
 import sys
 import time
 import numpy as np
