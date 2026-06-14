@@ -26,7 +26,7 @@ def _require_cuda_tracking_enabled():
         pytest.skip(f"built solver extension is not available: {module_name}")
 
 
-def _run_short_indy7_tracking():
+def _run_short_indy7_tracking(offline_timing="controller_dt", sim_time=None):
     _require_cuda_tracking_enabled()
 
     import pinocchio as pin
@@ -65,7 +65,12 @@ def _run_short_indy7_tracking():
         x_start,
         reference,
         sim_dt=0.001,
-        sim_time=float(os.environ.get("GATO_TRACKING_SMOKE_SIM_TIME", "0.03")),
+        sim_time=(
+            float(os.environ.get("GATO_TRACKING_SMOKE_SIM_TIME", "0.03"))
+            if sim_time is None
+            else sim_time
+        ),
+        offline_timing=offline_timing,
     )
     return stats
 
@@ -85,7 +90,7 @@ def _tracking_summary(stats):
     }
 
 
-def _assert_successful_tracking(stats):
+def _assert_successful_tracking(stats, expected_dt=0.01):
     timestamps = np.asarray(stats["timestamps"], dtype=np.float64)
     solve_times = np.asarray(stats["solve_times"], dtype=np.float64)
     goal_distances = np.asarray(stats["goal_distances"], dtype=np.float64)
@@ -99,6 +104,12 @@ def _assert_successful_tracking(stats):
     assert np.isfinite(goal_distances).all()
     assert np.isfinite(ee_actual).all()
     assert np.all(solve_times >= 0.0)
+    if timestamps.size > 1:
+        timestamp_deltas = np.diff(timestamps)
+        assert np.all(timestamp_deltas > 0.0)
+        if expected_dt is not None:
+            assert float(np.mean(timestamp_deltas)) == pytest.approx(expected_dt, rel=0.05)
+            assert float(np.std(timestamp_deltas) / np.mean(timestamp_deltas)) < 0.05
 
     max_avg_error = float(os.environ.get("GATO_TRACKING_MAX_AVG_ERROR_M", "1.0"))
     assert float(np.mean(goal_distances)) < max_avg_error
@@ -141,6 +152,14 @@ def test_short_figure8_tracking_succeeds():
     stats = _run_short_indy7_tracking()
 
     _assert_successful_tracking(stats)
+
+
+@pytest.mark.cuda
+@pytest.mark.tracking
+def test_solve_time_tracking_timestamps_are_monotonic():
+    stats = _run_short_indy7_tracking(offline_timing="solve_time", sim_time=0.02)
+
+    _assert_successful_tracking(stats, expected_dt=None)
 
 
 @pytest.mark.cuda

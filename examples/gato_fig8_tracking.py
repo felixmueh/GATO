@@ -12,7 +12,7 @@ import pinocchio as pin
 REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.append(str(REPO_ROOT / "python"))
 
-from bsqp.common import figure8
+from bsqp.common import figure8, sample_reference
 from bsqp.config import (
     BATCH_COLORS,
     DEFAULT_SOLVER_PARAMS,
@@ -134,9 +134,13 @@ def plant_config(plant, dt):
 
 
 def reference_at_timestamps(reference, timestamps, dt):
-    points = reference.reshape(-1, 6)[:, :3]
-    indices = np.minimum((timestamps / dt).astype(np.int64) + 1, points.shape[0] - 1)
-    return points[indices], indices
+    target_times = np.asarray(timestamps, dtype=np.float64) + dt
+    points = sample_reference(reference, target_times, dt)[:, :3]
+    indices = np.minimum(
+        (target_times / dt).astype(np.int64),
+        reference.reshape(-1, 6).shape[0] - 1,
+    )
+    return points, indices
 
 
 def stack_stat_rows(rows, fill_value, dtype):
@@ -265,6 +269,18 @@ def save_csvs(output_dir, batch_size, stats, reference_points, reference_indices
             np.column_stack([timestamps, pcg_times_us]),
             delimiter=",",
             header="t," + ",".join([f"linear_solve_{i}" for i in range(pcg_times_us.shape[1])]),
+            comments="",
+        )
+
+    sqp_iters = np.asarray(stats.get("sqp_iters", []), dtype=np.int32).reshape(-1)
+    kkt_converged = np.asarray(stats.get("kkt_converged", []), dtype=np.int32).reshape(-1)
+    if sqp_iters.size == timestamps.size and kkt_converged.size == timestamps.size:
+        np.savetxt(
+            output_dir / f"batch_{batch_size}_solver_status.csv",
+            np.column_stack([timestamps, sqp_iters, kkt_converged]),
+            delimiter=",",
+            fmt=["%.18e", "%d", "%d"],
+            header="t,sqp_iters,kkt_converged",
             comments="",
         )
 
@@ -404,7 +420,13 @@ def run(args):
             solver_params=solver_params,
         )
         mpc.force_estimator = None
-        _, stats = mpc.run_mpc_fig8(x_start=x_start, fig8_traj=reference, sim_dt=args.sim_dt, sim_time=args.sim_time)
+        _, stats = mpc.run_mpc_fig8(
+            x_start=x_start,
+            fig8_traj=reference,
+            sim_dt=args.sim_dt,
+            sim_time=args.sim_time,
+            offline_timing=args.offline_timing,
+        )
         timestamps = np.asarray(stats["timestamps"], dtype=np.float64)
         ref_points, ref_indices = reference_at_timestamps(reference, timestamps, args.dt)
         save_csvs(output_dir, batch_size, stats, ref_points, ref_indices)
@@ -423,6 +445,7 @@ def run(args):
         "batch_sizes": cfg["batch_sizes"],
         "constant_f_ext": [float(v) for v in cfg["f_ext"]],
         "solver_params": solver_params,
+        "offline_timing": args.offline_timing,
         "reference_extent_m": [float(v) for v in np.ptp(reference.reshape(-1, 6)[:, :3], axis=0)],
         "reference_metadata": cfg["reference_metadata"],
         "summary_by_batch": summaries,
@@ -452,6 +475,12 @@ def parse_args():
     parser.add_argument("--output-label", default=None)
     parser.add_argument("--vel-lim-cost", type=float, default=0.0)
     parser.add_argument("--ctrl-lim-cost", type=float, default=0.0)
+    parser.add_argument(
+        "--offline-timing",
+        choices=("controller_dt", "solve_time"),
+        default="controller_dt",
+        help="Timing source for local simulation.",
+    )
     parser.add_argument("--no-gif", action="store_true")
     return parser.parse_args()
 

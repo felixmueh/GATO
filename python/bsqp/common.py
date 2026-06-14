@@ -46,6 +46,110 @@ def figure8(dt, A_x=0.4, A_z=0.4, offset=[0.0, 0.5, 0.6], period=6, cycles=5, th
     return np.tile(fig_8, int(cycles))
 
 
+def sample_reference(reference_traj, times, dt):
+    """Linearly sample a flattened 6D reference trajectory at continuous times."""
+    reference = np.asarray(reference_traj, dtype=np.float64).reshape(-1, 6)
+    times = np.asarray(times, dtype=np.float64)
+    sample = np.clip(times / float(dt), 0.0, reference.shape[0] - 1)
+    lower = np.floor(sample).astype(np.int64)
+    upper = np.minimum(lower + 1, reference.shape[0] - 1)
+    alpha = (sample - lower).reshape(-1, 1)
+    values = (1.0 - alpha) * reference[lower] + alpha * reference[upper]
+    return values.reshape(times.shape + (6,))
+
+
+def sample_reference_horizon(reference_traj, start_time, dt, knots):
+    """Return a flattened 6D reference horizon starting at a continuous time."""
+    times = float(start_time) + np.arange(knots, dtype=np.float64) * float(dt)
+    return sample_reference(reference_traj, times, dt).reshape(-1)
+
+
+def shift_packed_trajectory_warm_start(XU, x_current, nx, nu, knots, elapsed, dt):
+    """Shift a packed state/control trajectory to start after elapsed time.
+
+    The packed layout is ``x0, u0, x1, u1, ..., xN-1``.  The returned warm
+    start is re-anchored at ``x_current`` and samples the previous trajectory at
+    ``elapsed + k * dt`` so receding-horizon solves do not reuse a stale time
+    origin.
+    """
+    XU = np.asarray(XU, dtype=np.float32)
+    x_current = np.asarray(x_current, dtype=np.float32)
+    if knots < 1:
+        raise ValueError("knots must be positive")
+    if dt <= 0.0:
+        raise ValueError("dt must be positive")
+    if XU.ndim not in (1, 2):
+        raise ValueError(f"expected packed XU to be 1D or 2D, got {XU.ndim}D")
+    expected_width = knots * (nx + nu) - nu
+    if XU.shape[-1] != expected_width:
+        raise ValueError(f"expected packed XU width {expected_width}, got {XU.shape[-1]}")
+    if x_current.shape != (nx,):
+        raise ValueError(f"expected x_current shape {(nx,)}, got {x_current.shape}")
+
+    if XU.ndim == 1:
+        return _shift_one_packed_trajectory_warm_start(
+            XU,
+            x_current,
+            nx,
+            nu,
+            knots,
+            elapsed,
+            dt,
+        )
+
+    shifted = np.empty_like(XU)
+    for batch_id in range(XU.shape[0]):
+        shifted[batch_id] = _shift_one_packed_trajectory_warm_start(
+            XU[batch_id],
+            x_current,
+            nx,
+            nu,
+            knots,
+            elapsed,
+            dt,
+        )
+    return shifted
+
+
+def _shift_one_packed_trajectory_warm_start(XU, x_current, nx, nu, knots, elapsed, dt):
+    shifted = np.empty_like(XU)
+    states = np.empty((knots, nx), dtype=np.float32)
+    controls = np.empty((max(knots - 1, 0), nu), dtype=np.float32)
+
+    for knot in range(knots):
+        start = knot * (nx + nu)
+        states[knot] = XU[start:start + nx]
+        if knot < knots - 1:
+            controls[knot] = XU[start + nx:start + nx + nu]
+
+    shifted_states = np.empty_like(states)
+    shifted_states[0] = x_current
+    horizon_end = max((knots - 1) * float(dt), 0.0)
+    sample_times = float(elapsed) + np.arange(1, knots, dtype=np.float64) * float(dt)
+    sample_times = np.clip(sample_times, 0.0, horizon_end)
+    sample = sample_times / float(dt)
+    lower = np.floor(sample).astype(np.int64)
+    upper = np.minimum(lower + 1, knots - 1)
+    alpha = (sample - lower).astype(np.float32).reshape(-1, 1)
+    shifted_states[1:] = (1.0 - alpha) * states[lower] + alpha * states[upper]
+
+    if controls.size:
+        control_times = float(elapsed) + np.arange(knots - 1, dtype=np.float64) * float(dt)
+        control_idx = np.floor(
+            np.clip(control_times / float(dt), 0.0, controls.shape[0] - 1)
+        ).astype(np.int64)
+        shifted_controls = controls[control_idx]
+    else:
+        shifted_controls = controls
+
+    for knot in range(knots):
+        start = knot * (nx + nu)
+        shifted[start:start + nx] = shifted_states[knot]
+        if knot < knots - 1:
+            shifted[start + nx:start + nx + nu] = shifted_controls[knot]
+    return shifted
+
+
 def rk4(model, data, q, dq, u, dt, fext=None):
     """
     RK4 integration for forward dynamics.

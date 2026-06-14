@@ -3,7 +3,7 @@ import time
 import numpy as np
 import pinocchio as pin
 from .interface import BSQP
-from .common import rk4
+from .common import rk4, sample_reference_horizon, shift_packed_trajectory_warm_start
 from .config import DEFAULT_SOLVER_PARAMS
 
 # Import force estimator if available
@@ -140,12 +140,22 @@ class MPC_GATO:
         else:
             self.force_estimator = None
             
-    def run_mpc_fig8(self, x_start, fig8_traj, sim_dt=0.001, sim_time=5.0):
+    def run_mpc_fig8(
+        self,
+        x_start,
+        fig8_traj,
+        sim_dt=0.001,
+        sim_time=5.0,
+        offline_timing="controller_dt",
+    ):
         """
         Run MPC controller tracking figure-8 trajectory.
         
         Returns only essential statistics for visualization and analysis.
         """
+        if offline_timing not in {"controller_dt", "solve_time"}:
+            raise ValueError("offline_timing must be 'controller_dt' or 'solve_time'")
+
         # Initialize essential statistics
         stats = {
             'timestamps': [],
@@ -167,8 +177,6 @@ class MPC_GATO:
             
         # Initialize simulation
         total_sim_time = 0.0
-        accumulated_time = 0.0
-        
         x_curr = x_start
         q = x_start[:self.nq]
         dq = x_start[self.nq:self.nx]
@@ -198,7 +206,7 @@ class MPC_GATO:
             print(f"External force: {self.constant_f_ext_world[:3]}")
             
         # Main control loop
-        solve_time = self.dt
+        last_solver_wall_time = self.dt
         while total_sim_time < sim_time:
             
             # Store state for force estimation
@@ -206,39 +214,47 @@ class MPC_GATO:
             u_last = XU_best[self.nx:self.nx+self.nu]
             applied_u = u_last.copy()
             
-            # Simulate forward with current control
-            timestep = solve_time
-            nsteps = int(timestep/sim_dt)
-            
-            for i in range(nsteps):
-                offset = int(i/(self.dt/sim_dt))
+            if offline_timing == "solve_time":
+                timestep = max(float(last_solver_wall_time), np.finfo(np.float64).eps)
+            else:
+                # Default offline simulation follows the controller clock.
+                # Wall-clock solve time is diagnostic output in this mode.
+                timestep = self.dt
+
+            interval_elapsed = 0.0
+            while interval_elapsed + 1e-12 < timestep:
+                step_dt = min(sim_dt, timestep - interval_elapsed)
+                offset = int(interval_elapsed / self.dt)
                 u_idx = self.nx + (self.nx+self.nu)*min(offset, self.N-1)
                 u = XU_best[u_idx:u_idx+self.nu]
-                q, dq = rk4(self.model, self.data, q, dq, u, sim_dt, self.actual_f_ext)
-                total_sim_time += sim_dt
+                q, dq = rk4(self.model, self.data, q, dq, u, step_dt, self.actual_f_ext)
+                total_sim_time += step_dt
+                interval_elapsed += step_dt
                 
-            # Handle residual time
-            if timestep % sim_dt > 1e-5:
-                accumulated_time += timestep % sim_dt
-                if accumulated_time >= sim_dt:
-                    accumulated_time = 0.0
-                    offset = int(nsteps/(self.dt/sim_dt))
-                    u_idx = self.nx + (self.nx+self.nu)*min(offset, self.N-1)
-                    u = XU_best[u_idx:u_idx+self.nu]
-                    q, dq = rk4(self.model, self.data, q, dq, u, sim_dt, self.actual_f_ext)
-                    total_sim_time += sim_dt
-                    
             x_curr = np.concatenate([q, dq])
             
             # Check if trajectory is complete
-            eepos_offset = int(total_sim_time / self.dt)
-            if eepos_offset >= len(fig8_traj)/6 - 6*self.N:
+            if total_sim_time >= (len(fig8_traj) / 6 - self.N) * self.dt:
                 break
                 
             # Prepare next optimization
             x_curr_batch = np.tile(x_curr, (self.batch_size, 1))
-            ee_g = fig8_traj[6*eepos_offset:6*(eepos_offset+self.N)]
+            ee_g = sample_reference_horizon(
+                fig8_traj,
+                total_sim_time,
+                self.dt,
+                self.N,
+            ).astype(np.float32)
             ee_g_batch[:, :] = ee_g
+            XU_batch = shift_packed_trajectory_warm_start(
+                XU_batch,
+                x_curr,
+                self.nx,
+                self.nu,
+                self.N,
+                timestep,
+                self.dt,
+            )
             XU_batch[:, :self.nx] = x_curr
             
             # Update forces and solve
@@ -246,11 +262,15 @@ class MPC_GATO:
             self.solver.reset_rho()
             
             start = time.time()
-            XU_batch_new, gpu_solve_time = self.solver.solve(x_curr_batch, ee_g_batch, XU_batch)
-            solve_time = time.time() - start
+            XU_batch_new, gpu_solve_time = self.solver.solve(
+                x_curr_batch,
+                ee_g_batch,
+                XU_batch,
+            )
+            last_solver_wall_time = time.time() - start
             
             # Select best trajectory
-            best_id = self.evaluate_best_trajectory(x_last, u_last, x_curr, max(sim_dt, round(timestep / sim_dt) * sim_dt))
+            best_id = self.evaluate_best_trajectory(x_last, u_last, x_curr, timestep)
             XU_best = XU_batch_new[best_id, :]
             XU_batch[:, :] = XU_best
             planned_u = XU_best[self.nx:self.nx+self.nu].copy()
