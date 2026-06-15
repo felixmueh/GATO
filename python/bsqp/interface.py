@@ -21,6 +21,8 @@ class BSQP:
         qd_cost=1e-4,
         u_cost=1e-6,
         N_cost=50.0,
+        ee_orient_cost=0.0,
+        ee_orient_N_cost=0.0,
         q_lim_cost=1e-3,
         vel_lim_cost=0.0,
         ctrl_lim_cost=0.0,
@@ -74,6 +76,8 @@ class BSQP:
             qd_cost,
             u_cost,
             N_cost,
+            ee_orient_cost,
+            ee_orient_N_cost,
             q_lim_cost,
             vel_lim_cost,
             ctrl_lim_cost,
@@ -220,6 +224,14 @@ class BSQP:
             tool_id = self.model.getFrameId("arm_right_tool_link")
             return (self.data.oMf[torso_id].inverse() * self.data.oMf[tool_id]).translation
         return self.data.oMi[self.model.njoints - 1].translation
+
+    def ee_tool_axis_error(self, q, target_rpy):
+        pin.forwardKinematics(self.model, self.data, q)
+        actual_axis = self.data.oMi[self.model.njoints - 1].rotation[:, 2]
+        target_axis = pin.rpy.rpyToMatrix(*np.asarray(target_rpy, dtype=float))[:, 2]
+        dot = np.dot(actual_axis, target_axis)
+        dot /= np.linalg.norm(actual_axis) * np.linalg.norm(target_axis)
+        return np.arccos(np.clip(dot, -1.0, 1.0))
 
     def reset(self):
         self.reset_dual()

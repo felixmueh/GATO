@@ -27,6 +27,8 @@ __global__ void computeMeritBatchedKernel(T* __restrict__       d_merit_batch,
                                           T                     qd_cost,
                                           T                     u_cost,
                                           T                     N_cost,
+                                          T                     ee_orient_cost,
+                                          T                     ee_orient_N_cost,
                                           T                     q_lim_cost,
                                           T                     vel_lim_cost,
                                           T                     ctrl_lim_cost)
@@ -65,7 +67,7 @@ __global__ void computeMeritBatchedKernel(T* __restrict__       d_merit_batch,
 
         // cost function
         cost_k =
-            plant::trackingcost<T>(STATE_SIZE, CONTROL_SIZE, KNOT_POINTS, s_xux_k, s_reference_traj_k, s_temp, d_robot_model, q_cost, qd_cost, u_cost, N_cost, q_lim_cost, vel_lim_cost, ctrl_lim_cost);
+            plant::trackingcost<T>(STATE_SIZE, CONTROL_SIZE, KNOT_POINTS, s_xux_k, s_reference_traj_k, s_temp, d_robot_model, q_cost, qd_cost, u_cost, N_cost, ee_orient_cost, ee_orient_N_cost, q_lim_cost, vel_lim_cost, ctrl_lim_cost);
         __syncthreads();
 
         // constraint error
@@ -113,6 +115,8 @@ __host__ void computeMeritBatched(T*                          d_merit_batch,
                                   T                           qd_cost,
                                   T                           u_cost,
                                   T                           N_cost,
+                                  T                           ee_orient_cost,
+                                  T                           ee_orient_N_cost,
                                   T                           q_lim_cost,
                                   T                           vel_lim_cost,
                                   T                           ctrl_lim_cost,
@@ -137,6 +141,8 @@ __host__ void computeMeritBatched(T*                          d_merit_batch,
                                                                                     qd_cost,
                                                                                     u_cost,
                                                                                     N_cost,
+                                                                                    ee_orient_cost,
+                                                                                    ee_orient_N_cost,
                                                                                     q_lim_cost,
                                                                                     vel_lim_cost,
                                                                                     ctrl_lim_cost);

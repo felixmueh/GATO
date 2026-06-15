@@ -85,6 +85,8 @@ class MPC_GATO:
             qd_cost=solver_cfg['qd_cost'],
             u_cost=solver_cfg['u_cost'],
             N_cost=solver_cfg['N_cost'],
+            ee_orient_cost=solver_cfg.get('ee_orient_cost', 0.0),
+            ee_orient_N_cost=solver_cfg.get('ee_orient_N_cost', 0.0),
             q_lim_cost=solver_cfg['q_lim_cost'],
             vel_lim_cost=solver_cfg['vel_lim_cost'],
             ctrl_lim_cost=solver_cfg['ctrl_lim_cost'],
@@ -161,6 +163,7 @@ class MPC_GATO:
             'timestamps': [],
             'solve_times': [],        # GPU solve time in ms
             'goal_distances': [],     # Tracking error in meters
+            'tool_axis_errors': [],   # EE local z-axis direction error in radians
             'ee_actual': [],          # Actual end-effector positions
             'joint_positions': [],    # Joint positions over time
             'joint_velocities': [],   # Joint velocities over time
@@ -276,12 +279,15 @@ class MPC_GATO:
             planned_u = XU_best[self.nx:self.nx+self.nu].copy()
             
             # Collect essential statistics
-            ee_pos = self.solver.ee_pos(q)
+            q_solver = q[:self.nq_robot]
+            ee_pos = self.solver.ee_pos(q_solver)
             goal_dist = np.linalg.norm(ee_pos[:3] - ee_g[6:9])
+            tool_axis_error = self.solver.ee_tool_axis_error(q_solver, ee_g[9:12])
             
             stats['timestamps'].append(total_sim_time)
             stats['solve_times'].append(gpu_solve_time/1000.0)  # Convert to ms
             stats['goal_distances'].append(goal_dist)
+            stats['tool_axis_errors'].append(tool_axis_error)
             stats['ee_actual'].append(ee_pos.copy())
             stats['joint_positions'].append(q.copy())
             stats['joint_velocities'].append(dq.copy())
@@ -326,6 +332,7 @@ class MPC_GATO:
                 
         # Print summary
         print(f"Avg error: {np.mean(stats['goal_distances']):.4f}m")
+        print(f"Avg tool-axis direction error: {np.mean(stats['tool_axis_errors']):.4f}rad")
         print(f"Avg solve time: {np.mean(stats['solve_times']):.3f}ms")
         
         return None, stats  # Return None for trajectory (not needed)

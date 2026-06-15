@@ -18,8 +18,7 @@ from bsqp.config import (
     BATCH_COLORS
 )
 
-
-def run_single_benchmark(model, batch_size, N, dt, sim_time, sim_dt, fig8_traj, x_start, model_path=None):
+def run_single_benchmark(model, batch_size, N, dt, sim_time, sim_dt, fig8_traj, x_start, model_path=None, solver_params=None):
     """Run a single benchmark configuration."""
     
     print(f"\nBatch={batch_size}, N={N}")
@@ -35,7 +34,8 @@ def run_single_benchmark(model, batch_size, N, dt, sim_time, sim_dt, fig8_traj, 
             model_path=model_path,
             plant_type='indy7',
             constant_f_ext=None,  # No external force
-            track_full_stats=True  # Track SQP iterations
+            track_full_stats=True,  # Track SQP iterations
+            solver_params=solver_params,
         )
         
         # Run simulation
@@ -55,12 +55,16 @@ def run_single_benchmark(model, batch_size, N, dt, sim_time, sim_dt, fig8_traj, 
             'avg_goal_distance': np.mean(stats['goal_distances']),
             'std_goal_distance': np.std(stats['goal_distances']),
             'max_goal_distance': np.max(stats['goal_distances']),
+            'avg_tool_axis_error': np.mean(stats['tool_axis_errors']),
+            'std_tool_axis_error': np.std(stats['tool_axis_errors']),
+            'max_tool_axis_error': np.max(stats['tool_axis_errors']),
             'avg_sqp_iters': np.mean(stats['sqp_iters']) if 'sqp_iters' in stats else 0,
         }
         
         print(f"✓ Completed: {result['iterations']} iterations")
         print(f"  Avg GPU time: {result['avg_gpu_time_ms']:.3f} ± {result['std_gpu_time_ms']:.3f} ms")
         print(f"  Avg tracking error: {result['avg_goal_distance']:.4f} ± {result['std_goal_distance']:.4f} m")
+        print(f"  Avg tool-axis error: {result['avg_tool_axis_error']:.4f} ± {result['std_tool_axis_error']:.4f} rad")
         
     except Exception as e:
         print(f"✗ Failed: {e}")
@@ -87,22 +91,40 @@ def main():
         'sim_time': 10.0,
         'sim_dt': 0.001,
         'start_config': 'ready',  # Use named config from INDY7_START_CONFIGS
+        'ee_orientation_rpy': [
+            -np.pi / 4,
+            -np.pi / 2,
+            0.0,
+        ],
+        'ee_orient_cost': 0.002,
+        'ee_orient_N_cost': 0.04,
     }
     
     # Override batch sizes if needed for testing
     # config['batch_sizes'] = [1, 32, 128]  # Quick test
+    # config['ee_orientation_rpy'] = None  # Position-only tracking
+    # config['ee_orientation_rpy'] = [0.0, 0.0, 0.0]  # Fixed orientation tracking
     
     # Load robot model
     model, _, _ = pin.buildModelsFromUrdf(config['urdf_path'], config['model_dir'])
-    
-    # Generate figure-8 trajectory
-    fig8_traj = figure8(config['dt'], **FIG8_DEFAULT_PARAMS)
     
     # Get starting configuration
     x_start = np.hstack((
         INDY7_START_CONFIGS[config['start_config']], 
         np.zeros(6)
     ))
+
+    # Generate figure-8 trajectory
+    fig8_params = FIG8_DEFAULT_PARAMS.copy()
+    fig8_params['orientation_rpy'] = config['ee_orientation_rpy']
+    fig8_traj = figure8(config['dt'], **fig8_params)
+
+    solver_params = None
+    if config['ee_orientation_rpy'] is not None:
+        solver_params = {
+            'ee_orient_cost': config['ee_orient_cost'],
+            'ee_orient_N_cost': config['ee_orient_N_cost'],
+        }
     
     # Results storage
     results = []
@@ -113,6 +135,9 @@ def main():
     print("=" * 60)
     print(f"Config: N={config['N']}, dt={config['dt']}, sim_time={config['sim_time']}s")
     print(f"Starting from: {config['start_config']} configuration")
+    if config['ee_orientation_rpy'] is not None:
+        print(f"EE orientation RPY: {config['ee_orientation_rpy']}")
+        print(f"EE orientation costs: running={config['ee_orient_cost']}, terminal={config['ee_orient_N_cost']}")
     
     # Run benchmarks
     for batch_size in config['batch_sizes']:
@@ -126,6 +151,7 @@ def main():
             fig8_traj=fig8_traj,
             x_start=x_start,
             model_path=config['urdf_path'],
+            solver_params=solver_params,
         )
         results.append(result)
     
@@ -143,7 +169,7 @@ def main():
     print("\n" + "=" * 100)
     print("SUMMARY")
     print("=" * 100)
-    print(f"{'Batch':<8} {'N':<6} {'Status':<10} {'Avg GPU (ms)':<15} {'Tracking (m)':<15} {'SQP Iters':<12}")
+    print(f"{'Batch':<8} {'N':<6} {'Status':<10} {'Avg GPU (ms)':<15} {'Tracking (m)':<15} {'Axis (rad)':<15} {'SQP Iters':<12}")
     print("-" * 100)
     
     for r in results:
@@ -151,6 +177,7 @@ def main():
             print(f"{r['batch_size']:<8} {r['N']:<6} {'✓ OK':<10} "
                   f"{r['avg_gpu_time_ms']:<15.3f} "
                   f"{r['avg_goal_distance']:.4f} ± {r['std_goal_distance']:.4f}  "
+                  f"{r['avg_tool_axis_error']:.4f} ± {r['std_tool_axis_error']:.4f}  "
                   f"{r['avg_sqp_iters']:<12.2f}")
         else:
             print(f"{r['batch_size']:<8} {r['N']:<6} {'✗ FAIL':<10} "

@@ -7,7 +7,7 @@ import numpy as np
 import pinocchio as pin
 
 
-def figure8(dt, A_x=0.4, A_z=0.4, offset=[0.0, 0.5, 0.6], period=6, cycles=5, theta=np.pi/4):
+def figure8(dt, A_x=0.4, A_z=0.4, offset=[0.0, 0.5, 0.6], period=6, cycles=5, theta=np.pi/4, orientation_rpy=None):
     """
     Generate figure 8 trajectory for end-effector tracking.
     
@@ -19,9 +19,10 @@ def figure8(dt, A_x=0.4, A_z=0.4, offset=[0.0, 0.5, 0.6], period=6, cycles=5, th
         period: Period of one figure-8 cycle
         cycles: Number of cycles to generate
         theta: Rotation angle around Z-axis
+        orientation_rpy: Optional constant [roll, pitch, yaw] reference
     
     Returns:
-        Flattened array of trajectory points [x, y, z, 0, 0, 0] for each timestep
+        Flattened array of trajectory points [x, y, z, roll, pitch, yaw] for each timestep
     """
     x_unrot = lambda t: offset[0] + A_x * np.sin(t)
     y_unrot = lambda t: offset[1]
@@ -41,8 +42,14 @@ def figure8(dt, A_x=0.4, A_z=0.4, offset=[0.0, 0.5, 0.6], period=6, cycles=5, th
     y = lambda t: get_rotated_coords(t)[1]
     z = lambda t: get_rotated_coords(t)[2]
     
+    if orientation_rpy is None:
+        orientation_rpy = np.zeros(3)
+    orientation_rpy = np.asarray(orientation_rpy, dtype=float)
+    if orientation_rpy.shape != (3,):
+        raise ValueError("orientation_rpy must contain [roll, pitch, yaw]")
+
     timesteps = np.linspace(0, 2*np.pi, int(period/dt))
-    fig_8 = np.array([[x(t), y(t), z(t), 0.0, 0.0, 0.0] for t in timesteps]).reshape(-1)
+    fig_8 = np.array([[x(t), y(t), z(t), *orientation_rpy] for t in timesteps]).reshape(-1)
     return np.tile(fig_8, int(cycles))
 
 

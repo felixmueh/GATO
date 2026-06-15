@@ -23,7 +23,7 @@ class BSQP {
         // Default constructor for Python interface flexibility
         BSQP()
             : dt_(0.01), max_sqp_iters_(5), kkt_tol_(0.0001), max_pcg_iters_(100), pcg_tol_(1e-5), solve_ratio_(1.0), mu_(10.0), 
-              q_cost_(1.0), qd_cost_(1e-3), u_cost_(1e-6), N_cost_(50.0), q_lim_cost_(1e-3), vel_lim_cost_(0.0), ctrl_lim_cost_(0.0), 
+              q_cost_(1.0), qd_cost_(1e-3), u_cost_(1e-6), N_cost_(50.0), ee_orient_cost_(0.0), ee_orient_N_cost_(0.0), q_lim_cost_(1e-3), vel_lim_cost_(0.0), ctrl_lim_cost_(0.0),
               rho_(1e-3), adapt_rho_(true)
         {
                 gpuErrchk(cudaStreamCreate(&stream_));
@@ -41,9 +41,9 @@ class BSQP {
                 gpuErrchk(cudaDeviceSynchronize());
         }
 
-        BSQP(T dt, uint32_t max_sqp_iters, T kkt_tol, uint32_t max_pcg_iters, T pcg_tol, T solve_ratio, T mu, T q_cost, T qd_cost, T u_cost, T N_cost, T q_lim_cost, T vel_lim_cost, T ctrl_lim_cost, T rho)
+        BSQP(T dt, uint32_t max_sqp_iters, T kkt_tol, uint32_t max_pcg_iters, T pcg_tol, T solve_ratio, T mu, T q_cost, T qd_cost, T u_cost, T N_cost, T ee_orient_cost, T ee_orient_N_cost, T q_lim_cost, T vel_lim_cost, T ctrl_lim_cost, T rho)
             : dt_(dt), max_sqp_iters_(max_sqp_iters), kkt_tol_(kkt_tol), max_pcg_iters_(max_pcg_iters), pcg_tol_(pcg_tol), solve_ratio_(solve_ratio), mu_(mu), q_cost_(q_cost), qd_cost_(qd_cost),
-              u_cost_(u_cost), N_cost_(N_cost), q_lim_cost_(q_lim_cost), vel_lim_cost_(vel_lim_cost), ctrl_lim_cost_(ctrl_lim_cost), rho_(rho), adapt_rho_(true)
+              u_cost_(u_cost), N_cost_(N_cost), ee_orient_cost_(ee_orient_cost), ee_orient_N_cost_(ee_orient_N_cost), q_lim_cost_(q_lim_cost), vel_lim_cost_(vel_lim_cost), ctrl_lim_cost_(ctrl_lim_cost), rho_(rho), adapt_rho_(true)
         {
                 gpuErrchk(cudaStreamCreate(&stream_));
                 allocateMemory();
@@ -116,12 +116,12 @@ class BSQP {
                 gpuErrchk(cudaMemsetAsync(d_kkt_converged_batch_, 0, sizeof(int32_t) * BatchSize, stream_));
 
                 computeMeritBatched<T, BatchSize, 1>(
-                    d_merit_initial_batch_, d_dz_batch_, d_xu_traj_batch, d_f_ext_batch_, inputs, d_mu_batch_, d_GRiD_mem_, q_cost_, qd_cost_, u_cost_, N_cost_, q_lim_cost_, vel_lim_cost_, ctrl_lim_cost_, stream_);
+                    d_merit_initial_batch_, d_dz_batch_, d_xu_traj_batch, d_f_ext_batch_, inputs, d_mu_batch_, d_GRiD_mem_, q_cost_, qd_cost_, u_cost_, N_cost_, ee_orient_cost_, ee_orient_N_cost_, q_lim_cost_, vel_lim_cost_, ctrl_lim_cost_, stream_);
                 gpuErrchk(cudaMemcpyAsync(d_merit_initial0_batch_, d_merit_initial_batch_, BatchSize * sizeof(T), cudaMemcpyDeviceToDevice, stream_));
 
                 // SQP Loop
                 for (uint32_t i = 0; i < max_sqp_iters_; i++) {
-                        setupKKTSystemBatched<T, BatchSize>(kkt_system_batch_, inputs, d_xu_traj_batch, d_f_ext_batch_, d_GRiD_mem_, q_cost_, qd_cost_, u_cost_, N_cost_, q_lim_cost_, vel_lim_cost_, ctrl_lim_cost_, stream_);
+                        setupKKTSystemBatched<T, BatchSize>(kkt_system_batch_, inputs, d_xu_traj_batch, d_f_ext_batch_, d_GRiD_mem_, q_cost_, qd_cost_, u_cost_, N_cost_, ee_orient_cost_, ee_orient_N_cost_, q_lim_cost_, vel_lim_cost_, ctrl_lim_cost_, stream_);
                         formSchurSystemBatched<T, BatchSize>(schur_system_batch_, kkt_system_batch_, d_rho_penalty_batch_, stream_);
 
                         // gpuErrchk(cudaEventRecord(pcg_start_event_));
@@ -169,7 +169,7 @@ class BSQP {
                         gpuErrchk(cudaMemcpyAsync(d_kkt_converged_batch_, h_kkt_converged_batch_, BatchSize * sizeof(int32_t), cudaMemcpyHostToDevice, stream_));
 
                         computeMeritBatched<T, BatchSize, NUM_ALPHAS>(
-                            d_merit_batch_, d_dz_batch_, d_xu_traj_batch, d_f_ext_batch_, inputs, d_mu_batch_, d_GRiD_mem_, q_cost_, qd_cost_, u_cost_, N_cost_, q_lim_cost_, vel_lim_cost_, ctrl_lim_cost_, stream_);
+                            d_merit_batch_, d_dz_batch_, d_xu_traj_batch, d_f_ext_batch_, inputs, d_mu_batch_, d_GRiD_mem_, q_cost_, qd_cost_, u_cost_, N_cost_, ee_orient_cost_, ee_orient_N_cost_, q_lim_cost_, vel_lim_cost_, ctrl_lim_cost_, stream_);
                         lineSearchAndUpdateBatched<T, BatchSize, NUM_ALPHAS>(
                             d_xu_traj_batch, d_dz_batch_, d_merit_batch_, d_merit_initial_batch_, d_step_size_batch_, d_rho_penalty_batch_, d_drho_batch_, adapt_rho_ ? 1 : 0, stream_);
 
@@ -181,7 +181,7 @@ class BSQP {
                 // Final merit on updated trajectory for selection
                 gpuErrchk(cudaMemsetAsync(d_dz_batch_, 0, TRAJ_SIZE * BatchSize * sizeof(T), stream_));
                 computeMeritBatched<T, BatchSize, 1>(
-                    d_merit_initial_batch_, d_dz_batch_, d_xu_traj_batch, d_f_ext_batch_, inputs, d_mu_batch_, d_GRiD_mem_, q_cost_, qd_cost_, u_cost_, N_cost_, q_lim_cost_, vel_lim_cost_, ctrl_lim_cost_, stream_);
+                    d_merit_initial_batch_, d_dz_batch_, d_xu_traj_batch, d_f_ext_batch_, inputs, d_mu_batch_, d_GRiD_mem_, q_cost_, qd_cost_, u_cost_, N_cost_, ee_orient_cost_, ee_orient_N_cost_, q_lim_cost_, vel_lim_cost_, ctrl_lim_cost_, stream_);
 
                 gpuErrchk(cudaStreamSynchronize(stream_));
                 auto sqp_end_time = std::chrono::high_resolution_clock::now();
@@ -348,6 +348,8 @@ class BSQP {
         T           qd_cost_;
         T           u_cost_;
         T           N_cost_;
+        T           ee_orient_cost_;
+        T           ee_orient_N_cost_;
         T           q_lim_cost_;
         T           vel_lim_cost_;
         T           ctrl_lim_cost_;

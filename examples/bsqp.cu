@@ -20,7 +20,7 @@ int main()
     T        solve_ratio = 1.0;
     T        mu = 1.0;
 
-    BSQP<T, 16> bsqp(dt, max_sqp_iters, kkt_tol, max_pcg_iters, pcg_tol, solve_ratio, mu, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+    BSQP<T, 16> bsqp(dt, max_sqp_iters, kkt_tol, max_pcg_iters, pcg_tol, solve_ratio, mu, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
 
     // Generate synthetic reference trajectory data instead of loading from file
     std::vector<T> reference_traj(6 * N * batch_size, 0.0);

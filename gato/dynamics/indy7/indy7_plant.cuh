@@ -22,9 +22,31 @@ namespace plant {
                 return static_cast<T>(3.14159);
         }
         template<class T>
+        __host__ __device__ constexpr T TWO_PI()
+        {
+                return static_cast<T>(6.28318);
+        }
+        template<class T>
         __host__ __device__ constexpr T GRAVITY()
         {
                 return static_cast<T>(9.81);
+        }
+
+        template<class T>
+        __host__ __device__ T poseError(T actual, T target, uint32_t pose_idx)
+        {
+                T err = actual - target;
+                if (pose_idx >= 3) {
+                        while (err > PI<T>()) { err -= TWO_PI<T>(); }
+                        while (err < -PI<T>()) { err += TWO_PI<T>(); }
+                }
+                return err;
+        }
+
+        template<class T>
+        __host__ __device__ T poseCostWeight(T position_cost, T orientation_cost, uint32_t pose_idx)
+        {
+                return pose_idx < 3 ? position_cost : orientation_cost;
         }
 
         // template<class T>
@@ -275,15 +297,18 @@ namespace plant {
                                   T                          qd_cost,
                                   T                          u_cost,
                                   T                          N_cost,
+                                  T                          ee_orient_cost,
+                                  T                          ee_orient_N_cost,
                                   T                          q_lim_cost,
                                   T                          vel_lim_cost,
                                   T                          ctrl_lim_cost)
         {
                 T              err;
+                const bool     track_orientation = ee_orient_cost != static_cast<T>(0) || ee_orient_N_cost != static_cast<T>(0);
                 const uint32_t threadsNeeded = state_size / 2 + control_size * (blockIdx.x < knot_points - 1);
 
                 T* s_cost_vec = s_temp;
-                T* s_eePos_cost = s_cost_vec + threadsNeeded + 3;
+                T* s_eePos_cost = s_cost_vec + threadsNeeded + (track_orientation ? grid::EE_POS_SIZE : 3);
                 T* s_scratch = s_eePos_cost + 6;
 
                 grid::end_effector_positions_device<T>(s_eePos_cost, s_xu, s_scratch, d_robotModel);
@@ -300,18 +325,29 @@ namespace plant {
                                 s_cost_vec[i] += ctrl_lim_cost * jointBarrier(s_xu[i + state_size / 2], CTRL_LIMITS<T>()[i - state_size / 2][0], CTRL_LIMITS<T>()[i - state_size / 2][1]);
                         }
                 }
+                if (track_orientation) {
+                        for (int i = threadIdx.x; i < grid::EE_POS_SIZE; i += blockDim.x) {
+                                err = poseError(s_eePos_cost[i], s_eePos_traj[i], i);
+                                const T pose_weight = poseCostWeight(
+                                    blockIdx.x == KNOT_POINTS - 1 ? N_cost : q_cost,
+                                    blockIdx.x == KNOT_POINTS - 1 ? ee_orient_N_cost : ee_orient_cost,
+                                    i);
+                                s_cost_vec[threadsNeeded + i] = static_cast<T>(0.5) * pose_weight * err * err;
+                        }
+                } else {
 #pragma unroll
-                for (int i = threadIdx.x; i < 3; i += blockDim.x) {
-                        err = s_eePos_cost[i] - s_eePos_traj[i];
-                        if (blockIdx.x == KNOT_POINTS - 1) {
-                                s_cost_vec[threadsNeeded + i] = 0.5 * N_cost * err * err;
-                        } else {
-                                s_cost_vec[threadsNeeded + i] = 0.5 * q_cost * err * err;
+                        for (int i = threadIdx.x; i < 3; i += blockDim.x) {
+                                err = s_eePos_cost[i] - s_eePos_traj[i];
+                                if (blockIdx.x == KNOT_POINTS - 1) {
+                                        s_cost_vec[threadsNeeded + i] = 0.5 * N_cost * err * err;
+                                } else {
+                                        s_cost_vec[threadsNeeded + i] = 0.5 * q_cost * err * err;
+                                }
                         }
                 }
                 __syncthreads();
 
-                block::reduce<T>(threadsNeeded + 3, s_cost_vec);
+                block::reduce<T>(threadsNeeded + (track_orientation ? grid::EE_POS_SIZE : 3), s_cost_vec);
                 __syncthreads();
 
                 return s_cost_vec[0];
@@ -337,6 +373,8 @@ namespace plant {
                                                        T        qd_cost,
                                                        T        u_cost,
                                                        T        N_cost,
+                                                       T        ee_orient_cost,
+                                                       T        ee_orient_N_cost,
                                                        T        q_lim_cost,
                                                        T        vel_lim_cost,
                                                        T        ctrl_lim_cost)
@@ -346,6 +384,7 @@ namespace plant {
                 T* s_scratch = s_eePos_grad + (6 * grid::NQ);
 
                 const uint32_t threads_needed = grid::NX + grid::NU * computeR;
+                const bool     track_orientation = ee_orient_cost != static_cast<T>(0) || ee_orient_N_cost != static_cast<T>(0);
 
                 grid::end_effector_positions_device<T>(s_eePos, s_xu, s_scratch, (grid::robotModel<T>*)d_robotModel);
                 grid::end_effector_positions_gradient_device<T>(s_eePos_grad, s_xu, s_scratch, (grid::robotModel<T>*)d_robotModel);
@@ -354,10 +393,22 @@ namespace plant {
                 for (int i = threadIdx.x; i < threads_needed; i += blockDim.x) {
                         if (i < grid::NX) {
                                 if (i < grid::NQ) {
-                                        // tracking err
-                                        s_qk[i] = (s_eePos_grad[6 * i + 0] * (s_eePos[0] - s_eePos_traj[0]) + s_eePos_grad[6 * i + 1] * (s_eePos[1] - s_eePos_traj[1])
-                                                   + s_eePos_grad[6 * i + 2] * (s_eePos[2] - s_eePos_traj[2]))
-                                                  * (blockIdx.x == KNOT_POINTS - 1 ? N_cost : q_cost);
+                                        if (track_orientation) {
+                                                T tracking_grad = static_cast<T>(0);
+                                                for (int pose_idx = 0; pose_idx < grid::EE_POS_SIZE; ++pose_idx) {
+                                                        const T pose_weight = poseCostWeight(
+                                                            blockIdx.x == KNOT_POINTS - 1 ? N_cost : q_cost,
+                                                            blockIdx.x == KNOT_POINTS - 1 ? ee_orient_N_cost : ee_orient_cost,
+                                                            pose_idx);
+                                                        tracking_grad += pose_weight * s_eePos_grad[6 * i + pose_idx] * poseError(s_eePos[pose_idx], s_eePos_traj[pose_idx], pose_idx);
+                                                }
+                                                s_qk[i] = tracking_grad;
+                                        } else {
+                                                // tracking err
+                                                s_qk[i] = (s_eePos_grad[6 * i + 0] * (s_eePos[0] - s_eePos_traj[0]) + s_eePos_grad[6 * i + 1] * (s_eePos[1] - s_eePos_traj[1])
+                                                           + s_eePos_grad[6 * i + 2] * (s_eePos[2] - s_eePos_traj[2]))
+                                                          * (blockIdx.x == KNOT_POINTS - 1 ? N_cost : q_cost);
+                                        }
                                         // joint barrier
                                         s_qk[i] += q_lim_cost * jointBarrierGradient(s_xu[i], JOINT_LIMITS<T>()[i][0], JOINT_LIMITS<T>()[i][1]);
                                 } else {
@@ -376,11 +427,23 @@ namespace plant {
                         if (i < grid::NX) {
                                 for (int j = 0; j < grid::NX; j++) {
                                         if (j < grid::NQ && i < grid::NQ) {
-                                                // tracking err
-                                                s_Qk[i * grid::NX + j] = ((s_eePos_grad[6 * i + 0] * (s_eePos[0] - s_eePos_traj[0]) + s_eePos_grad[6 * i + 1] * (s_eePos[1] - s_eePos_traj[1])
-                                                                           + s_eePos_grad[6 * i + 2] * (s_eePos[2] - s_eePos_traj[2]))
-                                                                          * (s_eePos_grad[6 * j + 0] * (s_eePos[0] - s_eePos_traj[0]) + s_eePos_grad[6 * j + 1] * (s_eePos[1] - s_eePos_traj[1])
-                                                                             + s_eePos_grad[6 * j + 2] * (s_eePos[2] - s_eePos_traj[2]))) * (blockIdx.x == KNOT_POINTS - 1 ? N_cost : q_cost);
+                                                if (track_orientation) {
+                                                        T tracking_hessian = static_cast<T>(0);
+                                                        for (int pose_idx = 0; pose_idx < grid::EE_POS_SIZE; ++pose_idx) {
+                                                                const T pose_weight = poseCostWeight(
+                                                                    blockIdx.x == KNOT_POINTS - 1 ? N_cost : q_cost,
+                                                                    blockIdx.x == KNOT_POINTS - 1 ? ee_orient_N_cost : ee_orient_cost,
+                                                                    pose_idx);
+                                                                tracking_hessian += pose_weight * s_eePos_grad[6 * i + pose_idx] * s_eePos_grad[6 * j + pose_idx];
+                                                        }
+                                                        s_Qk[i * grid::NX + j] = tracking_hessian;
+                                                } else {
+                                                        // tracking err
+                                                        s_Qk[i * grid::NX + j] = ((s_eePos_grad[6 * i + 0] * (s_eePos[0] - s_eePos_traj[0]) + s_eePos_grad[6 * i + 1] * (s_eePos[1] - s_eePos_traj[1])
+                                                                                   + s_eePos_grad[6 * i + 2] * (s_eePos[2] - s_eePos_traj[2]))
+                                                                                  * (s_eePos_grad[6 * j + 0] * (s_eePos[0] - s_eePos_traj[0]) + s_eePos_grad[6 * j + 1] * (s_eePos[1] - s_eePos_traj[1])
+                                                                                     + s_eePos_grad[6 * j + 2] * (s_eePos[2] - s_eePos_traj[2]))) * (blockIdx.x == KNOT_POINTS - 1 ? N_cost : q_cost);
+                                                }
 
                                                 T barrier_grad_i = jointBarrierGradient(s_xu[i], JOINT_LIMITS<T>()[i][0], JOINT_LIMITS<T>()[i][1]);
                                                 T barrier_grad_j = jointBarrierGradient(s_xu[j], JOINT_LIMITS<T>()[j][0], JOINT_LIMITS<T>()[j][1]);
@@ -437,14 +500,16 @@ namespace plant {
                                                                  T        qd_cost,
                                                                  T        u_cost,
                                                                  T        N_cost,
+                                                                 T        ee_orient_cost,
+                                                                 T        ee_orient_N_cost,
                                                                  T        q_lim_cost,
                                                                  T        vel_lim_cost,
                                                                  T        ctrl_lim_cost)
         {
-                trackingCostGradientAndHessian<T>(state_size, control_size, s_xux, s_eePos_traj, s_Qk, s_qk, s_Rk, s_rk, s_temp, d_dynMem_const, q_cost, qd_cost, u_cost, N_cost, q_lim_cost, vel_lim_cost, ctrl_lim_cost);
+                trackingCostGradientAndHessian<T>(state_size, control_size, s_xux, s_eePos_traj, s_Qk, s_qk, s_Rk, s_rk, s_temp, d_dynMem_const, q_cost, qd_cost, u_cost, N_cost, ee_orient_cost, ee_orient_N_cost, q_lim_cost, vel_lim_cost, ctrl_lim_cost);
                 T* s_xkp1 = s_xux + state_size + control_size;
                 trackingCostGradientAndHessian<T, false>(
-                    state_size, control_size, s_xkp1, &s_eePos_traj[6], s_Qkp1, s_qkp1, nullptr, nullptr, s_temp, d_dynMem_const, N_cost, qd_cost, u_cost, N_cost, q_lim_cost, vel_lim_cost, ctrl_lim_cost);
+                    state_size, control_size, s_xkp1, &s_eePos_traj[6], s_Qkp1, s_qkp1, nullptr, nullptr, s_temp, d_dynMem_const, N_cost, qd_cost, u_cost, N_cost, ee_orient_N_cost, ee_orient_N_cost, q_lim_cost, vel_lim_cost, ctrl_lim_cost);
         }
 
         __host__ __device__ constexpr unsigned trackingCostGradientAndHessian_TempMemSize_Shared()
