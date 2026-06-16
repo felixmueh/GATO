@@ -227,7 +227,13 @@ class BSQP:
 
     def ee_tool_axis_error(self, q, target_rpy):
         pin.forwardKinematics(self.model, self.data, q)
-        actual_axis = self.data.oMi[self.model.njoints - 1].rotation[:, 2]
+        if self.plant_type == "tiago_right":
+            pin.updateFramePlacements(self.model, self.data)
+            torso_id = self.model.getFrameId("torso_lift_link")
+            tool_id = self.model.getFrameId("arm_right_tool_link")
+            actual_axis = (self.data.oMf[torso_id].inverse() * self.data.oMf[tool_id]).rotation[:, 2]
+        else:
+            actual_axis = self.data.oMi[self.model.njoints - 1].rotation[:, 2]
         target_axis = pin.rpy.rpyToMatrix(*np.asarray(target_rpy, dtype=float))[:, 2]
         dot = np.dot(actual_axis, target_axis)
         dot /= np.linalg.norm(actual_axis) * np.linalg.norm(target_axis)

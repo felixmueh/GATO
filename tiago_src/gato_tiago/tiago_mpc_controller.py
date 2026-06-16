@@ -482,6 +482,7 @@ class MPC_GATO:
         sim_dt=0.001, 
         goal_timeout=5.0,
         goal_threshold=0.05,
+        goal_axis_threshold=np.deg2rad(15.0),
         velocity_threshold=1.0,
         goal_dwell_time=0.0,
         controller=None,
@@ -492,10 +493,11 @@ class MPC_GATO:
         
         Args:
             x_start: Initial state (robot only, no pendulum)
-            goals: List of 3D goal positions np.array([x, y, z])
+            goals: List of 3D positions [x, y, z] or 6D poses [x, y, z, roll, pitch, yaw]
             sim_dt: Simulation timestep
             goal_timeout: Max time per goal before timeout
             goal_threshold: Distance threshold for goal reached (m)
+            goal_axis_threshold: Tool local z-axis direction threshold for 6D goals (rad)
             velocity_threshold: Velocity threshold for goal reached (rad/s L1 norm)
             goal_dwell_time: Time to remain within the threshold before switching goals
             
@@ -508,6 +510,16 @@ class MPC_GATO:
                 - standard tracking stats (solve_times, timestamps, etc.)
         """
         use_controller = controller is not None
+        goals = np.asarray(goals, dtype=np.float32)
+        goals = np.atleast_2d(goals)
+        if goals.shape[1] == 3:
+            pose_goals = np.hstack([goals, np.zeros((goals.shape[0], 3), dtype=np.float32)])
+            check_goal_axis = False
+        elif goals.shape[1] == 6:
+            pose_goals = goals
+            check_goal_axis = True
+        else:
+            raise ValueError(f"goals must have shape (n, 3) or (n, 6), got {goals.shape}")
         sim_stamp_origin_sec = None
         if use_controller:
             if self.has_pendulum:
@@ -538,6 +550,8 @@ class MPC_GATO:
             'best_trajectory_id': [],
             'applied_controls': [],
             'planned_controls': [],
+            'tool_axis_errors': [],
+            'goal_indices': [],
         }
         if use_controller:
             stats['state_age_sec'] = []
@@ -548,8 +562,8 @@ class MPC_GATO:
             stats['sqp_iters'] = []
             stats['pcg_iters'] = []
             
-        stats['goal_outcomes'] = ['not_reached'] * len(goals)
-        stats['goal_reached_times'] = [None] * len(goals)
+        stats['goal_outcomes'] = ['not_reached'] * len(pose_goals)
+        stats['goal_reached_times'] = [None] * len(pose_goals)
         stats['time_to_all_reached'] = None
         
         # Initialize simulation state
@@ -575,8 +589,8 @@ class MPC_GATO:
         
         # Initialize first goal
         current_goal_idx = 0
-        current_goal = goals[current_goal_idx]
-        ee_g = np.tile(np.concatenate([current_goal, np.zeros(3)]), self.N)
+        current_goal = pose_goals[current_goal_idx]
+        ee_g = np.tile(current_goal, self.N)
         ee_g_batch = np.tile(ee_g, (self.batch_size, 1))
         
         # Initialize warm start
@@ -594,7 +608,7 @@ class MPC_GATO:
         if use_controller:
             controller.send_trajectory(self.control_horizon_from_plan(XU_best), self.dt)
         
-        print(f"\nRunning MPC: N={self.N}, batch={self.batch_size}, {len(goals)} goals")
+        print(f"\nRunning MPC: N={self.N}, batch={self.batch_size}, {len(pose_goals)} goals")
         if self.has_pendulum:
             print(f"Pendulum: mass={self.pendulum_config['mass']}kg, length={self.pendulum_config['length']}m")
         
@@ -603,7 +617,7 @@ class MPC_GATO:
         goal_dwell_start_time = None
         # Main control loop
         last_total_sim_time = 0.0
-        while total_sim_time < goal_timeout * len(goals):
+        while total_sim_time < goal_timeout * len(pose_goals):
             
             # Store state for force estimation
             x_last = x_curr
@@ -674,10 +688,16 @@ class MPC_GATO:
                 x_curr = np.concatenate([q_robot, dq_robot])
             
             # Check goal reached or timeout
+            measured_goal_idx = current_goal_idx
             ee_pos = self.solver.ee_pos(q_robot)
-            current_dist = np.linalg.norm(ee_pos - current_goal)
+            current_dist = np.linalg.norm(ee_pos - current_goal[:3])
+            current_axis_error = self.solver.ee_tool_axis_error(q_robot, current_goal[3:6])
             current_vel = np.linalg.norm(dq_robot, ord=1)
-            within_goal = (current_dist < goal_threshold) and (current_vel < velocity_threshold)
+            within_goal = (
+                (current_dist < goal_threshold)
+                and (current_vel < velocity_threshold)
+                and ((not check_goal_axis) or (current_axis_error < goal_axis_threshold))
+            )
             if within_goal:
                 if goal_dwell_start_time is None:
                     goal_dwell_start_time = total_sim_time
@@ -695,11 +715,11 @@ class MPC_GATO:
                     stats['goal_outcomes'][current_goal_idx] = 'timeout'
                     
                 current_goal_idx += 1
-                if current_goal_idx >= len(goals):
+                if current_goal_idx >= len(pose_goals):
                     break
                     
-                current_goal = goals[current_goal_idx]
-                ee_g = np.tile(np.concatenate([current_goal, np.zeros(3)]), self.N)
+                current_goal = pose_goals[current_goal_idx]
+                ee_g = np.tile(current_goal, self.N)
                 goal_start_time = total_sim_time
                 goal_dwell_start_time = None
                 self.solver.reset_rho()
@@ -729,12 +749,14 @@ class MPC_GATO:
             stats['timestamps'].append(total_sim_time)
             stats['solve_times'].append(gpu_solve_time/1000.0)  # Convert to ms
             stats['goal_distances'].append(current_dist)
+            stats['tool_axis_errors'].append(current_axis_error)
             stats['ee_actual'].append(ee_pos.copy())
             stats['joint_positions'].append(q_robot.copy())
             stats['joint_velocities'].append(dq_robot.copy())
             stats['best_trajectory_id'].append(best_id)
             stats['applied_controls'].append(applied_u)
             stats['planned_controls'].append(planned_u)
+            stats['goal_indices'].append(measured_goal_idx)
             if use_controller:
                 stats['state_age_sec'].append(state.age_sec)
                 stats['controller_command_rate_hz'].append(state.command_rate_hz)
@@ -771,12 +793,12 @@ class MPC_GATO:
         # Compute time to all-goals-reached if all were reached
         if all([o == 'reached' for o in stats['goal_outcomes']]):
             reached_times = [t for t in stats['goal_reached_times'] if t is not None]
-            if len(reached_times) == len(goals):
+            if len(reached_times) == len(pose_goals):
                 stats['time_to_all_reached'] = float(np.max(reached_times))
         
         # Print summary
         goals_reached = sum(1 for o in stats['goal_outcomes'] if o == 'reached')
-        print(f"Goals reached: {goals_reached}/{len(goals)}")
+        print(f"Goals reached: {goals_reached}/{len(pose_goals)}")
         if len(stats['solve_times']) > 0:
             print(f"Avg solve time: {np.mean(stats['solve_times']):.3f}ms")
         

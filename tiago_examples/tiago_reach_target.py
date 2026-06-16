@@ -45,6 +45,8 @@ PICK_PLACE_RECTANGLE = {
     "orientation_cone_half_angle_deg": 45.0,
 }
 RECTANGLE_GRID_SOLVER_OVERRIDES = {
+    "ee_orient_cost": 0.1,
+    "ee_orient_N_cost": 2.0,
     "vel_lim_cost": 0.05,
     "ctrl_lim_cost": 0.05,
 }
@@ -103,6 +105,26 @@ def arm_link_positions(model, data, q):
         frame_id = model.getFrameId(link_name)
         points.append((torso_inv * data.oMf[frame_id]).translation.copy())
     return np.asarray(points, dtype=np.float64)
+
+
+def tool_axis_segment(model, data, q, *, length=0.08):
+    pose = tool_pose(model, data, q)
+    origin = pose.translation.copy()
+    axis = pose.rotation[:, 2].copy()
+    axis /= np.linalg.norm(axis)
+    return np.vstack([origin, origin + length * axis])
+
+
+def rpy_axis_segment(pose_goal, *, length=0.08):
+    pose_goal = np.asarray(pose_goal, dtype=np.float64)
+    origin = pose_goal[:3]
+    if pose_goal.shape[0] >= 6:
+        axis = pin.rpy.rpyToMatrix(*pose_goal[3:6])[:, 2]
+    else:
+        axis = PICK_PLACE_RECTANGLE["tool_down_axis"]
+    axis = np.asarray(axis, dtype=np.float64)
+    axis /= np.linalg.norm(axis)
+    return np.vstack([origin, origin + length * axis])
 
 
 def _orthonormal_basis(axis):
@@ -309,11 +331,17 @@ def preflight(
     goal_checks = []
     seed_qs = tool_axis_ik_seed_qs(model, start_q) if require_tool_down else []
     for goal_index, target in enumerate(np.asarray(goals, dtype=np.float64)):
+        target_pos = target[:3]
+        target_axis = (
+            pin.rpy.rpyToMatrix(*target[3:6])[:, 2]
+            if target.shape[0] >= 6
+            else PICK_PLACE_RECTANGLE["tool_down_axis"]
+        )
         if require_tool_down:
-            ik_q, ik_error, axis_error = solve_tool_axis_ik(model, start_q, target, seed_qs=seed_qs)
+            ik_q, ik_error, axis_error = solve_tool_axis_ik(model, start_q, target_pos, target_axis=target_axis, seed_qs=seed_qs)
             seed_qs.insert(0, ik_q)
         else:
-            ik_q, ik_error = solve_tool_ik(model, start_q, target)
+            ik_q, ik_error = solve_tool_ik(model, start_q, target_pos)
             axis_error = None
         ik_limits = joint_limit_summary(model, ik_q)
         if ik_error > 3e-3:
@@ -418,7 +446,7 @@ def sample_rectangle_grid_goals(
         count,
         half_angle_deg=orientation_cone_half_angle_deg,
     )
-    goals = grid[selected]
+    goals = np.hstack([grid[selected], orientations])
     return goals, {
         "mode": "rectangle_grid",
         "frame": PICK_PLACE_RECTANGLE["frame"],
@@ -440,7 +468,7 @@ def sample_rectangle_grid_goals(
         },
         "orientation_cone_half_angle_deg": float(orientation_cone_half_angle_deg),
         "sampled_orientation_rpy": [[float(v) for v in rpy] for rpy in orientations],
-        "orientation_note": "Orientations are recorded for future pose-goal circuits; the current MPC reach rollout still tracks 3D positions.",
+        "orientation_note": "Rectangle-grid goals are 6D pose targets; MPC tracks position and RPY orientation through the Tiago orientation cost.",
     }
 
 
@@ -572,21 +600,23 @@ def sample_away_hemisphere_goals(
 
 def write_goals_csv(path, goals):
     path.parent.mkdir(parents=True, exist_ok=True)
-    np.savetxt(path, np.asarray(goals, dtype=np.float64), delimiter=",", header="x,y,z", comments="")
+    goals = np.asarray(goals, dtype=np.float64)
+    header = "x,y,z" if goals.shape[1] == 3 else "x,y,z,roll,pitch,yaw"
+    np.savetxt(path, goals, delimiter=",", header=header, comments="")
 
 
 def read_goals_csv(path):
     goals = np.loadtxt(path, delimiter=",", skiprows=1)
     goals = np.atleast_2d(goals).astype(np.float64)
-    if goals.shape[1] != 3:
-        raise ValueError(f"Expected goals CSV with 3 columns x,y,z, got shape {goals.shape}: {path}")
+    if goals.shape[1] not in (3, 6):
+        raise ValueError(f"Expected goals CSV with 3 or 6 columns, got shape {goals.shape}: {path}")
     return goals
 
 
 def active_targets_for_timestamps(timestamps, goals, goal_reached_times):
     timestamps = np.asarray(timestamps, dtype=np.float64)
     goals = np.asarray(goals, dtype=np.float64)
-    target_rows = np.zeros((timestamps.size, 3), dtype=np.float64)
+    target_rows = np.zeros((timestamps.size, goals.shape[1]), dtype=np.float64)
     for row_index, timestamp in enumerate(timestamps):
         goal_index = 0
         for reached_time in goal_reached_times[:-1]:
@@ -595,6 +625,65 @@ def active_targets_for_timestamps(timestamps, goals, goal_reached_times):
         goal_index = min(goal_index, goals.shape[0] - 1)
         target_rows[row_index] = goals[goal_index]
     return target_rows
+
+
+def active_targets_for_goal_indices(goal_indices, goals, row_count):
+    goals = np.asarray(goals, dtype=np.float64)
+    goal_indices = np.asarray(goal_indices, dtype=np.int64).reshape(-1)
+    if goal_indices.size != row_count:
+        raise ValueError(f"Expected {row_count} goal indices, got {goal_indices.size}")
+    goal_indices = np.clip(goal_indices, 0, goals.shape[0] - 1)
+    return goals[goal_indices]
+
+
+def active_targets_from_goal_timing(timestamps, goals, goal_outcomes, goal_reached_times, goal_timeout):
+    timestamps = np.asarray(timestamps, dtype=np.float64)
+    goals = np.asarray(goals, dtype=np.float64)
+    if not goal_outcomes or goal_timeout is None:
+        return None
+
+    goal_reached_times = goal_reached_times or [None] * len(goal_outcomes)
+    switch_times = [0.0]
+    segment_start = 0.0
+    for goal_index, outcome in enumerate(goal_outcomes[:-1]):
+        reached_time = goal_reached_times[goal_index] if goal_index < len(goal_reached_times) else None
+        if outcome == "reached" and reached_time is not None:
+            segment_end = float(reached_time)
+        else:
+            segment_end = segment_start + float(goal_timeout)
+        switch_times.append(segment_end)
+        segment_start = segment_end
+
+    goal_indices = np.searchsorted(np.asarray(switch_times, dtype=np.float64), timestamps, side="right") - 1
+    goal_indices = np.clip(goal_indices, 0, goals.shape[0] - 1)
+    return goals[goal_indices]
+
+
+def target_rows_are_stale(target_rows, goals):
+    target_rows = np.asarray(target_rows, dtype=np.float64)
+    goals = np.asarray(goals, dtype=np.float64)
+    if target_rows.size == 0 or goals.shape[0] <= 1:
+        return False
+    switches = goal_switch_indices(target_rows)
+    return switches.size < goals.shape[0]
+
+
+def repair_stale_target_rows(metadata, timestamps, target_rows):
+    goals = np.asarray(metadata.get("goals", []), dtype=np.float64)
+    goals = np.atleast_2d(goals) if goals.size else goals
+    if goals.size == 0 or not target_rows_are_stale(target_rows, goals):
+        return target_rows
+
+    summary = metadata.get("summary", {})
+    args = metadata.get("args", {})
+    repaired = active_targets_from_goal_timing(
+        timestamps,
+        goals,
+        summary.get("goal_outcomes", []),
+        summary.get("goal_reached_times", []),
+        args.get("goal_timeout"),
+    )
+    return repaired if repaired is not None else target_rows
 
 
 def summarize(
@@ -610,6 +699,7 @@ def summarize(
     goal_outcomes,
     goal_reached_times,
     time_to_all_reached,
+    tool_axis_errors=None,
     applied_controls=None,
     planned_controls=None,
 ):
@@ -640,7 +730,7 @@ def summarize(
                 "max_planned_violation_nm": float(np.max(np.maximum(max_abs_planned - effort_limit, 0.0))),
             }
 
-    return {
+    summary = {
         "iterations": int(timestamps.size),
         "goal_outcomes": goal_outcomes,
         "goal_reached_times": goal_reached_times,
@@ -659,6 +749,20 @@ def summarize(
         "velocity_limits": velocity_limit_summary(model, velocities),
         "torque_limits": torque_limits,
     }
+    if tool_axis_errors is not None:
+        tool_axis_errors = np.asarray(tool_axis_errors, dtype=np.float64)
+        if tool_axis_errors.size:
+            summary.update(
+                {
+                    "mean_tool_axis_error_rad": float(np.mean(tool_axis_errors)),
+                    "max_tool_axis_error_rad": float(np.max(tool_axis_errors)),
+                    "final_tool_axis_error_rad": float(tool_axis_errors[-1]),
+                    "mean_tool_axis_error_deg": float(np.rad2deg(np.mean(tool_axis_errors))),
+                    "max_tool_axis_error_deg": float(np.rad2deg(np.max(tool_axis_errors))),
+                    "final_tool_axis_error_deg": float(np.rad2deg(tool_axis_errors[-1])),
+                }
+            )
+    return summary
 
 
 def expr_dir_from_args(args):
@@ -689,6 +793,7 @@ def save_run_data(
     joints,
     velocities,
     solve_times,
+    tool_axis_errors=None,
     applied_controls=None,
     planned_controls=None,
 ):
@@ -701,11 +806,25 @@ def save_run_data(
     if timestamps.size == 0:
         return
 
+    target_rows = np.asarray(target_rows, dtype=np.float64)
+    ee_actual = np.asarray(ee_actual, dtype=np.float64)
+    trajectory_columns = [timestamps, target_rows, ee_actual, distances]
+    header = ["t", "target_x", "target_y", "target_z"]
+    if target_rows.shape[1] >= 6:
+        header += ["target_roll", "target_pitch", "target_yaw"]
+    header += ["x", "y", "z", "error"]
+    if tool_axis_errors is not None:
+        tool_axis_errors = np.asarray(tool_axis_errors, dtype=np.float64)
+        if tool_axis_errors.size:
+            trajectory_columns.append(tool_axis_errors)
+            header.append("tool_axis_error_rad")
+    trajectory_columns.append(solve_times)
+    header.append("solve_time_ms")
     np.savetxt(
         data_dir / "trajectory.csv",
-        np.column_stack([timestamps, target_rows, ee_actual, distances, solve_times]),
+        np.column_stack(trajectory_columns),
         delimiter=",",
-        header="t,target_x,target_y,target_z,x,y,z,error,solve_time_ms",
+        header=",".join(header),
         comments="",
     )
 
@@ -739,15 +858,28 @@ def save_run_data(
             )
 
 
-def save_trial_data(data_dir, trial_index, goal, timestamps, target_rows, ee_actual, distances, joints, velocities, solve_times):
+def save_trial_data(data_dir, trial_index, goal, timestamps, target_rows, ee_actual, distances, joints, velocities, solve_times, tool_axis_errors=None):
     if timestamps.size == 0:
         return
     prefix = data_dir / f"trial_{trial_index:02d}"
+    target_rows = np.asarray(target_rows, dtype=np.float64)
+    trajectory_columns = [timestamps, target_rows, ee_actual, distances]
+    header = ["t", "target_x", "target_y", "target_z"]
+    if target_rows.shape[1] >= 6:
+        header += ["target_roll", "target_pitch", "target_yaw"]
+    header += ["x", "y", "z", "error"]
+    if tool_axis_errors is not None:
+        tool_axis_errors = np.asarray(tool_axis_errors, dtype=np.float64)
+        if tool_axis_errors.size:
+            trajectory_columns.append(tool_axis_errors)
+            header.append("tool_axis_error_rad")
+    trajectory_columns.append(solve_times)
+    header.append("solve_time_ms")
     np.savetxt(
         prefix.with_name(prefix.name + "_trajectory.csv"),
-        np.column_stack([timestamps, target_rows, ee_actual, distances, solve_times]),
+        np.column_stack(trajectory_columns),
         delimiter=",",
-        header="t,target_x,target_y,target_z,x,y,z,error,solve_time_ms",
+        header=",".join(header),
         comments="",
     )
     header = ["t"] + [f"q{i}" for i in range(joints.shape[1])] + [f"qd{i}" for i in range(velocities.shape[1])]
@@ -778,6 +910,30 @@ def trial_renderable(model, joints):
     except Exception:
         return False
     return True
+
+
+def parse_trajectory_rows(trajectory):
+    trajectory = np.atleast_2d(np.asarray(trajectory, dtype=np.float64))
+    column_count = trajectory.shape[1]
+    if column_count >= 13:
+        return {
+            "timestamps": trajectory[:, 0],
+            "target_rows": trajectory[:, 1:7],
+            "ee_actual": trajectory[:, 7:10],
+            "distances": trajectory[:, 10],
+            "tool_axis_errors": trajectory[:, 11],
+            "solve_times": trajectory[:, 12],
+        }
+    if column_count >= 9:
+        return {
+            "timestamps": trajectory[:, 0],
+            "target_rows": trajectory[:, 1:4],
+            "ee_actual": trajectory[:, 4:7],
+            "distances": trajectory[:, 7],
+            "tool_axis_errors": np.empty((0,), dtype=np.float64),
+            "solve_times": trajectory[:, 8],
+        }
+    raise ValueError(f"Unexpected trajectory column count: {column_count}")
 
 
 def load_run_data(expr_dir):
@@ -813,19 +969,24 @@ def load_run_data(expr_dir):
             joints_raw = joints_raw[finite_rows]
             if trajectory.size == 0:
                 continue
-            t = trajectory[:, 0] - trajectory[0, 0] + time_offset
+            parsed = parse_trajectory_rows(trajectory)
+            t = parsed["timestamps"] - parsed["timestamps"][0] + time_offset
+            trial_target_rows = repair_stale_target_rows(metadata, parsed["timestamps"], parsed["target_rows"])
             timestamps.append(t)
-            target_rows.append(trajectory[:, 1:4])
-            ee_actual.append(trajectory[:, 4:7])
-            distances.append(trajectory[:, 7])
-            solve_times.append(trajectory[:, 8])
+            target_rows.append(trial_target_rows)
+            ee_actual.append(parsed["ee_actual"])
+            distances.append(parsed["distances"])
+            solve_times.append(parsed["solve_times"])
             joints.append(joints_raw[:, 1 : 1 + nq])
             velocities.append(joints_raw[:, 1 + nq :])
+            if parsed["tool_axis_errors"].size:
+                metadata.setdefault("_loaded_tool_axis_errors", []).append(parsed["tool_axis_errors"])
             time_offset = float(t[-1]) + 0.5
 
         if not timestamps:
             return metadata, None
 
+        loaded_axis_errors = metadata.pop("_loaded_tool_axis_errors", [])
         return metadata, {
             "timestamps": np.concatenate(timestamps),
             "target_rows": np.vstack(target_rows),
@@ -833,6 +994,7 @@ def load_run_data(expr_dir):
             "ee_actual": np.vstack(ee_actual),
             "distances": np.concatenate(distances),
             "solve_times": np.concatenate(solve_times),
+            "tool_axis_errors": np.concatenate(loaded_axis_errors) if loaded_axis_errors else np.empty((0,), dtype=np.float64),
             "joints": np.vstack(joints),
             "velocities": np.vstack(velocities),
         }
@@ -852,13 +1014,16 @@ def load_run_data(expr_dir):
     joints_raw = np.atleast_2d(joints_raw)
 
     nq = (joints_raw.shape[1] - 1) // 2
+    parsed = parse_trajectory_rows(trajectory)
+    target_rows = repair_stale_target_rows(metadata, parsed["timestamps"], parsed["target_rows"])
     return metadata, {
-        "timestamps": trajectory[:, 0],
-        "target_rows": trajectory[:, 1:4],
+        "timestamps": parsed["timestamps"],
+        "target_rows": target_rows,
         "goals": np.asarray(metadata.get("goals", [trajectory[0, 1:4]]), dtype=np.float64),
-        "ee_actual": trajectory[:, 4:7],
-        "distances": trajectory[:, 7],
-        "solve_times": trajectory[:, 8],
+        "ee_actual": parsed["ee_actual"],
+        "distances": parsed["distances"],
+        "solve_times": parsed["solve_times"],
+        "tool_axis_errors": parsed["tool_axis_errors"],
         "joints": joints_raw[:, 1 : 1 + nq],
         "velocities": joints_raw[:, 1 + nq :],
     }
@@ -877,7 +1042,7 @@ def save_error_plot(expr_dir, timestamps, distances, *, interactive=False):
     ax.set_ylabel("target error [m]")
     ax.set_title("Tiago reach target")
     ax.grid(True, alpha=0.3)
-    fig.tight_layout()
+    fig.tight_layout(rect=[0.0, 0.0, 1.0, 0.84])
     fig.savefig(expr_dir / "target_error.png", dpi=160)
     if interactive:
         plt.show()
@@ -894,7 +1059,176 @@ def animation_interval_ms(timestamps, playback_speed):
     return max(1.0, 1000.0 * dt / speed)
 
 
-def save_gif(expr_dir, timestamps, ee_actual, target_rows, goals, arm_points, joint_axes, *, interactive=False, write_gif=True, playback_speed=1.0):
+def animation_writer_fps(timestamps, playback_speed):
+    interval_ms = animation_interval_ms(timestamps, playback_speed)
+    return int(np.clip(round(1000.0 / interval_ms), 1, 60))
+
+
+def direction_xy_from_segments(axis_segments):
+    axis_segments = np.asarray(axis_segments, dtype=np.float64)
+    directions = axis_segments[:, 1, :] - axis_segments[:, 0, :]
+    norms = np.linalg.norm(directions, axis=1)
+    directions = directions / np.maximum(norms[:, None], 1e-12)
+    return directions[:, :2]
+
+
+def target_axis_xy_from_rows(target_rows):
+    target_rows = np.asarray(target_rows, dtype=np.float64)
+    if target_rows.shape[1] >= 6:
+        axes = np.asarray([pin.rpy.rpyToMatrix(*row[3:6])[:, 2] for row in target_rows], dtype=np.float64)
+    else:
+        axes = np.repeat(PICK_PLACE_RECTANGLE["tool_down_axis"][None, :], target_rows.shape[0], axis=0)
+    norms = np.linalg.norm(axes, axis=1)
+    axes = axes / np.maximum(norms[:, None], 1e-12)
+    return axes[:, :2]
+
+
+def goal_switch_indices(target_rows):
+    target_rows = np.asarray(target_rows, dtype=np.float64)
+    if target_rows.shape[0] == 0:
+        return np.empty((0,), dtype=np.int64)
+    changed = np.any(np.abs(np.diff(target_rows, axis=0)) > 1e-9, axis=1)
+    return np.concatenate([np.array([0], dtype=np.int64), np.nonzero(changed)[0].astype(np.int64) + 1])
+
+
+def save_tracking_projection_gif(
+    expr_dir,
+    timestamps,
+    ee_actual,
+    target_rows,
+    tool_axis_segments,
+    *,
+    interactive=False,
+    write_gif=True,
+    playback_speed=1.0,
+):
+    import matplotlib
+
+    if not interactive:
+        matplotlib.use("Agg")
+    import matplotlib.animation as animation
+    import matplotlib.pyplot as plt
+
+    timestamps = np.asarray(timestamps, dtype=np.float64)
+    actual = np.asarray(ee_actual, dtype=np.float64)[:, :3]
+    target_rows = np.asarray(target_rows, dtype=np.float64)
+    actual_axis_xy = direction_xy_from_segments(tool_axis_segments)
+    target_axis_xy = target_axis_xy_from_rows(target_rows)
+    frame_ids = np.unique(np.linspace(0, actual.shape[0] - 1, min(320, actual.shape[0])).astype(np.int64))
+    switches = goal_switch_indices(target_rows)
+    spatial_points = np.vstack([actual[:, :3], target_rows[:, :3]])
+    spatial_delta = max(0.05, float(np.max(np.ptp(spatial_points, axis=0))))
+    spatial_half_span = 0.55 * spatial_delta
+
+    fig, axes = plt.subplots(1, 3, figsize=(12.0, 4.0))
+    ax_z, ax_xy, ax_orient = axes
+
+    z_line, = ax_z.plot([], [], color="#003192", linewidth=1.8)
+    z_current, = ax_z.plot([], [], "o", color="#003192", markersize=5)
+    z_goal_points, = ax_z.plot([], [], "x", color="#C90016", markersize=7)
+    ax_z.set_xlabel("time [s]")
+    ax_z.set_ylabel("z [m]")
+    ax_z.set_xlim(float(timestamps[0]), float(timestamps[-1]))
+    z_center = 0.5 * float(np.min(spatial_points[:, 2]) + np.max(spatial_points[:, 2]))
+    ax_z.set_ylim(float(z_center - spatial_half_span), float(z_center + spatial_half_span))
+    ax_z.grid(True, alpha=0.3)
+    ax_z.set_title("height over time")
+    time_text = ax_z.text(
+        0.03,
+        0.95,
+        "",
+        transform=ax_z.transAxes,
+        ha="left",
+        va="top",
+        fontsize=9,
+        color="#333333",
+    )
+
+    xy_path, = ax_xy.plot([], [], color="#003192", linewidth=1.8)
+    xy_current, = ax_xy.plot([], [], "o", color="#003192", markersize=6)
+    xy_goal, = ax_xy.plot([], [], "o", color="#C90016", markersize=5)
+    xy_all_goals, = ax_xy.plot(target_rows[switches, 0], target_rows[switches, 1], "x", color="#C90016", markersize=6, alpha=0.45)
+    ax_xy.set_xlabel("x [m]")
+    ax_xy.set_ylabel("y [m]")
+    xy_center = 0.5 * (np.min(spatial_points[:, :2], axis=0) + np.max(spatial_points[:, :2], axis=0))
+    ax_xy.set_xlim(float(xy_center[0] - spatial_half_span), float(xy_center[0] + spatial_half_span))
+    ax_xy.set_ylim(float(xy_center[1] - spatial_half_span), float(xy_center[1] + spatial_half_span))
+    ax_xy.set_aspect("equal", adjustable="box")
+    ax_xy.grid(True, alpha=0.3)
+    ax_xy.set_title("xy tracking")
+
+    theta = np.linspace(0.0, 2.0 * np.pi, 180)
+    ax_orient.plot(np.cos(theta), np.sin(theta), color="#5A5A5A", linewidth=1.0, alpha=0.65)
+    ax_orient.axhline(0.0, color="#888888", linewidth=0.8, alpha=0.4)
+    ax_orient.axvline(0.0, color="#888888", linewidth=0.8, alpha=0.4)
+    orient_current, = ax_orient.plot([], [], "o", color="#003192", markersize=6)
+    orient_goal, = ax_orient.plot([], [], "o", color="#C90016", markersize=5)
+    orient_all_goals, = ax_orient.plot(target_axis_xy[switches, 0], target_axis_xy[switches, 1], "x", color="#C90016", markersize=6, alpha=0.35)
+    ax_orient.set_xlabel("tool axis x")
+    ax_orient.set_ylabel("tool axis y")
+    ax_orient.set_xlim(-1.05, 1.05)
+    ax_orient.set_ylim(-1.05, 1.05)
+    ax_orient.set_aspect("equal", adjustable="box")
+    ax_orient.grid(True, alpha=0.25)
+    ax_orient.set_title("orientation projection")
+
+    fig.tight_layout()
+
+    def update(frame_index):
+        idx = frame_ids[frame_index]
+        z_line.set_data(timestamps[: idx + 1], actual[: idx + 1, 2])
+        z_current.set_data([timestamps[idx]], [actual[idx, 2]])
+        visible_switches = switches[switches <= idx]
+        z_goal_points.set_data(timestamps[visible_switches], target_rows[visible_switches, 2])
+
+        xy_path.set_data(actual[: idx + 1, 0], actual[: idx + 1, 1])
+        xy_current.set_data([actual[idx, 0]], [actual[idx, 1]])
+        xy_goal.set_data([target_rows[idx, 0]], [target_rows[idx, 1]])
+
+        orient_current.set_data([actual_axis_xy[idx, 0]], [actual_axis_xy[idx, 1]])
+        orient_goal.set_data([target_axis_xy[idx, 0]], [target_axis_xy[idx, 1]])
+        time_text.set_text(f"t={timestamps[idx]:.2f}s")
+        return (
+            z_line,
+            z_current,
+            z_goal_points,
+            time_text,
+            xy_path,
+            xy_current,
+            xy_goal,
+            xy_all_goals,
+            orient_current,
+            orient_goal,
+            orient_all_goals,
+        )
+
+    interval_ms = animation_interval_ms(timestamps[frame_ids], playback_speed)
+    update(frame_ids.size - 1)
+    if write_gif or interactive:
+        anim = animation.FuncAnimation(fig, update, frames=frame_ids.size, interval=interval_ms, blit=False)
+    if write_gif:
+        fps = animation_writer_fps(timestamps[frame_ids], playback_speed)
+        anim.save(expr_dir / "reach_tracking_projection.gif", writer=animation.PillowWriter(fps=fps))
+    if interactive:
+        plt.show()
+    else:
+        plt.close(fig)
+
+
+def save_gif(
+    expr_dir,
+    timestamps,
+    ee_actual,
+    target_rows,
+    goals,
+    arm_points,
+    joint_axes,
+    tool_axis_segments,
+    *,
+    interactive=False,
+    write_gif=True,
+    playback_speed=1.0,
+):
     import matplotlib
 
     if not interactive:
@@ -905,7 +1239,9 @@ def save_gif(expr_dir, timestamps, ee_actual, target_rows, goals, arm_points, jo
     actual = np.asarray(ee_actual, dtype=np.float64)[:, :3]
     target_rows = np.asarray(target_rows, dtype=np.float64)
     goals = np.asarray(goals, dtype=np.float64)
+    tool_axis_segments = np.asarray(tool_axis_segments, dtype=np.float64)
     frame_ids = np.linspace(0, actual.shape[0] - 1, min(220, actual.shape[0])).astype(np.int64)
+    goal_axis_segments = np.asarray([rpy_axis_segment(goal) for goal in goals], dtype=np.float64)
 
     fig = plt.figure(figsize=(7.0, 6.0))
     ax = fig.add_subplot(111, projection="3d")
@@ -917,6 +1253,9 @@ def save_gif(expr_dir, timestamps, ee_actual, target_rows, goals, arm_points, jo
     actual_point, = ax.plot([], [], [], "o", color="#003192", markersize=6)
     goal_points, = ax.plot(goals[:, 0], goals[:, 1], goals[:, 2], "x", color="#C90016", markersize=8)
     active_target_point, = ax.plot([], [], [], "o", color="#C90016", markersize=4)
+    tool_axis_line, = ax.plot([], [], [], color="#0A6D91", linewidth=2.4)
+    active_target_axis_line, = ax.plot([], [], [], color="#C90016", linewidth=2.2)
+    goal_axis_lines = [ax.plot(segment[:, 0], segment[:, 1], segment[:, 2], color="#C90016", linewidth=1.1, alpha=0.45)[0] for segment in goal_axis_segments]
 
     ring_clouds = [
         arc
@@ -928,7 +1267,16 @@ def save_gif(expr_dir, timestamps, ee_actual, target_rows, goals, arm_points, jo
     ]
     all_rings = np.vstack(ring_clouds) if ring_clouds else np.empty((0, 3), dtype=np.float64)
     all_axes = np.asarray([overlay["axis_segments"] for overlay in joint_axes], dtype=np.float64)
-    all_points = np.vstack([actual, target_rows, goals, arm_points.reshape(-1, 3), all_rings.reshape(-1, 3), all_axes.reshape(-1, 3)])
+    all_points = np.vstack([
+        actual,
+        target_rows[:, :3],
+        goals[:, :3],
+        arm_points.reshape(-1, 3),
+        all_rings.reshape(-1, 3),
+        all_axes.reshape(-1, 3),
+        tool_axis_segments.reshape(-1, 3),
+        goal_axis_segments.reshape(-1, 3),
+    ])
     all_points = all_points[np.isfinite(all_points).all(axis=1)]
     if all_points.size == 0:
         raise RuntimeError("No finite points available for 3D plot limits")
@@ -969,8 +1317,26 @@ def save_gif(expr_dir, timestamps, ee_actual, target_rows, goals, arm_points, jo
         active_target = target_rows[idx]
         active_target_point.set_data([active_target[0]], [active_target[1]])
         active_target_point.set_3d_properties([active_target[2]])
+        tool_axis = tool_axis_segments[idx]
+        tool_axis_line.set_data(tool_axis[:, 0], tool_axis[:, 1])
+        tool_axis_line.set_3d_properties(tool_axis[:, 2])
+        target_axis = rpy_axis_segment(active_target)
+        active_target_axis_line.set_data(target_axis[:, 0], target_axis[:, 1])
+        active_target_axis_line.set_3d_properties(target_axis[:, 2])
         ax.set_title(f"Tiago reach target | t={timestamps[idx]:.2f}s")
-        return (*axis_lines, *allowed_ring_lines, *blocked_ring_lines, arm_line, trail, actual_point, goal_points, active_target_point)
+        return (
+            *axis_lines,
+            *allowed_ring_lines,
+            *blocked_ring_lines,
+            *goal_axis_lines,
+            arm_line,
+            trail,
+            actual_point,
+            goal_points,
+            active_target_point,
+            tool_axis_line,
+            active_target_axis_line,
+        )
 
     interval_ms = animation_interval_ms(timestamps[frame_ids], playback_speed) if interactive else 50.0
     update(frame_ids.size - 1)
@@ -1026,17 +1392,18 @@ def run_experiment(args):
             seed=args.goal_seed,
         )
 
+    goals_are_pose_targets = np.asarray(goals).shape[1] >= 6
     preflight_summary = preflight(
         model,
         start_q.astype(np.float64),
         goals,
         required_clearance=args.required_limit_clearance,
-        require_tool_down=goal_selection.get("mode") == "rectangle_grid",
+        require_tool_down=goals_are_pose_targets,
         tool_axis_tolerance_deg=args.tool_axis_tolerance_deg,
     )
 
     solver_params = dict(TIAGO_TRACKING_SOLVER_PARAMS)
-    if goal_selection.get("mode") == "rectangle_grid":
+    if goals_are_pose_targets:
         solver_params.update(RECTANGLE_GRID_SOLVER_OVERRIDES)
     if args.vel_lim_cost is not None:
         solver_params["vel_lim_cost"] = args.vel_lim_cost
@@ -1079,6 +1446,7 @@ def run_experiment(args):
             sim_dt=args.sim_dt,
             goal_timeout=args.goal_timeout,
             goal_threshold=args.goal_threshold,
+            goal_axis_threshold=np.deg2rad(args.goal_axis_threshold_deg),
             velocity_threshold=args.velocity_threshold,
             goal_dwell_time=args.goal_dwell_time,
             controller=ros_controller,
@@ -1099,10 +1467,15 @@ def run_experiment(args):
     solve_times = np.asarray(stats.get("solve_times", []), dtype=np.float64)
     applied_controls = np.asarray(stats.get("applied_controls", []), dtype=np.float64)
     planned_controls = np.asarray(stats.get("planned_controls", []), dtype=np.float64)
+    tool_axis_errors = np.asarray(stats.get("tool_axis_errors", []), dtype=np.float64)
     goal_outcomes = stats.get("goal_outcomes", [])
     goal_reached_times = stats.get("goal_reached_times", [])
     time_to_all_reached = stats.get("time_to_all_reached")
-    target_rows = active_targets_for_timestamps(timestamps, goals, goal_reached_times)
+    goal_indices = np.asarray(stats.get("goal_indices", []), dtype=np.int64)
+    if goal_indices.size:
+        target_rows = active_targets_for_goal_indices(goal_indices, goals, timestamps.size)
+    else:
+        target_rows = active_targets_for_timestamps(timestamps, goals, goal_reached_times)
     summary = summarize(
         model,
         timestamps,
@@ -1116,6 +1489,7 @@ def run_experiment(args):
         goal_outcomes,
         goal_reached_times,
         time_to_all_reached,
+        tool_axis_errors,
         applied_controls,
         planned_controls,
     )
@@ -1150,6 +1524,7 @@ def run_experiment(args):
         joints,
         velocities,
         solve_times,
+        tool_axis_errors,
         applied_controls,
         planned_controls,
     )
@@ -1189,6 +1564,7 @@ def run_single_goal_trial(model, start_q, goal, args, solver_params):
         sim_dt=args.sim_dt,
         goal_timeout=args.goal_timeout,
         goal_threshold=args.goal_threshold,
+        goal_axis_threshold=np.deg2rad(args.goal_axis_threshold_deg),
         velocity_threshold=args.velocity_threshold,
         goal_dwell_time=args.goal_dwell_time,
     )
@@ -1200,6 +1576,7 @@ def run_single_goal_trial(model, start_q, goal, args, solver_params):
     solve_times = np.asarray(stats.get("solve_times", []), dtype=np.float64)
     applied_controls = np.asarray(stats.get("applied_controls", []), dtype=np.float64)
     planned_controls = np.asarray(stats.get("planned_controls", []), dtype=np.float64)
+    tool_axis_errors = np.asarray(stats.get("tool_axis_errors", []), dtype=np.float64)
     target_rows = np.tile(goal, (timestamps.size, 1))
     summary = summarize(
         model,
@@ -1214,6 +1591,7 @@ def run_single_goal_trial(model, start_q, goal, args, solver_params):
         stats.get("goal_outcomes", []),
         stats.get("goal_reached_times", []),
         stats.get("time_to_all_reached"),
+        tool_axis_errors,
         applied_controls,
         planned_controls,
     )
@@ -1225,6 +1603,7 @@ def run_single_goal_trial(model, start_q, goal, args, solver_params):
         "joints": joints,
         "velocities": velocities,
         "solve_times": solve_times,
+        "tool_axis_errors": tool_axis_errors,
         "target_rows": target_rows,
         "summary": summary,
     }
@@ -1234,6 +1613,8 @@ def run_goal_sweep(args, model, start_q, start_ee, goals, goal_selection):
     from gato_tiago.config import TIAGO_TRACKING_SOLVER_PARAMS
 
     solver_params = dict(TIAGO_TRACKING_SOLVER_PARAMS)
+    if np.asarray(goals).shape[1] >= 6:
+        solver_params.update(RECTANGLE_GRID_SOLVER_OVERRIDES)
     if args.vel_lim_cost is not None:
         solver_params["vel_lim_cost"] = args.vel_lim_cost
     if args.ctrl_lim_cost is not None:
@@ -1247,7 +1628,19 @@ def run_goal_sweep(args, model, start_q, start_ee, goals, goal_selection):
     plot_trial = None
     for trial_index, goal in enumerate(goals):
         trial = run_single_goal_trial(model, start_q, goal, args, solver_params)
-        save_trial_data(data_dir, trial_index, goal, trial["timestamps"], trial["target_rows"], trial["ee_actual"], trial["distances"], trial["joints"], trial["velocities"], trial["solve_times"])
+        save_trial_data(
+            data_dir,
+            trial_index,
+            goal,
+            trial["timestamps"],
+            trial["target_rows"],
+            trial["ee_actual"],
+            trial["distances"],
+            trial["joints"],
+            trial["velocities"],
+            trial["solve_times"],
+            trial["tool_axis_errors"],
+        )
         reached = all(outcome == "reached" for outcome in trial["summary"].get("goal_outcomes", []))
         finite = bool(
             np.isfinite(trial["distances"]).all()
@@ -1256,12 +1649,13 @@ def run_goal_sweep(args, model, start_q, start_ee, goals, goal_selection):
             and np.isfinite(trial["ee_actual"]).all()
             and np.isfinite(trial["target_rows"]).all()
             and np.isfinite(trial["solve_times"]).all()
+            and (not trial["tool_axis_errors"].size or np.isfinite(trial["tool_axis_errors"]).all())
         )
         renderable = trial_renderable(model, trial["joints"]) if finite else False
         trial_summary = {
             "trial_index": int(trial_index),
             "goal": [float(v) for v in goal],
-            "distance_from_start_m": float(np.linalg.norm(goal - start_ee)),
+            "distance_from_start_m": float(np.linalg.norm(goal[:3] - start_ee)),
             "reached": bool(reached),
             "finite": finite,
             "renderable": renderable,
@@ -1379,6 +1773,7 @@ def create_plots(args):
     arm_data = model.createData()
     arm_points = np.asarray([arm_link_positions(model, arm_data, q) for q in data["joints"]], dtype=np.float64)
     joint_axes = [joint_axis_overlays(model, arm_data, q) for q in data["joints"]]
+    tool_axis_segments = np.asarray([tool_axis_segment(model, arm_data, q) for q in data["joints"]], dtype=np.float64)
     save_gif(
         expr_dir,
         data["timestamps"],
@@ -1387,6 +1782,17 @@ def create_plots(args):
         data["goals"],
         arm_points,
         joint_axes,
+        tool_axis_segments,
+        interactive=args.interactive,
+        write_gif=not args.no_gif,
+        playback_speed=args.playback_speed,
+    )
+    save_tracking_projection_gif(
+        expr_dir,
+        data["timestamps"],
+        data["ee_actual"],
+        data["target_rows"],
+        tool_axis_segments,
         interactive=args.interactive,
         write_gif=not args.no_gif,
         playback_speed=args.playback_speed,
@@ -1396,6 +1802,7 @@ def create_plots(args):
     print(f"wrote: {expr_dir / 'target_error.png'}")
     if not args.no_gif:
         print(f"wrote: {expr_dir / 'reach_target.gif'}")
+        print(f"wrote: {expr_dir / 'reach_tracking_projection.gif'}")
     print(f"wrote: {expr_dir / 'reach_target_3d.png'}")
 
 
@@ -1405,6 +1812,7 @@ def add_run_args(parser):
     parser.add_argument("--sim-dt", type=float, default=0.003)
     parser.add_argument("--goal-timeout", type=float, default=8.0)
     parser.add_argument("--goal-threshold", type=float, default=0.04)
+    parser.add_argument("--goal-axis-threshold-deg", type=float, default=30.0)
     parser.add_argument("--velocity-threshold", type=float, default=1.0)
     parser.add_argument("--goal-dwell-time", type=float, default=0.0)
     parser.add_argument("--goal-mode", choices=("rectangle-grid", "away-hemisphere", "offset"), default="rectangle-grid")
