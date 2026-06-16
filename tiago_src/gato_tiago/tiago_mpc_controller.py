@@ -91,6 +91,8 @@ class MPC_GATO:
             qd_cost=solver_cfg['qd_cost'],
             u_cost=solver_cfg['u_cost'],
             N_cost=solver_cfg['N_cost'],
+            ee_orient_cost=solver_cfg.get('ee_orient_cost', 0.0),
+            ee_orient_N_cost=solver_cfg.get('ee_orient_N_cost', 0.0),
             q_lim_cost=solver_cfg['q_lim_cost'],
             vel_lim_cost=solver_cfg['vel_lim_cost'],
             ctrl_lim_cost=solver_cfg['ctrl_lim_cost'],

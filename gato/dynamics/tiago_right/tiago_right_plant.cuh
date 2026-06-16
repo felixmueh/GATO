@@ -39,9 +39,34 @@ namespace plant {
         }
 
         template<class T>
+        __host__ __device__ constexpr T TWO_PI()
+        {
+                return static_cast<T>(6.28318);
+        }
+
+        template<class T>
         __host__ __device__ constexpr T tiagoJointSign(uint32_t joint_idx)
         {
                 return joint_idx == TIAGO_SIGN_FLIP_JOINT ? static_cast<T>(-1) : static_cast<T>(1);
+        }
+
+        template<class T>
+        __host__ __device__ T poseError(T actual, T target, uint32_t pose_idx)
+        {
+                T err = actual - target;
+                if (pose_idx >= 3) {
+                        while (err > PI<T>()) { err -= TWO_PI<T>(); }
+                        while (err < -PI<T>()) { err += TWO_PI<T>(); }
+                }
+                return err;
+        }
+
+        template<class T>
+        __host__ __device__ T poseCostWeight(T position_cost, T orientation_cost, uint32_t pose_idx)
+        {
+                if (pose_idx < 3) { return position_cost; }
+                if (pose_idx < grid::EE_POS_SIZE) { return orientation_cost; }
+                return static_cast<T>(0);
         }
 
         template<class T>
@@ -308,6 +333,8 @@ namespace plant {
                                   T qd_cost,
                                   T u_cost,
                                   T N_cost,
+                                  T ee_orient_cost,
+                                  T ee_orient_N_cost,
                                   T q_lim_cost,
                                   T vel_lim_cost,
                                   T ctrl_lim_cost)
@@ -319,10 +346,11 @@ namespace plant {
                 __syncthreads();
 
                 T err;
+                const bool track_orientation = ee_orient_cost != static_cast<T>(0) || ee_orient_N_cost != static_cast<T>(0);
                 const uint32_t threadsNeeded = state_size / 2 + control_size * (blockIdx.x < knot_points - 1);
 
                 T* s_cost_vec = s_temp;
-                T* s_eePos_cost = s_cost_vec + threadsNeeded + 3;
+                T* s_eePos_cost = s_cost_vec + threadsNeeded + (track_orientation ? grid::EE_POS_SIZE : 3);
                 T* s_ee_workspace = s_eePos_cost + grid::EE_POS_SIZE;
                 computeTiagoToolPose<T>(s_eePos_cost, s_q_grid, d_robotModel, s_ee_workspace);
 
@@ -338,13 +366,24 @@ namespace plant {
                                 s_cost_vec[i] += ctrl_lim_cost * jointBarrier(s_xu[i + state_size / 2], CTRL_LIMITS<T>()[i - state_size / 2][0], CTRL_LIMITS<T>()[i - state_size / 2][1]);
                         }
                 }
-                for (int i = threadIdx.x; i < 3; i += blockDim.x) {
-                        err = s_eePos_cost[i] - s_eePos_traj[i];
-                        s_cost_vec[threadsNeeded + i] = static_cast<T>(0.5) * (blockIdx.x == KNOT_POINTS - 1 ? N_cost : q_cost) * err * err;
+                if (track_orientation) {
+                        for (int i = threadIdx.x; i < grid::EE_POS_SIZE; i += blockDim.x) {
+                                err = poseError(s_eePos_cost[i], s_eePos_traj[i], i);
+                                const T pose_weight = poseCostWeight(
+                                    blockIdx.x == KNOT_POINTS - 1 ? N_cost : q_cost,
+                                    blockIdx.x == KNOT_POINTS - 1 ? ee_orient_N_cost : ee_orient_cost,
+                                    i);
+                                s_cost_vec[threadsNeeded + i] = static_cast<T>(0.5) * pose_weight * err * err;
+                        }
+                } else {
+                        for (int i = threadIdx.x; i < 3; i += blockDim.x) {
+                                err = s_eePos_cost[i] - s_eePos_traj[i];
+                                s_cost_vec[threadsNeeded + i] = static_cast<T>(0.5) * (blockIdx.x == KNOT_POINTS - 1 ? N_cost : q_cost) * err * err;
+                        }
                 }
                 __syncthreads();
 
-                block::reduce<T>(threadsNeeded + 3, s_cost_vec);
+                block::reduce<T>(threadsNeeded + (track_orientation ? grid::EE_POS_SIZE : 3), s_cost_vec);
                 __syncthreads();
 
                 return s_cost_vec[0];
@@ -353,7 +392,7 @@ namespace plant {
         __host__ unsigned trackingcost_TempMemCt_Shared(uint32_t state_size, uint32_t control_size, uint32_t knot_points)
         {
                 (void)knot_points;
-                return state_size / 2 + control_size + 3 + grid::EE_POS_SIZE + grid::EE_POS_DYNAMIC_SHARED_MEM_COUNT;
+                return state_size / 2 + control_size + grid::EE_POS_SIZE + grid::EE_POS_SIZE + grid::EE_POS_DYNAMIC_SHARED_MEM_COUNT;
         }
 
         template<typename T, bool computeR = true>
@@ -371,6 +410,8 @@ namespace plant {
                                                        T qd_cost,
                                                        T u_cost,
                                                        T N_cost,
+                                                       T ee_orient_cost,
+                                                       T ee_orient_N_cost,
                                                        T q_lim_cost,
                                                        T vel_lim_cost,
                                                        T ctrl_lim_cost)
@@ -382,6 +423,7 @@ namespace plant {
                 __syncthreads();
 
                 const grid::robotModel<T>* d_robotModel = static_cast<const grid::robotModel<T>*>(d_dynMem_const);
+                const bool track_orientation = ee_orient_cost != static_cast<T>(0) || ee_orient_N_cost != static_cast<T>(0);
                 T* s_eePos = s_temp;
                 T* s_eePos_grad = s_eePos + grid::EE_POS_SIZE;
                 T* s_ee_workspace = s_eePos_grad + 6 * grid::NUM_JOINTS;
@@ -392,11 +434,24 @@ namespace plant {
                 for (int i = threadIdx.x; i < threads_needed; i += blockDim.x) {
                         if (i < state_size) {
                                 if (i < grid::NUM_JOINTS) {
-                                        const T grad_x = s_eePos_grad[6 * i + 0] * tiagoJointSign<T>(i);
-                                        const T grad_y = s_eePos_grad[6 * i + 1] * tiagoJointSign<T>(i);
-                                        const T grad_z = s_eePos_grad[6 * i + 2] * tiagoJointSign<T>(i);
-                                        s_qk[i] = (grad_x * (s_eePos[0] - s_eePos_traj[0]) + grad_y * (s_eePos[1] - s_eePos_traj[1]) + grad_z * (s_eePos[2] - s_eePos_traj[2]))
-                                                  * (blockIdx.x == KNOT_POINTS - 1 ? N_cost : q_cost);
+                                        if (track_orientation) {
+                                                T tracking_grad = static_cast<T>(0);
+                                                for (int pose_idx = 0; pose_idx < grid::EE_POS_SIZE; ++pose_idx) {
+                                                        const T pose_grad = s_eePos_grad[6 * i + pose_idx] * tiagoJointSign<T>(i);
+                                                        const T pose_weight = poseCostWeight(
+                                                            blockIdx.x == KNOT_POINTS - 1 ? N_cost : q_cost,
+                                                            blockIdx.x == KNOT_POINTS - 1 ? ee_orient_N_cost : ee_orient_cost,
+                                                            pose_idx);
+                                                        tracking_grad += pose_weight * pose_grad * poseError(s_eePos[pose_idx], s_eePos_traj[pose_idx], pose_idx);
+                                                }
+                                                s_qk[i] = tracking_grad;
+                                        } else {
+                                                const T grad_x = s_eePos_grad[6 * i + 0] * tiagoJointSign<T>(i);
+                                                const T grad_y = s_eePos_grad[6 * i + 1] * tiagoJointSign<T>(i);
+                                                const T grad_z = s_eePos_grad[6 * i + 2] * tiagoJointSign<T>(i);
+                                                s_qk[i] = (grad_x * (s_eePos[0] - s_eePos_traj[0]) + grad_y * (s_eePos[1] - s_eePos_traj[1]) + grad_z * (s_eePos[2] - s_eePos_traj[2]))
+                                                          * (blockIdx.x == KNOT_POINTS - 1 ? N_cost : q_cost);
+                                        }
                                         s_qk[i] += q_lim_cost * jointBarrierGradient(s_xu[i], JOINT_LIMITS<T>()[i][0], JOINT_LIMITS<T>()[i][1]);
                                 } else {
                                         s_qk[i] = qd_cost * s_xu[i];
@@ -413,13 +468,27 @@ namespace plant {
                         if (i < state_size) {
                                 for (int j = 0; j < state_size; j++) {
                                         if (j < grid::NUM_JOINTS && i < grid::NUM_JOINTS) {
-                                                const T grad_ix = s_eePos_grad[6 * i + 0] * tiagoJointSign<T>(i);
-                                                const T grad_iy = s_eePos_grad[6 * i + 1] * tiagoJointSign<T>(i);
-                                                const T grad_iz = s_eePos_grad[6 * i + 2] * tiagoJointSign<T>(i);
-                                                const T grad_jx = s_eePos_grad[6 * j + 0] * tiagoJointSign<T>(j);
-                                                const T grad_jy = s_eePos_grad[6 * j + 1] * tiagoJointSign<T>(j);
-                                                const T grad_jz = s_eePos_grad[6 * j + 2] * tiagoJointSign<T>(j);
-                                                s_Qk[i * state_size + j] = (grad_ix * grad_jx + grad_iy * grad_jy + grad_iz * grad_jz) * (blockIdx.x == KNOT_POINTS - 1 ? N_cost : q_cost);
+                                                if (track_orientation) {
+                                                        T tracking_hessian = static_cast<T>(0);
+                                                        for (int pose_idx = 0; pose_idx < grid::EE_POS_SIZE; ++pose_idx) {
+                                                                const T grad_i = s_eePos_grad[6 * i + pose_idx] * tiagoJointSign<T>(i);
+                                                                const T grad_j = s_eePos_grad[6 * j + pose_idx] * tiagoJointSign<T>(j);
+                                                                const T pose_weight = poseCostWeight(
+                                                                    blockIdx.x == KNOT_POINTS - 1 ? N_cost : q_cost,
+                                                                    blockIdx.x == KNOT_POINTS - 1 ? ee_orient_N_cost : ee_orient_cost,
+                                                                    pose_idx);
+                                                                tracking_hessian += pose_weight * grad_i * grad_j;
+                                                        }
+                                                        s_Qk[i * state_size + j] = tracking_hessian;
+                                                } else {
+                                                        const T grad_ix = s_eePos_grad[6 * i + 0] * tiagoJointSign<T>(i);
+                                                        const T grad_iy = s_eePos_grad[6 * i + 1] * tiagoJointSign<T>(i);
+                                                        const T grad_iz = s_eePos_grad[6 * i + 2] * tiagoJointSign<T>(i);
+                                                        const T grad_jx = s_eePos_grad[6 * j + 0] * tiagoJointSign<T>(j);
+                                                        const T grad_jy = s_eePos_grad[6 * j + 1] * tiagoJointSign<T>(j);
+                                                        const T grad_jz = s_eePos_grad[6 * j + 2] * tiagoJointSign<T>(j);
+                                                        s_Qk[i * state_size + j] = (grad_ix * grad_jx + grad_iy * grad_jy + grad_iz * grad_jz) * (blockIdx.x == KNOT_POINTS - 1 ? N_cost : q_cost);
+                                                }
                                                 if (i == j) {
                                                         s_Qk[i * state_size + j] += q_lim_cost * jointBarrierHessian<T>(s_xu[i], JOINT_LIMITS<T>()[i][0], JOINT_LIMITS<T>()[i][1]);
                                                 }
@@ -460,12 +529,14 @@ namespace plant {
                                                                  T qd_cost,
                                                                  T u_cost,
                                                                  T N_cost,
+                                                                 T ee_orient_cost,
+                                                                 T ee_orient_N_cost,
                                                                  T q_lim_cost,
                                                                  T vel_lim_cost,
                                                                  T ctrl_lim_cost)
         {
-                trackingCostGradientAndHessian<T>(state_size, control_size, s_xux, s_eePos_traj, s_Qk, s_qk, s_Rk, s_rk, s_temp, d_dynMem_const, q_cost, qd_cost, u_cost, N_cost, q_lim_cost, vel_lim_cost, ctrl_lim_cost);
-                trackingCostGradientAndHessian<T, false>(state_size, control_size, s_xux, &s_eePos_traj[grid::EE_POS_SIZE], s_Qkp1, s_qkp1, nullptr, nullptr, s_temp, d_dynMem_const, q_cost, qd_cost, u_cost, N_cost, q_lim_cost, vel_lim_cost, ctrl_lim_cost);
+                trackingCostGradientAndHessian<T>(state_size, control_size, s_xux, s_eePos_traj, s_Qk, s_qk, s_Rk, s_rk, s_temp, d_dynMem_const, q_cost, qd_cost, u_cost, N_cost, ee_orient_cost, ee_orient_N_cost, q_lim_cost, vel_lim_cost, ctrl_lim_cost);
+                trackingCostGradientAndHessian<T, false>(state_size, control_size, s_xux, &s_eePos_traj[grid::EE_POS_SIZE], s_Qkp1, s_qkp1, nullptr, nullptr, s_temp, d_dynMem_const, q_cost, qd_cost, u_cost, N_cost, ee_orient_cost, ee_orient_N_cost, q_lim_cost, vel_lim_cost, ctrl_lim_cost);
         }
 
         __host__ __device__ constexpr unsigned trackingCostGradientAndHessian_TempMemSize_Shared()

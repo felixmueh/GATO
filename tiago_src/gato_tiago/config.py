@@ -19,6 +19,8 @@ TIAGO_TRACKING_SOLVER_PARAMS = {
     "qd_cost": 1e-2,
     "u_cost": 1e-5,
     "N_cost": 80.0,
+    "ee_orient_cost": 0.0,
+    "ee_orient_N_cost": 0.0,
     "q_lim_cost": 0.01,
     "vel_lim_cost": 0.001,
     "ctrl_lim_cost": 0.003,
