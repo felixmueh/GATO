@@ -126,6 +126,12 @@ def tiago_horizontal_figure8(dt, start_ee):
     }
 
 
+def apply_fixed_orientation(reference, orientation_rpy):
+    reference = np.asarray(reference, dtype=np.float64).reshape(-1, 6).copy()
+    reference[:, 3:6] = np.asarray(orientation_rpy, dtype=np.float64)
+    return reference.reshape(-1)
+
+
 def plant_config(plant, dt):
     if plant == "indy7":
         model_path = REPO_ROOT / "examples" / "indy7_description" / "indy7.urdf"
@@ -424,9 +430,16 @@ def run(args):
         solver_params["vel_lim_cost"] = args.vel_lim_cost
     if args.ctrl_lim_cost is not None:
         solver_params["ctrl_lim_cost"] = args.ctrl_lim_cost
+    if args.ee_orient_cost is not None:
+        solver_params["ee_orient_cost"] = args.ee_orient_cost
+    if args.ee_orient_N_cost is not None:
+        solver_params["ee_orient_N_cost"] = args.ee_orient_N_cost
 
     model = load_model(cfg["model_path"])
     reference = cfg["reference"].astype(np.float32)
+    if args.ee_orientation_rpy is not None:
+        reference = apply_fixed_orientation(reference, args.ee_orientation_rpy).astype(np.float32)
+        cfg["reference_metadata"]["ee_orientation_rpy"] = [float(v) for v in args.ee_orientation_rpy]
     x_start = np.concatenate([cfg["start_q"], np.zeros(model.nv, dtype=np.float32)]).astype(np.float32)
     output_dir = args.output_root / args.plant
     if args.output_label:
@@ -525,6 +538,9 @@ def parse_args():
     parser.add_argument("--output-label", default=None)
     parser.add_argument("--vel-lim-cost", type=float, default=None)
     parser.add_argument("--ctrl-lim-cost", type=float, default=None)
+    parser.add_argument("--ee-orient-cost", type=float, default=None)
+    parser.add_argument("--ee-orient-N-cost", type=float, default=None)
+    parser.add_argument("--ee-orientation-rpy", nargs=3, type=float, default=None)
     parser.add_argument("--no-gif", action="store_true")
     parser.add_argument("--ros-tiago", action="store_true")
     parser.add_argument("--ros-target-hz", type=float, default=125.0)

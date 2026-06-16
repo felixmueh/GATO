@@ -44,11 +44,17 @@ PICK_PLACE_RECTANGLE = {
     "tool_down_axis": np.array([0.0, 0.0, -1.0], dtype=np.float64),
     "orientation_cone_half_angle_deg": 45.0,
 }
-RECTANGLE_GRID_SOLVER_OVERRIDES = {
-    "ee_orient_cost": 0.1,
-    "ee_orient_N_cost": 2.0,
+RECTANGLE_GRID_REGULARIZATION_OVERRIDES = {
     "vel_lim_cost": 0.05,
     "ctrl_lim_cost": 0.05,
+}
+RECTANGLE_GRID_ORIENTATION_OVERRIDES = {
+    "ee_orient_cost": 0.1,
+    "ee_orient_N_cost": 2.0,
+}
+RECTANGLE_GRID_SOLVER_OVERRIDES = {
+    **RECTANGLE_GRID_REGULARIZATION_OVERRIDES,
+    **RECTANGLE_GRID_ORIENTATION_OVERRIDES,
 }
 FIRST_TUNABLES_IF_UNSTABLE = ["u_cost", "qd_cost", "N_cost", "q_cost", "rho"]
 
@@ -1363,6 +1369,9 @@ def run_experiment(args):
     if args.goals_file is not None:
         goals = read_goals_csv(args.goals_file)
         goal_selection = {"mode": "goals_file", "goals_file": json_path(args.goals_file)}
+        if args.position_only_goals and goals.shape[1] >= 6:
+            goals = goals[:, :3]
+            goal_selection["position_only_goals"] = True
         if not args.ros_tiago:
             run_goal_sweep(args, model, start_q, start_ee, goals, goal_selection)
             return
@@ -1374,6 +1383,9 @@ def run_experiment(args):
             depth_points=args.grid_depth_points,
             orientation_cone_half_angle_deg=args.orientation_cone_half_angle_deg,
         )
+        if args.position_only_goals:
+            goals = goals[:, :3]
+            goal_selection["position_only_goals"] = True
     elif args.goal_mode == "offset":
         goals = np.vstack([start_ee + target_offset, start_ee + 2.0 * target_offset])
         goal_selection = {
@@ -1403,8 +1415,10 @@ def run_experiment(args):
     )
 
     solver_params = dict(TIAGO_TRACKING_SOLVER_PARAMS)
+    if goal_selection.get("mode") == "rectangle_grid":
+        solver_params.update(RECTANGLE_GRID_REGULARIZATION_OVERRIDES)
     if goals_are_pose_targets:
-        solver_params.update(RECTANGLE_GRID_SOLVER_OVERRIDES)
+        solver_params.update(RECTANGLE_GRID_ORIENTATION_OVERRIDES)
     if args.vel_lim_cost is not None:
         solver_params["vel_lim_cost"] = args.vel_lim_cost
     if args.ctrl_lim_cost is not None:
@@ -1613,8 +1627,10 @@ def run_goal_sweep(args, model, start_q, start_ee, goals, goal_selection):
     from gato_tiago.config import TIAGO_TRACKING_SOLVER_PARAMS
 
     solver_params = dict(TIAGO_TRACKING_SOLVER_PARAMS)
+    if goal_selection.get("mode") == "rectangle_grid":
+        solver_params.update(RECTANGLE_GRID_REGULARIZATION_OVERRIDES)
     if np.asarray(goals).shape[1] >= 6:
-        solver_params.update(RECTANGLE_GRID_SOLVER_OVERRIDES)
+        solver_params.update(RECTANGLE_GRID_ORIENTATION_OVERRIDES)
     if args.vel_lim_cost is not None:
         solver_params["vel_lim_cost"] = args.vel_lim_cost
     if args.ctrl_lim_cost is not None:
@@ -1821,6 +1837,7 @@ def add_run_args(parser):
     parser.add_argument("--run-goal-radius", type=float, default=DEFAULT_RUN_GOAL_RADIUS)
     parser.add_argument("--goal-candidates", type=int, default=DEFAULT_GOAL_CANDIDATES)
     parser.add_argument("--goal-seed", type=int, default=DEFAULT_RUN_GOAL_SEED)
+    parser.add_argument("--position-only-goals", action="store_true")
     parser.add_argument("--grid-width-points", type=int, default=PICK_PLACE_RECTANGLE["width_points"])
     parser.add_argument("--grid-depth-points", type=int, default=PICK_PLACE_RECTANGLE["depth_points"])
     parser.add_argument("--orientation-cone-half-angle-deg", type=float, default=PICK_PLACE_RECTANGLE["orientation_cone_half_angle_deg"])
