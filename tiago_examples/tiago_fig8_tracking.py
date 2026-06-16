@@ -306,7 +306,107 @@ def save_csvs(output_dir, batch_size, stats, reference_points, reference_indices
         )
 
 
-def save_renderings(output_dir, plant, reference, results, make_gif):
+def tool_axis_directions(model, plant, joints):
+    joints = np.asarray(joints, dtype=np.float64)
+    data = model.createData()
+    directions = []
+    for q in joints:
+        pin.forwardKinematics(model, data, q)
+        if plant == "tiago_right":
+            pin.updateFramePlacements(model, data)
+            torso_id = model.getFrameId("torso_lift_link")
+            tool_id = model.getFrameId("arm_right_tool_link")
+            tool_pose = data.oMf[torso_id].inverse() * data.oMf[tool_id]
+            axis = tool_pose.rotation[:, 2].copy()
+        else:
+            axis = data.oMi[model.njoints - 1].rotation[:, 2].copy()
+        axis /= np.linalg.norm(axis)
+        directions.append(axis)
+    return np.asarray(directions, dtype=np.float64)
+
+
+def reference_axis_directions(reference):
+    poses = np.asarray(reference, dtype=np.float64).reshape(-1, 6)
+    axes = np.asarray([pin.rpy.rpyToMatrix(*pose[3:6])[:, 2] for pose in poses], dtype=np.float64)
+    axes /= np.maximum(np.linalg.norm(axes, axis=1)[:, None], 1e-12)
+    return axes
+
+
+def set_equal_3d_limits(ax, points, *, min_radius=0.12, scale=0.62):
+    points = np.asarray(points, dtype=np.float64)
+    center = np.mean(points, axis=0)
+    radius = max(min_radius, float(np.max(np.ptp(points, axis=0))) * scale)
+    ax.set_xlim(center[0] - radius, center[0] + radius)
+    ax.set_ylim(center[1] - radius, center[1] + radius)
+    ax.set_zlim(center[2] - radius, center[2] + radius)
+
+
+def save_direction_vector_plot(output_dir, plant, model, reference, results, orientation_tracking_enabled):
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    ref = np.asarray(reference, dtype=np.float64).reshape(-1, 6)[:, :3]
+    ref_axes = reference_axis_directions(reference)
+    batch_size = sorted(results)[0]
+    stats = results[batch_size]["stats"]
+    actual = np.asarray(stats["ee_actual"], dtype=np.float64)[:, :3]
+    target_path = np.asarray(results[batch_size]["reference_points"], dtype=np.float64)[:, :3]
+    joints = np.asarray(stats["joint_positions"], dtype=np.float64)
+    frame_ids = np.unique(np.linspace(0, actual.shape[0] - 1, min(48, actual.shape[0])).astype(np.int64))
+    target_ids = np.minimum(
+        np.asarray(results[batch_size]["reference_indices"], dtype=np.int64)[frame_ids],
+        ref.shape[0] - 1,
+    )
+    actual_axes = tool_axis_directions(model, plant, joints[frame_ids])
+
+    fig = plt.figure(figsize=(8.2, 6.8))
+    ax = fig.add_subplot(111, projection="3d")
+    ax.plot(target_path[:, 0], target_path[:, 1], target_path[:, 2], ":", color="#666666", linewidth=1.4, label="target path")
+    ax.plot(actual[:, 0], actual[:, 1], actual[:, 2], color="#003192", linewidth=1.7, label="actual path")
+    ax.quiver(
+        ref[target_ids, 0],
+        ref[target_ids, 1],
+        ref[target_ids, 2],
+        ref_axes[target_ids, 0],
+        ref_axes[target_ids, 1],
+        ref_axes[target_ids, 2],
+        length=0.045,
+        normalize=True,
+        color="#C90016",
+        linewidth=1.0,
+        alpha=0.78,
+        label="target direction",
+    )
+    ax.quiver(
+        actual[frame_ids, 0],
+        actual[frame_ids, 1],
+        actual[frame_ids, 2],
+        actual_axes[:, 0],
+        actual_axes[:, 1],
+        actual_axes[:, 2],
+        length=0.045,
+        normalize=True,
+        color="#0A6D91",
+        linewidth=1.0,
+        alpha=0.78,
+        label="actual tool direction",
+    )
+    set_equal_3d_limits(ax, np.vstack([target_path, actual]))
+    ax.set_xlabel("x [m]")
+    ax.set_ylabel("y [m]")
+    ax.set_zlabel("z [m]")
+    ax.view_init(elev=24, azim=-54)
+    mode = "orientation tracking enabled" if orientation_tracking_enabled else "orientation tracking disabled"
+    ax.set_title(f"{plant} figure-8 complete trajectory directions\n{mode}")
+    ax.legend(loc="best")
+    fig.tight_layout()
+    fig.savefig(output_dir / "tracking_direction_vectors.png", dpi=180)
+    plt.close(fig)
+
+
+def save_renderings(output_dir, plant, model, reference, results, make_gif, orientation_tracking_enabled):
     import matplotlib
 
     matplotlib.use("Agg")
@@ -358,6 +458,8 @@ def save_renderings(output_dir, plant, reference, results, make_gif):
     plt.close(fig)
 
     if not make_gif or not batch_sizes:
+        if batch_sizes:
+            save_direction_vector_plot(output_dir, plant, model, reference, results, orientation_tracking_enabled)
         return
 
     batch_size = batch_sizes[0]
@@ -374,12 +476,7 @@ def save_renderings(output_dir, plant, reference, results, make_gif):
     actual_point, = ax.plot([], [], [], "o", color="#003192", markersize=5)
     target_point, = ax.plot([], [], [], "x", color="#C90016", markersize=7)
 
-    all_points = np.concatenate([ref, actual], axis=0)
-    center = np.mean(all_points, axis=0)
-    radius = max(0.2, float(np.max(np.ptp(all_points, axis=0))) * 0.60)
-    ax.set_xlim(center[0] - radius, center[0] + radius)
-    ax.set_ylim(center[1] - radius, center[1] + radius)
-    ax.set_zlim(center[2] - radius, center[2] + radius)
+    set_equal_3d_limits(ax, np.concatenate([ref, actual], axis=0), min_radius=0.2, scale=0.60)
     ax.set_xlabel("x [m]")
     ax.set_ylabel("y [m]")
     ax.set_zlabel("z [m]")
@@ -400,6 +497,7 @@ def save_renderings(output_dir, plant, reference, results, make_gif):
     anim = animation.FuncAnimation(fig, update, frames=frame_ids.size, interval=50, blit=False)
     anim.save(output_dir / f"batch_{batch_size}_tracking.gif", writer=animation.PillowWriter(fps=20))
     plt.close(fig)
+    save_direction_vector_plot(output_dir, plant, model, reference, results, orientation_tracking_enabled)
 
 
 def run(args):
@@ -483,7 +581,11 @@ def run(args):
             ref_points, ref_indices = reference_at_timestamps(reference, timestamps, args.dt)
             save_csvs(output_dir, batch_size, stats, ref_points, ref_indices)
             summaries[str(batch_size)] = summarize(stats, model, solver_params)
-            results[batch_size] = {"stats": stats, "reference_points": ref_points}
+            results[batch_size] = {
+                "stats": stats,
+                "reference_points": ref_points,
+                "reference_indices": ref_indices,
+            }
     finally:
         if ros_controller is not None:
             ros_controller.close(timeout_sec=args.ros_controller_timeout)
@@ -491,7 +593,19 @@ def run(args):
                 output_dir / "controller_state_history.csv"
             )
 
-    save_renderings(output_dir, args.plant, reference, results, make_gif=not args.no_gif)
+    orientation_tracking_enabled = (
+        float(solver_params.get("ee_orient_cost", 0.0)) > 0.0
+        or float(solver_params.get("ee_orient_N_cost", 0.0)) > 0.0
+    )
+    save_renderings(
+        output_dir,
+        args.plant,
+        model,
+        reference,
+        results,
+        make_gif=not args.no_gif,
+        orientation_tracking_enabled=orientation_tracking_enabled,
+    )
 
     payload = {
         "plant": args.plant,
