@@ -8,6 +8,7 @@ from pathlib import Path
 
 import numpy as np
 import pinocchio as pin
+from scipy.optimize import least_squares
 
 PROJECT_ROOT = Path(".")
 sys.path.insert(0, str(PROJECT_ROOT / "python"))
@@ -18,7 +19,7 @@ MODEL_PATH = Path("gato") / "dynamics" / "tiago_right" / "tiago_right_arm.urdf"
 OUTPUT_ROOT = Path("example_artifacts") / "tiago_reach_target"
 DEFAULT_TARGET_OFFSET = np.array([0.11, -0.085, 0.035], dtype=np.float64)
 DEFAULT_LIMIT_CLEARANCE = 0.08
-DEFAULT_RUN_GOAL_COUNT = 2
+DEFAULT_RUN_GOAL_COUNT = 6
 DEFAULT_RUN_GOAL_RADIUS = 0.22
 DEFAULT_RUN_GOAL_SEED = 13
 DEFAULT_GOAL_COUNT = 5
@@ -33,6 +34,20 @@ DEFAULT_CLOSE_GOAL_OFFSETS = np.array(
     ],
     dtype=np.float64,
 )
+PICK_PLACE_RECTANGLE = {
+    "frame": "torso_lift_link",
+    "corner": np.array([0.6077361, -0.60, -0.38947671], dtype=np.float64),
+    "depth_vector": np.array([0.20, 0.0, 0.0], dtype=np.float64),
+    "width_vector": np.array([0.0, 0.30, 0.0], dtype=np.float64),
+    "width_points": 4,
+    "depth_points": 3,
+    "tool_down_axis": np.array([0.0, 0.0, -1.0], dtype=np.float64),
+    "orientation_cone_half_angle_deg": 45.0,
+}
+RECTANGLE_GRID_SOLVER_OVERRIDES = {
+    "vel_lim_cost": 0.05,
+    "ctrl_lim_cost": 0.05,
+}
 FIRST_TUNABLES_IF_UNSTABLE = ["u_cost", "qd_cost", "N_cost", "q_cost", "rho"]
 
 ARM_LINK_NAMES = [
@@ -68,6 +83,14 @@ def tool_position(model, data, q):
     torso_id = model.getFrameId("torso_lift_link")
     tool_id = model.getFrameId("arm_right_tool_link")
     return (data.oMf[torso_id].inverse() * data.oMf[tool_id]).translation.copy()
+
+
+def tool_pose(model, data, q):
+    pin.forwardKinematics(model, data, q)
+    pin.updateFramePlacements(model, data)
+    torso_id = model.getFrameId("torso_lift_link")
+    tool_id = model.getFrameId("arm_right_tool_link")
+    return data.oMf[torso_id].inverse() * data.oMf[tool_id]
 
 
 def arm_link_positions(model, data, q):
@@ -175,6 +198,73 @@ def solve_tool_ik(model, q_start, target, *, max_iters=200, tolerance=1e-3):
     return q, final_error
 
 
+def solve_tool_axis_ik(
+    model,
+    q_start,
+    target,
+    *,
+    target_axis=PICK_PLACE_RECTANGLE["tool_down_axis"],
+    seed_qs=(),
+    max_evals=160,
+):
+    data = model.createData()
+    lower = model.lowerPositionLimit.astype(np.float64)
+    upper = model.upperPositionLimit.astype(np.float64)
+    target = np.asarray(target, dtype=np.float64)
+    target_axis = np.asarray(target_axis, dtype=np.float64)
+    target_axis /= np.linalg.norm(target_axis)
+
+    def residual(q):
+        pose = tool_pose(model, data, q)
+        actual_axis = pose.rotation[:, 2]
+        return np.concatenate(
+            [
+                40.0 * (pose.translation - target),
+                6.0 * np.cross(actual_axis, target_axis),
+                [3.0 * (1.0 - float(np.dot(actual_axis, target_axis)))],
+            ]
+        )
+
+    best = None
+    for seed_q in (q_start, *seed_qs):
+        result = least_squares(
+            residual,
+            np.clip(np.asarray(seed_q, dtype=np.float64), lower, upper),
+            bounds=(lower, upper),
+            max_nfev=max_evals,
+            xtol=1e-9,
+            ftol=1e-9,
+            gtol=1e-9,
+            x_scale="jac",
+        )
+        pose = tool_pose(model, data, result.x)
+        pos_error = float(np.linalg.norm(pose.translation - target))
+        axis_dot = float(np.clip(np.dot(pose.rotation[:, 2], target_axis), -1.0, 1.0))
+        axis_error = float(np.arccos(axis_dot))
+        clearance = joint_limit_summary(model, result.x)["min_clearance_rad"]
+        score = pos_error + 0.05 * axis_error - 0.0005 * clearance
+        candidate = (score, result.x, pos_error, axis_error, clearance)
+        if best is None or candidate < best:
+            best = candidate
+
+    _, q, pos_error, axis_error, _ = best
+    return q, pos_error, axis_error
+
+
+def tool_axis_ik_seed_qs(model, q_start, *, count=10):
+    lower = model.lowerPositionLimit.astype(np.float64)
+    upper = model.upperPositionLimit.astype(np.float64)
+    rng = np.random.default_rng(20260616)
+    seeds = []
+    for scale in (0.35, 0.7, 1.0):
+        seeds.append(np.clip(q_start + scale * np.array([0.0, 0.7, 0.4, -0.4, -0.5, 0.8, 0.4]), lower, upper))
+        seeds.append(np.clip(q_start + scale * np.array([-0.6, 0.5, 0.7, 0.2, -0.8, 0.5, 0.6]), lower, upper))
+        seeds.append(np.clip(q_start + scale * np.array([0.6, 0.4, -0.5, -0.2, 0.7, 0.6, -0.5]), lower, upper))
+    while len(seeds) < count:
+        seeds.append(rng.uniform(lower + 0.03, upper - 0.03))
+    return seeds[:count]
+
+
 def joint_limit_summary(model, q_values):
     q_arr = np.atleast_2d(np.asarray(q_values, dtype=np.float64))
     lower = model.lowerPositionLimit.astype(np.float64)
@@ -199,7 +289,15 @@ def velocity_limit_summary(model, qd_values):
     }
 
 
-def preflight(model, start_q, goals, *, required_clearance):
+def preflight(
+    model,
+    start_q,
+    goals,
+    *,
+    required_clearance,
+    require_tool_down=False,
+    tool_axis_tolerance_deg=5.0,
+):
     start_limits = joint_limit_summary(model, start_q)
     if start_limits["min_clearance_rad"] < required_clearance:
         raise RuntimeError(
@@ -209,11 +307,23 @@ def preflight(model, start_q, goals, *, required_clearance):
         )
 
     goal_checks = []
+    seed_qs = tool_axis_ik_seed_qs(model, start_q) if require_tool_down else []
     for goal_index, target in enumerate(np.asarray(goals, dtype=np.float64)):
-        ik_q, ik_error = solve_tool_ik(model, start_q, target)
+        if require_tool_down:
+            ik_q, ik_error, axis_error = solve_tool_axis_ik(model, start_q, target, seed_qs=seed_qs)
+            seed_qs.insert(0, ik_q)
+        else:
+            ik_q, ik_error = solve_tool_ik(model, start_q, target)
+            axis_error = None
         ik_limits = joint_limit_summary(model, ik_q)
         if ik_error > 3e-3:
             raise RuntimeError(f"Goal {goal_index} is not reliably reachable before rollout: IK error {ik_error:.6f}m")
+        if axis_error is not None and axis_error > np.deg2rad(tool_axis_tolerance_deg):
+            raise RuntimeError(
+                f"Goal {goal_index} IK tool axis is not down-facing enough: "
+                f"axis error {np.rad2deg(axis_error):.3f}deg, "
+                f"allowed {tool_axis_tolerance_deg:.3f}deg"
+            )
         if ik_limits["min_clearance_rad"] < required_clearance:
             raise RuntimeError(
                 f"Goal {goal_index} IK configuration is too close to a joint limit: "
@@ -225,6 +335,7 @@ def preflight(model, start_q, goals, *, required_clearance):
                 "goal_index": int(goal_index),
                 "target": [float(v) for v in target],
                 "ik_error_m": ik_error,
+                "tool_axis_error_deg": None if axis_error is None else float(np.rad2deg(axis_error)),
                 "ik_q": [float(v) for v in ik_q],
                 "ik_joint_limits": ik_limits,
             }
@@ -232,7 +343,104 @@ def preflight(model, start_q, goals, *, required_clearance):
 
     return {
         "start_joint_limits": start_limits,
+        "require_tool_down": bool(require_tool_down),
+        "tool_axis_tolerance_deg": float(tool_axis_tolerance_deg),
         "goals": goal_checks,
+    }
+
+
+def rectangle_grid_points(rectangle=PICK_PLACE_RECTANGLE, *, width_points=None, depth_points=None):
+    width_points = rectangle["width_points"] if width_points is None else int(width_points)
+    depth_points = rectangle["depth_points"] if depth_points is None else int(depth_points)
+    if width_points < 1 or depth_points < 1:
+        raise ValueError("rectangle grid dimensions must be positive")
+
+    corner = np.asarray(rectangle["corner"], dtype=np.float64)
+    width_vector = np.asarray(rectangle["width_vector"], dtype=np.float64)
+    depth_vector = np.asarray(rectangle["depth_vector"], dtype=np.float64)
+    width_fractions = np.linspace(0.0, 1.0, width_points)
+    depth_fractions = np.linspace(0.0, 1.0, depth_points)
+
+    points = []
+    indices = []
+    for depth_index, depth_fraction in enumerate(depth_fractions):
+        for width_index, width_fraction in enumerate(width_fractions):
+            points.append(corner + depth_fraction * depth_vector + width_fraction * width_vector)
+            indices.append((width_index, depth_index))
+    return np.asarray(points, dtype=np.float64), indices
+
+
+def rotation_with_local_z(local_z, yaw):
+    local_z = np.asarray(local_z, dtype=np.float64)
+    local_z /= np.linalg.norm(local_z)
+    helper = np.array([1.0, 0.0, 0.0], dtype=np.float64)
+    if abs(float(np.dot(local_z, helper))) > 0.9:
+        helper = np.array([0.0, 1.0, 0.0], dtype=np.float64)
+    local_x = helper - float(np.dot(helper, local_z)) * local_z
+    local_x /= np.linalg.norm(local_x)
+    local_y = np.cross(local_z, local_x)
+    cos_yaw = np.cos(yaw)
+    sin_yaw = np.sin(yaw)
+    local_x_yawed = cos_yaw * local_x + sin_yaw * local_y
+    local_y_yawed = np.cross(local_z, local_x_yawed)
+    return np.column_stack([local_x_yawed, local_y_yawed, local_z])
+
+
+def sample_down_cone_orientations(rng, count, *, half_angle_deg):
+    down = PICK_PLACE_RECTANGLE["tool_down_axis"]
+    u, v = _orthonormal_basis(down)
+    half_angle = np.deg2rad(float(half_angle_deg))
+    orientations = []
+    for _ in range(count):
+        cos_theta = rng.uniform(np.cos(half_angle), 1.0)
+        sin_theta = np.sqrt(max(0.0, 1.0 - cos_theta * cos_theta))
+        phi = rng.uniform(0.0, 2.0 * np.pi)
+        yaw = rng.uniform(-np.pi, np.pi)
+        local_z = cos_theta * down + sin_theta * (np.cos(phi) * u + np.sin(phi) * v)
+        orientations.append(pin.rpy.matrixToRpy(rotation_with_local_z(local_z, yaw)))
+    return np.asarray(orientations, dtype=np.float64)
+
+
+def sample_rectangle_grid_goals(
+    *,
+    count,
+    seed,
+    width_points=PICK_PLACE_RECTANGLE["width_points"],
+    depth_points=PICK_PLACE_RECTANGLE["depth_points"],
+    orientation_cone_half_angle_deg=PICK_PLACE_RECTANGLE["orientation_cone_half_angle_deg"],
+):
+    rng = np.random.default_rng(seed)
+    grid, grid_indices = rectangle_grid_points(width_points=width_points, depth_points=depth_points)
+    replace = count > grid.shape[0]
+    selected = rng.choice(grid.shape[0], size=count, replace=replace)
+    orientations = sample_down_cone_orientations(
+        rng,
+        count,
+        half_angle_deg=orientation_cone_half_angle_deg,
+    )
+    goals = grid[selected]
+    return goals, {
+        "mode": "rectangle_grid",
+        "frame": PICK_PLACE_RECTANGLE["frame"],
+        "seed": int(seed),
+        "requested_goal_count": int(count),
+        "grid_width_points": int(width_points),
+        "grid_depth_points": int(depth_points),
+        "rectangle_corner": [float(v) for v in PICK_PLACE_RECTANGLE["corner"]],
+        "rectangle_depth_vector": [float(v) for v in PICK_PLACE_RECTANGLE["depth_vector"]],
+        "rectangle_width_vector": [float(v) for v in PICK_PLACE_RECTANGLE["width_vector"]],
+        "all_grid_points": [[float(v) for v in point] for point in grid],
+        "all_grid_indices": [[int(i), int(j)] for i, j in grid_indices],
+        "selected_grid_indices": [[int(grid_indices[i][0]), int(grid_indices[i][1])] for i in selected],
+        "selected_grid_flat_indices": [int(i) for i in selected],
+        "selected_goals": [[float(v) for v in goal] for goal in goals],
+        "tool_axis_requirement": {
+            "local_axis": "arm_right_tool_link +z",
+            "target_axis": [float(v) for v in PICK_PLACE_RECTANGLE["tool_down_axis"]],
+        },
+        "orientation_cone_half_angle_deg": float(orientation_cone_half_angle_deg),
+        "sampled_orientation_rpy": [[float(v) for v in rpy] for rpy in orientations],
+        "orientation_note": "Orientations are recorded for future pose-goal circuits; the current MPC reach rollout still tracks 3D positions.",
     }
 
 
@@ -792,6 +1000,14 @@ def run_experiment(args):
         if not args.ros_tiago:
             run_goal_sweep(args, model, start_q, start_ee, goals, goal_selection)
             return
+    elif args.goal_mode == "rectangle-grid":
+        goals, goal_selection = sample_rectangle_grid_goals(
+            count=args.run_goal_count,
+            seed=args.goal_seed,
+            width_points=args.grid_width_points,
+            depth_points=args.grid_depth_points,
+            orientation_cone_half_angle_deg=args.orientation_cone_half_angle_deg,
+        )
     elif args.goal_mode == "offset":
         goals = np.vstack([start_ee + target_offset, start_ee + 2.0 * target_offset])
         goal_selection = {
@@ -810,9 +1026,18 @@ def run_experiment(args):
             seed=args.goal_seed,
         )
 
-    preflight_summary = preflight(model, start_q.astype(np.float64), goals, required_clearance=args.required_limit_clearance)
+    preflight_summary = preflight(
+        model,
+        start_q.astype(np.float64),
+        goals,
+        required_clearance=args.required_limit_clearance,
+        require_tool_down=goal_selection.get("mode") == "rectangle_grid",
+        tool_axis_tolerance_deg=args.tool_axis_tolerance_deg,
+    )
 
     solver_params = dict(TIAGO_TRACKING_SOLVER_PARAMS)
+    if goal_selection.get("mode") == "rectangle_grid":
+        solver_params.update(RECTANGLE_GRID_SOLVER_OVERRIDES)
     if args.vel_lim_cost is not None:
         solver_params["vel_lim_cost"] = args.vel_lim_cost
     if args.ctrl_lim_cost is not None:
@@ -1094,29 +1319,50 @@ def sample_goals_command(args):
     start_q = TIAGO_RIGHT_START_CONFIGS["comfortable"].astype(np.float64)
     start_data = model.createData()
     start_ee = tool_position(model, start_data, start_q)
-    close_goals = close_seed_goals(
-        model,
-        start_q,
-        start_ee,
-        required_clearance=args.required_limit_clearance,
-        count=args.include_close_goals,
-    )
-    sampled_count = max(args.goal_count - close_goals.shape[0], 0)
-    sampled_goals, _ = sample_reachable_goals(
-        model,
-        start_q,
-        start_ee,
-        count=sampled_count,
-        candidates=args.goal_candidates,
-        radius=args.goal_sample_radius,
-        joint_max_offset=args.goal_joint_max_offset,
-        required_clearance=args.required_limit_clearance,
-        seed=args.goal_seed,
-    ) if sampled_count else (np.empty((0, 3), dtype=np.float64), {})
-    goals = np.vstack([close_goals, sampled_goals]) if close_goals.size else sampled_goals
+    if args.goal_mode == "rectangle-grid":
+        goals, goal_selection = sample_rectangle_grid_goals(
+            count=args.goal_count,
+            seed=args.goal_seed,
+            width_points=args.grid_width_points,
+            depth_points=args.grid_depth_points,
+            orientation_cone_half_angle_deg=args.orientation_cone_half_angle_deg,
+        )
+        preflight(
+            model,
+            start_q,
+            goals,
+            required_clearance=args.required_limit_clearance,
+            require_tool_down=True,
+            tool_axis_tolerance_deg=args.tool_axis_tolerance_deg,
+        )
+        metadata = goal_selection
+    else:
+        close_goals = close_seed_goals(
+            model,
+            start_q,
+            start_ee,
+            required_clearance=args.required_limit_clearance,
+            count=args.include_close_goals,
+        )
+        sampled_count = max(args.goal_count - close_goals.shape[0], 0)
+        sampled_goals, goal_selection = sample_reachable_goals(
+            model,
+            start_q,
+            start_ee,
+            count=sampled_count,
+            candidates=args.goal_candidates,
+            radius=args.goal_sample_radius,
+            joint_max_offset=args.goal_joint_max_offset,
+            required_clearance=args.required_limit_clearance,
+            seed=args.goal_seed,
+        ) if sampled_count else (np.empty((0, 3), dtype=np.float64), {})
+        goals = np.vstack([close_goals, sampled_goals]) if close_goals.size else sampled_goals
+        metadata = {"mode": "joint_offset_sampled", "sampled": goal_selection}
     expr_dir = expr_dir_from_args(args)
     goals_path = expr_dir / "data" / "goals.csv"
     write_goals_csv(goals_path, goals)
+    with (expr_dir / "data" / "goals_metadata.json").open("w", encoding="utf-8") as f:
+        json.dump(metadata, f, indent=2, sort_keys=True)
     print(f"wrote: {goals_path}")
     print(f"goals:\n{goals}")
 
@@ -1158,15 +1404,19 @@ def add_run_args(parser):
     parser.add_argument("--dt", type=float, default=0.03)
     parser.add_argument("--sim-dt", type=float, default=0.003)
     parser.add_argument("--goal-timeout", type=float, default=8.0)
-    parser.add_argument("--goal-threshold", type=float, default=0.02)
+    parser.add_argument("--goal-threshold", type=float, default=0.04)
     parser.add_argument("--velocity-threshold", type=float, default=1.0)
     parser.add_argument("--goal-dwell-time", type=float, default=0.0)
-    parser.add_argument("--goal-mode", choices=("away-hemisphere", "offset"), default="away-hemisphere")
+    parser.add_argument("--goal-mode", choices=("rectangle-grid", "away-hemisphere", "offset"), default="rectangle-grid")
     parser.add_argument("--target-offset", nargs=3, type=float, default=DEFAULT_TARGET_OFFSET.tolist())
     parser.add_argument("--run-goal-count", type=int, default=DEFAULT_RUN_GOAL_COUNT)
     parser.add_argument("--run-goal-radius", type=float, default=DEFAULT_RUN_GOAL_RADIUS)
     parser.add_argument("--goal-candidates", type=int, default=DEFAULT_GOAL_CANDIDATES)
     parser.add_argument("--goal-seed", type=int, default=DEFAULT_RUN_GOAL_SEED)
+    parser.add_argument("--grid-width-points", type=int, default=PICK_PLACE_RECTANGLE["width_points"])
+    parser.add_argument("--grid-depth-points", type=int, default=PICK_PLACE_RECTANGLE["depth_points"])
+    parser.add_argument("--orientation-cone-half-angle-deg", type=float, default=PICK_PLACE_RECTANGLE["orientation_cone_half_angle_deg"])
+    parser.add_argument("--tool-axis-tolerance-deg", type=float, default=5.0)
     parser.add_argument("--goals-file", type=Path, default=None)
     parser.add_argument("--required-limit-clearance", type=float, default=DEFAULT_LIMIT_CLEARANCE)
     parser.add_argument("--vel-lim-cost", type=float, default=None)
@@ -1184,6 +1434,7 @@ def add_run_args(parser):
 
 
 def add_sample_goal_args(parser):
+    parser.add_argument("--goal-mode", choices=("rectangle-grid", "joint-offset"), default="rectangle-grid")
     parser.add_argument("--goal-count", type=int, default=DEFAULT_GOAL_COUNT)
     parser.add_argument("--goal-candidates", type=int, default=DEFAULT_GOAL_CANDIDATES)
     parser.add_argument("--goal-sample-radius", type=float, default=DEFAULT_GOAL_SAMPLE_RADIUS)
@@ -1191,6 +1442,10 @@ def add_sample_goal_args(parser):
     parser.add_argument("--goal-joint-max-offset", type=float, default=DEFAULT_GOAL_JOINT_MAX_OFFSET)
     parser.add_argument("--include-close-goals", type=int, default=0)
     parser.add_argument("--required-limit-clearance", type=float, default=DEFAULT_LIMIT_CLEARANCE)
+    parser.add_argument("--grid-width-points", type=int, default=PICK_PLACE_RECTANGLE["width_points"])
+    parser.add_argument("--grid-depth-points", type=int, default=PICK_PLACE_RECTANGLE["depth_points"])
+    parser.add_argument("--orientation-cone-half-angle-deg", type=float, default=PICK_PLACE_RECTANGLE["orientation_cone_half_angle_deg"])
+    parser.add_argument("--tool-axis-tolerance-deg", type=float, default=5.0)
     parser.add_argument("--output-root", type=Path, default=OUTPUT_ROOT)
     parser.add_argument("--output-label", default="sampled5")
     parser.add_argument("--expr-dir", type=Path, default=None)
