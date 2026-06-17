@@ -48,6 +48,8 @@ class ArmState:
     stamp_sec: float
     received_monotonic_sec: float
     seq: int = 0
+    joint_positions: dict[str, float] | None = None
+    joint_velocities: dict[str, float] | None = None
 
     @property
     def age_sec(self) -> float:
@@ -230,8 +232,8 @@ class TiagoRightArmClient:
         self.close()
 
     def _on_joint_state(self, msg: Any) -> None:
-        positions = dict(zip(msg.name, msg.position))
-        velocities = dict(zip(msg.name, msg.velocity))
+        positions = {name: float(value) for name, value in zip(msg.name, msg.position)}
+        velocities = {name: float(value) for name, value in zip(msg.name, msg.velocity)}
         if not all(name in positions for name in self.joint_names):
             return
 
@@ -248,6 +250,8 @@ class TiagoRightArmClient:
             stamp_sec=stamp_sec,
             received_monotonic_sec=time.monotonic(),
             seq=self._state_seq,
+            joint_positions=positions,
+            joint_velocities=velocities,
         )
 
     def spin_once(self, timeout_sec: float = 0.0) -> None:

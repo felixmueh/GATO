@@ -170,6 +170,76 @@
       "link_b": "head_2_link",
       "reason": "operator reviewed",
       "reviewed_at": "2026-06-17T11:41:52.251059+00:00"
+    },
+    {
+      "decision": "ignore",
+      "distance_m_at_review": 0.006336993860804309,
+      "geometry_a": "torso_base_link_0",
+      "geometry_b": "arm_left_1_link_0",
+      "link_a": "torso_base_link",
+      "link_b": "arm_left_1_link",
+      "reason": "Rotational upper biceps can't intersect with torso.",
+      "reviewed_at": "2026-06-17T11:52:07.277934+00:00"
+    },
+    {
+      "decision": "ignore",
+      "distance_m_at_review": 0.0062845927709216905,
+      "geometry_a": "torso_base_link_0",
+      "geometry_b": "arm_right_1_link_0",
+      "link_a": "torso_base_link",
+      "link_b": "arm_right_1_link",
+      "reason": "Rotational upper bicep can't intersect with torso.",
+      "reviewed_at": "2026-06-17T11:52:18.794579+00:00"
+    },
+    {
+      "decision": "ignore",
+      "distance_m_at_review": 0.022804379143629736,
+      "geometry_a": "arm_left_5_link_0",
+      "geometry_b": "arm_left_7_link_0",
+      "link_a": "arm_left_5_link",
+      "link_b": "arm_left_7_link",
+      "reason": "Joint limits avoid collision.",
+      "reviewed_at": "2026-06-17T11:57:07.826570+00:00"
+    },
+    {
+      "decision": "ignore",
+      "distance_m_at_review": 0.014128518131489732,
+      "geometry_a": "arm_left_6_link_0",
+      "geometry_b": "gripper_left_base_link_0",
+      "link_a": "arm_left_6_link",
+      "link_b": "gripper_left_base_link",
+      "reason": "operator reviewed",
+      "reviewed_at": "2026-06-17T11:57:24.720200+00:00"
+    },
+    {
+      "decision": "ignore",
+      "distance_m_at_review": 0.022804378512570302,
+      "geometry_a": "arm_right_5_link_0",
+      "geometry_b": "arm_right_7_link_0",
+      "link_a": "arm_right_5_link",
+      "link_b": "arm_right_7_link",
+      "reason": "Joint limits avoid collision.",
+      "reviewed_at": "2026-06-17T11:57:30.790353+00:00"
+    },
+    {
+      "decision": "ignore",
+      "distance_m_at_review": 0.014128519636811535,
+      "geometry_a": "arm_right_6_link_0",
+      "geometry_b": "gripper_right_base_link_0",
+      "link_a": "arm_right_6_link",
+      "link_b": "gripper_right_base_link",
+      "reason": "operator reviewed",
+      "reviewed_at": "2026-06-17T11:57:34.890546+00:00"
+    },
+    {
+      "decision": "ignore",
+      "distance_m_at_review": 0.016688326764106837,
+      "geometry_a": "torso_head_link_0",
+      "geometry_b": "head_1_link_0",
+      "link_a": "torso_head_link",
+      "link_b": "head_1_link",
+      "reason": "operator reviewed",
+      "reviewed_at": "2026-06-17T11:57:42.054214+00:00"
     }
   ],
   "model": {
@@ -213,9 +283,20 @@
       "head_2_joint"
     ]
   },
-  "monitored_geometry_pairs": [],
+  "monitored_geometry_pairs": [
+    {
+      "decision": "monitor",
+      "distance_m_at_review": 0.049129165456686566,
+      "geometry_a": "torso_base_link_0",
+      "geometry_b": "arm_right_4_link_0",
+      "link_a": "torso_base_link",
+      "link_b": "arm_right_4_link",
+      "reason": "Arm is close in comfortable pose.",
+      "reviewed_at": "2026-06-17T11:53:53.191632+00:00"
+    }
+  ],
   "review_data_path": "collision_review_data.json",
   "schema_version": 1,
-  "updated_at": "2026-06-17T11:41:52.252070+00:00",
+  "updated_at": "2026-06-17T11:57:42.055040+00:00",
   "urdf_path": "/workspace/GATO/TiagoProURDF/tiago_pro.urdf"
 }

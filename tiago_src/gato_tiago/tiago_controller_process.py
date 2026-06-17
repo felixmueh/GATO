@@ -20,6 +20,13 @@ import numpy as np
 from gato_tiago.config import TIAGO_RIGHT_START_CONFIGS
 
 
+REPO_ROOT = Path(__file__).resolve().parents[2]
+DEFAULT_TIAGO_URDF_PATH = REPO_ROOT / "TiagoProURDF" / "tiago_pro.urdf"
+DEFAULT_COLLISION_BLACKLIST_PATH = (
+    REPO_ROOT / "tiago_configs" / "comfortable_pose_collision_blacklist.json"
+)
+
+
 @dataclass(frozen=True)
 class RobotState:
     q: np.ndarray
@@ -50,6 +57,16 @@ class TorqueTrajectory:
 class ControllerStatus:
     mode: str
     error: str | None = None
+
+
+@dataclass(frozen=True)
+class CollisionSafetySettings:
+    enabled: bool = True
+    urdf_path: Path = DEFAULT_TIAGO_URDF_PATH
+    blacklist_path: Path | None = DEFAULT_COLLISION_BLACKLIST_PATH
+    lock_grippers: bool = True
+    min_distance_m: float = 0.04
+    max_body_speed_m_s: float = 1.0
 
 
 @dataclass(frozen=True)
@@ -267,6 +284,92 @@ def _validate_trajectory(
     return torques
 
 
+class _RuntimeCollisionSafety:
+    def __init__(
+        self,
+        *,
+        settings: CollisionSafetySettings,
+        initial_state: Any,
+    ) -> None:
+        import pinocchio as pin
+
+        from gato_tiago.safety_monitor import (
+            DEFAULT_LOCKED_JOINTS,
+            NamedJointState,
+            build_tiago_collision_model,
+            compute_collision_body_speeds,
+            compute_pair_distances,
+            gripper_joint_names,
+            state_to_qv,
+        )
+
+        self.settings = settings
+        self._NamedJointState = NamedJointState
+        self._compute_pair_distances = compute_pair_distances
+        self._compute_collision_body_speeds = compute_collision_body_speeds
+        self._state_to_qv = state_to_qv
+        locked_joint_names = list(DEFAULT_LOCKED_JOINTS)
+        if settings.lock_grippers:
+            full_model = pin.buildModelFromUrdf(str(settings.urdf_path))
+            locked_joint_names.extend(gripper_joint_names(full_model))
+
+        blacklist_path = settings.blacklist_path
+        if blacklist_path is not None and not Path(blacklist_path).is_file():
+            raise FileNotFoundError(f"collision blacklist not found: {blacklist_path}")
+
+        self.collision_model = build_tiago_collision_model(
+            urdf_path=settings.urdf_path,
+            locked_joint_names=tuple(locked_joint_names),
+            reference_positions=_full_joint_positions(initial_state),
+            blacklist_path=blacklist_path,
+        )
+        self._last_checked_seq = -1
+
+    def check(self, state: Any) -> None:
+        if int(state.seq) == self._last_checked_seq:
+            return
+        joint_state = self._NamedJointState(
+            position=_full_joint_positions(state),
+            velocity=_full_joint_velocities(state),
+            stamp_sec=float(state.stamp_sec),
+        )
+        q, qd = self._state_to_qv(self.collision_model.model, joint_state)
+        distances = self._compute_pair_distances(self.collision_model, q)
+        closest = min(distances, key=lambda report: report.distance_m)
+        if closest.distance_m < self.settings.min_distance_m:
+            raise RuntimeError(
+                "collision safety fault: "
+                f"distance {closest.distance_m:.6f} m below "
+                f"min_distance_m={self.settings.min_distance_m:.6f} for "
+                f"{closest.geometry_a} <-> {closest.geometry_b}"
+            )
+
+        speeds = self._compute_collision_body_speeds(self.collision_model, q, qd)
+        fastest = max(speeds, key=lambda report: report.speed_bound_m_s)
+        if fastest.speed_bound_m_s > self.settings.max_body_speed_m_s:
+            raise RuntimeError(
+                "collision safety fault: "
+                f"body speed {fastest.speed_bound_m_s:.6f} m/s above "
+                f"max_body_speed_m_s={self.settings.max_body_speed_m_s:.6f} for "
+                f"{fastest.geometry}"
+            )
+        self._last_checked_seq = int(state.seq)
+
+
+def _full_joint_positions(state: Any) -> dict[str, float]:
+    positions = getattr(state, "joint_positions", None)
+    if positions is None:
+        raise RuntimeError("collision safety requires full named joint positions")
+    return {str(name): float(value) for name, value in positions.items()}
+
+
+def _full_joint_velocities(state: Any) -> dict[str, float]:
+    velocities = getattr(state, "joint_velocities", None)
+    if velocities is None:
+        raise RuntimeError("collision safety requires full named joint velocities")
+    return {str(name): float(value) for name, value in velocities.items()}
+
+
 def _sample_trajectory(
     torques: np.ndarray,
     dt: float,
@@ -279,6 +382,20 @@ def _sample_trajectory(
     if idx >= torques.shape[0]:
         return torques[-1], False
     return torques[idx], True
+
+
+def _publish_zero_effort_burst(
+    arm: Any,
+    *,
+    count: int,
+    period_sec: float,
+) -> None:
+    zero = np.zeros(len(arm.joint_names), dtype=np.float64)
+    for _ in range(max(1, int(count))):
+        arm.publish_zero_base_velocity()
+        arm.publish_effort(zero)
+        arm.spin_once(timeout_sec=0.0)
+        time.sleep(max(0.0, float(period_sec)))
 
 
 class TiagoControllerOrchestrator:
@@ -294,6 +411,11 @@ class TiagoControllerOrchestrator:
         # TODO: read from urdf
         max_abs_torque: float = 30.0,
         clamp_torque: bool = False,
+        collision_safety_enabled: bool = True,
+        collision_min_distance_m: float = 0.04,
+        collision_max_body_speed_m_s: float = 1.0,
+        collision_blacklist_path: str | Path | None = DEFAULT_COLLISION_BLACKLIST_PATH,
+        collision_lock_grippers: bool = True,
         restore_on_exit: bool = True,
         start_method: str = "spawn",
     ) -> None:
@@ -305,6 +427,17 @@ class TiagoControllerOrchestrator:
         self.stale_timeout_sec = float(stale_timeout_sec)
         self.max_abs_torque = float(max_abs_torque)
         self.clamp_torque = bool(clamp_torque)
+        self.collision_safety = CollisionSafetySettings(
+            enabled=bool(collision_safety_enabled),
+            blacklist_path=(
+                DEFAULT_COLLISION_BLACKLIST_PATH
+                if collision_blacklist_path is None
+                else Path(collision_blacklist_path)
+            ),
+            lock_grippers=bool(collision_lock_grippers),
+            min_distance_m=float(collision_min_distance_m),
+            max_body_speed_m_s=float(collision_max_body_speed_m_s),
+        )
         self.restore_on_exit = restore_on_exit
         if self.target_hz <= 0.0:
             raise ValueError("target_hz must be positive")
@@ -316,6 +449,10 @@ class TiagoControllerOrchestrator:
             raise ValueError("stale_timeout_sec must be positive")
         if self.max_abs_torque <= 0.0:
             raise ValueError("max_abs_torque must be positive")
+        if self.collision_safety.min_distance_m < 0.0:
+            raise ValueError("collision_min_distance_m must be non-negative")
+        if self.collision_safety.max_body_speed_m_s <= 0.0:
+            raise ValueError("collision_max_body_speed_m_s must be positive")
         self._ctx = mp.get_context(start_method)
         self._state = _SharedState(self._ctx)
         self._trajectory_q: mp.Queue = self._ctx.Queue(maxsize=1)
@@ -345,6 +482,7 @@ class TiagoControllerOrchestrator:
                 "stale_timeout_sec": self.stale_timeout_sec,
                 "max_abs_torque": self.max_abs_torque,
                 "clamp_torque": self.clamp_torque,
+                "collision_safety": self.collision_safety,
                 "restore_on_exit": self.restore_on_exit,
                 "shared_state": self._state,
                 "trajectory_q": self._trajectory_q,
@@ -472,6 +610,7 @@ def _controller_main(
     stale_timeout_sec: float,
     max_abs_torque: float,
     clamp_torque: bool,
+    collision_safety: CollisionSafetySettings,
     restore_on_exit: bool,
     shared_state: _SharedState,
     trajectory_q: mp.Queue,
@@ -494,6 +633,7 @@ def _controller_main(
     command_rate_hz = 0.0
     max_period_sec = 0.0
     last_history_source_seq = 0
+    safety_monitor: _RuntimeCollisionSafety | None = None
 
     def set_status(new_mode: str, error: str | None = None) -> None:
         nonlocal mode
@@ -511,7 +651,13 @@ def _controller_main(
             while time.monotonic() < reset_deadline and not stop_event.is_set():
                 arm.publish_zero_base_velocity()
                 arm.spin_once(timeout_sec=0.05)
-            arm.read_state(timeout_sec=8.0)
+            initial_state = arm.read_state(timeout_sec=8.0)
+            if collision_safety.enabled:
+                safety_monitor = _RuntimeCollisionSafety(
+                    settings=collision_safety,
+                    initial_state=initial_state,
+                )
+                safety_monitor.check(initial_state)
             arm.configure_runtime_effort_controller(timeout_sec=5.0)
             set_status("READY")
 
@@ -553,6 +699,8 @@ def _controller_main(
                 if effort_active and (state is None or state.age_sec > stale_timeout_sec):
                     age = state.age_sec if state is not None else float("inf")
                     raise RuntimeError(f"joint state stale during effort control: age={age:.3f}s")
+                if safety_monitor is not None and state is not None:
+                    safety_monitor.check(state)
 
                 traj = _get_latest(trajectory_q)
                 if traj is not None:
@@ -616,6 +764,8 @@ def _controller_main(
             set_status("ERROR_RESTORE", str(exc))
             if restore_on_exit:
                 try:
+                    if effort_active:
+                        _publish_zero_effort_burst(arm, count=5, period_sec=period)
                     arm.switch_to_default_control(timeout_sec=5.0)
                 except BaseException as restore_exc:
                     set_status("ERROR_RESTORE_FAILED", str(restore_exc))
@@ -624,6 +774,8 @@ def _controller_main(
         finally:
             if restore_on_exit:
                 try:
+                    if effort_active and had_error:
+                        _publish_zero_effort_burst(arm, count=5, period_sec=period)
                     arm.switch_to_default_control(timeout_sec=5.0)
                     if not had_error:
                         set_status("RESTORED")

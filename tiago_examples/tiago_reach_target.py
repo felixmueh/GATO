@@ -843,6 +843,10 @@ def run_experiment(args):
             stale_timeout_sec=args.ros_stale_timeout,
             max_abs_torque=args.ros_max_abs_torque,
             clamp_torque=args.ros_clamp_torque,
+            collision_safety_enabled=not args.ros_disable_collision_safety,
+            collision_min_distance_m=args.ros_collision_min_distance,
+            collision_max_body_speed_m_s=args.ros_collision_max_body_speed,
+            collision_blacklist_path=args.ros_collision_blacklist,
         )
 
     expr_dir = expr_dir_from_args(args)
@@ -1180,6 +1184,10 @@ def add_run_args(parser):
     parser.add_argument("--ros-stale-timeout", type=float, default=0.25)
     parser.add_argument("--ros-max-abs-torque", type=float, default=30.0)
     parser.add_argument("--ros-clamp-torque", action="store_true")
+    parser.add_argument("--ros-disable-collision-safety", action="store_true")
+    parser.add_argument("--ros-collision-min-distance", type=float, default=0.04)
+    parser.add_argument("--ros-collision-max-body-speed", type=float, default=1.0)
+    parser.add_argument("--ros-collision-blacklist", type=Path, default=None)
     parser.add_argument("--ros-controller-timeout", type=float, default=8.0)
 
 
