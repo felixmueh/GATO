@@ -15,7 +15,7 @@ from pathlib import Path
 import queue
 import tempfile
 import time
-from typing import Any, Sequence
+from typing import Any, Mapping, Sequence
 
 import numpy as np
 
@@ -236,6 +236,23 @@ def _state_history_row(sample: StateHistorySample) -> list[float]:
 
 def _format_state_history_row(sample: StateHistorySample) -> str:
     return ",".join(f"{value:.10g}" for value in _state_history_row(sample)) + "\n"
+
+
+def _format_full_state_history_row(state: Any, mode: str) -> str:
+    return (
+        json.dumps(
+            {
+                "source_seq": int(state.seq),
+                "stamp_sec": float(state.stamp_sec),
+                "received_monotonic_sec": float(state.received_monotonic_sec),
+                "controller_mode": mode,
+                "positions_by_name": _json_float_mapping(_full_joint_positions(state)),
+                "velocities_by_name": _json_float_mapping(_full_joint_velocities(state)),
+            },
+            sort_keys=True,
+        )
+        + "\n"
+    )
 
 
 def _state_history_from_rows(rows: np.ndarray) -> list[StateHistorySample]:
@@ -473,8 +490,8 @@ class _RuntimeSafetyMonitor:
                 "stamp_sec": float(joint_state.stamp_sec),
                 "q": [float(value) for value in q],
                 "qd": [float(value) for value in qd],
-                "positions_by_name": dict(joint_state.position),
-                "velocities_by_name": dict(joint_state.velocity),
+                "positions_by_name": _json_float_mapping(joint_state.position),
+                "velocities_by_name": _json_float_mapping(joint_state.velocity),
             },
             "geometry_objects": self._geometry_objects_json(self.collision_model),
             "collision_pairs": [pair.to_json() for pair in pairs],
@@ -523,6 +540,14 @@ def _speed_report_json(report: Any) -> dict[str, object] | None:
         "radius_m": report.radius_m,
         "speed_bound_m_s": report.speed_bound_m_s,
     }
+
+
+def _json_float_mapping(values: Mapping[str, float]) -> dict[str, float | None]:
+    out = {}
+    for name, value in values.items():
+        numeric = float(value)
+        out[str(name)] = numeric if np.isfinite(numeric) else None
+    return out
 
 
 def _sample_trajectory(
@@ -626,6 +651,9 @@ class TiagoControllerOrchestrator:
         self._status_q: mp.Queue = self._ctx.Queue(maxsize=8)
         self._history_tmpdir = tempfile.TemporaryDirectory(prefix="gato_tiago_history_")
         self._history_path = Path(self._history_tmpdir.name) / "state_history_rows.csv"
+        self._full_state_history_path = (
+            Path(self._history_tmpdir.name) / "full_joint_state_history.jsonl"
+        )
         self._stop_event = self._ctx.Event()
         self._process: mp.Process | None = None
         self._latest_state: RobotState | None = None
@@ -749,6 +777,17 @@ class TiagoControllerOrchestrator:
             running_only=True,
         )
 
+    def write_full_state_history_jsonl(self, path: str | Path) -> None:
+        path = Path(path)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        if not self._full_state_history_path.is_file():
+            path.write_text("", encoding="utf-8")
+            return
+        path.write_text(
+            self._full_state_history_path.read_text(encoding="utf-8"),
+            encoding="utf-8",
+        )
+
     def close(self, timeout_sec: float = 5.0) -> None:
         if self._closed:
             return
@@ -808,7 +847,13 @@ def _controller_main(
         _put_latest(status_q, ControllerStatus(mode=new_mode, error=error))
 
     history_file = Path(history_path).open("w", encoding="utf-8", buffering=1)
-    with history_file, TiagoRightArmClient(node_name="gato_tiago_controller_process") as arm:
+    full_history_path = Path(history_path).with_name("full_joint_state_history.jsonl")
+    full_history_file = full_history_path.open("w", encoding="utf-8", buffering=1)
+    with (
+        history_file,
+        full_history_file,
+        TiagoRightArmClient(node_name="gato_tiago_controller_process") as arm,
+    ):
         try:
             set_status("RESETTING")
             arm.switch_to_default_control(timeout_sec=5.0)
@@ -849,6 +894,7 @@ def _controller_main(
                         source_seq=state.seq,
                     )
                     if state.seq != last_history_source_seq:
+                        full_history_file.write(_format_full_state_history_row(state, mode))
                         history_file.write(
                             _format_state_history_row(
                                 StateHistorySample(

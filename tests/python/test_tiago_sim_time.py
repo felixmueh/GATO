@@ -1,3 +1,5 @@
+import json
+from types import SimpleNamespace
 import sys
 from pathlib import Path
 
@@ -16,6 +18,7 @@ from gato_tiago.tiago_controller_process import (
     CollisionSafetySettings,
     TiagoControllerOrchestrator,
     elapsed_sim_time_from_stamp,
+    _format_full_state_history_row,
     _sample_trajectory,
 )
 
@@ -78,3 +81,22 @@ def test_sample_trajectory_returns_in_horizon_rows():
 
     assert tau == pytest.approx([2.0])
     assert in_horizon is True
+
+
+def test_full_state_history_row_contains_named_joint_state():
+    row = _format_full_state_history_row(
+        SimpleNamespace(
+            seq=7,
+            stamp_sec=12.5,
+            received_monotonic_sec=99.0,
+            joint_positions={"joint_a": 1.25},
+            joint_velocities={"joint_a": -0.5, "wheel_joint": float("nan")},
+        ),
+        "RUNNING",
+    )
+
+    data = json.loads(row)
+    assert data["source_seq"] == 7
+    assert data["controller_mode"] == "RUNNING"
+    assert data["positions_by_name"] == {"joint_a": 1.25}
+    assert data["velocities_by_name"] == {"joint_a": -0.5, "wheel_joint": None}

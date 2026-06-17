@@ -878,6 +878,9 @@ def run_experiment(args):
             controller_state_summary = ros_controller.write_state_history_csv(
                 expr_dir / "data" / "controller_state_history.csv"
             )
+            ros_controller.write_full_state_history_jsonl(
+                expr_dir / "data" / "full_joint_state_history.jsonl"
+            )
 
     timestamps = np.asarray(stats.get("timestamps", []), dtype=np.float64)
     ee_actual = np.asarray(stats.get("ee_actual", []), dtype=np.float64)

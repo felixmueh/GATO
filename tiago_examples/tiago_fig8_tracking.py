@@ -489,6 +489,9 @@ def run(args):
             controller_state_summary = ros_controller.write_state_history_csv(
                 output_dir / "controller_state_history.csv"
             )
+            ros_controller.write_full_state_history_jsonl(
+                output_dir / "full_joint_state_history.jsonl"
+            )
 
     save_renderings(output_dir, args.plant, reference, results, make_gif=not args.no_gif)
 
