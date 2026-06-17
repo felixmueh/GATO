@@ -48,6 +48,8 @@ def test_collision_safety_defaults_to_40mm_clearance():
     assert settings.enabled is True
     assert settings.min_distance_m == pytest.approx(0.04)
     assert settings.max_body_speed_m_s == pytest.approx(1.0)
+    assert settings.joint_position_margin == pytest.approx(0.0)
+    assert settings.joint_velocity_scale == pytest.approx(1.0)
     assert settings.blacklist_path == DEFAULT_COLLISION_BLACKLIST_PATH
 
 
@@ -55,6 +57,13 @@ def test_orchestrator_uses_default_collision_blacklist_when_unspecified():
     controller = TiagoControllerOrchestrator(collision_blacklist_path=None)
 
     assert controller.collision_safety.blacklist_path == DEFAULT_COLLISION_BLACKLIST_PATH
+
+
+def test_orchestrator_validates_joint_limit_settings():
+    with pytest.raises(ValueError, match="joint_position_margin"):
+        TiagoControllerOrchestrator(joint_position_margin=-0.01)
+    with pytest.raises(ValueError, match="joint_velocity_scale"):
+        TiagoControllerOrchestrator(joint_velocity_scale=0.0)
 
 
 def test_sample_trajectory_returns_in_horizon_rows():

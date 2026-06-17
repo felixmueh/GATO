@@ -67,6 +67,8 @@ class CollisionSafetySettings:
     lock_grippers: bool = True
     min_distance_m: float = 0.04
     max_body_speed_m_s: float = 1.0
+    joint_position_margin: float = 0.0
+    joint_velocity_scale: float = 1.0
 
 
 @dataclass(frozen=True)
@@ -284,7 +286,7 @@ def _validate_trajectory(
     return torques
 
 
-class _RuntimeCollisionSafety:
+class _RuntimeSafetyMonitor:
     def __init__(
         self,
         *,
@@ -297,6 +299,7 @@ class _RuntimeCollisionSafety:
             DEFAULT_LOCKED_JOINTS,
             NamedJointState,
             build_tiago_collision_model,
+            check_joint_limits,
             compute_collision_body_speeds,
             compute_pair_distances,
             gripper_joint_names,
@@ -305,6 +308,7 @@ class _RuntimeCollisionSafety:
 
         self.settings = settings
         self._NamedJointState = NamedJointState
+        self._check_joint_limits = check_joint_limits
         self._compute_pair_distances = compute_pair_distances
         self._compute_collision_body_speeds = compute_collision_body_speeds
         self._state_to_qv = state_to_qv
@@ -334,6 +338,19 @@ class _RuntimeCollisionSafety:
             stamp_sec=float(state.stamp_sec),
         )
         q, qd = self._state_to_qv(self.collision_model.model, joint_state)
+        joint_violations = self._check_joint_limits(
+            self.collision_model.model,
+            joint_state,
+            position_margin=self.settings.joint_position_margin,
+            velocity_scale=self.settings.joint_velocity_scale,
+        )
+        if joint_violations:
+            violation = joint_violations[0]
+            raise RuntimeError(
+                "joint safety fault: "
+                f"{violation.joint} {violation.kind} value={violation.value:.6f}"
+            )
+
         distances = self._compute_pair_distances(self.collision_model, q)
         closest = min(distances, key=lambda report: report.distance_m)
         if closest.distance_m < self.settings.min_distance_m:
@@ -416,6 +433,8 @@ class TiagoControllerOrchestrator:
         collision_max_body_speed_m_s: float = 1.0,
         collision_blacklist_path: str | Path | None = DEFAULT_COLLISION_BLACKLIST_PATH,
         collision_lock_grippers: bool = True,
+        joint_position_margin: float = 0.0,
+        joint_velocity_scale: float = 1.0,
         restore_on_exit: bool = True,
         start_method: str = "spawn",
     ) -> None:
@@ -437,6 +456,8 @@ class TiagoControllerOrchestrator:
             lock_grippers=bool(collision_lock_grippers),
             min_distance_m=float(collision_min_distance_m),
             max_body_speed_m_s=float(collision_max_body_speed_m_s),
+            joint_position_margin=float(joint_position_margin),
+            joint_velocity_scale=float(joint_velocity_scale),
         )
         self.restore_on_exit = restore_on_exit
         if self.target_hz <= 0.0:
@@ -453,6 +474,10 @@ class TiagoControllerOrchestrator:
             raise ValueError("collision_min_distance_m must be non-negative")
         if self.collision_safety.max_body_speed_m_s <= 0.0:
             raise ValueError("collision_max_body_speed_m_s must be positive")
+        if self.collision_safety.joint_position_margin < 0.0:
+            raise ValueError("joint_position_margin must be non-negative")
+        if self.collision_safety.joint_velocity_scale <= 0.0:
+            raise ValueError("joint_velocity_scale must be positive")
         self._ctx = mp.get_context(start_method)
         self._state = _SharedState(self._ctx)
         self._trajectory_q: mp.Queue = self._ctx.Queue(maxsize=1)
@@ -633,7 +658,7 @@ def _controller_main(
     command_rate_hz = 0.0
     max_period_sec = 0.0
     last_history_source_seq = 0
-    safety_monitor: _RuntimeCollisionSafety | None = None
+    safety_monitor: _RuntimeSafetyMonitor | None = None
 
     def set_status(new_mode: str, error: str | None = None) -> None:
         nonlocal mode
@@ -653,7 +678,7 @@ def _controller_main(
                 arm.spin_once(timeout_sec=0.05)
             initial_state = arm.read_state(timeout_sec=8.0)
             if collision_safety.enabled:
-                safety_monitor = _RuntimeCollisionSafety(
+                safety_monitor = _RuntimeSafetyMonitor(
                     settings=collision_safety,
                     initial_state=initial_state,
                 )

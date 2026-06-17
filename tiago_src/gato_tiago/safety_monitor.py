@@ -2,10 +2,7 @@
 
 The module is intentionally ROS-free. ROS-facing tools pass named joint-state
 snapshots in, and this module owns the Pinocchio collision model, state mapping,
-distance checks, and blacklist handling.
-
-Current scope is collision distance and collision-body Cartesian speed. Joint
-limit checks are not implemented here yet.
+distance checks, blacklist handling, and URDF joint-limit checks.
 """
 
 from __future__ import annotations
@@ -110,6 +107,20 @@ class CollisionBodySpeedReport:
     angular_speed_rad_s: float
     radius_m: float
     speed_bound_m_s: float
+
+
+@dataclass(frozen=True)
+class JointLimitViolation:
+    """One joint position or velocity limit violation."""
+
+    joint: str
+    kind: str
+    value: float
+    lower: float | None = None
+    upper: float | None = None
+    margin: float = 0.0
+    limit: float | None = None
+    scale: float = 1.0
 
 
 @dataclass
@@ -238,6 +249,70 @@ def state_to_qv(model: pin.Model, state: NamedJointState) -> tuple[np.ndarray, n
             raise ValueError(f"unsupported joint velocity dimension for {name}: {joint.nv}")
         v[joint.idx_v] = velocity
     return q, v
+
+
+def check_joint_limits(
+    model: pin.Model,
+    state: NamedJointState,
+    *,
+    position_margin: float = 0.0,
+    velocity_scale: float = 1.0,
+) -> list[JointLimitViolation]:
+    """Return URDF position/velocity limit violations for all unlocked joints."""
+    if position_margin < 0.0:
+        raise ValueError("position_margin must be non-negative")
+    if velocity_scale <= 0.0:
+        raise ValueError("velocity_scale must be positive")
+    q, v = state_to_qv(model, state)
+    violations = []
+    for idx, name in enumerate(model.names):
+        if idx == 0:
+            continue
+        joint = model.joints[idx]
+        if joint.nq != 1 or joint.nv != 1:
+            raise ValueError(f"unsupported joint dimensions for limit check: {name}")
+        q_idx = joint.idx_q
+        v_idx = joint.idx_v
+        lower = float(model.lowerPositionLimit[q_idx])
+        upper = float(model.upperPositionLimit[q_idx])
+        position = float(q[q_idx])
+        if np.isfinite(lower) and position < lower + position_margin:
+            violations.append(
+                JointLimitViolation(
+                    joint=name,
+                    kind="position_lower",
+                    value=position,
+                    lower=lower,
+                    upper=upper,
+                    margin=float(position_margin),
+                )
+            )
+        if np.isfinite(upper) and position > upper - position_margin:
+            violations.append(
+                JointLimitViolation(
+                    joint=name,
+                    kind="position_upper",
+                    value=position,
+                    lower=lower,
+                    upper=upper,
+                    margin=float(position_margin),
+                )
+            )
+        velocity_limit = float(model.velocityLimit[v_idx])
+        velocity = float(v[v_idx])
+        if np.isfinite(velocity_limit) and velocity_limit > 0.0:
+            scaled_limit = velocity_limit * velocity_scale
+            if abs(velocity) > scaled_limit:
+                violations.append(
+                    JointLimitViolation(
+                        joint=name,
+                        kind="velocity",
+                        value=velocity,
+                        limit=velocity_limit,
+                        scale=float(velocity_scale),
+                    )
+                )
+    return violations
 
 
 def compute_pair_distances(

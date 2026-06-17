@@ -9,6 +9,7 @@ from gato_tiago.safety_monitor import (
     DEFAULT_LOCKED_JOINTS,
     NamedJointState,
     build_tiago_collision_model,
+    check_joint_limits,
     compute_collision_body_speeds,
     compute_pair_distances,
     state_to_qv,
@@ -67,6 +68,48 @@ def test_distance_and_speed_reports_cover_collision_model(collision_model):
     assert all(report.geometry_b for report in distances)
     assert all(report.speed_bound_m_s == pytest.approx(0.0) for report in speeds)
     assert all(report.radius_m >= 0.0 for report in speeds)
+
+
+def test_joint_limit_check_accepts_state_inside_limits(collision_model):
+    state = _zero_state(collision_model)
+
+    assert check_joint_limits(collision_model.model, state) == []
+
+
+def test_joint_limit_check_reports_position_and_velocity_violations(collision_model):
+    state = _zero_state(collision_model)
+    joint_name = "arm_right_1_joint"
+    joint_id = collision_model.model.getJointId(joint_name)
+    joint = collision_model.model.joints[joint_id]
+    upper = float(collision_model.model.upperPositionLimit[joint.idx_q])
+    velocity_limit = float(collision_model.model.velocityLimit[joint.idx_v])
+    state.position[joint_name] = upper + 0.01
+    state.velocity[joint_name] = velocity_limit + 0.01
+
+    violations = check_joint_limits(collision_model.model, state)
+
+    assert [violation.kind for violation in violations] == ["position_upper", "velocity"]
+    assert all(violation.joint == joint_name for violation in violations)
+
+
+def test_joint_limit_check_honors_position_margin(collision_model):
+    state = _zero_state(collision_model)
+    joint_name = "arm_right_1_joint"
+    joint_id = collision_model.model.getJointId(joint_name)
+    joint = collision_model.model.joints[joint_id]
+    upper = float(collision_model.model.upperPositionLimit[joint.idx_q])
+    state.position[joint_name] = upper - 0.005
+
+    violations = check_joint_limits(
+        collision_model.model,
+        state,
+        position_margin=0.01,
+    )
+
+    assert any(
+        violation.joint == joint_name and violation.kind == "position_upper"
+        for violation in violations
+    )
 
 
 def test_blacklist_removes_named_collision_pair(tmp_path, collision_model):

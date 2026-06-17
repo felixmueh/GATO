@@ -415,6 +415,8 @@ def run(args):
             collision_min_distance_m=args.ros_collision_min_distance,
             collision_max_body_speed_m_s=args.ros_collision_max_body_speed,
             collision_blacklist_path=args.ros_collision_blacklist,
+            joint_position_margin=args.ros_joint_position_margin,
+            joint_velocity_scale=args.ros_joint_velocity_scale,
         )
 
     if args.batch_sizes is not None:
@@ -540,6 +542,8 @@ def parse_args():
     parser.add_argument("--ros-collision-min-distance", type=float, default=0.04)
     parser.add_argument("--ros-collision-max-body-speed", type=float, default=1.0)
     parser.add_argument("--ros-collision-blacklist", type=Path, default=None)
+    parser.add_argument("--ros-joint-position-margin", type=float, default=0.0)
+    parser.add_argument("--ros-joint-velocity-scale", type=float, default=1.0)
     parser.add_argument("--ros-controller-timeout", type=float, default=8.0)
     return parser.parse_args()
 
