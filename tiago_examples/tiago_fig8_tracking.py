@@ -398,6 +398,14 @@ def save_renderings(output_dir, plant, reference, results, make_gif):
 
 def run(args):
     cfg = plant_config(args.plant, args.dt)
+    output_dir = args.output_root / args.plant
+    if args.output_label:
+        output_dir = output_dir / args.output_label
+    safety_fault_report_dir = (
+        args.ros_safety_fault_report_dir
+        if args.ros_safety_fault_report_dir is not None
+        else output_dir / "safety_faults"
+    )
     ros_controller = None
     if args.ros_tiago:
         if args.plant != "tiago_right":
@@ -417,6 +425,7 @@ def run(args):
             collision_blacklist_path=args.ros_collision_blacklist,
             joint_position_margin=args.ros_joint_position_margin,
             joint_velocity_scale=args.ros_joint_velocity_scale,
+            safety_fault_report_dir=safety_fault_report_dir,
         )
 
     if args.batch_sizes is not None:
@@ -434,9 +443,6 @@ def run(args):
     model = load_model(cfg["model_path"])
     reference = cfg["reference"].astype(np.float32)
     x_start = np.concatenate([cfg["start_q"], np.zeros(model.nv, dtype=np.float32)]).astype(np.float32)
-    output_dir = args.output_root / args.plant
-    if args.output_label:
-        output_dir = output_dir / args.output_label
     output_dir.mkdir(parents=True, exist_ok=True)
 
     np.savetxt(
@@ -535,7 +541,7 @@ def parse_args():
     parser.add_argument("--ros-tiago", action="store_true")
     parser.add_argument("--ros-target-hz", type=float, default=125.0)
     parser.add_argument("--ros-reset-duration", type=float, default=2.0)
-    parser.add_argument("--ros-stale-timeout", type=float, default=0.25)
+    parser.add_argument("--ros-stale-timeout", type=float, default=0.02)
     parser.add_argument("--ros-max-abs-torque", type=float, default=30.0)
     parser.add_argument("--ros-clamp-torque", action="store_true")
     parser.add_argument("--ros-disable-collision-safety", action="store_true")
@@ -544,6 +550,7 @@ def parse_args():
     parser.add_argument("--ros-collision-blacklist", type=Path, default=None)
     parser.add_argument("--ros-joint-position-margin", type=float, default=0.0)
     parser.add_argument("--ros-joint-velocity-scale", type=float, default=1.0)
+    parser.add_argument("--ros-safety-fault-report-dir", type=Path, default=None)
     parser.add_argument("--ros-controller-timeout", type=float, default=8.0)
     return parser.parse_args()
 

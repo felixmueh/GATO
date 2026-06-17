@@ -465,17 +465,27 @@ def main() -> int:
     pairs = list(review_data.get("collision_pairs", []))
     if not pairs:
         raise SystemExit(f"no collision_pairs in {args.review_data}")
-    if args.distance_below_m is not None:
+    distance_below_m = args.distance_below_m
+    fault = review_data.get("fault", {})
+    if (
+        distance_below_m is None
+        and not args.all_pairs
+        and fault.get("kind") == "collision_distance"
+        and fault.get("min_distance_m") is not None
+    ):
+        distance_below_m = float(fault["min_distance_m"])
+
+    if distance_below_m is not None:
         pairs = [
             pair
             for pair in pairs
-            if float(pair.get("distance_m", float("inf"))) < args.distance_below_m
+            if float(pair.get("distance_m", float("inf"))) < distance_below_m
         ]
     elif not args.all_pairs:
         pairs = [pair for pair in pairs if pair.get("in_collision")]
     if not pairs:
-        if args.distance_below_m is not None:
-            mode = f"pairs below {args.distance_below_m:.6f} m"
+        if distance_below_m is not None:
+            mode = f"pairs below {distance_below_m:.6f} m"
         else:
             mode = "all candidate pairs" if args.all_pairs else "colliding pairs"
         raise SystemExit(f"no {mode} in {args.review_data}")

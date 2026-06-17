@@ -832,6 +832,13 @@ def run_experiment(args):
     )
     controller.force_estimator = None
 
+    expr_dir = expr_dir_from_args(args)
+    safety_fault_report_dir = (
+        args.ros_safety_fault_report_dir
+        if args.ros_safety_fault_report_dir is not None
+        else expr_dir / "safety_faults"
+    )
+
     ros_controller = None
     if args.ros_tiago:
         from gato_tiago.tiago_controller_process import TiagoControllerOrchestrator
@@ -849,9 +856,9 @@ def run_experiment(args):
             collision_blacklist_path=args.ros_collision_blacklist,
             joint_position_margin=args.ros_joint_position_margin,
             joint_velocity_scale=args.ros_joint_velocity_scale,
+            safety_fault_report_dir=safety_fault_report_dir,
         )
 
-    expr_dir = expr_dir_from_args(args)
     controller_state_summary = None
     try:
         _, stats = controller.run_mpc_goals(
@@ -1183,7 +1190,7 @@ def add_run_args(parser):
     parser.add_argument("--ros-tiago", action="store_true")
     parser.add_argument("--ros-target-hz", type=float, default=100.0)
     parser.add_argument("--ros-reset-duration", type=float, default=2.0)
-    parser.add_argument("--ros-stale-timeout", type=float, default=0.25)
+    parser.add_argument("--ros-stale-timeout", type=float, default=0.02)
     parser.add_argument("--ros-max-abs-torque", type=float, default=30.0)
     parser.add_argument("--ros-clamp-torque", action="store_true")
     parser.add_argument("--ros-disable-collision-safety", action="store_true")
@@ -1192,6 +1199,7 @@ def add_run_args(parser):
     parser.add_argument("--ros-collision-blacklist", type=Path, default=None)
     parser.add_argument("--ros-joint-position-margin", type=float, default=0.0)
     parser.add_argument("--ros-joint-velocity-scale", type=float, default=1.0)
+    parser.add_argument("--ros-safety-fault-report-dir", type=Path, default=None)
     parser.add_argument("--ros-controller-timeout", type=float, default=8.0)
 
 
