@@ -43,11 +43,23 @@ def parse_args() -> argparse.Namespace:
         help="Review all monitored candidate pairs, including pairs that are clear.",
     )
     parser.add_argument(
+        "--distance-below-m",
+        type=float,
+        default=None,
+        help=(
+            "Review captured pairs with distance below this threshold in metres. "
+            "Already reviewed pairs in --output are skipped unless --show-reviewed is set."
+        ),
+    )
+    parser.add_argument(
         "--no-images",
         action="store_true",
         help="Disable the matplotlib pair viewer and use text-only review.",
     )
-    return parser.parse_args()
+    args = parser.parse_args()
+    if args.distance_below_m is not None and args.distance_below_m < 0.0:
+        parser.error("--distance-below-m must be non-negative")
+    return args
 
 
 def _ordered_pair(a: str, b: str) -> tuple[str, str]:
@@ -453,23 +465,40 @@ def main() -> int:
     pairs = list(review_data.get("collision_pairs", []))
     if not pairs:
         raise SystemExit(f"no collision_pairs in {args.review_data}")
-    if not args.all_pairs:
+    if args.distance_below_m is not None:
+        pairs = [
+            pair
+            for pair in pairs
+            if float(pair.get("distance_m", float("inf"))) < args.distance_below_m
+        ]
+    elif not args.all_pairs:
         pairs = [pair for pair in pairs if pair.get("in_collision")]
     if not pairs:
-        mode = "all candidate pairs" if args.all_pairs else "colliding pairs"
+        if args.distance_below_m is not None:
+            mode = f"pairs below {args.distance_below_m:.6f} m"
+        else:
+            mode = "all candidate pairs" if args.all_pairs else "colliding pairs"
         raise SystemExit(f"no {mode} in {args.review_data}")
 
     decisions = _initial_decisions(review_data, args.output)
     reviewed = _reviewed_pairs(decisions)
     renderer = _make_renderer(review_data, enabled=not args.no_images)
-
-    total = len(pairs)
-    offset = 0
+    review_pairs = []
     for pair in pairs:
-        offset += 1
         pair_key = _ordered_pair(str(pair["geometry_a"]), str(pair["geometry_b"]))
         if pair_key in reviewed and not args.show_reviewed:
             continue
+        review_pairs.append(pair)
+
+    total = len(review_pairs)
+    if total == 0:
+        _persist(args.output, decisions)
+        print("no unreviewed pairs matched the selected filter")
+        print(f"saved {args.output}")
+        return 0
+
+    for offset, pair in enumerate(review_pairs, start=1):
+        pair_key = _ordered_pair(str(pair["geometry_a"]), str(pair["geometry_b"]))
 
         while True:
             if renderer is not None:
