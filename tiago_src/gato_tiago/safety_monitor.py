@@ -110,7 +110,7 @@ class _SafetyFault(RuntimeError):
 
 @dataclass(frozen=True)
 class CollisionBodySpeedReport:
-    """Conservative speed bound for one collision geometry object."""
+    """Conservative point-speed bound for one collision geometry object."""
 
     geometry: str
     link: str
@@ -470,6 +470,7 @@ class TiagoCollisionModel:
     geometry_model: pin.GeometryModel
     state_fixed_joint_names: tuple[str, ...]
     state_updated_joint_names: tuple[str, ...]
+    # Distance from each collision geometry origin to its furthest local point.
     geometry_radii_m: np.ndarray
     controlled_joint_names: tuple[str, ...]
     monitored_geometry_parent_joint_names: tuple[str, ...]
@@ -555,7 +556,7 @@ def build_tiago_collision_model(
     if monitor_only_collision_pairs:
         _keep_collision_pairs_touching_geometry(geometry_model, monitored_indices)
     radii = np.asarray(
-        [_geometry_radius_from_parent_frame(obj) for obj in geometry_model.geometryObjects],
+        [_geometry_local_radius(obj) for obj in geometry_model.geometryObjects],
         dtype=np.float64,
     )
     return TiagoCollisionModel(
@@ -824,20 +825,12 @@ def compute_collision_body_speeds(
     *,
     geometry_indices: Iterable[int] | None = None,
 ) -> list[CollisionBodySpeedReport]:
-    data, geometry_data = collision_model.make_data()
+    data = collision_model.model.createData()
     pin.forwardKinematics(
         collision_model.model,
         data,
         np.asarray(q, dtype=np.float64),
         np.asarray(v, dtype=np.float64),
-    )
-    pin.updateFramePlacements(collision_model.model, data)
-    pin.updateGeometryPlacements(
-        collision_model.model,
-        data,
-        collision_model.geometry_model,
-        geometry_data,
-        np.asarray(q, dtype=np.float64),
     )
     indices = (
         collision_model.monitored_geometry_indices
@@ -847,11 +840,14 @@ def compute_collision_body_speeds(
     reports = []
     for idx in indices:
         obj = collision_model.geometry_model.geometryObjects[idx]
+        # GeometryObject.placement is relative to parentJoint in this model.
+        # This overload returns the collision geometry origin velocity.
         velocity = pin.getFrameVelocity(
             collision_model.model,
             data,
-            obj.parentFrame,
-            pin.ReferenceFrame.WORLD,
+            obj.parentJoint,
+            obj.placement,
+            pin.ReferenceFrame.LOCAL_WORLD_ALIGNED,
         )
         linear_speed = float(np.linalg.norm(velocity.linear))
         angular_speed = float(np.linalg.norm(velocity.angular))
@@ -920,12 +916,6 @@ def _write_named_positions(
             q[joint.idx_q + 1] = np.sin(value)
         else:
             raise ValueError(f"unsupported joint configuration dimension for {name}: {joint.nq}")
-
-
-def _geometry_radius_from_parent_frame(obj: pin.GeometryObject) -> float:
-    local_radius = _geometry_local_radius(obj)
-    placement_offset = np.asarray(obj.placement.translation, dtype=np.float64).reshape(3)
-    return float(np.linalg.norm(placement_offset) + local_radius)
 
 
 def _geometry_local_radius(obj: pin.GeometryObject) -> float:

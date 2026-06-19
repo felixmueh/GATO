@@ -1,10 +1,12 @@
 import json
+import os
 from pathlib import Path
+import secrets
 
 import numpy as np
 import pytest
 
-pytest.importorskip("pinocchio")
+pin = pytest.importorskip("pinocchio")
 
 from gato_tiago.safety_monitor import (
     TIAGO_RUNTIME_STATE_FIXED_JOINT_NAMES,
@@ -53,6 +55,86 @@ def _zero_state(collision_model):
     )
 
 
+def _state_with(collision_model, *, positions=None, velocities=None):
+    state = _zero_state(collision_model)
+    if positions:
+        state.position.update(positions)
+    if velocities:
+        state.velocity.update(velocities)
+    return state
+
+
+def _random_state(collision_model, rng):
+    positions = {}
+    velocities = {}
+    for idx, name in enumerate(collision_model.model.names):
+        if idx == 0:
+            continue
+        joint = collision_model.model.joints[idx]
+        q_idx = joint.idx_q
+        v_idx = joint.idx_v
+
+        lower = float(collision_model.model.lowerPositionLimit[q_idx])
+        upper = float(collision_model.model.upperPositionLimit[q_idx])
+        if np.isfinite(lower) and np.isfinite(upper) and upper > lower:
+            margin = min(0.05, 0.1 * (upper - lower))
+            positions[name] = float(rng.uniform(lower + margin, upper - margin))
+        else:
+            positions[name] = 0.0
+
+        velocity_limit = float(collision_model.model.velocityLimit[v_idx])
+        velocity_bound = velocity_limit if np.isfinite(velocity_limit) else 1.0
+        velocity_bound = min(max(velocity_bound, 0.1), 1.0)
+        velocities[name] = float(rng.uniform(-velocity_bound, velocity_bound))
+
+    return NamedJointState(position=positions, velocity=velocities)
+
+
+def _geometry_placements(collision_model, q):
+    data = collision_model.model.createData()
+    geometry_data = pin.GeometryData(collision_model.geometry_model)
+    pin.framesForwardKinematics(collision_model.model, data, q)
+    pin.updateGeometryPlacements(
+        collision_model.model,
+        data,
+        collision_model.geometry_model,
+        geometry_data,
+        q,
+    )
+    return geometry_data.oMg
+
+
+def _finite_difference_geometry_velocity(collision_model, geometry_index, q, v):
+    dt = 1e-7
+    placements = _geometry_placements(collision_model, q)
+
+    q_next = pin.integrate(collision_model.model, q, v * dt)
+    next_placements = _geometry_placements(collision_model, q_next)
+    return (
+        next_placements[geometry_index].translation
+        - placements[geometry_index].translation
+    ) / dt
+
+
+def _world_point(placement, local_point):
+    return placement.translation + placement.rotation @ local_point
+
+
+def _random_unit_vector(rng):
+    vector = rng.normal(size=3)
+    norm = np.linalg.norm(vector)
+    if norm == 0.0:
+        return np.array([1.0, 0.0, 0.0])
+    return vector / norm
+
+
+def _fuzz_seed():
+    raw_seed = os.environ.get("GATO_COLLISION_SPEED_FUZZ_SEED")
+    if raw_seed:
+        return int(raw_seed, 0)
+    return secrets.randbits(32)
+
+
 def test_reduced_model_fixes_runtime_state_fixed_joints(collision_model):
     assert collision_model.state_fixed_joint_names == TIAGO_RUNTIME_STATE_FIXED_JOINT_NAMES
     assert not set(TIAGO_RUNTIME_STATE_FIXED_JOINT_NAMES).intersection(
@@ -86,6 +168,105 @@ def test_distance_and_speed_reports_cover_collision_model(collision_model):
     assert all(report.geometry_b for report in distances)
     assert all(report.speed_bound_m_s == pytest.approx(0.0) for report in speeds)
     assert all(report.radius_m >= 0.0 for report in speeds)
+
+
+def test_collision_body_speed_uses_current_geometry_velocity(collision_model):
+    geometry_index = next(
+        idx
+        for idx in collision_model.monitored_geometry_indices
+        if collision_model.geometry_model.geometryObjects[idx].name.startswith(
+            "gripper_right_fingertip_right_link"
+        )
+    )
+    geometry_name = collision_model.geometry_model.geometryObjects[geometry_index].name
+
+    cases = [
+        {},
+        {
+            "arm_right_2_joint": -0.8,
+            "arm_right_3_joint": 1.1,
+            "arm_right_4_joint": 0.7,
+            "arm_right_5_joint": -1.2,
+            "arm_right_6_joint": 0.6,
+            "arm_right_7_joint": -0.4,
+        },
+    ]
+    linear_speeds = []
+    for positions in cases:
+        q, v = state_to_qv(
+            collision_model.model,
+            _state_with(
+                collision_model,
+                positions=positions,
+                velocities={"arm_right_1_joint": 0.5},
+            ),
+        )
+
+        reports = compute_collision_body_speeds(
+            collision_model,
+            q,
+            v,
+            geometry_indices=[geometry_index],
+        )
+        report = reports[0]
+        finite_difference_velocity = _finite_difference_geometry_velocity(
+            collision_model,
+            geometry_index,
+            q,
+            v,
+        )
+
+        assert report.geometry == geometry_name
+        assert report.linear_speed_m_s == pytest.approx(
+            np.linalg.norm(finite_difference_velocity),
+            rel=1e-4,
+            abs=1e-5,
+        )
+        assert report.speed_bound_m_s >= report.linear_speed_m_s
+        linear_speeds.append(report.linear_speed_m_s)
+
+    assert abs(linear_speeds[1] - linear_speeds[0]) > 0.1
+
+
+def test_collision_body_speed_fuzz_matches_finite_difference(collision_model):
+    seed = _fuzz_seed()
+    print(f"GATO_COLLISION_SPEED_FUZZ_SEED={seed}")
+    rng = np.random.default_rng(seed)
+    dt = 1e-7
+
+    for _ in range(24):
+        q, v = state_to_qv(collision_model.model, _random_state(collision_model, rng))
+        next_q = pin.integrate(collision_model.model, q, v * dt)
+        placements = _geometry_placements(collision_model, q)
+        next_placements = _geometry_placements(collision_model, next_q)
+        reports = {
+            report.geometry: report
+            for report in compute_collision_body_speeds(collision_model, q, v)
+        }
+
+        for geometry_index in collision_model.monitored_geometry_indices:
+            obj = collision_model.geometry_model.geometryObjects[geometry_index]
+            report = reports[obj.name]
+            origin_velocity = (
+                next_placements[geometry_index].translation
+                - placements[geometry_index].translation
+            ) / dt
+            assert report.linear_speed_m_s == pytest.approx(
+                np.linalg.norm(origin_velocity),
+                rel=2e-4,
+                abs=2e-5,
+            ), f"seed={seed} geometry={obj.name}"
+
+            radius = float(collision_model.geometry_radii_m[geometry_index])
+            for scale in (0.25, 1.0):
+                local_point = _random_unit_vector(rng) * radius * scale
+                point_velocity = (
+                    _world_point(next_placements[geometry_index], local_point)
+                    - _world_point(placements[geometry_index], local_point)
+                ) / dt
+                assert (
+                    np.linalg.norm(point_velocity) <= report.speed_bound_m_s + 2e-4
+                ), f"seed={seed} geometry={obj.name} scale={scale}"
 
 
 def test_runtime_collision_model_only_keeps_pairs_touching_monitored_geometry(
