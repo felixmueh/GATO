@@ -2,8 +2,10 @@ import json
 from types import SimpleNamespace
 import sys
 from pathlib import Path
+import time
 
 import numpy as np
+import pinocchio as pin
 import pytest
 
 
@@ -14,12 +16,25 @@ if str(TIAGO_SRC) not in sys.path:
     sys.path.insert(0, str(TIAGO_SRC))
 
 from gato_tiago.tiago_controller_process import (
-    DEFAULT_COLLISION_BLACKLIST_PATH,
-    CollisionSafetySettings,
     TiagoControllerOrchestrator,
     elapsed_sim_time_from_stamp,
     _format_full_state_history_row,
     _sample_trajectory,
+)
+from gato_tiago.safety_monitor import (
+    AsyncSafetyMonitor,
+    CollisionSafetySettings,
+    DEFAULT_COLLISION_BLACKLIST_PATH,
+    DEFAULT_COLLISION_URDF_PATH,
+    SafetyCheckState,
+)
+from gato_tiago.config import TIAGO_RIGHT_DEFAULT_START_CONFIG, TIAGO_RIGHT_START_CONFIGS
+from gato_tiago.ros_tiago import RIGHT_ARM_JOINTS
+
+
+PASSIVE_LEFT_ARM_COMFORTABLE_FORWARD_OUTWARD = np.array(
+    [0.39, -1.73, 0.38, -2.35, 0.0, -1.21, -0.04],
+    dtype=np.float64,
 )
 
 
@@ -50,10 +65,13 @@ def test_collision_safety_defaults_to_40mm_clearance():
 
     assert settings.enabled is True
     assert settings.min_distance_m == pytest.approx(0.04)
-    assert settings.max_body_speed_m_s == pytest.approx(1.0)
-    assert settings.joint_position_margin == pytest.approx(0.0)
+    assert settings.check_timeout_sec == pytest.approx(0.05)
+    assert settings.max_monitored_geometry_speed_m_s == pytest.approx(1.0)
+    assert settings.joint_position_margin_rad == pytest.approx(0.0)
     assert settings.joint_velocity_scale == pytest.approx(1.0)
     assert settings.blacklist_path == DEFAULT_COLLISION_BLACKLIST_PATH
+    assert settings.urdf_path == DEFAULT_COLLISION_URDF_PATH
+    assert settings.urdf_path.is_file()
 
 
 def test_orchestrator_uses_default_collision_blacklist_when_unspecified():
@@ -63,10 +81,54 @@ def test_orchestrator_uses_default_collision_blacklist_when_unspecified():
 
 
 def test_orchestrator_validates_joint_limit_settings():
-    with pytest.raises(ValueError, match="joint_position_margin"):
-        TiagoControllerOrchestrator(joint_position_margin=-0.01)
+    with pytest.raises(ValueError, match="collision_check_timeout_sec"):
+        TiagoControllerOrchestrator(collision_check_timeout_sec=0.0)
+    with pytest.raises(ValueError, match="joint_position_margin_rad"):
+        TiagoControllerOrchestrator(joint_position_margin_rad=-0.01)
     with pytest.raises(ValueError, match="joint_velocity_scale"):
         TiagoControllerOrchestrator(joint_velocity_scale=0.0)
+
+
+def test_async_collision_safety_worker_reports_for_comfortable_state():
+    full_model = pin.buildModelFromUrdf(str(DEFAULT_COLLISION_URDF_PATH))
+    positions = {name: 0.0 for name in full_model.names if name != "universe"}
+    velocities = {name: 0.0 for name in positions}
+    positions["torso_lift_joint"] = 0.0999909568
+    start_q = TIAGO_RIGHT_START_CONFIGS[TIAGO_RIGHT_DEFAULT_START_CONFIG]
+    for idx, value in enumerate(start_q, start=1):
+        positions[f"arm_right_{idx}_joint"] = float(value)
+    for idx, value in enumerate(PASSIVE_LEFT_ARM_COMFORTABLE_FORWARD_OUTWARD, start=1):
+        positions[f"arm_left_{idx}_joint"] = float(value)
+    positions["gripper_left_finger_joint"] = 0.15
+    positions["gripper_right_finger_joint"] = 0.15
+    state = SafetyCheckState(
+        q=np.asarray(start_q, dtype=np.float64),
+        qd=np.zeros(7, dtype=np.float64),
+        stamp_sec=0.0,
+        received_monotonic_sec=0.0,
+        seq=1,
+        joint_positions=positions,
+        joint_velocities=velocities,
+    )
+    settings = CollisionSafetySettings(
+        controlled_joint_names=tuple(RIGHT_ARM_JOINTS),
+        min_distance_m=0.0,
+        check_timeout_sec=0.5,
+        blacklist_path=DEFAULT_COLLISION_BLACKLIST_PATH,
+    )
+    monitor = AsyncSafetyMonitor(settings=settings, initial_state=state)
+    try:
+        start = time.perf_counter()
+        monitor.check(state)
+        assert time.perf_counter() - start < 0.05
+
+        deadline = time.perf_counter() + settings.check_timeout_sec
+        while monitor._last_checked_seq != state.seq and time.perf_counter() < deadline:
+            monitor.check(state)
+            time.sleep(0.001)
+        assert monitor._last_checked_seq == state.seq
+    finally:
+        monitor.close()
 
 
 def test_sample_trajectory_returns_in_horizon_rows():
@@ -93,10 +155,13 @@ def test_full_state_history_row_contains_named_joint_state():
             joint_velocities={"joint_a": -0.5, "wheel_joint": float("nan")},
         ),
         "RUNNING",
+        safety_status="ok",
     )
 
     data = json.loads(row)
     assert data["source_seq"] == 7
     assert data["controller_mode"] == "RUNNING"
+    assert data["safety_status"] == "ok"
+    assert data["safety_fault"] == ""
     assert data["positions_by_name"] == {"joint_a": 1.25}
     assert data["velocities_by_name"] == {"joint_a": -0.5, "wheel_joint": None}

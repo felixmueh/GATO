@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import atexit
 from dataclasses import dataclass
-from datetime import datetime, timezone
 import json
 import multiprocessing as mp
 from pathlib import Path
@@ -19,7 +18,17 @@ from typing import Any, Mapping, Sequence
 
 import numpy as np
 
-from gato_tiago.config import TIAGO_RIGHT_START_CONFIGS
+from gato_tiago.config import (
+    TIAGO_RIGHT_DEFAULT_START_CONFIG,
+    TIAGO_RIGHT_START_CONFIGS,
+)
+from gato_tiago.safety_monitor import (
+    AsyncSafetyMonitor,
+    CollisionSafetySettings,
+    DEFAULT_COLLISION_BLACKLIST_PATH,
+    SafetyCheckState,
+)
+from gato_tiago.ros_tiago import RIGHT_ARM_JOINTS
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -30,12 +39,9 @@ DEFAULT_TIAGO_URDF_PATH = (
     if _LOCAL_TIAGO_URDF_PATH.is_file()
     else _WORKSPACE_TIAGO_URDF_PATH
 )
-DEFAULT_COLLISION_BLACKLIST_PATH = (
-    REPO_ROOT / "tiago_configs" / "comfortable_pose_collision_blacklist.json"
-)
-DEFAULT_SAFETY_FAULT_REPORT_DIR = (
-    REPO_ROOT / "example_artifacts" / "tiago_safety_faults"
-)
+POST_FAULT_RECORD_TIMEOUT_SEC = 2.0
+POST_FAULT_STOP_VELOCITY_RAD_S = 0.02
+POST_FAULT_STOP_STABLE_SAMPLES = 5
 
 
 @dataclass(frozen=True)
@@ -71,19 +77,6 @@ class ControllerStatus:
 
 
 @dataclass(frozen=True)
-class CollisionSafetySettings:
-    enabled: bool = True
-    urdf_path: Path = DEFAULT_TIAGO_URDF_PATH
-    blacklist_path: Path | None = DEFAULT_COLLISION_BLACKLIST_PATH
-    lock_grippers: bool = True
-    min_distance_m: float = 0.04
-    max_body_speed_m_s: float = 1.0
-    joint_position_margin: float = 0.0
-    joint_velocity_scale: float = 1.0
-    fault_report_dir: Path | None = DEFAULT_SAFETY_FAULT_REPORT_DIR
-
-
-@dataclass(frozen=True)
 class StateHistorySample:
     source_seq: int
     stamp_sec: float
@@ -97,6 +90,7 @@ _STATE_HISTORY_MODE_CODES = {
     "READY": 1.0,
     "RUNNING": 2.0,
     "RESTORED": 3.0,
+    "ERROR_RESTORE": 4.0,
 }
 _STATE_HISTORY_MODES_BY_CODE = {
     int(code): mode for mode, code in _STATE_HISTORY_MODE_CODES.items()
@@ -238,7 +232,14 @@ def _format_state_history_row(sample: StateHistorySample) -> str:
     return ",".join(f"{value:.10g}" for value in _state_history_row(sample)) + "\n"
 
 
-def _format_full_state_history_row(state: Any, mode: str) -> str:
+def _format_full_state_history_row(
+    state: Any,
+    mode: str,
+    *,
+    safety_status: str = "unchecked",
+    safety_fault: str = "",
+    safety_message: str = "",
+) -> str:
     return (
         json.dumps(
             {
@@ -246,6 +247,9 @@ def _format_full_state_history_row(state: Any, mode: str) -> str:
                 "stamp_sec": float(state.stamp_sec),
                 "received_monotonic_sec": float(state.received_monotonic_sec),
                 "controller_mode": mode,
+                "safety_status": safety_status,
+                "safety_fault": safety_fault,
+                "safety_message": safety_message,
                 "positions_by_name": _json_float_mapping(_full_joint_positions(state)),
                 "velocities_by_name": _json_float_mapping(_full_joint_velocities(state)),
             },
@@ -315,203 +319,16 @@ def _validate_trajectory(
     return torques
 
 
-class _RuntimeSafetyMonitor:
-    def __init__(
-        self,
-        *,
-        settings: CollisionSafetySettings,
-        initial_state: Any,
-    ) -> None:
-        import pinocchio as pin
-
-        from gato_tiago.safety_monitor import (
-            DEFAULT_LOCKED_JOINTS,
-            NamedJointState,
-            build_tiago_collision_model,
-            check_joint_limits,
-            collision_model_metadata,
-            compute_collision_body_speeds,
-            compute_pair_distances,
-            geometry_objects_json,
-            gripper_joint_names,
-            state_to_qv,
-        )
-
-        self.settings = settings
-        self._NamedJointState = NamedJointState
-        self._check_joint_limits = check_joint_limits
-        self._collision_model_metadata = collision_model_metadata
-        self._compute_pair_distances = compute_pair_distances
-        self._compute_collision_body_speeds = compute_collision_body_speeds
-        self._geometry_objects_json = geometry_objects_json
-        self._state_to_qv = state_to_qv
-        locked_joint_names = list(DEFAULT_LOCKED_JOINTS)
-        if settings.lock_grippers:
-            full_model = pin.buildModelFromUrdf(str(settings.urdf_path))
-            locked_joint_names.extend(gripper_joint_names(full_model))
-
-        blacklist_path = settings.blacklist_path
-        if blacklist_path is not None and not Path(blacklist_path).is_file():
-            raise FileNotFoundError(f"collision blacklist not found: {blacklist_path}")
-
-        self.collision_model = build_tiago_collision_model(
-            urdf_path=settings.urdf_path,
-            locked_joint_names=tuple(locked_joint_names),
-            reference_positions=_full_joint_positions(initial_state),
-            blacklist_path=blacklist_path,
-        )
-        self._last_checked_seq = -1
-
-    def check(self, state: Any) -> None:
-        if int(state.seq) == self._last_checked_seq:
-            return
-        joint_state = self._NamedJointState(
-            position=_full_joint_positions(state),
-            velocity=_full_joint_velocities(state),
-            stamp_sec=float(state.stamp_sec),
-        )
-        q, qd = self._state_to_qv(self.collision_model.model, joint_state)
-        joint_violations = self._check_joint_limits(
-            self.collision_model.model,
-            joint_state,
-            position_margin=self.settings.joint_position_margin,
-            velocity_scale=self.settings.joint_velocity_scale,
-        )
-        if joint_violations:
-            violation = joint_violations[0]
-            report_path = self._write_fault_report(
-                kind="joint_limit",
-                state=state,
-                joint_state=joint_state,
-                q=q,
-                qd=qd,
-                joint_violations=joint_violations,
-            )
-            report_suffix = f"; report={report_path}" if report_path is not None else ""
-            raise RuntimeError(
-                "joint safety fault: "
-                f"{violation.joint} {violation.kind} value={violation.value:.6f}"
-                f"{report_suffix}"
-            )
-
-        distances = self._compute_pair_distances(self.collision_model, q)
-        closest = min(distances, key=lambda report: report.distance_m)
-        if closest.distance_m < self.settings.min_distance_m:
-            speeds = self._compute_collision_body_speeds(self.collision_model, q, qd)
-            report_path = self._write_fault_report(
-                kind="collision_distance",
-                state=state,
-                joint_state=joint_state,
-                q=q,
-                qd=qd,
-                collision_pairs=distances,
-                collision_body_speeds=speeds,
-                closest_pair=closest,
-            )
-            report_suffix = f"; report={report_path}" if report_path is not None else ""
-            raise RuntimeError(
-                "collision safety fault: "
-                f"distance {closest.distance_m:.6f} m below "
-                f"min_distance_m={self.settings.min_distance_m:.6f} for "
-                f"{closest.geometry_a} <-> {closest.geometry_b}"
-                f"{report_suffix}"
-            )
-
-        speeds = self._compute_collision_body_speeds(self.collision_model, q, qd)
-        fastest = max(speeds, key=lambda report: report.speed_bound_m_s)
-        if fastest.speed_bound_m_s > self.settings.max_body_speed_m_s:
-            report_path = self._write_fault_report(
-                kind="collision_body_speed",
-                state=state,
-                joint_state=joint_state,
-                q=q,
-                qd=qd,
-                collision_pairs=distances,
-                collision_body_speeds=speeds,
-                fastest_body=fastest,
-            )
-            report_suffix = f"; report={report_path}" if report_path is not None else ""
-            raise RuntimeError(
-                "collision safety fault: "
-                f"body speed {fastest.speed_bound_m_s:.6f} m/s above "
-                f"max_body_speed_m_s={self.settings.max_body_speed_m_s:.6f} for "
-                f"{fastest.geometry}"
-                f"{report_suffix}"
-            )
-        self._last_checked_seq = int(state.seq)
-
-    def _write_fault_report(
-        self,
-        *,
-        kind: str,
-        state: Any,
-        joint_state: Any,
-        q: np.ndarray,
-        qd: np.ndarray,
-        joint_violations: Sequence[Any] | None = None,
-        collision_pairs: Sequence[Any] | None = None,
-        collision_body_speeds: Sequence[Any] | None = None,
-        closest_pair: Any | None = None,
-        fastest_body: Any | None = None,
-    ) -> Path | None:
-        if self.settings.fault_report_dir is None:
-            return None
-        output_dir = Path(self.settings.fault_report_dir)
-        output_dir.mkdir(parents=True, exist_ok=True)
-        generated_at = datetime.now(timezone.utc)
-        output = output_dir / (
-            f"safety_fault_{generated_at.strftime('%Y%m%dT%H%M%S%fZ')}"
-            f"_seq{int(state.seq)}.json"
-        )
-        pairs = list(collision_pairs or [])
-        speeds = list(collision_body_speeds or [])
-        data = {
-            "schema_version": 1,
-            "generated_at": generated_at.isoformat(),
-            "urdf_path": str(self.settings.urdf_path),
-            "package_dirs": [str(Path(self.settings.urdf_path).parent)],
-            "lock_grippers": bool(self.settings.lock_grippers),
-            "model": self._collision_model_metadata(self.collision_model),
-            "fault": {
-                "kind": kind,
-                "state_seq": int(state.seq),
-                "stamp_sec": float(state.stamp_sec),
-                "min_distance_m": float(self.settings.min_distance_m),
-                "max_body_speed_m_s": float(self.settings.max_body_speed_m_s),
-                "joint_position_margin": float(self.settings.joint_position_margin),
-                "joint_velocity_scale": float(self.settings.joint_velocity_scale),
-                "closest_pair": closest_pair.to_json() if closest_pair is not None else None,
-                "fastest_body": _speed_report_json(fastest_body)
-                if fastest_body is not None
-                else None,
-            },
-            "state": {
-                "source": "controller_runtime",
-                "stamp_sec": float(joint_state.stamp_sec),
-                "q": [float(value) for value in q],
-                "qd": [float(value) for value in qd],
-                "positions_by_name": _json_float_mapping(joint_state.position),
-                "velocities_by_name": _json_float_mapping(joint_state.velocity),
-            },
-            "geometry_objects": self._geometry_objects_json(self.collision_model),
-            "collision_pairs": [pair.to_json() for pair in pairs],
-            "collision_body_speeds": [_speed_report_json(speed) for speed in speeds],
-            "joint_limit_violations": [
-                {
-                    "joint": violation.joint,
-                    "kind": violation.kind,
-                    "value": violation.value,
-                    "lower": violation.lower,
-                    "upper": violation.upper,
-                    "margin": violation.margin,
-                    "limit": violation.limit,
-                    "scale": violation.scale,
-                }
-                for violation in (joint_violations or [])
-            ],
-        }
-        output.write_text(json.dumps(data, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-        return output
+def _safety_check_state(state: Any) -> SafetyCheckState:
+    return SafetyCheckState(
+        q=np.asarray(state.q, dtype=np.float64).copy(),
+        qd=np.asarray(state.qd, dtype=np.float64).copy(),
+        stamp_sec=float(state.stamp_sec),
+        received_monotonic_sec=float(state.received_monotonic_sec),
+        seq=int(state.seq),
+        joint_positions=_full_joint_positions(state),
+        joint_velocities=_full_joint_velocities(state),
+    )
 
 
 def _full_joint_positions(state: Any) -> dict[str, float]:
@@ -526,20 +343,6 @@ def _full_joint_velocities(state: Any) -> dict[str, float]:
     if velocities is None:
         raise RuntimeError("collision safety requires full named joint velocities")
     return {str(name): float(value) for name, value in velocities.items()}
-
-
-def _speed_report_json(report: Any) -> dict[str, object] | None:
-    if report is None:
-        return None
-    return {
-        "geometry": report.geometry,
-        "link": report.link,
-        "parent_joint": report.parent_joint,
-        "linear_speed_m_s": report.linear_speed_m_s,
-        "angular_speed_rad_s": report.angular_speed_rad_s,
-        "radius_m": report.radius_m,
-        "speed_bound_m_s": report.speed_bound_m_s,
-    }
 
 
 def _json_float_mapping(values: Mapping[str, float]) -> dict[str, float | None]:
@@ -578,6 +381,15 @@ def _publish_zero_effort_burst(
         time.sleep(max(0.0, float(period_sec)))
 
 
+def _max_finite_named_velocity(state: Any) -> float:
+    values = [
+        abs(float(value))
+        for value in _full_joint_velocities(state).values()
+        if value is not None and np.isfinite(float(value))
+    ]
+    return max(values, default=0.0)
+
+
 class TiagoControllerOrchestrator:
     """Minimal process wrapper with initialize/send_trajectory/read_state."""
 
@@ -587,24 +399,23 @@ class TiagoControllerOrchestrator:
         target_hz: float = 100.0,
         reset_q: Sequence[float] | None = None,
         reset_duration_sec: float = 2.0,
-        stale_timeout_sec: float = 0.02,
+        stale_timeout_sec: float = 0.1,
         # TODO: read from urdf
         max_abs_torque: float = 30.0,
         clamp_torque: bool = False,
         collision_safety_enabled: bool = True,
         collision_min_distance_m: float = 0.04,
-        collision_max_body_speed_m_s: float = 1.0,
+        collision_check_timeout_sec: float = 0.05,
+        collision_max_monitored_geometry_speed_m_s: float = 1.0,
         collision_blacklist_path: str | Path | None = DEFAULT_COLLISION_BLACKLIST_PATH,
-        collision_lock_grippers: bool = True,
-        joint_position_margin: float = 0.0,
+        joint_position_margin_rad: float = 0.0,
         joint_velocity_scale: float = 1.0,
-        safety_fault_report_dir: str | Path | None = DEFAULT_SAFETY_FAULT_REPORT_DIR,
         restore_on_exit: bool = True,
         start_method: str = "spawn",
     ) -> None:
         self.target_hz = float(target_hz)
         if reset_q is None:
-            reset_q = TIAGO_RIGHT_START_CONFIGS["comfortable"]
+            reset_q = TIAGO_RIGHT_START_CONFIGS[TIAGO_RIGHT_DEFAULT_START_CONFIG]
         self.reset_q = np.asarray(reset_q, dtype=np.float64)
         self.reset_duration_sec = float(reset_duration_sec)
         self.stale_timeout_sec = float(stale_timeout_sec)
@@ -617,14 +428,12 @@ class TiagoControllerOrchestrator:
                 if collision_blacklist_path is None
                 else Path(collision_blacklist_path)
             ),
-            lock_grippers=bool(collision_lock_grippers),
+            controlled_joint_names=tuple(RIGHT_ARM_JOINTS),
             min_distance_m=float(collision_min_distance_m),
-            max_body_speed_m_s=float(collision_max_body_speed_m_s),
-            joint_position_margin=float(joint_position_margin),
+            check_timeout_sec=float(collision_check_timeout_sec),
+            max_monitored_geometry_speed_m_s=float(collision_max_monitored_geometry_speed_m_s),
+            joint_position_margin_rad=float(joint_position_margin_rad),
             joint_velocity_scale=float(joint_velocity_scale),
-            fault_report_dir=(
-                None if safety_fault_report_dir is None else Path(safety_fault_report_dir)
-            ),
         )
         self.restore_on_exit = restore_on_exit
         if self.target_hz <= 0.0:
@@ -639,10 +448,12 @@ class TiagoControllerOrchestrator:
             raise ValueError("max_abs_torque must be positive")
         if self.collision_safety.min_distance_m < 0.0:
             raise ValueError("collision_min_distance_m must be non-negative")
-        if self.collision_safety.max_body_speed_m_s <= 0.0:
-            raise ValueError("collision_max_body_speed_m_s must be positive")
-        if self.collision_safety.joint_position_margin < 0.0:
-            raise ValueError("joint_position_margin must be non-negative")
+        if self.collision_safety.check_timeout_sec <= 0.0:
+            raise ValueError("collision_check_timeout_sec must be positive")
+        if self.collision_safety.max_monitored_geometry_speed_m_s <= 0.0:
+            raise ValueError("collision_max_monitored_geometry_speed_m_s must be positive")
+        if self.collision_safety.joint_position_margin_rad < 0.0:
+            raise ValueError("joint_position_margin_rad must be non-negative")
         if self.collision_safety.joint_velocity_scale <= 0.0:
             raise ValueError("joint_velocity_scale must be positive")
         self._ctx = mp.get_context(start_method)
@@ -839,12 +650,86 @@ def _controller_main(
     command_rate_hz = 0.0
     max_period_sec = 0.0
     last_history_source_seq = 0
-    safety_monitor: _RuntimeSafetyMonitor | None = None
+    safety_monitor: AsyncSafetyMonitor | None = None
 
     def set_status(new_mode: str, error: str | None = None) -> None:
         nonlocal mode
         mode = new_mode
         _put_latest(status_q, ControllerStatus(mode=new_mode, error=error))
+
+    def write_history_state(
+        state: Any,
+        sample_mode: str,
+        *,
+        safety_monitor: AsyncSafetyMonitor | None = None,
+    ) -> None:
+        nonlocal last_history_source_seq
+        if state is None or int(state.seq) == last_history_source_seq:
+            return
+        full_history_file.write(
+            _format_full_state_history_row(
+                state,
+                sample_mode,
+                safety_status=(
+                    safety_monitor.safety_status
+                    if safety_monitor is not None
+                    else "unchecked"
+                ),
+                safety_fault=(
+                    safety_monitor.safety_fault
+                    if safety_monitor is not None
+                    else ""
+                ),
+                safety_message=(
+                    safety_monitor.safety_message
+                    if safety_monitor is not None
+                    else ""
+                ),
+            )
+        )
+        history_file.write(
+            _format_state_history_row(
+                StateHistorySample(
+                    source_seq=state.seq,
+                    stamp_sec=state.stamp_sec,
+                    received_monotonic_sec=state.received_monotonic_sec,
+                    controller_mode=sample_mode,
+                    q=state.q.astype(np.float64),
+                    qd=state.qd.astype(np.float64),
+                )
+            )
+        )
+        last_history_source_seq = int(state.seq)
+
+    def record_post_fault_settle() -> None:
+        stable_samples = 0
+        deadline = time.monotonic() + POST_FAULT_RECORD_TIMEOUT_SEC
+        while time.monotonic() < deadline:
+            arm.publish_zero_base_velocity()
+            arm.spin_once(timeout_sec=min(0.05, period))
+            state = arm.latest_state()
+            if state is None:
+                continue
+            write_history_state(state, "ERROR_RESTORE", safety_monitor=safety_monitor)
+            if _max_finite_named_velocity(state) <= POST_FAULT_STOP_VELOCITY_RAD_S:
+                stable_samples += 1
+                if stable_samples >= POST_FAULT_STOP_STABLE_SAMPLES:
+                    break
+            else:
+                stable_samples = 0
+
+    def publish_zero_effort_burst_with_history() -> None:
+        zero = np.zeros(len(arm.joint_names), dtype=np.float64)
+        for _ in range(5):
+            arm.publish_zero_base_velocity()
+            arm.publish_effort(zero)
+            arm.spin_once(timeout_sec=min(0.01, period))
+            write_history_state(
+                arm.latest_state(),
+                "ERROR_RESTORE",
+                safety_monitor=safety_monitor,
+            )
+            time.sleep(max(0.0, period))
 
     history_file = Path(history_path).open("w", encoding="utf-8", buffering=1)
     full_history_path = Path(history_path).with_name("full_joint_state_history.jsonl")
@@ -865,11 +750,12 @@ def _controller_main(
                 arm.spin_once(timeout_sec=0.05)
             initial_state = arm.read_state(timeout_sec=8.0)
             if collision_safety.enabled:
-                safety_monitor = _RuntimeSafetyMonitor(
+                initial_safety_state = _safety_check_state(initial_state)
+                safety_monitor = AsyncSafetyMonitor(
                     settings=collision_safety,
-                    initial_state=initial_state,
+                    initial_state=initial_safety_state,
                 )
-                safety_monitor.check(initial_state)
+                safety_monitor.wait_until_checked(initial_safety_state)
             arm.configure_runtime_effort_controller(timeout_sec=5.0)
             set_status("READY")
 
@@ -893,27 +779,23 @@ def _controller_main(
                         max_period_sec=max_period_sec,
                         source_seq=state.seq,
                     )
-                    if state.seq != last_history_source_seq:
-                        full_history_file.write(_format_full_state_history_row(state, mode))
-                        history_file.write(
-                            _format_state_history_row(
-                                StateHistorySample(
-                                    source_seq=state.seq,
-                                    stamp_sec=state.stamp_sec,
-                                    received_monotonic_sec=state.received_monotonic_sec,
-                                    controller_mode=mode,
-                                    q=state.q.astype(np.float64),
-                                    qd=state.qd.astype(np.float64),
-                                )
-                            )
-                        )
-                        last_history_source_seq = state.seq
 
                 if effort_active and (state is None or state.age_sec > stale_timeout_sec):
                     age = state.age_sec if state is not None else float("inf")
                     raise RuntimeError(f"joint state stale during effort control: age={age:.3f}s")
                 if safety_monitor is not None and state is not None:
-                    safety_monitor.check(state)
+                    safety_state = _safety_check_state(state)
+                    try:
+                        safety_monitor.check(safety_state)
+                    except BaseException:
+                        write_history_state(
+                            state,
+                            "ERROR_RESTORE",
+                            safety_monitor=safety_monitor,
+                        )
+                        raise
+                if state is not None and state.seq != last_history_source_seq:
+                    write_history_state(state, mode, safety_monitor=safety_monitor)
 
                 traj = _get_latest(trajectory_q)
                 if traj is not None:
@@ -940,7 +822,16 @@ def _controller_main(
                         arm.switch_to_effort_control(timeout_sec=5.0)
                         state = arm.read_state(timeout_sec=2.0)
                         if safety_monitor is not None:
-                            safety_monitor.check(state)
+                            safety_state = _safety_check_state(state)
+                            try:
+                                safety_monitor.check(safety_state)
+                            except BaseException:
+                                write_history_state(
+                                    state,
+                                    "ERROR_RESTORE",
+                                    safety_monitor=safety_monitor,
+                                )
+                                raise
                         trajectory_start = time.perf_counter()
                         effort_active = True
                     current_start = trajectory_start
@@ -983,8 +874,10 @@ def _controller_main(
             if restore_on_exit:
                 try:
                     if effort_active:
-                        _publish_zero_effort_burst(arm, count=5, period_sec=period)
+                        publish_zero_effort_burst_with_history()
                     arm.switch_to_default_control(timeout_sec=5.0)
+                    record_post_fault_settle()
+                    effort_active = False
                 except BaseException as restore_exc:
                     set_status("ERROR_RESTORE_FAILED", str(restore_exc))
                     raise
@@ -999,6 +892,8 @@ def _controller_main(
                         set_status("RESTORED")
                 except BaseException as exc:
                     set_status("ERROR_RESTORE_FAILED", str(exc))
+            if safety_monitor is not None:
+                safety_monitor.close()
 
 
 # =======================================================

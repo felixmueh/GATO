@@ -1,4 +1,5 @@
 {
+  "collision_artifact": "tiago_configs/collision_alpha_wrap_a3_o25_cap001/tiago_pro_collision_alpha_wrap_a3_o25_cap001.urdf",
   "created_at": "2026-06-17T11:40:27.388464+00:00",
   "ignored_geometry_pairs": [
     {
@@ -240,12 +241,22 @@
       "link_b": "head_1_link",
       "reason": "operator reviewed",
       "reviewed_at": "2026-06-17T11:57:42.054214+00:00"
+    },
+    {
+      "decision": "ignore",
+      "distance_m_at_review": 0.03994096333688243,
+      "geometry_a": "arm_right_4_link_0",
+      "geometry_b": "arm_right_6_link_0",
+      "link_a": "arm_right_4_link",
+      "link_b": "arm_right_6_link",
+      "reason": "Can't collide.",
+      "reviewed_at": "2026-06-18T15:20:49.360329+00:00"
     }
   ],
   "model": {
     "collision_pair_count": 943,
     "geometry_count": 47,
-    "locked_joints": [
+    "state_fixed_joints": [
       "wheel_front_left_joint",
       "wheel_front_right_joint",
       "wheel_rear_left_joint",
@@ -263,7 +274,7 @@
       "gripper_right_fingertip_right_joint",
       "gripper_right_outer_finger_right_joint"
     ],
-    "unlocked_joints": [
+    "state_updated_joints": [
       "torso_lift_joint",
       "arm_left_1_joint",
       "arm_left_2_joint",
@@ -295,8 +306,9 @@
       "reviewed_at": "2026-06-17T11:53:53.191632+00:00"
     }
   ],
-  "review_data_path": "collision_review_data.json",
+  "review_recording_note": "Reviewed from a comfortable/default-pose joint-state recording using tiago_tools/review_collision_pairs.py.",
+  "review_recording_path": "full_joint_state_history.jsonl",
   "schema_version": 1,
-  "updated_at": "2026-06-17T11:57:42.055040+00:00",
-  "urdf_path": "/workspace/GATO/TiagoProURDF/tiago_pro.urdf"
+  "updated_at": "2026-06-18T15:20:49.360755+00:00",
+  "urdf_path": "tiago_configs/collision_alpha_wrap_a3_o25_cap001/tiago_pro_collision_alpha_wrap_a3_o25_cap001.urdf"
 }

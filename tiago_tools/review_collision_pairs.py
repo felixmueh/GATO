@@ -7,6 +7,7 @@ import argparse
 from datetime import datetime, timezone
 import json
 from pathlib import Path
+import sys
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -21,11 +22,11 @@ REPO_ROOT_MARKER = "GATO"
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
-            "Review captured SafetyMonitor collision pairs and persist "
+            "Review SafetyMonitor collision pairs from a joint-state recording and persist "
             "ignore/monitor decisions immediately."
         )
     )
-    parser.add_argument("review_data", type=Path)
+    parser.add_argument("recording", type=Path, help="full_joint_state_history.jsonl")
     parser.add_argument(
         "--output",
         type=Path,
@@ -45,21 +46,160 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--distance-below-m",
         type=float,
-        default=None,
+        default=0.04,
         help=(
-            "Review captured pairs with distance below this threshold in metres. "
+            "Review pairs with distance below this threshold in metres. "
+            "Ignored when --all-pairs is set. "
             "Already reviewed pairs in --output are skipped unless --show-reviewed is set."
         ),
+    )
+    parser.add_argument(
+        "--frame-index",
+        type=int,
+        default=0,
+        help="Recording row to review. Negative values count from the end.",
+    )
+    parser.add_argument(
+        "--urdf",
+        type=Path,
+        default=None,
+        help="Collision URDF to review. Defaults to the canonical simplified collision artifact.",
     )
     parser.add_argument(
         "--no-images",
         action="store_true",
         help="Disable the matplotlib pair viewer and use text-only review.",
     )
+    parser.add_argument(
+        "--primitive-urdf",
+        type=Path,
+        default=None,
+        help=(
+            "URDF whose collision geometry is used for highlighted pair rendering. "
+            "Defaults to the review data URDF."
+        ),
+    )
+    parser.add_argument(
+        "--mesh-context-urdf",
+        type=Path,
+        default=None,
+        help=(
+            "Optional original mesh URDF rendered as the whole-robot background "
+            "while highlighted pair geometry comes from --primitive-urdf."
+        ),
+    )
+    parser.add_argument(
+        "--primitive-alpha",
+        type=float,
+        default=0.92,
+        help="Transparency for highlighted wrapped/primitive colliders.",
+    )
+    parser.add_argument(
+        "--context-alpha",
+        type=float,
+        default=0.24,
+        help="Transparency for whole-robot context geometry.",
+    )
+    parser.add_argument(
+        "--attached-context-alpha",
+        type=float,
+        default=1.0,
+        help=(
+            "Transparency for original mesh parts corresponding to the highlighted "
+            "primitive colliders."
+        ),
+    )
     args = parser.parse_args()
     if args.distance_below_m is not None and args.distance_below_m < 0.0:
         parser.error("--distance-below-m must be non-negative")
+    if not (0.0 <= args.primitive_alpha <= 1.0):
+        parser.error("--primitive-alpha must be between 0 and 1")
+    if not (0.0 <= args.context_alpha <= 1.0):
+        parser.error("--context-alpha must be between 0 and 1")
+    if not (0.0 <= args.attached_context_alpha <= 1.0):
+        parser.error("--attached-context-alpha must be between 0 and 1")
     return args
+
+
+def _load_recording_sample(path: Path, frame_index: int) -> dict:
+    rows = [
+        json.loads(line)
+        for line in path.read_text(encoding="utf-8").splitlines()
+        if line.strip()
+    ]
+    if not rows:
+        raise SystemExit(f"empty recording: {path}")
+    index = int(frame_index)
+    if index < 0:
+        index = len(rows) + index
+    if index < 0 or index >= len(rows):
+        raise SystemExit(
+            f"--frame-index {frame_index} out of range for {len(rows)} samples"
+        )
+    return rows[index]
+
+
+def _review_data_from_recording(args: argparse.Namespace) -> dict:
+    if str(TIAGO_SRC_DIR) not in sys.path:
+        sys.path.insert(0, str(TIAGO_SRC_DIR))
+
+    from gato_tiago.safety_monitor import (
+        DEFAULT_COLLISION_URDF_PATH,
+        TIAGO_RUNTIME_STATE_FIXED_JOINT_NAMES,
+        NamedJointState,
+        build_tiago_collision_model,
+        collision_model_metadata,
+        compute_pair_distances,
+        geometry_objects_json,
+        state_to_qv,
+    )
+
+    sample = _load_recording_sample(args.recording, args.frame_index)
+    urdf = Path(args.urdf) if args.urdf is not None else DEFAULT_COLLISION_URDF_PATH
+    package_dirs = (urdf.parent,)
+    positions = {
+        str(name): float(value)
+        for name, value in sample["positions_by_name"].items()
+        if value is not None
+    }
+    velocities = {
+        str(name): float(value)
+        for name, value in sample["velocities_by_name"].items()
+        if value is not None
+    }
+    state = NamedJointState(
+        position=positions,
+        velocity=velocities,
+        stamp_sec=float(sample.get("stamp_sec", 0.0)),
+    )
+    collision_model = build_tiago_collision_model(
+        urdf_path=urdf,
+        package_dirs=package_dirs,
+        state_fixed_joint_names=TIAGO_RUNTIME_STATE_FIXED_JOINT_NAMES,
+        reference_positions=state.position,
+    )
+    q, qd = state_to_qv(collision_model.model, state)
+    pairs = compute_pair_distances(collision_model, q)
+
+    return {
+        "schema_version": 1,
+        "_source_path": str(args.recording),
+        "recording_path": str(args.recording),
+        "recording_frame_index": int(args.frame_index),
+        "urdf_path": str(urdf),
+        "package_dirs": [str(path) for path in package_dirs],
+        "model": collision_model_metadata(collision_model),
+        "state": {
+            "source": "full_joint_state_history",
+            "stamp_sec": state.stamp_sec,
+            "q": [float(value) for value in q],
+            "qd": [float(value) for value in qd],
+            "positions_by_name": state.position,
+            "velocities_by_name": state.velocity,
+        },
+        "geometry_objects": geometry_objects_json(collision_model),
+        "collision_pairs": [report.to_json() for report in pairs],
+    }
 
 
 def _ordered_pair(a: str, b: str) -> tuple[str, str]:
@@ -189,7 +329,16 @@ def _path_matches(path: Path, *, expect_dir: bool) -> bool:
 
 
 class _PairRenderer:
-    def __init__(self, review_data: dict) -> None:
+    def __init__(
+        self,
+        review_data: dict,
+        *,
+        primitive_urdf: Path | None = None,
+        mesh_context_urdf: Path | None = None,
+        primitive_alpha: float = 0.92,
+        context_alpha: float = 0.09,
+        attached_context_alpha: float = 1.0,
+    ) -> None:
         global np
 
         import sys
@@ -198,35 +347,76 @@ class _PairRenderer:
             sys.path.insert(0, str(TIAGO_SRC_DIR))
 
         import matplotlib.pyplot as plt
-        from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+        from matplotlib.colors import to_rgba
+        from mpl_toolkits.mplot3d.art3d import Line3DCollection, Poly3DCollection
         import numpy as np
         import pinocchio as pin
 
         from gato_tiago.safety_monitor import build_tiago_collision_model
 
         self.plt = plt
+        self.Line3DCollection = Line3DCollection
         self.Poly3DCollection = Poly3DCollection
+        self.to_rgba = to_rgba
         self.pin = pin
+        self.primitive_alpha = float(primitive_alpha)
+        self.context_alpha = float(context_alpha)
+        self.attached_context_alpha = float(attached_context_alpha)
 
         urdf_path = _resolve_captured_path(str(review_data["urdf_path"]))
-        package_dirs = [
+        pair_package_dirs = [
             _resolve_captured_path(path, expect_dir=True)
             for path in review_data.get("package_dirs", [urdf_path.parent])
         ]
-        locked_joints = tuple(review_data.get("model", {}).get("locked_joints", []))
+        state_fixed_joints = tuple(review_data.get("model", {}).get("state_fixed_joints", []))
         reference_positions = review_data.get("state", {}).get("positions_by_name", {})
-        self.collision_model = build_tiago_collision_model(
-            urdf_path=urdf_path,
-            package_dirs=package_dirs,
-            locked_joint_names=locked_joints,
+
+        pair_urdf = (
+            _resolve_captured_path(primitive_urdf)
+            if primitive_urdf is not None
+            else urdf_path
+        )
+        context_urdf = (
+            _resolve_captured_path(mesh_context_urdf)
+            if mesh_context_urdf is not None
+            else pair_urdf
+        )
+        self.overlay_mode = context_urdf != pair_urdf
+        context_package_dirs = (
+            [context_urdf.parent] if self.overlay_mode else pair_package_dirs
+        )
+        self.pair_collision_model = build_tiago_collision_model(
+            urdf_path=pair_urdf,
+            package_dirs=pair_package_dirs,
+            state_fixed_joint_names=state_fixed_joints,
             reference_positions=reference_positions,
         )
+        if self.overlay_mode:
+            self.context_collision_model = build_tiago_collision_model(
+                urdf_path=context_urdf,
+                package_dirs=context_package_dirs,
+                state_fixed_joint_names=state_fixed_joints,
+                reference_positions=reference_positions,
+            )
+        else:
+            self.context_collision_model = self.pair_collision_model
         self.q = np.asarray(review_data["state"]["q"], dtype=np.float64)
         self._geometry_by_name = {
             obj.name: idx
-            for idx, obj in enumerate(self.collision_model.geometry_model.geometryObjects)
+            for idx, obj in enumerate(self.pair_collision_model.geometry_model.geometryObjects)
         }
-        self._world_triangles = self._compute_world_triangles()
+        self._context_geometry_by_name = {
+            obj.name: idx
+            for idx, obj in enumerate(self.context_collision_model.geometry_model.geometryObjects)
+        }
+        self._pair_world_triangles = self._compute_world_triangles(self.pair_collision_model)
+        self._context_world_triangles = (
+            self._compute_world_triangles(self.context_collision_model)
+            if self.overlay_mode
+            else self._pair_world_triangles
+        )
+        self._pair_urdf = pair_urdf
+        self._context_urdf = context_urdf
 
         self.fig = self.plt.figure(figsize=(9, 7), dpi=120)
         self.ax = self.fig.add_subplot(111, projection="3d")
@@ -241,11 +431,21 @@ class _PairRenderer:
         if index_a is None or index_b is None:
             print(f"image unavailable: geometry not found for {name_a} / {name_b}")
             return
+        context_highlight_indices = {
+            idx
+            for idx in (
+                self._context_geometry_by_name.get(name_a),
+                self._context_geometry_by_name.get(name_b),
+            )
+            if idx is not None
+        }
 
         self.ax.clear()
         all_points = []
-        for idx, triangles in enumerate(self._world_triangles):
-            if idx in {index_a, index_b}:
+        for idx, triangles in enumerate(self._context_world_triangles):
+            if not self.overlay_mode and idx in {index_a, index_b}:
+                continue
+            if self.overlay_mode and idx in context_highlight_indices:
                 continue
             shown = _downsample_triangles(triangles, MAX_CONTEXT_FACES_PER_MESH)
             all_points.append(shown.reshape(-1, 3))
@@ -253,24 +453,55 @@ class _PairRenderer:
                 self.Poly3DCollection(
                     shown,
                     facecolors="#C7C7C7",
-                    edgecolors="none",
-                    linewidths=0.0,
-                    alpha=0.11,
+                    edgecolors="#7A7A7A" if self.overlay_mode else "none",
+                    linewidths=0.035 if self.overlay_mode else 0.0,
+                    alpha=self.context_alpha if self.overlay_mode else 0.11,
                 )
             )
 
-        for idx, color in ((index_a, "#D62728"), (index_b, "#1F77B4")):
-            shown = _downsample_triangles(self._world_triangles[idx], MAX_HIGHLIGHT_FACES_PER_MESH)
-            all_points.append(shown.reshape(-1, 3))
-            self.ax.add_collection3d(
-                self.Poly3DCollection(
-                    shown,
-                    facecolors=color,
-                    edgecolors="#222222",
-                    linewidths=0.05,
-                    alpha=0.82,
+        if self.overlay_mode:
+            for idx in context_highlight_indices:
+                shown = _downsample_triangles(
+                    self._context_world_triangles[idx],
+                    MAX_CONTEXT_FACES_PER_MESH,
                 )
+                all_points.append(shown.reshape(-1, 3))
+                self.ax.add_collection3d(
+                    self.Line3DCollection(
+                        _triangle_edge_segments(shown),
+                        colors=[self.to_rgba("#000000", self.attached_context_alpha)],
+                        linewidths=0.65,
+                        alpha=self.attached_context_alpha,
+                    )
+                )
+
+        highlight_alpha = self.primitive_alpha if self.overlay_mode else 0.82
+        highlight_edge = self.to_rgba("#222222", 0.35)
+        for idx, color in ((index_a, "#D62728"), (index_b, "#1F77B4")):
+            shown = _downsample_triangles(
+                self._pair_world_triangles[idx],
+                MAX_HIGHLIGHT_FACES_PER_MESH,
             )
+            all_points.append(shown.reshape(-1, 3))
+            if self.overlay_mode:
+                self.ax.add_collection3d(
+                    self.Line3DCollection(
+                        _triangle_edge_segments(shown),
+                        colors=[self.to_rgba(color, highlight_alpha)],
+                        linewidths=0.85,
+                        alpha=highlight_alpha,
+                    )
+                )
+            else:
+                self.ax.add_collection3d(
+                    self.Poly3DCollection(
+                        shown,
+                        facecolors=self.to_rgba(color, highlight_alpha),
+                        edgecolors=highlight_edge,
+                        linewidths=0.05,
+                        alpha=highlight_alpha,
+                    )
+                )
 
         nearest_a = pair.get("nearest_point_a")
         nearest_b = pair.get("nearest_point_b")
@@ -290,27 +521,28 @@ class _PairRenderer:
 
         self._set_axes(np.concatenate(all_points, axis=0), index_a, index_b)
         distance = float(pair["distance_m"])
+        overlay_note = "\nprimitive overlay on mesh context" if self.overlay_mode else ""
         self.ax.set_title(
             f"{name_a}  <->  {name_b}\n"
-            f"distance {distance:+.4f} m, pair index {pair['index']}"
+            f"distance {distance:+.4f} m, pair index {pair['index']}{overlay_note}"
         )
         self.fig.canvas.draw_idle()
         self.plt.pause(0.001)
 
-    def _compute_world_triangles(self) -> list[np.ndarray]:
-        data = self.collision_model.model.createData()
-        geometry_data = self.pin.GeometryData(self.collision_model.geometry_model)
-        self.pin.forwardKinematics(self.collision_model.model, data, self.q)
+    def _compute_world_triangles(self, collision_model) -> list[np.ndarray]:
+        data = collision_model.model.createData()
+        geometry_data = self.pin.GeometryData(collision_model.geometry_model)
+        self.pin.forwardKinematics(collision_model.model, data, self.q)
         self.pin.updateGeometryPlacements(
-            self.collision_model.model,
+            collision_model.model,
             data,
-            self.collision_model.geometry_model,
+            collision_model.geometry_model,
             geometry_data,
             self.q,
         )
 
         triangles = []
-        for idx, obj in enumerate(self.collision_model.geometry_model.geometryObjects):
+        for idx, obj in enumerate(collision_model.geometry_model.geometryObjects):
             local = _local_triangles(obj)
             triangles.append(_transform_triangles(local, geometry_data.oMg[idx]))
         return triangles
@@ -318,8 +550,8 @@ class _PairRenderer:
     def _set_axes(self, points: np.ndarray, index_a: int, index_b: int) -> None:
         highlight = np.concatenate(
             [
-                self._world_triangles[index_a].reshape(-1, 3),
-                self._world_triangles[index_b].reshape(-1, 3),
+                self._pair_world_triangles[index_a].reshape(-1, 3),
+                self._pair_world_triangles[index_b].reshape(-1, 3),
             ],
             axis=0,
         )
@@ -340,11 +572,27 @@ class _PairRenderer:
         self.ax.view_init(elev=22, azim=-55)
 
 
-def _make_renderer(review_data: dict, enabled: bool):
+def _make_renderer(
+    review_data: dict,
+    *,
+    enabled: bool,
+    primitive_urdf: Path | None,
+    mesh_context_urdf: Path | None,
+    primitive_alpha: float,
+    context_alpha: float,
+    attached_context_alpha: float,
+):
     if not enabled:
         return None
     try:
-        return _PairRenderer(review_data)
+        return _PairRenderer(
+            review_data,
+            primitive_urdf=primitive_urdf,
+            mesh_context_urdf=mesh_context_urdf,
+            primitive_alpha=primitive_alpha,
+            context_alpha=context_alpha,
+            attached_context_alpha=attached_context_alpha,
+        )
     except Exception as exc:
         print(f"image viewer disabled: {exc}")
         return None
@@ -458,24 +706,28 @@ def _downsample_triangles(triangles: np.ndarray, max_faces: int) -> np.ndarray:
     return triangles[::step]
 
 
+def _triangle_edge_segments(triangles: np.ndarray) -> np.ndarray:
+    return np.concatenate(
+        [
+            triangles[:, [0, 1], :],
+            triangles[:, [1, 2], :],
+            triangles[:, [2, 0], :],
+        ],
+        axis=0,
+    )
+
+
 def main() -> int:
     args = parse_args()
-    review_data = _load_json(args.review_data)
-    review_data["_source_path"] = str(args.review_data)
+    review_data = _review_data_from_recording(args)
     pairs = list(review_data.get("collision_pairs", []))
     if not pairs:
-        raise SystemExit(f"no collision_pairs in {args.review_data}")
+        raise SystemExit(f"no collision pairs for {args.recording}")
     distance_below_m = args.distance_below_m
-    fault = review_data.get("fault", {})
-    if (
-        distance_below_m is None
-        and not args.all_pairs
-        and fault.get("kind") == "collision_distance"
-        and fault.get("min_distance_m") is not None
-    ):
-        distance_below_m = float(fault["min_distance_m"])
 
-    if distance_below_m is not None:
+    if args.all_pairs:
+        pass
+    elif distance_below_m is not None:
         pairs = [
             pair
             for pair in pairs
@@ -488,11 +740,19 @@ def main() -> int:
             mode = f"pairs below {distance_below_m:.6f} m"
         else:
             mode = "all candidate pairs" if args.all_pairs else "colliding pairs"
-        raise SystemExit(f"no {mode} in {args.review_data}")
+        raise SystemExit(f"no {mode} in {args.recording}")
 
     decisions = _initial_decisions(review_data, args.output)
     reviewed = _reviewed_pairs(decisions)
-    renderer = _make_renderer(review_data, enabled=not args.no_images)
+    renderer = _make_renderer(
+        review_data,
+        enabled=not args.no_images,
+        primitive_urdf=args.primitive_urdf,
+        mesh_context_urdf=args.mesh_context_urdf,
+        primitive_alpha=args.primitive_alpha,
+        context_alpha=args.context_alpha,
+        attached_context_alpha=args.attached_context_alpha,
+    )
     review_pairs = []
     for pair in pairs:
         pair_key = _ordered_pair(str(pair["geometry_a"]), str(pair["geometry_b"]))

@@ -19,6 +19,7 @@ import numpy as np
 
 # TODO: consider generating this from the robot's URDF or ROS parameters.
 # Blocker: currently we use an incomplete urdf in GRiD
+# ATTENTION: modifying this directly modifies collision safety behavior and should be tested rigorously in simulation.
 RIGHT_ARM_JOINTS = (
     "arm_right_1_joint",
     "arm_right_2_joint",
@@ -374,6 +375,14 @@ class TiagoRightArmClient:
         effort_active = self._topic_has_subscription(self.effort_command_topic)
         if self._topic_has_subscription(self.trajectory_topic) and not effort_active:
             return
+        # Start the reactivated position controller from the measured joint
+        # state, not from a stale command-interface value left by a previous
+        # trajectory/controller mode.
+        self._set_remote_parameters(
+            "/arm_right_controller",
+            {"set_last_command_interface_value_as_state_on_activation": False},
+            timeout_sec,
+        )
         self._switch_controllers(
             activate=["arm_right_controller"],
             deactivate=[self.effort_controller] if effort_active else [],
@@ -428,7 +437,7 @@ class TiagoRightArmClient:
     def _set_remote_parameters(
         self,
         node_name: str,
-        values: dict[str, str | list[str]],
+        values: dict[str, str | bool | list[str]],
         timeout_sec: float,
     ) -> None:
         request = self.ros["SetParameters"].Request()
@@ -444,11 +453,14 @@ class TiagoRightArmClient:
         if failed:
             raise RuntimeError(f"failed setting parameters on {node_name}: {failed}")
 
-    def _parameter_msg(self, name: str, value: str | list[str]) -> Any:
+    def _parameter_msg(self, name: str, value: str | bool | list[str]) -> Any:
         msg = self.ros["RosParameter"]()
         msg.name = name
         msg.value = self.ros["ParameterValue"]()
-        if isinstance(value, str):
+        if isinstance(value, bool):
+            msg.value.type = self.ros["ParameterType"].PARAMETER_BOOL
+            msg.value.bool_value = value
+        elif isinstance(value, str):
             msg.value.type = self.ros["ParameterType"].PARAMETER_STRING
             msg.value.string_value = value
         else:
