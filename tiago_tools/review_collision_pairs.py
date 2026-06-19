@@ -148,10 +148,12 @@ def _review_data_from_recording(args: argparse.Namespace) -> dict:
         TIAGO_RUNTIME_STATE_FIXED_JOINT_NAMES,
         NamedJointState,
         build_tiago_collision_model,
+        state_to_qv,
+    )
+    from gato_tiago.tiago_tools import (
         collision_model_metadata,
         compute_pair_distances,
         geometry_objects_json,
-        state_to_qv,
     )
 
     sample = _load_recording_sample(args.recording, args.frame_index)

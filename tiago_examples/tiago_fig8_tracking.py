@@ -463,7 +463,7 @@ def run(args):
             stale_timeout_sec=args.ros_stale_timeout,
             max_abs_torque=args.ros_max_abs_torque,
             clamp_torque=args.ros_clamp_torque,
-            collision_safety_enabled=not args.ros_disable_collision_safety,
+            disable_collision_safety_for_sim_debug=args.ros_disable_collision_safety,
             collision_min_distance_m=args.ros_collision_min_distance,
             collision_check_timeout_sec=args.ros_collision_check_timeout,
             collision_max_monitored_geometry_speed_m_s=args.ros_collision_max_monitored_geometry_speed,

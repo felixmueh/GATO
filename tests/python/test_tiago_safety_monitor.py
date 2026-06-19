@@ -14,9 +14,11 @@ from gato_tiago.safety_monitor import (
     compute_collision_body_speeds,
     compute_collision_margin_violation,
     compute_collision_margin_violations,
+    state_to_qv,
+)
+from gato_tiago.tiago_tools import (
     compute_minimum_pair_distance,
     compute_pair_distances,
-    state_to_qv,
 )
 from gato_tiago.ros_tiago import RIGHT_ARM_JOINTS
 

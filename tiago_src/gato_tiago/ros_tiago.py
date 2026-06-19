@@ -34,9 +34,6 @@ DEFAULT_JOINT_STATES_TOPIC = "/joint_states"
 DEFAULT_TRAJECTORY_TOPIC = "/arm_right_controller/joint_trajectory"
 DEFAULT_CONTROLLER_MANAGER = "/controller_manager"
 DEFAULT_EFFORT_CONTROLLER = "gato_arm_effort_forward_runtime"
-DEFAULT_EFFORT_COMMAND_TOPIC = f"/{DEFAULT_EFFORT_CONTROLLER}/commands"
-DEFAULT_CMD_VEL_TOPIC = "/cmd_vel"
-DEFAULT_BASE_CMD_VEL_UNSTAMPED_TOPIC = "/mobile_base_controller/cmd_vel_unstamped"
 DEFAULT_ROS_SETUP = "/opt/ros/humble/setup.bash"
 
 
@@ -55,11 +52,6 @@ class ArmState:
     @property
     def age_sec(self) -> float:
         return time.monotonic() - self.received_monotonic_sec
-
-    @property
-    def x(self) -> np.ndarray:
-        return np.concatenate([self.q, self.qd]).astype(np.float32)
-
 
 def ensure_ros_environment(
     setup_path: str | None = None,
@@ -122,7 +114,6 @@ def _ros_imports(setup_path: str | None = None) -> dict[str, Any]:
             LoadController,
             SwitchController,
         )
-        from geometry_msgs.msg import Twist
         from rcl_interfaces.msg import Parameter as RosParameter
         from rcl_interfaces.msg import ParameterType, ParameterValue
         from rcl_interfaces.srv import SetParameters
@@ -171,8 +162,6 @@ class TiagoRightArmClient:
         trajectory_topic: str = DEFAULT_TRAJECTORY_TOPIC,
         controller_manager: str = DEFAULT_CONTROLLER_MANAGER,
         effort_controller: str = DEFAULT_EFFORT_CONTROLLER,
-        cmd_vel_topic: str = DEFAULT_CMD_VEL_TOPIC,
-        base_cmd_vel_unstamped_topic: str = DEFAULT_BASE_CMD_VEL_UNSTAMPED_TOPIC,
         setup_path: str | None = None,
     ) -> None:
         self.ros = _ros_imports(setup_path)
@@ -188,8 +177,6 @@ class TiagoRightArmClient:
         self.controller_manager = controller_manager.rstrip("/")
         self.effort_controller = effort_controller
         self.effort_command_topic = f"/{effort_controller}/commands"
-        self.cmd_vel_topic = cmd_vel_topic
-        self.base_cmd_vel_unstamped_topic = base_cmd_vel_unstamped_topic
         self._latest_state: ArmState | None = None
         self._state_seq = 0
 
@@ -208,16 +195,6 @@ class TiagoRightArmClient:
         self._effort_pub = self.node.create_publisher(
             self.ros["Float64MultiArray"],
             self.effort_command_topic,
-            10,
-        )
-        self._cmd_vel_pub = self.node.create_publisher(
-            self.ros["Twist"],
-            self.cmd_vel_topic,
-            10,
-        )
-        self._base_cmd_vel_unstamped_pub = self.node.create_publisher(
-            self.ros["Twist"],
-            self.base_cmd_vel_unstamped_topic,
             10,
         )
 
@@ -331,12 +308,6 @@ class TiagoRightArmClient:
         msg = self.ros["Float64MultiArray"]()
         msg.data = _vector(torques, size=len(self.joint_names), name="torques")
         self._effort_pub.publish(msg)
-
-    def publish_zero_base_velocity(self) -> None:
-        """Publish zero mobile-base velocity on the mux and direct base topics."""
-        msg = self.ros["Twist"]()
-        self._cmd_vel_pub.publish(msg)
-        self._base_cmd_vel_unstamped_pub.publish(msg)
 
     def configure_runtime_effort_controller(self, timeout_sec: float = 5.0) -> None:
         """Load and configure a forward effort controller through public ROS APIs."""

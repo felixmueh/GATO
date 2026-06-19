@@ -1,5 +1,4 @@
 import json
-from types import SimpleNamespace
 import sys
 from pathlib import Path
 import time
@@ -18,8 +17,12 @@ if str(TIAGO_SRC) not in sys.path:
 from gato_tiago.tiago_controller_process import (
     TiagoControllerOrchestrator,
     elapsed_sim_time_from_stamp,
-    _format_full_state_history_row,
     _sample_trajectory,
+)
+from gato_tiago.tiago_history_writer import (
+    HistoryRecord,
+    TiagoHistoryBuffer,
+    write_history_outputs,
 )
 from gato_tiago.safety_monitor import (
     AsyncSafetyMonitor,
@@ -145,23 +148,56 @@ def test_sample_trajectory_returns_in_horizon_rows():
     assert in_horizon is True
 
 
-def test_full_state_history_row_contains_named_joint_state():
-    row = _format_full_state_history_row(
-        SimpleNamespace(
-            seq=7,
-            stamp_sec=12.5,
-            received_monotonic_sec=99.0,
-            joint_positions={"joint_a": 1.25},
-            joint_velocities={"joint_a": -0.5, "wheel_joint": float("nan")},
-        ),
-        "RUNNING",
+def test_history_record_contains_named_joint_state():
+    record = HistoryRecord(
+        source_seq=7,
+        stamp_sec=12.5,
+        received_monotonic_sec=99.0,
+        controller_mode="RUNNING",
+        q=np.zeros(7, dtype=np.float64),
+        qd=np.zeros(7, dtype=np.float64),
+        positions_by_name={"joint_a": 1.25},
+        velocities_by_name={"joint_a": -0.5, "wheel_joint": None},
         safety_status="ok",
     )
 
-    data = json.loads(row)
+    data = json.loads(json.dumps(record.to_json_dict()))
     assert data["source_seq"] == 7
     assert data["controller_mode"] == "RUNNING"
     assert data["safety_status"] == "ok"
     assert data["safety_fault"] == ""
     assert data["positions_by_name"] == {"joint_a": 1.25}
     assert data["velocities_by_name"] == {"joint_a": -0.5, "wheel_joint": None}
+
+
+def test_history_buffer_drops_oldest_and_writer_records_metadata(tmp_path):
+    buffer = TiagoHistoryBuffer(max_records=2)
+    for seq in range(3):
+        buffer.append(
+            HistoryRecord(
+                source_seq=seq,
+                stamp_sec=float(seq),
+                received_monotonic_sec=float(seq),
+                controller_mode="RUNNING",
+                q=np.full(7, seq, dtype=np.float64),
+                qd=np.zeros(7, dtype=np.float64),
+                positions_by_name={"joint_a": float(seq)},
+                velocities_by_name={"joint_a": 0.0},
+            )
+        )
+
+    records = buffer.records()
+    assert [record.source_seq for record in records] == [1, 2]
+    assert buffer.dropped_history_records == 1
+
+    metadata = write_history_outputs(
+        records=records,
+        dropped_history_records=buffer.dropped_history_records,
+        csv_path=tmp_path / "history.csv",
+        jsonl_path=tmp_path / "history.jsonl",
+        metadata_path=tmp_path / "history_metadata.json",
+    )
+
+    assert metadata["dropped_history_records"] == 1
+    assert (tmp_path / "history.csv").is_file()
+    assert len((tmp_path / "history.jsonl").read_text(encoding="utf-8").splitlines()) == 2

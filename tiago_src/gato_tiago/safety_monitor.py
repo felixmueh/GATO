@@ -38,7 +38,6 @@ DEFAULT_COLLISION_URDF_PATH = (
 DEFAULT_COLLISION_BLACKLIST_PATH = (
     REPO_ROOT / "tiago_configs" / "comfortable_pose_collision_blacklist.json"
 )
-DEFAULT_PACKAGE_DIRS = (DEFAULT_URDF_PATH.parent,)
 # These joints are fixed at their reference value in the runtime reduced
 # collision model, so safety does not require position/velocity state for them.
 TIAGO_RUNTIME_STATE_FIXED_JOINT_NAMES = (
@@ -68,30 +67,6 @@ class NamedJointState:
     position: dict[str, float]
     velocity: dict[str, float]
     stamp_sec: float | None = None
-
-    @classmethod
-    def from_sequences(
-        cls,
-        names: Sequence[str],
-        positions: Sequence[float],
-        velocities: Sequence[float],
-        *,
-        stamp_sec: float | None = None,
-    ) -> "NamedJointState":
-        if len(names) != len(positions):
-            raise ValueError(
-                f"joint name/position length mismatch: {len(names)} != {len(positions)}"
-            )
-        if len(names) != len(velocities):
-            raise ValueError(
-                f"joint name/velocity length mismatch: {len(names)} != {len(velocities)}"
-            )
-        return cls(
-            position={name: float(value) for name, value in zip(names, positions)},
-            velocity={name: float(value) for name, value in zip(names, velocities)},
-            stamp_sec=stamp_sec,
-        )
-
 
 @dataclass(frozen=True)
 class CollisionSafetySettings:
@@ -134,38 +109,6 @@ class _SafetyFault(RuntimeError):
 
 
 @dataclass(frozen=True)
-class CollisionPairReport:
-    """Distance report for one Pinocchio geometry pair."""
-
-    index: int
-    geometry_a: str
-    geometry_b: str
-    link_a: str
-    link_b: str
-    parent_joint_a: str
-    parent_joint_b: str
-    distance_m: float
-    in_collision: bool
-    nearest_point_a: tuple[float, float, float] | None
-    nearest_point_b: tuple[float, float, float] | None
-
-    def to_json(self) -> dict[str, object]:
-        return {
-            "index": self.index,
-            "geometry_a": self.geometry_a,
-            "geometry_b": self.geometry_b,
-            "link_a": self.link_a,
-            "link_b": self.link_b,
-            "parent_joint_a": self.parent_joint_a,
-            "parent_joint_b": self.parent_joint_b,
-            "distance_m": self.distance_m,
-            "in_collision": self.in_collision,
-            "nearest_point_a": list(self.nearest_point_a) if self.nearest_point_a else None,
-            "nearest_point_b": list(self.nearest_point_b) if self.nearest_point_b else None,
-        }
-
-
-@dataclass(frozen=True)
 class CollisionBodySpeedReport:
     """Conservative speed bound for one collision geometry object."""
 
@@ -176,15 +119,6 @@ class CollisionBodySpeedReport:
     angular_speed_rad_s: float
     radius_m: float
     speed_bound_m_s: float
-
-
-@dataclass(frozen=True)
-class CollisionMinimumDistance:
-    """Minimum distance result without per-pair debug report allocation."""
-
-    index: int
-    distance_m: float
-    in_collision: bool
 
 
 @dataclass(frozen=True)
@@ -334,11 +268,14 @@ class AsyncSafetyMonitor:
             self.close()
             raise RuntimeError(result.error or "collision safety worker failed to initialize")
         self._pending_seq: int | None = None
-        self._first_request_monotonic_sec: float | None = None
-        self._last_ok_monotonic_sec: float | None = None
+        self._pending_since_monotonic_sec: float | None = None
         self.safety_status = "unchecked"
         self.safety_fault = ""
         self.safety_message = ""
+
+    @property
+    def last_checked_seq(self) -> int:
+        return int(self._last_checked_seq)
 
     def check(self, state: SafetyCheckState) -> None:
         seq = int(state.seq)
@@ -346,10 +283,10 @@ class AsyncSafetyMonitor:
         now = time.monotonic()
         self._poll_responses()
 
-        if self._should_submit(seq, now):
+        if seq != self._last_checked_seq and self._pending_seq is None:
             self._submit(state, now)
 
-        self._enforce_freshness(now, seq)
+        self._enforce_pending_timeout(now, seq)
 
     def wait_until_checked(
         self,
@@ -369,15 +306,6 @@ class AsyncSafetyMonitor:
                 )
             time.sleep(min(0.001, remaining))
 
-    def _should_submit(self, seq: int, now: float) -> bool:
-        if self._pending_seq is not None:
-            return False
-        if seq != self._last_checked_seq:
-            return True
-        if self._last_ok_monotonic_sec is None:
-            return True
-        return now - self._last_ok_monotonic_sec > 0.5 * self.timeout_sec
-
     def _submit(self, state: SafetyCheckState, now: float) -> None:
         seq = int(state.seq)
         try:
@@ -391,8 +319,7 @@ class AsyncSafetyMonitor:
             )
             raise RuntimeError(self.safety_message) from exc
         self._pending_seq = seq
-        if self._first_request_monotonic_sec is None:
-            self._first_request_monotonic_sec = now
+        self._pending_since_monotonic_sec = now
 
     def _poll_responses(self) -> None:
         while True:
@@ -405,6 +332,7 @@ class AsyncSafetyMonitor:
             result_seq = int(result.seq)
             if self._pending_seq == result_seq:
                 self._pending_seq = None
+                self._pending_since_monotonic_sec = None
             if not result.ok:
                 self._set_fault(
                     "fault",
@@ -413,36 +341,20 @@ class AsyncSafetyMonitor:
                 )
                 raise RuntimeError(self.safety_message)
             self._last_checked_seq = result_seq
-            self._last_ok_monotonic_sec = time.monotonic()
             self.safety_status = "ok"
             self.safety_fault = ""
             self.safety_message = ""
 
-    def _enforce_freshness(self, now: float, seq: int) -> None:
-        if self._last_ok_monotonic_sec is not None:
-            if now - self._last_ok_monotonic_sec <= self.timeout_sec:
-                return
-            pending = (
-                f"; pending seq {self._pending_seq}"
-                if self._pending_seq is not None
-                else ""
-            )
-            self._set_fault(
-                "stale",
-                "worker_stale",
-                "collision safety timeout: worker has not produced a fresh "
-                f"successful check within {self.timeout_sec:.3f}s "
-                f"while monitoring state seq {seq}{pending}",
-            )
-            raise RuntimeError(self.safety_message)
-        if self._first_request_monotonic_sec is None:
+    def _enforce_pending_timeout(self, now: float, seq: int) -> None:
+        if self._pending_seq is None or self._pending_since_monotonic_sec is None:
             return
-        if now - self._first_request_monotonic_sec > self.timeout_sec:
+        if now - self._pending_since_monotonic_sec > self.timeout_sec:
             self._set_fault(
                 "stale",
                 "worker_stale",
-                "collision safety timeout: worker did not report any successful "
-                f"check within {self.timeout_sec:.3f}s after first request",
+                "collision safety timeout: worker did not report a check for "
+                f"pending seq {self._pending_seq} within {self.timeout_sec:.3f}s "
+                f"while monitoring state seq {seq}",
             )
             raise RuntimeError(self.safety_message)
 
@@ -837,67 +749,6 @@ def check_joint_limits(
     return violations
 
 
-def compute_pair_distances(
-    collision_model: TiagoCollisionModel,
-    q: np.ndarray,
-) -> list[CollisionPairReport]:
-    _, geometry_data = _compute_all_pair_distances(collision_model, q)
-    reports = []
-    for idx, pair in enumerate(collision_model.geometry_model.collisionPairs):
-        object_a = collision_model.geometry_model.geometryObjects[pair.first]
-        object_b = collision_model.geometry_model.geometryObjects[pair.second]
-        result = geometry_data.distanceResults[idx]
-        distance = float(result.min_distance)
-        reports.append(
-            CollisionPairReport(
-                index=idx,
-                geometry_a=object_a.name,
-                geometry_b=object_b.name,
-                link_a=_frame_name(collision_model.model, object_a.parentFrame),
-                link_b=_frame_name(collision_model.model, object_b.parentFrame),
-                parent_joint_a=_joint_name(collision_model.model, object_a.parentJoint),
-                parent_joint_b=_joint_name(collision_model.model, object_b.parentJoint),
-                distance_m=distance,
-                in_collision=distance <= 0.0,
-                nearest_point_a=_point_tuple(result.getNearestPoint1()),
-                nearest_point_b=_point_tuple(result.getNearestPoint2()),
-            )
-        )
-    return reports
-
-
-def compute_pair_distance_values(
-    collision_model: TiagoCollisionModel,
-    q: np.ndarray,
-) -> np.ndarray:
-    """Return raw pair distances aligned with geometry_model.collisionPairs."""
-    _, geometry_data = _compute_all_pair_distances(collision_model, q)
-    return np.asarray(
-        [
-            float(geometry_data.distanceResults[idx].min_distance)
-            for idx in range(len(collision_model.geometry_model.collisionPairs))
-        ],
-        dtype=np.float64,
-    )
-
-
-def compute_minimum_pair_distance(
-    collision_model: TiagoCollisionModel,
-    q: np.ndarray,
-) -> CollisionMinimumDistance:
-    """Return only the closest pair distance for a runtime hot path."""
-    distances = compute_pair_distance_values(collision_model, q)
-    if distances.size == 0:
-        return CollisionMinimumDistance(index=-1, distance_m=float("inf"), in_collision=False)
-    index = int(np.argmin(distances))
-    distance = float(distances[index])
-    return CollisionMinimumDistance(
-        index=index,
-        distance_m=distance,
-        in_collision=distance <= 0.0,
-    )
-
-
 def compute_collision_margin_violation(
     collision_model: TiagoCollisionModel,
     q: np.ndarray,
@@ -964,65 +815,6 @@ def compute_collision_margin_violations(
                 )
             )
     return violations
-
-
-def compute_pair_distance_reports_for_indices(
-    collision_model: TiagoCollisionModel,
-    q: np.ndarray,
-    pair_indices: Iterable[int],
-) -> list[CollisionPairReport]:
-    """Compute exact distance reports only for selected collision-pair indices."""
-    data, geometry_data = collision_model.make_data()
-    pin.updateGeometryPlacements(
-        collision_model.model,
-        data,
-        collision_model.geometry_model,
-        geometry_data,
-        np.asarray(q, dtype=np.float64),
-    )
-    reports = []
-    for idx in pair_indices:
-        pair_index = int(idx)
-        pair = collision_model.geometry_model.collisionPairs[pair_index]
-        object_a = collision_model.geometry_model.geometryObjects[pair.first]
-        object_b = collision_model.geometry_model.geometryObjects[pair.second]
-        result = pin.computeDistance(
-            collision_model.geometry_model,
-            geometry_data,
-            pair_index,
-        )
-        distance = float(result.min_distance)
-        reports.append(
-            CollisionPairReport(
-                index=pair_index,
-                geometry_a=object_a.name,
-                geometry_b=object_b.name,
-                link_a=_frame_name(collision_model.model, object_a.parentFrame),
-                link_b=_frame_name(collision_model.model, object_b.parentFrame),
-                parent_joint_a=_joint_name(collision_model.model, object_a.parentJoint),
-                parent_joint_b=_joint_name(collision_model.model, object_b.parentJoint),
-                distance_m=distance,
-                in_collision=distance <= 0.0,
-                nearest_point_a=_point_tuple(result.getNearestPoint1()),
-                nearest_point_b=_point_tuple(result.getNearestPoint2()),
-            )
-        )
-    return reports
-
-
-def _compute_all_pair_distances(
-    collision_model: TiagoCollisionModel,
-    q: np.ndarray,
-) -> tuple[pin.Data, pin.GeometryData]:
-    data, geometry_data = collision_model.make_data()
-    pin.computeDistances(
-        collision_model.model,
-        data,
-        collision_model.geometry_model,
-        geometry_data,
-        np.asarray(q, dtype=np.float64),
-    )
-    return data, geometry_data
 
 
 def compute_collision_body_speeds(
@@ -1111,40 +903,6 @@ def apply_collision_blacklist(
     return removed
 
 
-def collision_model_metadata(collision_model: TiagoCollisionModel) -> dict[str, object]:
-    return {
-        "state_fixed_joints": list(collision_model.state_fixed_joint_names),
-        "state_updated_joints": list(collision_model.state_updated_joint_names),
-        "monitored_geometry_parent_joints": list(
-            collision_model.monitored_geometry_parent_joint_names
-        ),
-        "monitored_geometry_indices": list(collision_model.monitored_geometry_indices),
-        "monitor_only_collision_pairs": bool(collision_model.monitor_only_collision_pairs),
-        "geometry_count": len(collision_model.geometry_model.geometryObjects),
-        "collision_pair_count": len(collision_model.geometry_model.collisionPairs),
-    }
-
-
-def geometry_objects_json(collision_model: TiagoCollisionModel) -> list[dict[str, object]]:
-    objects = []
-    monitored = set(collision_model.monitored_geometry_indices)
-    for idx, obj in enumerate(collision_model.geometry_model.geometryObjects):
-        objects.append(
-            {
-                "index": idx,
-                "name": obj.name,
-                "type": type(obj.geometry).__name__,
-                "link": _frame_name(collision_model.model, obj.parentFrame),
-                "parent_joint": _joint_name(collision_model.model, obj.parentJoint),
-                "monitored": idx in monitored,
-                "mesh_path": str(getattr(obj, "meshPath", "")),
-                "mesh_scale": [float(value) for value in getattr(obj, "meshScale", [])],
-                "radius_m": float(collision_model.geometry_radii_m[idx]),
-            }
-        )
-    return objects
-
-
 def _write_named_positions(
     model: pin.Model,
     q: np.ndarray,
@@ -1187,16 +945,6 @@ def _geometry_local_radius(obj: pin.GeometryObject) -> float:
     return 0.0
 
 
-def _collision_geometry_radii(collision_model: TiagoCollisionModel) -> np.ndarray:
-    return np.asarray(
-        [
-            _geometry_radius_from_parent_frame(obj)
-            for obj in collision_model.geometry_model.geometryObjects
-        ],
-        dtype=np.float64,
-    )
-
-
 def _read_stl_vertices(path: Path) -> np.ndarray:
     data = path.read_bytes()
     if len(data) >= 84:
@@ -1224,19 +972,6 @@ def _read_stl_vertices(path: Path) -> np.ndarray:
         if line.startswith("vertex "):
             parsed.append([float(value) for value in line.split()[1:4]])
     return np.asarray(parsed, dtype=np.float64).reshape(-1, 3)
-
-
-def _point_tuple(point: object) -> tuple[float, float, float] | None:
-    try:
-        arr = np.asarray(point, dtype=np.float64).reshape(3)
-    except Exception:
-        return None
-    return (float(arr[0]), float(arr[1]), float(arr[2]))
-
-
-def _vector_tuple(vector: np.ndarray) -> tuple[float, float, float]:
-    arr = np.asarray(vector, dtype=np.float64).reshape(3)
-    return (float(arr[0]), float(arr[1]), float(arr[2]))
 
 
 def _frame_name(model: pin.Model, frame_id: int) -> str:
