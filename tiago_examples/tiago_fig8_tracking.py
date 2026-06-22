@@ -21,7 +21,11 @@ from bsqp.config import (
     IIWA14_START_CONFIGS,
     INDY7_START_CONFIGS,
 )
-from gato_tiago.config import TIAGO_RIGHT_START_CONFIGS, TIAGO_TRACKING_SOLVER_PARAMS
+from gato_tiago.config import (
+    TIAGO_RIGHT_DEFAULT_START_CONFIG,
+    TIAGO_RIGHT_START_CONFIGS,
+    TIAGO_TRACKING_SOLVER_PARAMS,
+)
 from gato_tiago.tiago_mpc_controller import MPC_GATO
 
 
@@ -51,6 +55,19 @@ def ee_position(model, q, plant):
         tool_id = model.getFrameId("arm_right_tool_link")
         return (data.oMf[torso_id].inverse() * data.oMf[tool_id]).translation.copy()
     return data.oMi[model.njoints - 1].translation.copy()
+
+
+def ee_pose_rpy(model, q, plant):
+    data = model.createData()
+    pin.forwardKinematics(model, data, q)
+    if plant == "tiago_right":
+        pin.updateFramePlacements(model, data)
+        torso_id = model.getFrameId("torso_lift_link")
+        tool_id = model.getFrameId("arm_right_tool_link")
+        placement = data.oMf[torso_id].inverse() * data.oMf[tool_id]
+    else:
+        placement = data.oMi[model.njoints - 1]
+    return placement.translation.copy(), pin.rpy.matrixToRpy(placement.rotation).copy()
 
 
 def rotation_from_vectors(source, target):
@@ -132,7 +149,14 @@ def apply_fixed_orientation(reference, orientation_rpy):
     return reference.reshape(-1)
 
 
-def plant_config(plant, dt):
+def plant_config(
+    plant,
+    dt,
+    *,
+    tiago_start_config=TIAGO_RIGHT_DEFAULT_START_CONFIG,
+    track_start_orientation=False,
+    orientation_rpy=None,
+):
     if plant == "indy7":
         model_path = REPO_ROOT / "examples" / "indy7_description" / "indy7.urdf"
         return {
@@ -156,16 +180,35 @@ def plant_config(plant, dt):
     if plant == "tiago_right":
         model_path = REPO_ROOT / "gato" / "dynamics" / "tiago_right" / "tiago_right_arm.urdf"
         model = load_model(model_path)
-        start_q = TIAGO_RIGHT_START_CONFIGS["comfortable"].astype(np.float32)
-        start_ee = ee_position(model, start_q.astype(np.float64), plant)
+        start_q = TIAGO_RIGHT_START_CONFIGS[tiago_start_config].astype(np.float32)
+        start_ee, start_rpy = ee_pose_rpy(model, start_q.astype(np.float64), plant)
         reference, metadata = tiago_horizontal_figure8(dt, start_ee)
+        orientation_target = None
+        if orientation_rpy is not None:
+            orientation_target = np.asarray(orientation_rpy, dtype=np.float64)
+        elif track_start_orientation:
+            orientation_target = start_rpy
+        if orientation_target is not None:
+            if orientation_target.shape != (3,):
+                raise ValueError("orientation_rpy must contain exactly 3 values")
+            reference = reference.reshape(-1, 6)
+            reference[:, 3:6] = orientation_target
+            reference = reference.reshape(-1)
         return {
             "model_path": model_path,
             "start_q": start_q,
             "batch_sizes": [1],
             "f_ext": np.zeros(6, dtype=np.float32),
             "reference": reference,
-            "reference_metadata": {**metadata, "tiago_start_ee": start_ee.tolist()},
+            "reference_metadata": {
+                **metadata,
+                "tiago_start_config": tiago_start_config,
+                "tiago_start_ee": start_ee.tolist(),
+                "orientation_tracking": orientation_target is not None,
+                "orientation_rpy": (
+                    orientation_target.tolist() if orientation_target is not None else None
+                ),
+            },
         }
     raise ValueError(f"Unsupported plant: {plant}")
 
@@ -501,7 +544,16 @@ def save_renderings(output_dir, plant, model, reference, results, make_gif, orie
 
 
 def run(args):
-    cfg = plant_config(args.plant, args.dt)
+    cfg = plant_config(
+        args.plant,
+        args.dt,
+        tiago_start_config=args.tiago_start_config,
+        track_start_orientation=args.track_start_orientation,
+        orientation_rpy=args.ee_orientation_rpy,
+    )
+    output_dir = args.output_root / args.plant
+    if args.output_label:
+        output_dir = output_dir / args.output_label
     ros_controller = None
     if args.ros_tiago:
         if args.plant != "tiago_right":
@@ -515,6 +567,13 @@ def run(args):
             stale_timeout_sec=args.ros_stale_timeout,
             max_abs_torque=args.ros_max_abs_torque,
             clamp_torque=args.ros_clamp_torque,
+            disable_collision_safety_for_sim_debug=args.ros_disable_collision_safety,
+            collision_min_distance_m=args.ros_collision_min_distance,
+            collision_check_timeout_sec=args.ros_collision_check_timeout,
+            collision_max_monitored_geometry_speed_m_s=args.ros_collision_max_monitored_geometry_speed,
+            collision_blacklist_path=args.ros_collision_blacklist,
+            joint_position_margin_rad=args.ros_joint_position_margin_rad,
+            joint_velocity_scale=args.ros_joint_velocity_scale,
         )
 
     if args.batch_sizes is not None:
@@ -526,11 +585,14 @@ def run(args):
     )
     if args.vel_lim_cost is not None:
         solver_params["vel_lim_cost"] = args.vel_lim_cost
+    if args.u_cost is not None:
+        solver_params["u_cost"] = args.u_cost
+    if args.q_lim_cost is not None:
+        solver_params["q_lim_cost"] = args.q_lim_cost
     if args.ctrl_lim_cost is not None:
         solver_params["ctrl_lim_cost"] = args.ctrl_lim_cost
-    if args.ee_orient_cost is not None:
+    if args.track_start_orientation or args.ee_orientation_rpy is not None:
         solver_params["ee_orient_cost"] = args.ee_orient_cost
-    if args.ee_orient_N_cost is not None:
         solver_params["ee_orient_N_cost"] = args.ee_orient_N_cost
 
     model = load_model(cfg["model_path"])
@@ -539,9 +601,6 @@ def run(args):
         reference = apply_fixed_orientation(reference, args.ee_orientation_rpy).astype(np.float32)
         cfg["reference_metadata"]["ee_orientation_rpy"] = [float(v) for v in args.ee_orientation_rpy]
     x_start = np.concatenate([cfg["start_q"], np.zeros(model.nv, dtype=np.float32)]).astype(np.float32)
-    output_dir = args.output_root / args.plant
-    if args.output_label:
-        output_dir = output_dir / args.output_label
     output_dir.mkdir(parents=True, exist_ok=True)
 
     np.savetxt(
@@ -591,6 +650,9 @@ def run(args):
             ros_controller.close(timeout_sec=args.ros_controller_timeout)
             controller_state_summary = ros_controller.write_state_history_csv(
                 output_dir / "controller_state_history.csv"
+            )
+            ros_controller.write_full_state_history_jsonl(
+                output_dir / "full_joint_state_history.jsonl"
             )
 
     orientation_tracking_enabled = (
@@ -648,20 +710,47 @@ def parse_args():
     parser.add_argument("--sim-dt", type=float, default=0.001)
     parser.add_argument("--sim-time", type=float, default=16.0)
     parser.add_argument("--batch-sizes", nargs="+", type=int, default=None)
+    parser.add_argument(
+        "--tiago-start-config",
+        choices=tuple(TIAGO_RIGHT_START_CONFIGS),
+        default=TIAGO_RIGHT_DEFAULT_START_CONFIG,
+        help="Named Tiago right-arm start pose used when --plant tiago_right.",
+    )
     parser.add_argument("--output-root", type=Path, default=OUTPUT_ROOT)
     parser.add_argument("--output-label", default=None)
     parser.add_argument("--vel-lim-cost", type=float, default=None)
+    parser.add_argument("--u-cost", type=float, default=None)
+    parser.add_argument("--q-lim-cost", type=float, default=None)
     parser.add_argument("--ctrl-lim-cost", type=float, default=None)
-    parser.add_argument("--ee-orient-cost", type=float, default=None)
-    parser.add_argument("--ee-orient-N-cost", type=float, default=None)
-    parser.add_argument("--ee-orientation-rpy", nargs=3, type=float, default=None)
+    parser.add_argument(
+        "--track-start-orientation",
+        action="store_true",
+        help="Track the Tiago start-pose tool RPY as a constant figure-8 orientation target.",
+    )
+    parser.add_argument(
+        "--ee-orientation-rpy",
+        nargs=3,
+        type=float,
+        default=None,
+        metavar=("ROLL", "PITCH", "YAW"),
+        help="Constant figure-8 EE orientation target. For local tool z-axis up, use 0 0 0.",
+    )
+    parser.add_argument("--ee-orient-cost", type=float, default=0.2)
+    parser.add_argument("--ee-orient-N-cost", type=float, default=4.0)
     parser.add_argument("--no-gif", action="store_true")
     parser.add_argument("--ros-tiago", action="store_true")
     parser.add_argument("--ros-target-hz", type=float, default=125.0)
     parser.add_argument("--ros-reset-duration", type=float, default=2.0)
-    parser.add_argument("--ros-stale-timeout", type=float, default=0.25)
+    parser.add_argument("--ros-stale-timeout", type=float, default=0.1)
     parser.add_argument("--ros-max-abs-torque", type=float, default=30.0)
     parser.add_argument("--ros-clamp-torque", action="store_true")
+    parser.add_argument("--ros-disable-collision-safety", action="store_true")
+    parser.add_argument("--ros-collision-min-distance", type=float, default=0.04)
+    parser.add_argument("--ros-collision-check-timeout", type=float, default=0.05)
+    parser.add_argument("--ros-collision-max-monitored-geometry-speed", type=float, default=1.0)
+    parser.add_argument("--ros-collision-blacklist", type=Path, default=None)
+    parser.add_argument("--ros-joint-position-margin-rad", type=float, default=0.0)
+    parser.add_argument("--ros-joint-velocity-scale", type=float, default=1.0)
     parser.add_argument("--ros-controller-timeout", type=float, default=8.0)
     return parser.parse_args()
 

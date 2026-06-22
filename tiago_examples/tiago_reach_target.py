@@ -1358,11 +1358,14 @@ def save_gif(
 
 
 def run_experiment(args):
-    from gato_tiago.config import TIAGO_RIGHT_START_CONFIGS, TIAGO_TRACKING_SOLVER_PARAMS
+    from gato_tiago.config import (
+        TIAGO_RIGHT_START_CONFIGS,
+        TIAGO_TRACKING_SOLVER_PARAMS,
+    )
     from gato_tiago.tiago_mpc_controller import MPC_GATO
 
     model = load_model()
-    start_q = TIAGO_RIGHT_START_CONFIGS["comfortable"].astype(np.float32)
+    start_q = TIAGO_RIGHT_START_CONFIGS[args.tiago_start_config].astype(np.float32)
     start_data = model.createData()
     start_ee = tool_position(model, start_data, start_q.astype(np.float64))
     target_offset = np.asarray(args.target_offset, dtype=np.float64)
@@ -1438,6 +1441,8 @@ def run_experiment(args):
     )
     controller.force_estimator = None
 
+    expr_dir = expr_dir_from_args(args)
+
     ros_controller = None
     if args.ros_tiago:
         from gato_tiago.tiago_controller_process import TiagoControllerOrchestrator
@@ -1449,9 +1454,15 @@ def run_experiment(args):
             stale_timeout_sec=args.ros_stale_timeout,
             max_abs_torque=args.ros_max_abs_torque,
             clamp_torque=args.ros_clamp_torque,
+            disable_collision_safety_for_sim_debug=args.ros_disable_collision_safety,
+            collision_min_distance_m=args.ros_collision_min_distance,
+            collision_check_timeout_sec=args.ros_collision_check_timeout,
+            collision_max_monitored_geometry_speed_m_s=args.ros_collision_max_monitored_geometry_speed,
+            collision_blacklist_path=args.ros_collision_blacklist,
+            joint_position_margin_rad=args.ros_joint_position_margin_rad,
+            joint_velocity_scale=args.ros_joint_velocity_scale,
         )
 
-    expr_dir = expr_dir_from_args(args)
     controller_state_summary = None
     try:
         _, stats = controller.run_mpc_goals(
@@ -1471,6 +1482,9 @@ def run_experiment(args):
             ros_controller.close(timeout_sec=args.ros_controller_timeout)
             controller_state_summary = ros_controller.write_state_history_csv(
                 expr_dir / "data" / "controller_state_history.csv"
+            )
+            ros_controller.write_full_state_history_jsonl(
+                expr_dir / "data" / "full_joint_state_history.jsonl"
             )
 
     timestamps = np.asarray(stats.get("timestamps", []), dtype=np.float64)
@@ -1511,6 +1525,7 @@ def run_experiment(args):
     metadata = {
         "args": {**jsonable_args(args), "output_root": json_path(args.output_root), "expr_dir": json_path(expr_dir) if args.expr_dir is not None else None},
         "model_path": json_path(MODEL_PATH),
+        "tiago_start_config": args.tiago_start_config,
         "start_ee": [float(v) for v in start_ee],
         "goals": [[float(v) for v in goal] for goal in goals],
         "goal_selection": goal_selection,
@@ -1693,6 +1708,7 @@ def run_goal_sweep(args, model, start_q, start_ee, goals, goal_selection):
         "args": {**jsonable_args(args), "output_root": json_path(args.output_root), "expr_dir": json_path(expr_dir) if args.expr_dir is not None else None},
         "mode": "sampled_goal_sweep",
         "model_path": json_path(MODEL_PATH),
+        "tiago_start_config": args.tiago_start_config,
         "start_ee": [float(v) for v in start_ee],
         "goals": [[float(v) for v in goal] for goal in goals],
         "goal_selection": goal_selection,
@@ -1726,7 +1742,7 @@ def sample_goals_command(args):
     from gato_tiago.config import TIAGO_RIGHT_START_CONFIGS
 
     model = load_model()
-    start_q = TIAGO_RIGHT_START_CONFIGS["comfortable"].astype(np.float64)
+    start_q = TIAGO_RIGHT_START_CONFIGS[args.tiago_start_config].astype(np.float64)
     start_data = model.createData()
     start_ee = tool_position(model, start_data, start_q)
     if args.goal_mode == "rectangle-grid":
@@ -1823,6 +1839,8 @@ def create_plots(args):
 
 
 def add_run_args(parser):
+    from gato_tiago.config import TIAGO_RIGHT_DEFAULT_START_CONFIG, TIAGO_RIGHT_START_CONFIGS
+
     parser.add_argument("--N", type=int, default=16)
     parser.add_argument("--dt", type=float, default=0.03)
     parser.add_argument("--sim-dt", type=float, default=0.003)
@@ -1843,6 +1861,12 @@ def add_run_args(parser):
     parser.add_argument("--orientation-cone-half-angle-deg", type=float, default=PICK_PLACE_RECTANGLE["orientation_cone_half_angle_deg"])
     parser.add_argument("--tool-axis-tolerance-deg", type=float, default=5.0)
     parser.add_argument("--goals-file", type=Path, default=None)
+    parser.add_argument(
+        "--tiago-start-config",
+        choices=tuple(TIAGO_RIGHT_START_CONFIGS),
+        default=TIAGO_RIGHT_DEFAULT_START_CONFIG,
+        help="Named Tiago right-arm start pose.",
+    )
     parser.add_argument("--required-limit-clearance", type=float, default=DEFAULT_LIMIT_CLEARANCE)
     parser.add_argument("--vel-lim-cost", type=float, default=None)
     parser.add_argument("--ctrl-lim-cost", type=float, default=None)
@@ -1852,13 +1876,22 @@ def add_run_args(parser):
     parser.add_argument("--ros-tiago", action="store_true")
     parser.add_argument("--ros-target-hz", type=float, default=100.0)
     parser.add_argument("--ros-reset-duration", type=float, default=2.0)
-    parser.add_argument("--ros-stale-timeout", type=float, default=0.25)
+    parser.add_argument("--ros-stale-timeout", type=float, default=0.1)
     parser.add_argument("--ros-max-abs-torque", type=float, default=30.0)
     parser.add_argument("--ros-clamp-torque", action="store_true")
+    parser.add_argument("--ros-disable-collision-safety", action="store_true")
+    parser.add_argument("--ros-collision-min-distance", type=float, default=0.04)
+    parser.add_argument("--ros-collision-check-timeout", type=float, default=0.05)
+    parser.add_argument("--ros-collision-max-monitored-geometry-speed", type=float, default=1.0)
+    parser.add_argument("--ros-collision-blacklist", type=Path, default=None)
+    parser.add_argument("--ros-joint-position-margin-rad", type=float, default=0.0)
+    parser.add_argument("--ros-joint-velocity-scale", type=float, default=1.0)
     parser.add_argument("--ros-controller-timeout", type=float, default=8.0)
 
 
 def add_sample_goal_args(parser):
+    from gato_tiago.config import TIAGO_RIGHT_DEFAULT_START_CONFIG, TIAGO_RIGHT_START_CONFIGS
+
     parser.add_argument("--goal-mode", choices=("rectangle-grid", "joint-offset"), default="rectangle-grid")
     parser.add_argument("--goal-count", type=int, default=DEFAULT_GOAL_COUNT)
     parser.add_argument("--goal-candidates", type=int, default=DEFAULT_GOAL_CANDIDATES)
@@ -1866,6 +1899,12 @@ def add_sample_goal_args(parser):
     parser.add_argument("--goal-seed", type=int, default=DEFAULT_GOAL_SEED)
     parser.add_argument("--goal-joint-max-offset", type=float, default=DEFAULT_GOAL_JOINT_MAX_OFFSET)
     parser.add_argument("--include-close-goals", type=int, default=0)
+    parser.add_argument(
+        "--tiago-start-config",
+        choices=tuple(TIAGO_RIGHT_START_CONFIGS),
+        default=TIAGO_RIGHT_DEFAULT_START_CONFIG,
+        help="Named Tiago right-arm start pose.",
+    )
     parser.add_argument("--required-limit-clearance", type=float, default=DEFAULT_LIMIT_CLEARANCE)
     parser.add_argument("--grid-width-points", type=int, default=PICK_PLACE_RECTANGLE["width_points"])
     parser.add_argument("--grid-depth-points", type=int, default=PICK_PLACE_RECTANGLE["depth_points"])

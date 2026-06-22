@@ -1,0 +1,314 @@
+{
+  "collision_artifact": "tiago_configs/collision_alpha_wrap_a3_o25_cap001/tiago_pro_collision_alpha_wrap_a3_o25_cap001.urdf",
+  "created_at": "2026-06-17T11:40:27.388464+00:00",
+  "ignored_geometry_pairs": [
+    {
+      "decision": "ignore",
+      "distance_m_at_review": 0.0,
+      "geometry_a": "torso_base_link_0",
+      "geometry_b": "torso_lift_link_0",
+      "link_a": "torso_base_link",
+      "link_b": "torso_lift_link",
+      "reason": "operator reviewed",
+      "reviewed_at": "2026-06-17T11:40:42.687992+00:00"
+    },
+    {
+      "decision": "ignore",
+      "distance_m_at_review": 0.0,
+      "geometry_a": "torso_lift_link_0",
+      "geometry_b": "arm_left_1_link_0",
+      "link_a": "torso_lift_link",
+      "link_b": "arm_left_1_link",
+      "reason": "operator reviewed",
+      "reviewed_at": "2026-06-17T11:40:56.232508+00:00"
+    },
+    {
+      "decision": "ignore",
+      "distance_m_at_review": 0.0,
+      "geometry_a": "torso_lift_link_0",
+      "geometry_b": "arm_right_1_link_0",
+      "link_a": "torso_lift_link",
+      "link_b": "arm_right_1_link",
+      "reason": "operator reviewed",
+      "reviewed_at": "2026-06-17T11:40:59.162598+00:00"
+    },
+    {
+      "decision": "ignore",
+      "distance_m_at_review": 0.0,
+      "geometry_a": "torso_lift_link_0",
+      "geometry_b": "head_1_link_0",
+      "link_a": "torso_lift_link",
+      "link_b": "head_1_link",
+      "reason": "operator reviewed",
+      "reviewed_at": "2026-06-17T11:41:04.283926+00:00"
+    },
+    {
+      "decision": "ignore",
+      "distance_m_at_review": 0.0,
+      "geometry_a": "arm_left_1_link_0",
+      "geometry_b": "arm_left_2_link_0",
+      "link_a": "arm_left_1_link",
+      "link_b": "arm_left_2_link",
+      "reason": "operator reviewed",
+      "reviewed_at": "2026-06-17T11:41:10.455129+00:00"
+    },
+    {
+      "decision": "ignore",
+      "distance_m_at_review": 0.0,
+      "geometry_a": "arm_left_2_link_0",
+      "geometry_b": "arm_left_3_link_0",
+      "link_a": "arm_left_2_link",
+      "link_b": "arm_left_3_link",
+      "reason": "operator reviewed",
+      "reviewed_at": "2026-06-17T11:41:14.026508+00:00"
+    },
+    {
+      "decision": "ignore",
+      "distance_m_at_review": 0.0,
+      "geometry_a": "arm_left_3_link_0",
+      "geometry_b": "arm_left_4_link_0",
+      "link_a": "arm_left_3_link",
+      "link_b": "arm_left_4_link",
+      "reason": "operator reviewed",
+      "reviewed_at": "2026-06-17T11:41:23.222748+00:00"
+    },
+    {
+      "decision": "ignore",
+      "distance_m_at_review": 0.0,
+      "geometry_a": "arm_left_4_link_0",
+      "geometry_b": "arm_left_5_link_0",
+      "link_a": "arm_left_4_link",
+      "link_b": "arm_left_5_link",
+      "reason": "operator reviewed",
+      "reviewed_at": "2026-06-17T11:41:28.063716+00:00"
+    },
+    {
+      "decision": "ignore",
+      "distance_m_at_review": 0.0,
+      "geometry_a": "arm_left_5_link_0",
+      "geometry_b": "arm_left_6_link_0",
+      "link_a": "arm_left_5_link",
+      "link_b": "arm_left_6_link",
+      "reason": "operator reviewed",
+      "reviewed_at": "2026-06-17T11:41:34.620662+00:00"
+    },
+    {
+      "decision": "ignore",
+      "distance_m_at_review": -0.012637000691093102,
+      "geometry_a": "arm_left_6_link_0",
+      "geometry_b": "arm_left_7_link_0",
+      "link_a": "arm_left_6_link",
+      "link_b": "arm_left_7_link",
+      "reason": "operator reviewed",
+      "reviewed_at": "2026-06-17T11:41:38.264156+00:00"
+    },
+    {
+      "decision": "ignore",
+      "distance_m_at_review": 0.0,
+      "geometry_a": "arm_right_1_link_0",
+      "geometry_b": "arm_right_2_link_0",
+      "link_a": "arm_right_1_link",
+      "link_b": "arm_right_2_link",
+      "reason": "operator reviewed",
+      "reviewed_at": "2026-06-17T11:41:40.636649+00:00"
+    },
+    {
+      "decision": "ignore",
+      "distance_m_at_review": 0.0,
+      "geometry_a": "arm_right_2_link_0",
+      "geometry_b": "arm_right_3_link_0",
+      "link_a": "arm_right_2_link",
+      "link_b": "arm_right_3_link",
+      "reason": "operator reviewed",
+      "reviewed_at": "2026-06-17T11:41:42.759199+00:00"
+    },
+    {
+      "decision": "ignore",
+      "distance_m_at_review": 0.0,
+      "geometry_a": "arm_right_3_link_0",
+      "geometry_b": "arm_right_4_link_0",
+      "link_a": "arm_right_3_link",
+      "link_b": "arm_right_4_link",
+      "reason": "operator reviewed",
+      "reviewed_at": "2026-06-17T11:41:44.943296+00:00"
+    },
+    {
+      "decision": "ignore",
+      "distance_m_at_review": 0.0,
+      "geometry_a": "arm_right_4_link_0",
+      "geometry_b": "arm_right_5_link_0",
+      "link_a": "arm_right_4_link",
+      "link_b": "arm_right_5_link",
+      "reason": "operator reviewed",
+      "reviewed_at": "2026-06-17T11:41:46.931095+00:00"
+    },
+    {
+      "decision": "ignore",
+      "distance_m_at_review": 0.0,
+      "geometry_a": "arm_right_5_link_0",
+      "geometry_b": "arm_right_6_link_0",
+      "link_a": "arm_right_5_link",
+      "link_b": "arm_right_6_link",
+      "reason": "operator reviewed",
+      "reviewed_at": "2026-06-17T11:41:48.690453+00:00"
+    },
+    {
+      "decision": "ignore",
+      "distance_m_at_review": -0.012637000691095008,
+      "geometry_a": "arm_right_6_link_0",
+      "geometry_b": "arm_right_7_link_0",
+      "link_a": "arm_right_6_link",
+      "link_b": "arm_right_7_link",
+      "reason": "operator reviewed",
+      "reviewed_at": "2026-06-17T11:41:50.352948+00:00"
+    },
+    {
+      "decision": "ignore",
+      "distance_m_at_review": 0.0,
+      "geometry_a": "head_1_link_0",
+      "geometry_b": "head_2_link_0",
+      "link_a": "head_1_link",
+      "link_b": "head_2_link",
+      "reason": "operator reviewed",
+      "reviewed_at": "2026-06-17T11:41:52.251059+00:00"
+    },
+    {
+      "decision": "ignore",
+      "distance_m_at_review": 0.006336993860804309,
+      "geometry_a": "torso_base_link_0",
+      "geometry_b": "arm_left_1_link_0",
+      "link_a": "torso_base_link",
+      "link_b": "arm_left_1_link",
+      "reason": "Rotational upper biceps can't intersect with torso.",
+      "reviewed_at": "2026-06-17T11:52:07.277934+00:00"
+    },
+    {
+      "decision": "ignore",
+      "distance_m_at_review": 0.0062845927709216905,
+      "geometry_a": "torso_base_link_0",
+      "geometry_b": "arm_right_1_link_0",
+      "link_a": "torso_base_link",
+      "link_b": "arm_right_1_link",
+      "reason": "Rotational upper bicep can't intersect with torso.",
+      "reviewed_at": "2026-06-17T11:52:18.794579+00:00"
+    },
+    {
+      "decision": "ignore",
+      "distance_m_at_review": 0.022804379143629736,
+      "geometry_a": "arm_left_5_link_0",
+      "geometry_b": "arm_left_7_link_0",
+      "link_a": "arm_left_5_link",
+      "link_b": "arm_left_7_link",
+      "reason": "Joint limits avoid collision.",
+      "reviewed_at": "2026-06-17T11:57:07.826570+00:00"
+    },
+    {
+      "decision": "ignore",
+      "distance_m_at_review": 0.014128518131489732,
+      "geometry_a": "arm_left_6_link_0",
+      "geometry_b": "gripper_left_base_link_0",
+      "link_a": "arm_left_6_link",
+      "link_b": "gripper_left_base_link",
+      "reason": "operator reviewed",
+      "reviewed_at": "2026-06-17T11:57:24.720200+00:00"
+    },
+    {
+      "decision": "ignore",
+      "distance_m_at_review": 0.022804378512570302,
+      "geometry_a": "arm_right_5_link_0",
+      "geometry_b": "arm_right_7_link_0",
+      "link_a": "arm_right_5_link",
+      "link_b": "arm_right_7_link",
+      "reason": "Joint limits avoid collision.",
+      "reviewed_at": "2026-06-17T11:57:30.790353+00:00"
+    },
+    {
+      "decision": "ignore",
+      "distance_m_at_review": 0.014128519636811535,
+      "geometry_a": "arm_right_6_link_0",
+      "geometry_b": "gripper_right_base_link_0",
+      "link_a": "arm_right_6_link",
+      "link_b": "gripper_right_base_link",
+      "reason": "operator reviewed",
+      "reviewed_at": "2026-06-17T11:57:34.890546+00:00"
+    },
+    {
+      "decision": "ignore",
+      "distance_m_at_review": 0.016688326764106837,
+      "geometry_a": "torso_head_link_0",
+      "geometry_b": "head_1_link_0",
+      "link_a": "torso_head_link",
+      "link_b": "head_1_link",
+      "reason": "operator reviewed",
+      "reviewed_at": "2026-06-17T11:57:42.054214+00:00"
+    },
+    {
+      "decision": "ignore",
+      "distance_m_at_review": 0.03994096333688243,
+      "geometry_a": "arm_right_4_link_0",
+      "geometry_b": "arm_right_6_link_0",
+      "link_a": "arm_right_4_link",
+      "link_b": "arm_right_6_link",
+      "reason": "Can't collide.",
+      "reviewed_at": "2026-06-18T15:20:49.360329+00:00"
+    }
+  ],
+  "model": {
+    "collision_pair_count": 943,
+    "geometry_count": 47,
+    "state_fixed_joints": [
+      "wheel_front_left_joint",
+      "wheel_front_right_joint",
+      "wheel_rear_left_joint",
+      "wheel_rear_right_joint",
+      "gripper_left_finger_joint",
+      "gripper_left_inner_finger_left_joint",
+      "gripper_left_fingertip_left_joint",
+      "gripper_left_inner_finger_right_joint",
+      "gripper_left_fingertip_right_joint",
+      "gripper_left_outer_finger_right_joint",
+      "gripper_right_finger_joint",
+      "gripper_right_inner_finger_left_joint",
+      "gripper_right_fingertip_left_joint",
+      "gripper_right_inner_finger_right_joint",
+      "gripper_right_fingertip_right_joint",
+      "gripper_right_outer_finger_right_joint"
+    ],
+    "state_updated_joints": [
+      "torso_lift_joint",
+      "arm_left_1_joint",
+      "arm_left_2_joint",
+      "arm_left_3_joint",
+      "arm_left_4_joint",
+      "arm_left_5_joint",
+      "arm_left_6_joint",
+      "arm_left_7_joint",
+      "arm_right_1_joint",
+      "arm_right_2_joint",
+      "arm_right_3_joint",
+      "arm_right_4_joint",
+      "arm_right_5_joint",
+      "arm_right_6_joint",
+      "arm_right_7_joint",
+      "head_1_joint",
+      "head_2_joint"
+    ]
+  },
+  "monitored_geometry_pairs": [
+    {
+      "decision": "monitor",
+      "distance_m_at_review": 0.049129165456686566,
+      "geometry_a": "torso_base_link_0",
+      "geometry_b": "arm_right_4_link_0",
+      "link_a": "torso_base_link",
+      "link_b": "arm_right_4_link",
+      "reason": "Arm is close in comfortable pose.",
+      "reviewed_at": "2026-06-17T11:53:53.191632+00:00"
+    }
+  ],
+  "review_recording_note": "Reviewed from a comfortable/default-pose joint-state recording using tiago_tools/review_collision_pairs.py.",
+  "review_recording_path": "full_joint_state_history.jsonl",
+  "schema_version": 1,
+  "updated_at": "2026-06-18T15:20:49.360755+00:00",
+  "urdf_path": "tiago_configs/collision_alpha_wrap_a3_o25_cap001/tiago_pro_collision_alpha_wrap_a3_o25_cap001.urdf"
+}

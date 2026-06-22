@@ -32,7 +32,6 @@ def wait_for_position(
     deadline = time.monotonic() + timeout_sec
     last_error = float("inf")
     while time.monotonic() < deadline:
-        arm.publish_zero_base_velocity()
         state = arm.read_state(timeout_sec=1.0)
         last_error = float(np.max(np.abs(state.q.astype(np.float64) - target)))
         if last_error <= tolerance_rad:
@@ -72,7 +71,6 @@ def main() -> int:
             "commanding default posture: "
             + ", ".join(f"{value:+.3f}" for value in target)
         )
-        arm.publish_zero_base_velocity()
         arm.publish_position_trajectory(target, duration_sec=args.duration)
         arm.spin_once(timeout_sec=0.1)
         reached, error = wait_for_position(

@@ -8,16 +8,36 @@ from __future__ import annotations
 
 import atexit
 from dataclasses import dataclass
+import json
 import multiprocessing as mp
 from pathlib import Path
 import queue
 import tempfile
 import time
 from typing import Any, Sequence
+import warnings
 
 import numpy as np
 
-from gato_tiago.config import TIAGO_RIGHT_START_CONFIGS
+from gato_tiago.config import (
+    TIAGO_RIGHT_DEFAULT_START_CONFIG,
+    TIAGO_RIGHT_START_CONFIGS,
+)
+from gato_tiago.safety_monitor import (
+    AsyncSafetyMonitor,
+    CollisionSafetySettings,
+    DEFAULT_COLLISION_BLACKLIST_PATH,
+    SafetyCheckState,
+)
+from gato_tiago.tiago_history_writer import (
+    TiagoHistoryBuffer,
+    make_history_record,
+    write_history_outputs,
+)
+from gato_tiago.ros_tiago import RIGHT_ARM_JOINTS
+
+
+DEFAULT_HISTORY_MAX_RECORDS = 20_000
 
 
 @dataclass(frozen=True)
@@ -66,6 +86,7 @@ _STATE_HISTORY_MODE_CODES = {
     "READY": 1.0,
     "RUNNING": 2.0,
     "RESTORED": 3.0,
+    "ERROR_RESTORE": 4.0,
 }
 _STATE_HISTORY_MODES_BY_CODE = {
     int(code): mode for mode, code in _STATE_HISTORY_MODE_CODES.items()
@@ -115,9 +136,6 @@ class _SharedState:
         self.stamp_sec = ctx.Value("d", 0.0)
         self.received_monotonic_sec = ctx.Value("d", 0.0)
         self.mode = ctx.Array("c", 32)
-        self.command_count = ctx.Value("q", 0)
-        self.command_rate_hz = ctx.Value("d", 0.0)
-        self.max_period_sec = ctx.Value("d", 0.0)
         self.seq = ctx.Value("q", 0)
         self.source_seq = ctx.Value("q", 0)
 
@@ -151,9 +169,6 @@ def _write_state(
     stamp_sec: float,
     received_monotonic_sec: float,
     mode: str,
-    command_count: int,
-    command_rate_hz: float,
-    max_period_sec: float,
     source_seq: int,
 ) -> None:
     encoded_mode = mode.encode("ascii", errors="replace")[:31]
@@ -164,9 +179,6 @@ def _write_state(
         shared.received_monotonic_sec.value = float(received_monotonic_sec)
         shared.mode[:] = b"\0" * len(shared.mode)
         shared.mode[: len(encoded_mode)] = encoded_mode
-        shared.command_count.value = int(command_count)
-        shared.command_rate_hz.value = float(command_rate_hz)
-        shared.max_period_sec.value = float(max_period_sec)
         shared.source_seq.value = int(source_seq)
         shared.seq.value += 1
 
@@ -183,9 +195,6 @@ def _read_state(shared: _SharedState) -> RobotState | None:
             stamp_sec=float(shared.stamp_sec.value),
             received_monotonic_sec=float(shared.received_monotonic_sec.value),
             controller_mode=mode,
-            command_count=int(shared.command_count.value),
-            command_rate_hz=float(shared.command_rate_hz.value),
-            max_period_sec=float(shared.max_period_sec.value),
             seq=seq,
             source_seq=int(shared.source_seq.value),
         )
@@ -201,10 +210,6 @@ def _state_history_row(sample: StateHistorySample) -> list[float]:
         *[float(v) for v in sample.q],
         *[float(v) for v in sample.qd],
     ]
-
-
-def _format_state_history_row(sample: StateHistorySample) -> str:
-    return ",".join(f"{value:.10g}" for value in _state_history_row(sample)) + "\n"
 
 
 def _state_history_from_rows(rows: np.ndarray) -> list[StateHistorySample]:
@@ -235,6 +240,15 @@ def _load_state_history(path: Path) -> list[StateHistorySample]:
     return _state_history_from_rows(rows)
 
 
+def _load_history_metadata(path: Path) -> dict[str, int]:
+    if not path.is_file() or path.stat().st_size == 0:
+        return {"dropped_history_records": 0}
+    data = json.loads(path.read_text(encoding="utf-8"))
+    return {
+        "dropped_history_records": int(data.get("dropped_history_records", 0)),
+    }
+
+
 def _validate_trajectory(
     traj: TorqueTrajectory,
     n_joints: int,
@@ -258,13 +272,41 @@ def _validate_trajectory(
             f"trajectory torque exceeds max_abs_torque={max_abs_torque:.3f}"
         )
     if max_abs_observed > max_abs_torque:
-        print(
-            "clamping torque trajectory: "
-            f"max_abs={max_abs_observed:.3f} max_abs_torque={max_abs_torque:.3f}",
-            flush=True,
+        warnings.warn(
+            "clamping torque trajectory before publication: "
+            f"max_abs={max_abs_observed:.3f} exceeded "
+            f"max_abs_torque={max_abs_torque:.3f}",
+            RuntimeWarning,
+            stacklevel=2,
         )
         torques = np.clip(torques, -max_abs_torque, max_abs_torque)
     return torques
+
+
+def _safety_check_state(state: Any) -> SafetyCheckState:
+    return SafetyCheckState(
+        q=np.asarray(state.q, dtype=np.float64).copy(),
+        qd=np.asarray(state.qd, dtype=np.float64).copy(),
+        stamp_sec=float(state.stamp_sec),
+        received_monotonic_sec=float(state.received_monotonic_sec),
+        seq=int(state.seq),
+        joint_positions=_full_joint_positions(state),
+        joint_velocities=_full_joint_velocities(state),
+    )
+
+
+def _full_joint_positions(state: Any) -> dict[str, float]:
+    positions = getattr(state, "joint_positions", None)
+    if positions is None:
+        raise RuntimeError("collision safety requires full named joint positions")
+    return {str(name): float(value) for name, value in positions.items()}
+
+
+def _full_joint_velocities(state: Any) -> dict[str, float]:
+    velocities = getattr(state, "joint_velocities", None)
+    if velocities is None:
+        raise RuntimeError("collision safety requires full named joint velocities")
+    return {str(name): float(value) for name, value in velocities.items()}
 
 
 def _sample_trajectory(
@@ -281,6 +323,19 @@ def _sample_trajectory(
     return torques[idx], True
 
 
+def _publish_zero_effort_burst(
+    arm: Any,
+    *,
+    count: int,
+    period_sec: float,
+) -> None:
+    zero = np.zeros(len(arm.joint_names), dtype=np.float64)
+    for _ in range(max(1, int(count))):
+        arm.publish_effort(zero)
+        arm.spin_once(timeout_sec=0.0)
+        time.sleep(max(0.0, float(period_sec)))
+
+
 class TiagoControllerOrchestrator:
     """Minimal process wrapper with initialize/send_trajectory/read_state."""
 
@@ -290,22 +345,43 @@ class TiagoControllerOrchestrator:
         target_hz: float = 100.0,
         reset_q: Sequence[float] | None = None,
         reset_duration_sec: float = 2.0,
-        stale_timeout_sec: float = 0.25,
+        stale_timeout_sec: float = 0.1,
         # TODO: read from urdf
         max_abs_torque: float = 30.0,
         clamp_torque: bool = False,
-        restore_on_exit: bool = True,
+        disable_collision_safety_for_sim_debug: bool = False,
+        collision_min_distance_m: float = 0.04,
+        collision_check_timeout_sec: float = 0.05,
+        collision_max_monitored_geometry_speed_m_s: float = 1.0,
+        collision_blacklist_path: str | Path | None = DEFAULT_COLLISION_BLACKLIST_PATH,
+        joint_position_margin_rad: float = 0.0,
+        joint_velocity_scale: float = 1.0,
+        history_max_records: int = DEFAULT_HISTORY_MAX_RECORDS,
         start_method: str = "spawn",
     ) -> None:
         self.target_hz = float(target_hz)
         if reset_q is None:
-            reset_q = TIAGO_RIGHT_START_CONFIGS["comfortable"]
+            reset_q = TIAGO_RIGHT_START_CONFIGS[TIAGO_RIGHT_DEFAULT_START_CONFIG]
         self.reset_q = np.asarray(reset_q, dtype=np.float64)
         self.reset_duration_sec = float(reset_duration_sec)
         self.stale_timeout_sec = float(stale_timeout_sec)
         self.max_abs_torque = float(max_abs_torque)
         self.clamp_torque = bool(clamp_torque)
-        self.restore_on_exit = restore_on_exit
+        self.history_max_records = int(history_max_records)
+        self.collision_safety = CollisionSafetySettings(
+            enabled=not bool(disable_collision_safety_for_sim_debug),
+            blacklist_path=(
+                DEFAULT_COLLISION_BLACKLIST_PATH
+                if collision_blacklist_path is None
+                else Path(collision_blacklist_path)
+            ),
+            controlled_joint_names=tuple(RIGHT_ARM_JOINTS),
+            min_distance_m=float(collision_min_distance_m),
+            check_timeout_sec=float(collision_check_timeout_sec),
+            max_monitored_geometry_speed_m_s=float(collision_max_monitored_geometry_speed_m_s),
+            joint_position_margin_rad=float(joint_position_margin_rad),
+            joint_velocity_scale=float(joint_velocity_scale),
+        )
         if self.target_hz <= 0.0:
             raise ValueError("target_hz must be positive")
         if self.reset_q.shape != (7,):
@@ -316,12 +392,30 @@ class TiagoControllerOrchestrator:
             raise ValueError("stale_timeout_sec must be positive")
         if self.max_abs_torque <= 0.0:
             raise ValueError("max_abs_torque must be positive")
+        if self.history_max_records <= 0:
+            raise ValueError("history_max_records must be positive")
+        if self.collision_safety.min_distance_m < 0.0:
+            raise ValueError("collision_min_distance_m must be non-negative")
+        if self.collision_safety.check_timeout_sec <= 0.0:
+            raise ValueError("collision_check_timeout_sec must be positive")
+        if self.collision_safety.max_monitored_geometry_speed_m_s <= 0.0:
+            raise ValueError("collision_max_monitored_geometry_speed_m_s must be positive")
+        if self.collision_safety.joint_position_margin_rad < 0.0:
+            raise ValueError("joint_position_margin_rad must be non-negative")
+        if self.collision_safety.joint_velocity_scale <= 0.0:
+            raise ValueError("joint_velocity_scale must be positive")
         self._ctx = mp.get_context(start_method)
         self._state = _SharedState(self._ctx)
         self._trajectory_q: mp.Queue = self._ctx.Queue(maxsize=1)
         self._status_q: mp.Queue = self._ctx.Queue(maxsize=8)
         self._history_tmpdir = tempfile.TemporaryDirectory(prefix="gato_tiago_history_")
         self._history_path = Path(self._history_tmpdir.name) / "state_history_rows.csv"
+        self._full_state_history_path = (
+            Path(self._history_tmpdir.name) / "full_joint_state_history.jsonl"
+        )
+        self._history_metadata_path = (
+            Path(self._history_tmpdir.name) / "history_metadata.json"
+        )
         self._stop_event = self._ctx.Event()
         self._process: mp.Process | None = None
         self._latest_state: RobotState | None = None
@@ -345,11 +439,13 @@ class TiagoControllerOrchestrator:
                 "stale_timeout_sec": self.stale_timeout_sec,
                 "max_abs_torque": self.max_abs_torque,
                 "clamp_torque": self.clamp_torque,
-                "restore_on_exit": self.restore_on_exit,
+                "collision_safety": self.collision_safety,
+                "history_max_records": self.history_max_records,
                 "shared_state": self._state,
                 "trajectory_q": self._trajectory_q,
                 "status_q": self._status_q,
                 "history_path": self._history_path,
+                "history_metadata_path": self._history_metadata_path,
                 "stop_event": self._stop_event,
             },
         )
@@ -438,10 +534,23 @@ class TiagoControllerOrchestrator:
             "q0,q1,q2,q3,q4,q5,q6,qd0,qd1,qd2,qd3,qd4,qd5,qd6"
         )
         np.savetxt(path, rows, delimiter=",", header=header, comments="", fmt="%.10g")
-        return summarize_state_history_frequency(
+        summary = summarize_state_history_frequency(
             history,
             change_atol=change_atol,
             running_only=True,
+        )
+        summary.update(_load_history_metadata(self._history_metadata_path))
+        return summary
+
+    def write_full_state_history_jsonl(self, path: str | Path) -> None:
+        path = Path(path)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        if not self._full_state_history_path.is_file():
+            path.write_text("", encoding="utf-8")
+            return
+        path.write_text(
+            self._full_state_history_path.read_text(encoding="utf-8"),
+            encoding="utf-8",
         )
 
     def close(self, timeout_sec: float = 5.0) -> None:
@@ -472,11 +581,13 @@ def _controller_main(
     stale_timeout_sec: float,
     max_abs_torque: float,
     clamp_torque: bool,
-    restore_on_exit: bool,
+    collision_safety: CollisionSafetySettings,
+    history_max_records: int,
     shared_state: _SharedState,
     trajectory_q: mp.Queue,
     status_q: mp.Queue,
     history_path: Path,
+    history_metadata_path: Path,
     stop_event: mp.Event,
 ) -> None:
     from gato_tiago.ros_tiago import TiagoRightArmClient
@@ -486,32 +597,88 @@ def _controller_main(
     current_torques: np.ndarray | None = None
     current_dt = 0.0
     current_start = 0.0
+    current_applied_tau: np.ndarray | None = None
+    active_trajectory_id: int | None = None
+    next_trajectory_id = 0
     effort_active = False
     had_error = False
-    command_count = 0
-    command_window_start = time.perf_counter()
-    last_publish_time: float | None = None
-    command_rate_hz = 0.0
-    max_period_sec = 0.0
     last_history_source_seq = 0
+    safety_monitor: AsyncSafetyMonitor | None = None
+    history_buffer = TiagoHistoryBuffer(history_max_records)
 
     def set_status(new_mode: str, error: str | None = None) -> None:
         nonlocal mode
         mode = new_mode
         _put_latest(status_q, ControllerStatus(mode=new_mode, error=error))
 
-    history_file = Path(history_path).open("w", encoding="utf-8", buffering=1)
-    with history_file, TiagoRightArmClient(node_name="gato_tiago_controller_process") as arm:
+    def write_history_state(
+        state: Any,
+        sample_mode: str,
+        *,
+        safety_monitor: AsyncSafetyMonitor | None = None,
+    ) -> None:
+        nonlocal last_history_source_seq
+        if state is None or int(state.seq) == last_history_source_seq:
+            return
+        history_buffer.append(
+            make_history_record(
+                state,
+                sample_mode,
+                applied_tau=current_applied_tau,
+                trajectory_id=active_trajectory_id,
+                safety_status=(
+                    safety_monitor.safety_status
+                    if safety_monitor is not None
+                    else "unchecked"
+                ),
+                safety_fault=(
+                    safety_monitor.safety_fault if safety_monitor is not None else ""
+                ),
+                safety_message=(
+                    safety_monitor.safety_message
+                    if safety_monitor is not None
+                    else ""
+                ),
+                last_safety_checked_seq=(
+                    safety_monitor.last_checked_seq
+                    if safety_monitor is not None
+                    else None
+                ),
+            )
+        )
+        last_history_source_seq = int(state.seq)
+
+    with TiagoRightArmClient(node_name="gato_tiago_controller_process") as arm:
+        def stop_motion_and_restore_default() -> None:
+            nonlocal effort_active, current_applied_tau
+            if effort_active:
+                _publish_zero_effort_burst(arm, count=5, period_sec=period)
+                current_applied_tau = np.zeros(len(arm.joint_names), dtype=np.float64)
+                arm.spin_once(timeout_sec=0.0)
+                write_history_state(
+                    arm.latest_state(),
+                    "ERROR_RESTORE" if had_error else mode,
+                    safety_monitor=safety_monitor,
+                )
+            arm.switch_to_default_control(timeout_sec=5.0)
+            effort_active = False
+
         try:
             set_status("RESETTING")
             arm.switch_to_default_control(timeout_sec=5.0)
-            arm.publish_zero_base_velocity()
             arm.publish_position_trajectory(reset_q, duration_sec=reset_duration_sec)
             reset_deadline = time.monotonic() + reset_duration_sec
             while time.monotonic() < reset_deadline and not stop_event.is_set():
-                arm.publish_zero_base_velocity()
                 arm.spin_once(timeout_sec=0.05)
-            arm.read_state(timeout_sec=8.0)
+            initial_state = arm.read_state(timeout_sec=8.0)
+            if collision_safety.enabled:
+                initial_safety_state = _safety_check_state(initial_state)
+                safety_monitor = AsyncSafetyMonitor(
+                    settings=collision_safety,
+                    initial_state=initial_safety_state,
+                )
+                safety_monitor.wait_until_checked(initial_safety_state)
+            write_history_state(initial_state, "RESETTING", safety_monitor=safety_monitor)
             arm.configure_runtime_effort_controller(timeout_sec=5.0)
             set_status("READY")
 
@@ -519,7 +686,6 @@ def _controller_main(
             while not stop_event.is_set():
                 now = time.perf_counter()
                 arm.spin_once(timeout_sec=0.0)
-                arm.publish_zero_base_velocity()
 
                 state = arm.latest_state()
                 if state is not None:
@@ -530,32 +696,33 @@ def _controller_main(
                         stamp_sec=state.stamp_sec,
                         received_monotonic_sec=state.received_monotonic_sec,
                         mode=mode,
-                        command_count=command_count,
-                        command_rate_hz=command_rate_hz,
-                        max_period_sec=max_period_sec,
                         source_seq=state.seq,
                     )
-                    if state.seq != last_history_source_seq:
-                        history_file.write(
-                            _format_state_history_row(
-                                StateHistorySample(
-                                    source_seq=state.seq,
-                                    stamp_sec=state.stamp_sec,
-                                    received_monotonic_sec=state.received_monotonic_sec,
-                                    controller_mode=mode,
-                                    q=state.q.astype(np.float64),
-                                    qd=state.qd.astype(np.float64),
-                                )
-                            )
-                        )
-                        last_history_source_seq = state.seq
 
                 if effort_active and (state is None or state.age_sec > stale_timeout_sec):
                     age = state.age_sec if state is not None else float("inf")
                     raise RuntimeError(f"joint state stale during effort control: age={age:.3f}s")
+                if safety_monitor is not None and state is not None:
+                    safety_state = _safety_check_state(state)
+                    try:
+                        safety_monitor.check(safety_state)
+                    except BaseException:
+                        write_history_state(
+                            state,
+                            "ERROR_RESTORE",
+                            safety_monitor=safety_monitor,
+                        )
+                        raise
+                if state is not None and state.seq != last_history_source_seq:
+                    write_history_state(state, mode, safety_monitor=safety_monitor)
 
                 traj = _get_latest(trajectory_q)
                 if traj is not None:
+                    trajectory_start = (
+                        traj.start_monotonic_sec
+                        if traj.start_monotonic_sec is not None
+                        else now
+                    )
                     current_torques = _validate_trajectory(
                         traj,
                         len(arm.joint_names),
@@ -563,21 +730,28 @@ def _controller_main(
                         clamp_torque,
                     )
                     current_dt = traj.dt
-                    current_start = (
-                        traj.start_monotonic_sec
-                        if traj.start_monotonic_sec is not None
-                        else now
-                    )
-                    command_count = 0
-                    command_window_start = now
-                    last_publish_time = None
-                    command_rate_hz = 0.0
-                    max_period_sec = 0.0
+                    active_trajectory_id = next_trajectory_id
+                    next_trajectory_id += 1
                     if not effort_active:
                         arm.publish_effort(current_torques[0])
+                        current_applied_tau = current_torques[0].copy()
                         arm.spin_once(timeout_sec=0.01)
                         arm.switch_to_effort_control(timeout_sec=5.0)
+                        state = arm.read_state(timeout_sec=2.0)
+                        if safety_monitor is not None:
+                            safety_state = _safety_check_state(state)
+                            try:
+                                safety_monitor.check(safety_state)
+                            except BaseException:
+                                write_history_state(
+                                    state,
+                                    "ERROR_RESTORE",
+                                    safety_monitor=safety_monitor,
+                                )
+                                raise
+                        trajectory_start = time.perf_counter()
                         effort_active = True
+                    current_start = trajectory_start
                     set_status("RUNNING")
 
                 if effort_active:
@@ -589,20 +763,14 @@ def _controller_main(
                         + stale_timeout_sec
                     ):
                         raise RuntimeError("torque trajectory stale")
-                    tau, still_in_horizon = _sample_trajectory(
+                    tau, _ = _sample_trajectory(
                         current_torques,
                         current_dt,
                         current_start,
                         now,
                     )
                     arm.publish_effort(tau)
-                    command_count += 1
-                    if last_publish_time is not None:
-                        max_period_sec = max(max_period_sec, now - last_publish_time)
-                    last_publish_time = now
-                    window_elapsed = now - command_window_start
-                    if window_elapsed >= 0.25:
-                        command_rate_hz = command_count / window_elapsed
+                    current_applied_tau = tau.copy()
 
                 next_time += period
                 sleep_time = next_time - time.perf_counter()
@@ -614,21 +782,28 @@ def _controller_main(
         except BaseException as exc:
             had_error = True
             set_status("ERROR_RESTORE", str(exc))
-            if restore_on_exit:
-                try:
-                    arm.switch_to_default_control(timeout_sec=5.0)
-                except BaseException as restore_exc:
-                    set_status("ERROR_RESTORE_FAILED", str(restore_exc))
-                    raise
             raise
         finally:
-            if restore_on_exit:
-                try:
-                    arm.switch_to_default_control(timeout_sec=5.0)
-                    if not had_error:
-                        set_status("RESTORED")
-                except BaseException as exc:
-                    set_status("ERROR_RESTORE_FAILED", str(exc))
+            try:
+                stop_motion_and_restore_default()
+                if not had_error:
+                    set_status("RESTORED")
+            except BaseException as exc:
+                set_status("ERROR_RESTORE_FAILED", str(exc))
+                if not had_error:
+                    raise
+            finally:
+                if safety_monitor is not None:
+                    safety_monitor.close()
+                write_history_outputs(
+                    records=history_buffer.records(),
+                    dropped_history_records=history_buffer.dropped_history_records,
+                    csv_path=history_path,
+                    jsonl_path=Path(history_path).with_name(
+                        "full_joint_state_history.jsonl"
+                    ),
+                    metadata_path=history_metadata_path,
+                )
 
 
 # =======================================================
