@@ -236,7 +236,9 @@ def _state_history_from_rows(rows: np.ndarray) -> list[StateHistorySample]:
 def _load_state_history(path: Path) -> list[StateHistorySample]:
     if not path.is_file() or path.stat().st_size == 0:
         return []
-    rows = np.loadtxt(path, delimiter=",", ndmin=2)
+    if len(path.read_text(encoding="utf-8").splitlines()) <= 1:
+        return []
+    rows = np.loadtxt(path, delimiter=",", ndmin=2, skiprows=1)
     return _state_history_from_rows(rows)
 
 

@@ -9,12 +9,16 @@ TIAGO_RIGHT_START_CONFIGS = {
     # This pose does not clear the default conservative safety margin.
     "comfortable": np.array([-0.36, -1.83, -0.47, -2.35, 0.0, -1.20, 0.04]),
     # Start Configuration with a little bit more clearance of the arm to the body.
-    "combortable_high_clearance": np.array(
+    "comfortable_high_clearance": np.array(
         [-0.39, -1.73, -0.38, -2.35, 0.0, -1.21, 0.04]
     ),
 }
 
-TIAGO_RIGHT_DEFAULT_START_CONFIG = "combortable_high_clearance"
+TIAGO_RIGHT_START_CONFIGS["combortable_high_clearance"] = TIAGO_RIGHT_START_CONFIGS[
+    "comfortable_high_clearance"
+]
+
+TIAGO_RIGHT_DEFAULT_START_CONFIG = "comfortable_high_clearance"
 
 TIAGO_TRACKING_SOLVER_PARAMS = {
     "max_sqp_iters": 5,

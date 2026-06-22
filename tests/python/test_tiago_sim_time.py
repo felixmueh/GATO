@@ -15,8 +15,11 @@ if str(TIAGO_SRC) not in sys.path:
     sys.path.insert(0, str(TIAGO_SRC))
 
 from gato_tiago.tiago_controller_process import (
+    StateHistorySample,
     TiagoControllerOrchestrator,
     elapsed_sim_time_from_stamp,
+    _load_state_history,
+    _state_history_rows,
     _sample_trajectory,
 )
 from gato_tiago.tiago_history_writer import (
@@ -201,3 +204,44 @@ def test_history_buffer_drops_oldest_and_writer_records_metadata(tmp_path):
     assert metadata["dropped_history_records"] == 1
     assert (tmp_path / "history.csv").is_file()
     assert len((tmp_path / "history.jsonl").read_text(encoding="utf-8").splitlines()) == 2
+
+
+def test_load_state_history_skips_csv_header(tmp_path):
+    path = tmp_path / "state_history_rows.csv"
+    sample = StateHistorySample(
+        source_seq=3,
+        stamp_sec=12.0,
+        received_monotonic_sec=34.0,
+        controller_mode="RUNNING",
+        q=np.arange(7, dtype=np.float64),
+        qd=np.arange(7, dtype=np.float64) + 10.0,
+    )
+    np.savetxt(
+        path,
+        _state_history_rows([sample]),
+        delimiter=",",
+        header=(
+            "source_seq,stamp_sec,received_monotonic_sec,controller_mode_code,"
+            "q0,q1,q2,q3,q4,q5,q6,qd0,qd1,qd2,qd3,qd4,qd5,qd6"
+        ),
+        comments="",
+    )
+
+    loaded = _load_state_history(path)
+
+    assert len(loaded) == 1
+    assert loaded[0].source_seq == sample.source_seq
+    assert loaded[0].controller_mode == sample.controller_mode
+    np.testing.assert_allclose(loaded[0].q, sample.q)
+    np.testing.assert_allclose(loaded[0].qd, sample.qd)
+
+
+def test_load_state_history_treats_header_only_csv_as_empty(tmp_path):
+    path = tmp_path / "state_history_rows.csv"
+    path.write_text(
+        "source_seq,stamp_sec,received_monotonic_sec,controller_mode_code,"
+        "q0,q1,q2,q3,q4,q5,q6,qd0,qd1,qd2,qd3,qd4,qd5,qd6\n",
+        encoding="utf-8",
+    )
+
+    assert _load_state_history(path) == []

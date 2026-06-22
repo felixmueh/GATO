@@ -251,6 +251,16 @@
       "link_b": "arm_right_6_link",
       "reason": "Can't collide.",
       "reviewed_at": "2026-06-18T15:20:49.360329+00:00"
+    },
+    {
+      "decision": "ignore",
+      "distance_m_at_review": 0.03997935828681269,
+      "geometry_a": "arm_right_5_link_0",
+      "geometry_b": "gripper_right_base_link_0",
+      "link_a": "arm_right_5_link",
+      "link_b": "gripper_right_base_link",
+      "reason": "Collision impossible.",
+      "reviewed_at": "2026-06-22T16:12:37.075226+00:00"
     }
   ],
   "model": {
@@ -309,6 +319,6 @@
   "review_recording_note": "Reviewed from a comfortable/default-pose joint-state recording using tiago_tools/review_collision_pairs.py.",
   "review_recording_path": "full_joint_state_history.jsonl",
   "schema_version": 1,
-  "updated_at": "2026-06-18T15:20:49.360755+00:00",
+  "updated_at": "2026-06-22T16:12:37.076180+00:00",
   "urdf_path": "tiago_configs/collision_alpha_wrap_a3_o25_cap001/tiago_pro_collision_alpha_wrap_a3_o25_cap001.urdf"
 }

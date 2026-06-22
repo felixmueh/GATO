@@ -18,7 +18,7 @@ for path in (TIAGO_SRC_DIR, PYTHON_DIR):
     if str(path) not in sys.path:
         sys.path.insert(0, str(path))
 
-from gato_tiago.config import TIAGO_RIGHT_START_CONFIGS
+from gato_tiago.config import TIAGO_RIGHT_DEFAULT_START_CONFIG, TIAGO_RIGHT_START_CONFIGS
 from gato_tiago.ros_tiago import TiagoRightArmClient
 
 
@@ -49,7 +49,7 @@ def parse_args() -> argparse.Namespace:
         "--target",
         nargs=7,
         type=float,
-        default=TIAGO_RIGHT_START_CONFIGS["comfortable"].tolist(),
+        default=TIAGO_RIGHT_START_CONFIGS[TIAGO_RIGHT_DEFAULT_START_CONFIG].tolist(),
     )
     args = parser.parse_args()
     if args.duration <= 0.0:
