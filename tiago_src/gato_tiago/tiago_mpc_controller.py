@@ -727,6 +727,15 @@ class MPC_GATO:
             # Prepare next optimization
             x_curr_batch = np.tile(x_curr, (self.batch_size, 1))
             ee_g_batch[:, :] = ee_g
+            XU_batch = shift_packed_trajectory_warm_start(
+                XU_batch,
+                x_curr,
+                self.nx,
+                self.nu,
+                self.N,
+                timestep,
+                self.dt,
+            )
             XU_batch[:, :self.nx] = x_curr
             
             # Update forces and solve
