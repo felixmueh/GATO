@@ -125,7 +125,7 @@ __host__ size_t getSetupKKTSystemBatchedSMemSize()
                          STATE_SIZE_SQ +                 // Q_last
                          STATE_SIZE +                    // q_last
                          max(max(grid::EE_POS_DYNAMIC_SHARED_MEM_COUNT, gato::plant::trackingCostGradientAndHessian_TempMemSize_Shared()),
-                         gato::plant::forwardDynamicsAndGradient_TempMemSize_Shared()));
+                         gato::plant::compute_linearized_dynamics_TempMemSize_Shared()));
         return size;
 }
 

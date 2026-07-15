@@ -57,6 +57,7 @@ __global__ void lineSearchAndUpdateBatchedKernel(T* d_xu_traj_batch, T* d_dz_bat
         T min_merit = s_merit[0];
 
         bool line_search_success = (min_merit < d_merit_initial_batch[solve_idx]);
+        __syncthreads();
 
         // Thread 0 handles step size computation and rho update
         if (tid == 0) {

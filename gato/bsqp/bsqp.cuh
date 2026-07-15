@@ -212,6 +212,8 @@ class BSQP {
                 // Allocate KKT system memory
                 gpuErrchk(cudaMalloc(&kkt_system_batch_.d_Q_batch, STATE_SQ_P_KNOTS * BT));
                 gpuErrchk(cudaMalloc(&kkt_system_batch_.d_R_batch, CONTROL_SQ_P_KNOTS * BT));
+                gpuErrchk(cudaMalloc(&kkt_system_batch_.d_Q_inv_batch, STATE_SQ_P_KNOTS * BT));
+                gpuErrchk(cudaMalloc(&kkt_system_batch_.d_R_inv_batch, CONTROL_SQ_P_KNOTS * BT));
                 gpuErrchk(cudaMalloc(&kkt_system_batch_.d_q_batch, STATE_P_KNOTS * BT));
                 gpuErrchk(cudaMalloc(&kkt_system_batch_.d_r_batch, CONTROL_P_KNOTS * BT));
                 gpuErrchk(cudaMalloc(&kkt_system_batch_.d_A_batch, STATE_SQ_P_KNOTS * BT));
@@ -266,6 +268,8 @@ class BSQP {
 
                 gpuErrchk(cudaFree(kkt_system_batch_.d_Q_batch));
                 gpuErrchk(cudaFree(kkt_system_batch_.d_R_batch));
+                gpuErrchk(cudaFree(kkt_system_batch_.d_Q_inv_batch));
+                gpuErrchk(cudaFree(kkt_system_batch_.d_R_inv_batch));
                 gpuErrchk(cudaFree(kkt_system_batch_.d_q_batch));
                 gpuErrchk(cudaFree(kkt_system_batch_.d_r_batch));
                 gpuErrchk(cudaFree(kkt_system_batch_.d_A_batch));

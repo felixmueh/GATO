@@ -47,7 +47,8 @@ __global__ __launch_bounds__(PCG_THREADS) void solvePCGBatchedKernel(uint32_t* _
         T* s_scratch = s_p_vector + VEC_SIZE_PADDED;
 
         // scalars
-        __shared__ T s_rho, s_rho_new, s_alpha, s_beta, s_rho_init;
+        __shared__ T   s_rho, s_rho_new, s_alpha, s_beta, s_rho_init;
+        __shared__ int s_converged;
 
         uint32_t iterations = 0;
 
@@ -124,7 +125,9 @@ __global__ __launch_bounds__(PCG_THREADS) void solvePCGBatchedKernel(uint32_t* _
                 __syncthreads();
 
                 // check for convergence using absolute and relative tolerance
-                if (abs(s_rho_new) < (abs_tol + epsilon * s_rho_init)) { break; }
+                if (threadIdx.x == 0) { s_converged = abs(s_rho_new) < (abs_tol + epsilon * s_rho_init); }
+                __syncthreads();
+                if (s_converged) { break; }
 
                 // beta = rho_new / rho
                 // rho = rho_new

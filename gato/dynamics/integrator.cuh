@@ -247,6 +247,7 @@ __device__ __forceinline__ void compute_linearized_dynamics(T* s_xux, T* s_Ak, T
         } else {
                 forwardDynamicsAndGradient<T>(s_dqdd, s_qdd, s_q, s_qd, s_u, s_extra_temp, d_dynMem_const, d_f_ext);
         }
+        __syncthreads();
 
         if (COMPUTE_INTEGRATOR_ERROR) {
                 integrator_error_inner(s_out, &s_xux[STATE_SIZE + CONTROL_SIZE], &s_xux[STATE_SIZE + CONTROL_SIZE + STATE_SIZE / 2], s_q, s_qd, s_qdd, dt, s_extra_temp);
@@ -254,6 +255,13 @@ __device__ __forceinline__ void compute_linearized_dynamics(T* s_xux, T* s_Ak, T
                 integrator_inner(s_out, &s_out[STATE_SIZE / 2], s_q, s_qd, s_qdd, dt);
         }
         integrator_gradient_inner(s_Ak, s_Bk, s_dqdd, dt);
+}
+
+__host__ __device__ constexpr unsigned compute_linearized_dynamics_TempMemSize_Shared()
+{
+        return STATE_SIZE / 2
+               + STATE_SIZE / 2 * (STATE_SIZE + CONTROL_SIZE)
+               + forwardDynamicsAndGradient_TempMemSize_Shared();
 }
 
 }  // namespace gato::plant

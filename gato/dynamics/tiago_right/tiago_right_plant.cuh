@@ -183,7 +183,9 @@ namespace plant {
         {
                 T* s_XmatsHom = s_workspace;
                 T* s_dXmatsHom = s_XmatsHom + 128;
-                T* s_temp = s_dXmatsHom + 112;
+                // GRiD initializes 128 derivative-transform entries before using
+                // the workspace, even though only 112 entries carry derivatives.
+                T* s_temp = s_dXmatsHom + 128;
                 grid::load_update_XmatsHom_helpers<T>(s_XmatsHom, s_dXmatsHom, s_q_grid, d_robotModel, s_temp);
                 grid::end_effector_pose_inner_arm_right_tool_joint<T>(s_eePos, s_q_grid, s_XmatsHom, s_temp);
                 grid::end_effector_pose_gradient_inner_arm_right_tool_joint<T>(s_eePos_grad, s_q_grid, s_XmatsHom, s_dXmatsHom, s_temp);
@@ -311,6 +313,7 @@ namespace plant {
                 T* s_c = s_temp;
                 grid::inverse_dynamics_inner<T>(s_c, s_vaf, q_grid, qd_grid, s_XImats, &s_temp[6], GRAVITY<T>());
                 grid::forward_dynamics_finish<T>(qdd_grid, u_grid, s_c, s_Minv);
+                __syncthreads();
                 grid::inverse_dynamics_inner_vaf<T>(s_vaf, q_grid, qd_grid, qdd_grid, s_XImats, s_temp, GRAVITY<T>());
                 grid::inverse_dynamics_gradient_inner<T>(s_dc_du, q_grid, qd_grid, s_vaf, s_XImats, s_temp, GRAVITY<T>());
 
@@ -638,7 +641,7 @@ namespace plant {
 
         __host__ __device__ constexpr unsigned trackingCostGradientAndHessian_TempMemSize_Shared()
         {
-                return grid::EE_POS_SIZE + 6 * grid::NUM_JOINTS + grid::DEE_POS_DYNAMIC_SHARED_MEM_COUNT;
+                return grid::EE_POS_SIZE + 6 * grid::NUM_JOINTS + grid::DEE_POS_DYNAMIC_SHARED_MEM_COUNT + 16;
         }
 
 }  // namespace plant
