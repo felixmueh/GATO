@@ -78,12 +78,10 @@ def prepare_problem(model, offset_name, instance_seed):
 
 
 def exact_cold_candidate(model, q0):
-    started = time.perf_counter()
-    nx, nu = model.nq + model.nv, model.nv
-    cold = np.zeros(accepted.KNOTS * (nx + nu) - nu, dtype=np.float32)
-    for knot in range(accepted.KNOTS):
-        cold[knot * (nx + nu) : knot * (nx + nu) + model.nq] = q0
-    return cold, 1e3 * (time.perf_counter() - started)
+    seeds, metadata = accepted.generate_seeds(
+        model, q0, PRIMARY_METHOD_SEED, budget=1
+    )
+    return seeds[0], metadata
 
 
 def repeatability(raw, method):
@@ -230,8 +228,12 @@ def run(args):
             "accepted IIWA harness differs from its frozen 746d96f content"
         )
     problem = prepare_problem(model, args.offset, args.instance_seed)
-    exact_cold, cold_generation_ms = exact_cold_candidate(model, problem["q0"])
-    np.testing.assert_array_equal(exact_cold, problem["seeds"][0])
+    exact_cold, cold_seed_metadata = exact_cold_candidate(model, problem["q0"])
+    exact_cold_hash = accepted.sha256_array(exact_cold)
+    nested_cold_hash = accepted.sha256_array(problem["seeds"][0])
+    if exact_cold_hash != nested_cold_hash:
+        raise RuntimeError("frozen budget-1 cold tensor is not bitwise nested in batch-8")
+    cold_seed_batch = exact_cold[None, :]
 
     cold_solver = accepted.make_solver(1)
     serial_solver = accepted.make_solver(1)
@@ -245,7 +247,7 @@ def run(args):
             cold_solver,
             problem["x0_batch"][:1],
             problem["references"][:1],
-            problem["seeds"][:1],
+            cold_seed_batch,
         ),
         "serial8": lambda: accepted.solve_independent(
             serial_solver,
@@ -312,7 +314,7 @@ def run(args):
         model,
         problem["goal"],
         problem["x0"],
-        problem["seeds"][:1],
+        cold_seed_batch,
         cold_output,
         cold_stats,
         cold_solver,
@@ -467,10 +469,10 @@ def run(args):
             "reference": accepted.sha256_array(problem["reference"]),
             "batch8_seeds": accepted.sha256_array(problem["seeds"]),
             "nested_cold_candidate": accepted.sha256_array(problem["seeds"][0]),
-            "explicit_cold_candidate": accepted.sha256_array(exact_cold),
+            "explicit_cold_candidate": exact_cold_hash,
         },
         "exact_cold_candidate_is_nested": bool(
-            np.array_equal(exact_cold, problem["seeds"][0])
+            exact_cold_hash == nested_cold_hash
         ),
         "outcomes": {
             "cold_success": cold_success,
@@ -539,7 +541,7 @@ def run(args):
             },
             "complete_latency_ms": {
                 "cold_generation_plus_workflow_plus_certification_plus_selection": float(
-                    cold_generation_ms
+                    cold_seed_metadata["generation_wall_ms"]
                     + np.median(workflow["cold"])
                     + cold_cert_ms
                     + cold_selection_ms
@@ -558,7 +560,8 @@ def run(args):
                 ),
             },
         },
-        "cold_only_generation_ms": cold_generation_ms,
+        "cold_only_generation_ms": cold_seed_metadata["generation_wall_ms"],
+        "cold_seed_distribution": cold_seed_metadata,
         "cold_quality": cold_quality[0],
         "serial8_quality": serial_quality,
         "batch8_quality": batch_quality,
@@ -582,6 +585,7 @@ def run(args):
     np.savez_compressed(
         args.output.with_suffix(".npz"),
         seed_trajectories=problem["seeds"],
+        independently_generated_cold_trajectory=cold_seed_batch,
         cold_optimized_planned_trajectory=cold_output,
         serial8_optimized_planned_trajectories=serial_output,
         batch8_optimized_planned_trajectories=batch_output,

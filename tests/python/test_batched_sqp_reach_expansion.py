@@ -91,13 +91,37 @@ def test_frozen_source_hash_and_exact_cold_nesting():
     )
     model = pin.buildModelFromUrdf(str(EXPANSION.accepted.MODEL_PATH))
     problem = EXPANSION.prepare_problem(model, "cross", 43)
-    cold, _ = EXPANSION.exact_cold_candidate(model, problem["q0"])
+    cold, metadata = EXPANSION.exact_cold_candidate(model, problem["q0"])
 
     np.testing.assert_array_equal(cold, problem["seeds"][0])
+    assert (
+        EXPANSION.accepted.sha256_array(cold)
+        == EXPANSION.accepted.sha256_array(problem["seeds"][0])
+    )
+    assert metadata["cold_candidate_index"] == 0
     q, qd, controls = EXPANSION.accepted.unpack(cold, model)
     np.testing.assert_array_equal(q, np.tile(problem["q0"], (8, 1)))
     np.testing.assert_array_equal(qd, 0.0)
     np.testing.assert_array_equal(controls, 0.0)
+
+
+def test_cold_nesting_is_bitwise_and_detects_signed_zero_regression():
+    model = pin.buildModelFromUrdf(str(EXPANSION.accepted.MODEL_PATH))
+    problem = EXPANSION.prepare_problem(model, "near", 43)
+    frozen_cold, _ = EXPANSION.exact_cold_candidate(model, problem["q0"])
+    nx, nu = model.nq + model.nv, model.nv
+    hand_built_positive_zero = np.zeros_like(frozen_cold)
+    for knot in range(EXPANSION.accepted.KNOTS):
+        offset = knot * (nx + nu)
+        hand_built_positive_zero[offset : offset + model.nq] = problem["q0"]
+
+    np.testing.assert_array_equal(frozen_cold, hand_built_positive_zero)
+    assert EXPANSION.accepted.sha256_array(frozen_cold) != (
+        EXPANSION.accepted.sha256_array(hand_built_positive_zero)
+    )
+    assert EXPANSION.accepted.sha256_array(frozen_cold) == (
+        EXPANSION.accepted.sha256_array(problem["seeds"][0])
+    )
 
 
 def test_all_24_problem_tuples_have_unique_x0_goal_pairs():
