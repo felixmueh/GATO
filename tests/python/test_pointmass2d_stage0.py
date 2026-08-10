@@ -1,4 +1,5 @@
 from copy import deepcopy
+import json
 from pathlib import Path
 import sys
 from types import SimpleNamespace
@@ -38,7 +39,13 @@ from pointmass_examples.pointmass2d_stage0_oracle import (
     ORACLE_RESTART_MARGINS_M,
     TRUST_CONSTR_OPTIONS,
     Stage0Problem,
+    execute_ordered_pairs,
+    expected_restart_identities,
+    partial_generation_paths,
+    partial_latest_path,
+    sha256_file,
     task_aggregate,
+    write_partial_checkpoint,
 )
 
 
@@ -496,3 +503,117 @@ def test_task_aggregate_rejects_pair_class_masking_and_failed_acquisition():
     reversed_aggregate = task_aggregate(reversed_prediction_task, valid)
     assert not reversed_aggregate["predicted_worse_cost_strictly_greater"]
     assert not reversed_aggregate["all_required_task_gates_pass"]
+
+
+def test_checkpoint_pointer_survives_failure_after_generation3_npz(tmp_path):
+    output = tmp_path / "stage0.json"
+    expected = expected_restart_identities()
+    assert len(expected) == 80
+    completed = []
+    arrays = {}
+    arrays_after_two = {}
+    calls = 0
+    provenance = {
+        "protocol_sha256": "a" * 64,
+        "source_hashes_at_start": {"oracle": "b" * 64},
+        "source_hashes_current": {"oracle": "b" * 64},
+        "task_identity_sha256_by_seed": {
+            str(seed): f"{seed:064x}"[-64:]
+            for seed in DEVELOPMENT_TASK_SEEDS + HELDOUT_TASK_SEEDS
+        },
+    }
+
+    def execute(identity):
+        nonlocal calls
+        calls += 1
+        return {
+            "identity_key": identity["key"],
+            "row": {
+                "independent_kkt": {
+                    "stationarity_vector": np.asarray([calls], dtype=np.float64)
+                }
+            },
+        }
+
+    def checkpoint(identity, payload):
+        key = identity["key"]
+        arrays[f"{key}_controls"] = np.full((31, 2), len(completed) + 1.0)
+        arrays[f"{key}_kkt_stationarity_vector"] = payload["row"][
+            "independent_kkt"
+        ]["stationarity_vector"]
+        completed.append({"identity": identity, **payload})
+        hook = None
+        if len(completed) == 2:
+            arrays_after_two.update(
+                {name: value.copy() for name, value in arrays.items()}
+            )
+        if len(completed) == 3:
+            def interrupt_after_npz(_generation_npz):
+                raise RuntimeError("injected interruption after generation3 npz")
+
+            hook = interrupt_after_npz
+        write_partial_checkpoint(
+            output,
+            expected,
+            completed,
+            arrays,
+            provenance,
+            after_npz_published=hook,
+        )
+
+    try:
+        execute_ordered_pairs(expected, execute, checkpoint)
+    except RuntimeError as error:
+        assert str(error) == "injected interruption after generation3 npz"
+    else:
+        raise AssertionError("injected interruption was not propagated")
+    assert calls == 3
+
+    latest_path = partial_latest_path(output)
+    generation2_json, generation2_npz = partial_generation_paths(output, 2)
+    generation3_json, generation3_npz = partial_generation_paths(output, 3)
+    assert latest_path.exists()
+    assert generation2_json.exists() and generation2_npz.exists()
+    assert generation3_npz.exists() and not generation3_json.exists()
+    assert not output.exists()
+    assert not output.with_suffix(".npz").exists()
+    assert not output.with_suffix(".sha256.json").exists()
+    latest = json.loads(latest_path.read_text())
+    assert latest["incomplete"] is True
+    assert latest["all_stage0_gates_pass"] is False
+    assert latest["latest_complete_generation"] == 2
+    assert latest["generation_json"] == str(generation2_json)
+    assert latest["generation_npz"] == str(generation2_npz)
+    assert latest["generation_json_sha256"] == sha256_file(generation2_json)
+    assert latest["generation_npz_sha256"] == sha256_file(generation2_npz)
+    assert latest["unreferenced_generation_files_are_orphaned_non_evidence"]
+    report = json.loads(generation2_json.read_text())
+    assert report["incomplete"] is True
+    assert report["all_stage0_gates_pass"] is False
+    assert report["all_stage0_gates_status"] == "not_applicable_while_incomplete"
+    assert report["expected_restart_count"] == 80
+    assert report["completed_restart_count"] == 2
+    assert report["expected_ordered_identities"] == expected
+    assert report["completed_ordered_identities"] == expected[:2]
+    assert report["pending_ordered_identities"] == expected[2:]
+    assert len(report["completed_records"]) == 2
+    assert report["identity_provenance"] == provenance
+    assert report["checkpoint_generation"] == 2
+    assert report["generation_npz"] == str(generation2_npz)
+    assert report["generation_npz_sha256"] == sha256_file(generation2_npz)
+    assert report["requested_final_artifacts_exist"] == {
+        "json": False,
+        "npz": False,
+        "manifest": False,
+    }
+    with np.load(generation2_npz) as retained:
+        assert set(retained.files) == set(arrays_after_two)
+        for name, value in arrays_after_two.items():
+            np.testing.assert_array_equal(retained[name], value)
+    # Generation 3 is deliberately unreferenced; its data cannot alter the
+    # pointer-resolved generation-2 recovery state.
+    with np.load(generation3_npz) as orphan:
+        assert len(orphan.files) > len(arrays_after_two)
+    assert not output.with_name(f"{output.stem}.partial.json").exists()
+    assert not output.with_name(f"{output.stem}.partial.npz").exists()
+    assert not list(tmp_path.glob(".*.tmp"))

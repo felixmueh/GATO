@@ -15,6 +15,8 @@ from pathlib import Path
 import shlex
 import subprocess
 import sys
+import tempfile
+import os
 
 import numpy as np
 import scipy
@@ -72,6 +74,168 @@ def json_safe(value):
     if isinstance(value, (list, tuple)):
         return [json_safe(item) for item in value]
     return value
+
+
+def restart_identity(task_seed, mode_side, restart_index):
+    mode = "clockwise" if int(mode_side) > 0 else "counterclockwise"
+    return {
+        "key": f"task{int(task_seed)}_{mode}_restart{int(restart_index)}",
+        "task_seed": int(task_seed),
+        "mode_side": int(mode_side),
+        "expected_mode": mode,
+        "restart_index": int(restart_index),
+    }
+
+
+def expected_restart_identities():
+    return [
+        restart_identity(task_seed, mode_side, restart_index)
+        for task_seed in DEVELOPMENT_TASK_SEEDS + HELDOUT_TASK_SEEDS
+        for mode_side in MODE_SIDES
+        for restart_index in range(len(ORACLE_RESTART_MARGINS_M))
+    ]
+
+
+def _atomic_write_bytes(path, payload):
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    descriptor, temporary_name = tempfile.mkstemp(
+        dir=path.parent, prefix=f".{path.name}.", suffix=".tmp"
+    )
+    try:
+        with os.fdopen(descriptor, "wb") as stream:
+            stream.write(payload)
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(temporary_name, path)
+    except BaseException:
+        try:
+            os.unlink(temporary_name)
+        except FileNotFoundError:
+            pass
+        raise
+
+
+def _atomic_write_json(path, value):
+    payload = (
+        json.dumps(json_safe(value), indent=2, sort_keys=True) + "\n"
+    ).encode("utf-8")
+    _atomic_write_bytes(path, payload)
+
+
+def _atomic_write_npz(path, arrays):
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    descriptor, temporary_name = tempfile.mkstemp(
+        dir=path.parent, prefix=f".{path.name}.", suffix=".tmp"
+    )
+    try:
+        with os.fdopen(descriptor, "wb") as stream:
+            np.savez_compressed(stream, **arrays)
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(temporary_name, path)
+    except BaseException:
+        try:
+            os.unlink(temporary_name)
+        except FileNotFoundError:
+            pass
+        raise
+
+
+def partial_latest_path(output):
+    output = Path(output)
+    return output.with_name(f"{output.stem}.partial.latest.json")
+
+
+def partial_generation_paths(output, completed_count):
+    output = Path(output)
+    generation = f"{int(completed_count):04d}"
+    return (
+        output.with_name(f"{output.stem}.partial.{generation}.json"),
+        output.with_name(f"{output.stem}.partial.{generation}.npz"),
+    )
+
+
+def write_partial_checkpoint(
+    output,
+    expected_identities,
+    completed_records,
+    arrays,
+    identity_provenance,
+    after_npz_published=None,
+):
+    """Publish an immutable generation, then atomically advance latest."""
+    completed_identities = [record["identity"] for record in completed_records]
+    completed_keys = [identity["key"] for identity in completed_identities]
+    expected_keys = [identity["key"] for identity in expected_identities]
+    if completed_keys != expected_keys[: len(completed_keys)]:
+        raise RuntimeError("completed restart identities are not an ordered prefix")
+    completed_count = len(completed_records)
+    if completed_count <= 0:
+        raise RuntimeError("checkpoint generation count must be positive")
+    requested_final_artifacts_exist = {
+        "json": Path(output).exists(),
+        "npz": Path(output).with_suffix(".npz").exists(),
+        "manifest": Path(output).with_suffix(".sha256.json").exists(),
+    }
+    if any(requested_final_artifacts_exist.values()):
+        raise RuntimeError("final artifacts must not exist while checkpoint is incomplete")
+    generation_json, generation_npz = partial_generation_paths(
+        output, completed_count
+    )
+    if generation_json.exists() or generation_npz.exists():
+        raise RuntimeError("checkpoint generations are immutable")
+    _atomic_write_npz(generation_npz, arrays)
+    if after_npz_published is not None:
+        after_npz_published(generation_npz)
+    checkpoint = {
+        "schema_version": 1,
+        "diagnostic": "pointmass2d_stage0_quarantined_oracle_checkpoint_generation",
+        "oracle_only": True,
+        "benchmark_seed_eligible": False,
+        "incomplete": True,
+        "all_stage0_gates_pass": False,
+        "all_stage0_gates_status": "not_applicable_while_incomplete",
+        "expected_restart_count": len(expected_identities),
+        "expected_ordered_identities": expected_identities,
+        "completed_restart_count": len(completed_records),
+        "completed_ordered_identities": completed_identities,
+        "pending_ordered_identities": expected_identities[len(completed_records) :],
+        "completed_records": completed_records,
+        "identity_provenance": identity_provenance,
+        "checkpoint_generation": completed_count,
+        "generation_json": str(generation_json),
+        "generation_npz": str(generation_npz),
+        "generation_npz_sha256": sha256_file(generation_npz),
+        "requested_final_json": str(Path(output)),
+        "requested_final_artifacts_exist": requested_final_artifacts_exist,
+    }
+    _atomic_write_json(generation_json, checkpoint)
+    latest = {
+        "schema_version": 1,
+        "diagnostic": "pointmass2d_stage0_quarantined_oracle_checkpoint_pointer",
+        "oracle_only": True,
+        "benchmark_seed_eligible": False,
+        "incomplete": True,
+        "all_stage0_gates_pass": False,
+        "all_stage0_gates_status": "not_applicable_while_incomplete",
+        "latest_complete_generation": completed_count,
+        "generation_json": str(generation_json),
+        "generation_json_sha256": sha256_file(generation_json),
+        "generation_npz": str(generation_npz),
+        "generation_npz_sha256": sha256_file(generation_npz),
+        "unreferenced_generation_files_are_orphaned_non_evidence": True,
+    }
+    _atomic_write_json(partial_latest_path(output), latest)
+    return checkpoint, latest
+
+
+def execute_ordered_pairs(expected_identities, execute_pair, on_completed):
+    """Execute an immutable order; an in-flight exception is never checkpointed."""
+    for identity in expected_identities:
+        payload = execute_pair(identity)
+        on_completed(identity, payload)
 
 
 class Stage0Problem:
@@ -686,6 +850,23 @@ def task_aggregate(task, rows):
 
 
 def run_stage0(output):
+    output = Path(output)
+    final_npz = output.with_suffix(".npz")
+    final_manifest = output.with_suffix(".sha256.json")
+    latest_checkpoint = partial_latest_path(output)
+    existing_checkpoint_files = list(
+        output.parent.glob(f"{output.stem}.partial.*")
+    )
+    forbidden_existing = [
+        path
+        for path in (output, final_npz, final_manifest)
+        if path.exists()
+    ] + existing_checkpoint_files
+    if forbidden_existing:
+        raise RuntimeError(
+            "Stage0 is single-run only; refusing existing artifacts: "
+            + ", ".join(str(path) for path in forbidden_existing)
+        )
     source_paths = {
         "oracle": Path(__file__).resolve(),
         "task_schema": REPO_ROOT / "pointmass_src/gato_pointmass/pointmass2d.py",
@@ -695,34 +876,112 @@ def run_stage0(output):
         name: sha256_file(path) for name, path in source_paths.items()
     }
     task_seeds = DEVELOPMENT_TASK_SEEDS + HELDOUT_TASK_SEEDS
-    task_rows = []
+    tasks = {task_seed: generate_task(task_seed) for task_seed in task_seeds}
+    expected_identities = expected_restart_identities()
+    if len(expected_identities) != 80:
+        raise RuntimeError("frozen Stage0 must contain exactly 80 restart pairs")
+    full_status_at_start = subprocess.run(
+        ["git", "status", "--porcelain", "--untracked-files=all"],
+        cwd=REPO_ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.splitlines()
+    identity_provenance = {
+        "git_head": subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=REPO_ROOT,
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout.strip(),
+        "git_status_porcelain_full_at_start": full_status_at_start,
+        "protocol_sha256": sha256_json(PROTOCOL.__dict__),
+        "source_hashes_at_start": source_hashes_at_start,
+        "task_identity_sha256_by_seed": {
+            str(task_seed): tasks[task_seed]["solver_task_identity_sha256"]
+            for task_seed in task_seeds
+        },
+        "exact_command_argv": list(sys.argv),
+        "exact_command_shell": shlex.join(sys.argv),
+    }
     arrays = {}
-    for task_seed in task_seeds:
-        task = generate_task(task_seed)
+    for task_seed, task in tasks.items():
         arrays[f"task{task_seed}_solver_x0_float32"] = task["x0"]
         arrays[f"task{task_seed}_solver_reference_float32"] = task["reference"]
-        problem = Stage0Problem(task)
-        rows = []
-        for mode_side in MODE_SIDES:
-            for restart_index in range(len(ORACLE_RESTART_MARGINS_M)):
-                row = solve_restart(problem, mode_side, restart_index)
-                rows.append(row)
-                prefix = f"task{task_seed}_{row['expected_mode']}_restart{restart_index}"
-                arrays[f"{prefix}_acquisition_initial_z"] = row[
-                    "acquisition_initial_z"
-                ]
-                arrays[f"{prefix}_unanchored_polish_initial_z"] = row[
-                    "unanchored_polish_initial_z"
-                ]
-                for phase in ("acquisition", "unanchored_polish"):
-                    arrays[f"{prefix}_{phase}_z"] = row[phase]["z"]
-                    arrays[f"{prefix}_{phase}_controls"] = row[phase]["controls"]
-                    arrays[f"{prefix}_{phase}_dense_states"] = row[phase][
-                        "dense_states"
-                    ]
-                    for name, value in row[phase]["independent_kkt"].items():
-                        if isinstance(value, np.ndarray):
-                            arrays[f"{prefix}_{phase}_kkt_{name}"] = value
+    problems = {}
+    completed_records = []
+
+    def execute_pair(identity):
+        task_seed = identity["task_seed"]
+        if task_seed not in problems:
+            problems[task_seed] = Stage0Problem(tasks[task_seed])
+        return solve_restart(
+            problems[task_seed],
+            identity["mode_side"],
+            identity["restart_index"],
+        )
+
+    def retain_completed_pair(identity, row):
+        if (
+            row["expected_mode"] != identity["expected_mode"]
+            or row["restart_index"] != identity["restart_index"]
+            or row["mode_side"] != identity["mode_side"]
+        ):
+            raise RuntimeError("solver row identity differs from frozen order")
+        prefix = identity["key"]
+        arrays[f"{prefix}_acquisition_initial_z"] = row[
+            "acquisition_initial_z"
+        ]
+        arrays[f"{prefix}_unanchored_polish_initial_z"] = row[
+            "unanchored_polish_initial_z"
+        ]
+        for phase in ("acquisition", "unanchored_polish"):
+            arrays[f"{prefix}_{phase}_z"] = row[phase]["z"]
+            arrays[f"{prefix}_{phase}_controls"] = row[phase]["controls"]
+            arrays[f"{prefix}_{phase}_dense_states"] = row[phase][
+                "dense_states"
+            ]
+            for name, value in row[phase]["independent_kkt"].items():
+                if isinstance(value, np.ndarray):
+                    arrays[f"{prefix}_{phase}_kkt_{name}"] = value
+        completed_records.append(
+            {"identity": identity, "task": tasks[identity["task_seed"]], "row": row}
+        )
+        current_provenance = dict(identity_provenance)
+        current_provenance["source_hashes_current"] = {
+            name: sha256_file(path) for name, path in source_paths.items()
+        }
+        write_partial_checkpoint(
+            output,
+            expected_identities,
+            completed_records,
+            arrays,
+            current_provenance,
+        )
+
+    execute_ordered_pairs(expected_identities, execute_pair, retain_completed_pair)
+    if len(completed_records) != 80:
+        raise RuntimeError("final Stage0 publication requires exactly 80 pairs")
+    latest = json.loads(latest_checkpoint.read_text())
+    if latest["latest_complete_generation"] != 80:
+        raise RuntimeError("latest checkpoint must reference complete generation 80")
+    latest_generation_json = Path(latest["generation_json"])
+    latest_generation_npz = Path(latest["generation_npz"])
+    if (
+        sha256_file(latest_generation_json) != latest["generation_json_sha256"]
+        or sha256_file(latest_generation_npz) != latest["generation_npz_sha256"]
+    ):
+        raise RuntimeError("latest checkpoint pointer hash mismatch")
+
+    task_rows = []
+    for task_seed in task_seeds:
+        rows = [
+            record["row"]
+            for record in completed_records
+            if record["identity"]["task_seed"] == task_seed
+        ]
+        task = tasks[task_seed]
         aggregate = task_aggregate(task, rows)
         task_rows.append(
             {"task_seed": task_seed, "task": task, "rows": rows, "aggregate": aggregate}
@@ -775,6 +1034,7 @@ def run_stage0(output):
     summary = {
         "schema_version": 1,
         "diagnostic": "pointmass2d_stage0_quarantined_oracle",
+        "incomplete": False,
         "oracle_only": True,
         "benchmark_seed_eligible": False,
         "gato_sqp_cuda_or_build_calls": 0,
@@ -782,6 +1042,13 @@ def run_stage0(output):
         "trust_constr_options": TRUST_CONSTR_OPTIONS,
         "restart_margins_m": ORACLE_RESTART_MARGINS_M,
         "task_rows": task_rows,
+        "expected_restart_count": 80,
+        "expected_ordered_identities": expected_identities,
+        "completed_restart_count": len(completed_records),
+        "completed_ordered_identities": [
+            record["identity"] for record in completed_records
+        ],
+        "pending_ordered_identities": [],
         "exact_eight_task_seed_identities": exact_task_seed_set,
         "canonical_solver_float32_task_identities": canonical_task_identities,
         "predicted_worse_cost_greater_on_all_eight_tasks": (
@@ -818,26 +1085,38 @@ def run_stage0(output):
             "source_hashes_stable": source_hashes_stable,
         },
     }
-    output = Path(output)
     output.parent.mkdir(parents=True, exist_ok=True)
-    npz = output.with_suffix(".npz")
-    np.savez_compressed(npz, **arrays)
-    summary["artifacts"] = {"npz": str(npz), "npz_sha256": sha256_file(npz)}
-    output.write_text(json.dumps(json_safe(summary), indent=2, sort_keys=True) + "\n")
-    manifest = output.with_suffix(".sha256.json")
-    manifest.write_text(
-        json.dumps(
-            {
-                "json": str(output),
-                "json_sha256": sha256_file(output),
-                "npz": str(npz),
-                "npz_sha256": sha256_file(npz),
-                **summary["provenance"],
-            },
-            indent=2,
-            sort_keys=True,
-        )
-        + "\n"
+    _atomic_write_npz(final_npz, arrays)
+    summary["artifacts"] = {
+        "npz": str(final_npz),
+        "npz_sha256": sha256_file(final_npz),
+        "supersedes_retained_latest_checkpoint_pointer": str(latest_checkpoint),
+        "supersedes_retained_checkpoint_generation": 80,
+        "supersedes_retained_checkpoint_json": str(latest_generation_json),
+        "supersedes_retained_checkpoint_npz": str(latest_generation_npz),
+    }
+    _atomic_write_json(output, summary)
+    _atomic_write_json(
+        final_manifest,
+        {
+            "json": str(output),
+            "json_sha256": sha256_file(output),
+            "npz": str(final_npz),
+            "npz_sha256": sha256_file(final_npz),
+            "incomplete": False,
+            "completed_restart_count": 80,
+            "supersedes_retained_latest_checkpoint_pointer": str(
+                latest_checkpoint
+            ),
+            "supersedes_retained_checkpoint_generation": 80,
+            "supersedes_retained_checkpoint_json": str(
+                latest_generation_json
+            ),
+            "supersedes_retained_checkpoint_npz": str(
+                latest_generation_npz
+            ),
+            **summary["provenance"],
+        },
     )
     print(output)
     print(json.dumps({"all_stage0_gates_pass": all_gates}, indent=2))
