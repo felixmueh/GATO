@@ -5,6 +5,7 @@ import sys
 from types import SimpleNamespace
 
 import numpy as np
+from scipy import sparse
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -37,6 +38,8 @@ from gato_pointmass.pointmass2d import (
 from pointmass_examples.pointmass2d_stage0_oracle import (
     MODE_SIDES,
     ORACLE_RESTART_MARGINS_M,
+    FIRST_PAIR_WATCHDOG_SECONDS,
+    FULL_RUN_WATCHDOG_SECONDS,
     TRUST_CONSTR_OPTIONS,
     Stage0Problem,
     execute_ordered_pairs,
@@ -45,7 +48,23 @@ from pointmass_examples.pointmass2d_stage0_oracle import (
     partial_latest_path,
     sha256_file,
     task_aggregate,
+    watchdog_assessment,
     write_partial_checkpoint,
+)
+
+
+FROZEN_TASK_IDENTITY_HASHES = {
+    7000: "06d8d17fdde7de10b494443fffeea2d37b0cf57c6317fdc02c3115f6b40b2e83",
+    7001: "26589b9645fc1adbacc94f2efb4fca22ea290ea89266c7f0262800786dbd8d80",
+    7002: "4dc47d2b18716e9adb72d73908e79736acef5ed114c0e817827c15803bf1e44c",
+    7100: "fbe9495c3d715840cd6bec0552fb689963da734f459cec3d399edeef8869e1ed",
+    7101: "3145d18abf8e9eec891b6b6be4553941acd6c0b798b4f5347bdf9cd497187ac2",
+    7102: "412184d3b5ad6fb93a6d1b6a413867c496dcb1737e9fc695b5a812e27e7ecc9c",
+    7103: "c26bc2be0046d95c512b8f72fc6ccb9fe557ba930ce586761d91799c6a9fd67b",
+    7104: "3b021ba4653dd30bddaaa582499ec50a60b3934ca9f3e507bb7422c04c233868",
+}
+FROZEN_TERMINAL_NULLSPACE_SHA256 = (
+    "62c25b9a28a26c6956612218ef45cd248bb920809f66db0be76af52be1fb8892"
 )
 
 
@@ -303,7 +322,11 @@ def test_terminal_elimination_and_oracle_layout_are_exact_without_solving():
     assert problem.variable_count == 58
     assert problem.original_linear.A.shape == (62 + 497 * 4, 58)
     assert problem.clearance(np.zeros(58)).shape == (497,)
+    assert sparse.isspmatrix_csr(problem.clearance_jacobian(np.zeros(58)))
     assert problem.clearance_jacobian(np.zeros(58)).shape == (497, 58)
+    assert sparse.isspmatrix_csc(
+        problem.clearance_hessian(np.zeros(58), np.ones(497))
+    )
     assert problem.clearance_hessian(np.zeros(58), np.ones(497)).shape == (58, 58)
     for mode_side in MODE_SIDES:
         acquired = problem._linear_constraint(mode_side)
@@ -362,7 +385,10 @@ def test_oracle_exact_derivatives_and_quarantine_boundary_are_static():
         ]
     )
     np.testing.assert_allclose(
-        problem.clearance_jacobian(z), finite_clearance, rtol=1e-7, atol=1e-8
+        problem.clearance_jacobian(z).toarray(),
+        finite_clearance,
+        rtol=1e-7,
+        atol=1e-8,
     )
     oracle_source = (
         REPO_ROOT / "pointmass_examples/pointmass2d_stage0_oracle.py"
@@ -409,8 +435,90 @@ def test_oracle_exact_derivatives_and_quarantine_boundary_are_static():
         "initial_constr_penalty": 1.0,
         "initial_barrier_parameter": 0.1,
         "initial_barrier_tolerance": 0.1,
+        "sparse_jacobian": True,
         "verbose": 0,
     }
+
+
+def _linear_boundary_probe(problem):
+    direction = problem.initial_z(1, 4)
+    direction = direction / np.linalg.norm(direction)
+    matrix, lower, upper = problem._linear_constraint_dense_components(None)
+    base = matrix @ np.zeros(problem.variable_count)
+    slope = matrix @ direction
+    candidates = []
+    upper_mask = np.isfinite(upper) & (slope > 1e-14)
+    lower_mask = np.isfinite(lower) & (slope < -1e-14)
+    candidates.extend(((upper[upper_mask] - base[upper_mask]) / slope[upper_mask]))
+    candidates.extend(((lower[lower_mask] - base[lower_mask]) / slope[lower_mask]))
+    positive = np.asarray([value for value in candidates if value > 0.0])
+    assert len(positive)
+    return 0.999 * float(np.min(positive)) * direction
+
+
+def test_sparse_representation_matches_frozen_dense_math_on_all_eight_tasks():
+    task_seeds = DEVELOPMENT_TASK_SEEDS + HELDOUT_TASK_SEEDS
+    multiplier = np.linspace(0.25, 1.25, 497)
+    for task_seed in task_seeds:
+        task = generate_task(task_seed)
+        assert task["solver_task_identity_sha256"] == FROZEN_TASK_IDENTITY_HASHES[
+            task_seed
+        ]
+        problem = Stage0Problem(task)
+        assert sha256_array(problem.nullspace) == FROZEN_TERMINAL_NULLSPACE_SHA256
+        probes = (np.zeros(problem.variable_count), _linear_boundary_probe(problem))
+        for anchor_side in (None, -1, 1):
+            dense_matrix, dense_lower, dense_upper = (
+                problem._linear_constraint_dense_components(anchor_side)
+            )
+            sparse_constraint = problem._linear_constraint(anchor_side)
+            assert sparse.isspmatrix_csr(sparse_constraint.A)
+            assert sparse_constraint.A.shape == dense_matrix.shape
+            np.testing.assert_allclose(
+                sparse_constraint.A.toarray(), dense_matrix, rtol=1e-11, atol=1e-11
+            )
+            np.testing.assert_allclose(
+                sparse_constraint.lb, dense_lower, rtol=1e-11, atol=1e-11
+            )
+            np.testing.assert_allclose(
+                sparse_constraint.ub, dense_upper, rtol=1e-11, atol=1e-11
+            )
+            for z in probes:
+                controls = problem.controls(z)
+                value, gradient, hessian, _ = objective_control_derivatives(
+                    task, controls
+                )
+                assert np.isclose(problem.objective(z), value, rtol=1e-11, atol=1e-11)
+                np.testing.assert_allclose(
+                    problem.objective_jacobian(z),
+                    problem.nullspace.T @ gradient,
+                    rtol=1e-11,
+                    atol=1e-11,
+                )
+                sparse_objective_hessian = problem.objective_hessian(z)
+                assert sparse.isspmatrix_csc(sparse_objective_hessian)
+                np.testing.assert_allclose(
+                    sparse_objective_hessian.toarray(),
+                    problem.nullspace.T @ hessian @ problem.nullspace,
+                    rtol=1e-11,
+                    atol=1e-11,
+                )
+                sparse_jacobian = problem.clearance_jacobian(z)
+                assert sparse.isspmatrix_csr(sparse_jacobian)
+                np.testing.assert_allclose(
+                    sparse_jacobian.toarray(),
+                    problem.clearance_jacobian_dense(z),
+                    rtol=1e-11,
+                    atol=1e-11,
+                )
+                sparse_hessian = problem.clearance_hessian(z, multiplier)
+                assert sparse.isspmatrix_csc(sparse_hessian)
+                np.testing.assert_allclose(
+                    sparse_hessian.toarray(),
+                    problem.clearance_hessian_dense(z, multiplier),
+                    rtol=1e-11,
+                    atol=1e-11,
+                )
 
 
 def _mock_oracle_rows(clockwise_turns, counterclockwise_turns):
@@ -617,3 +725,23 @@ def test_checkpoint_pointer_survives_failure_after_generation3_npz(tmp_path):
     assert not output.with_name(f"{output.stem}.partial.json").exists()
     assert not output.with_name(f"{output.stem}.partial.npz").exists()
     assert not list(tmp_path.glob(".*.tmp"))
+
+
+def test_runtime_watchdog_thresholds_are_frozen_and_fail_closed():
+    assert FIRST_PAIR_WATCHDOG_SECONDS == 300.0
+    assert FULL_RUN_WATCHDOG_SECONDS == 21600.0
+    healthy = watchdog_assessment(200.0, 400.0, 2)
+    assert not healthy["stop"]
+    assert healthy["projected_full_run_seconds"] == 16000.0
+
+    first_timeout = watchdog_assessment(300.0001, 300.0001, 0)
+    assert first_timeout["stop"]
+    assert first_timeout["reasons"] == ["first_pair_exceeded_5_minutes"]
+    assert first_timeout["projected_full_run_seconds"] is None
+
+    projected_timeout = watchdog_assessment(250.0, 271.0, 1)
+    assert projected_timeout["stop"]
+    assert projected_timeout["reasons"] == [
+        "projected_full_run_exceeded_6_hours"
+    ]
+    assert projected_timeout["projected_full_run_seconds"] == 21680.0

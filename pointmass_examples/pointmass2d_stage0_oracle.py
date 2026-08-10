@@ -13,13 +13,16 @@ import json
 import platform
 from pathlib import Path
 import shlex
+import signal
 import subprocess
 import sys
 import tempfile
 import os
+import time
 
 import numpy as np
 import scipy
+from scipy import sparse
 from scipy.optimize import LinearConstraint, NonlinearConstraint, minimize
 
 
@@ -51,8 +54,11 @@ TRUST_CONSTR_OPTIONS = {
     "initial_constr_penalty": 1.0,
     "initial_barrier_parameter": 0.1,
     "initial_barrier_tolerance": 0.1,
+    "sparse_jacobian": True,
     "verbose": 0,
 }
+FIRST_PAIR_WATCHDOG_SECONDS = 5.0 * 60.0
+FULL_RUN_WATCHDOG_SECONDS = 6.0 * 60.0 * 60.0
 
 
 def sha256_file(path):
@@ -238,6 +244,71 @@ def execute_ordered_pairs(expected_identities, execute_pair, on_completed):
         on_completed(identity, payload)
 
 
+class OracleRuntimeWatchdogStop(RuntimeError):
+    pass
+
+
+def watchdog_assessment(first_pair_seconds, elapsed_seconds, completed_count):
+    completed_count = int(completed_count)
+    projected = (
+        None
+        if completed_count <= 0
+        else float(elapsed_seconds) * 80.0 / completed_count
+    )
+    first_exceeded = bool(
+        first_pair_seconds is not None
+        and float(first_pair_seconds) > FIRST_PAIR_WATCHDOG_SECONDS
+    )
+    projected_exceeded = bool(
+        projected is not None and projected > FULL_RUN_WATCHDOG_SECONDS
+    )
+    reasons = []
+    if first_exceeded:
+        reasons.append("first_pair_exceeded_5_minutes")
+    if projected_exceeded:
+        reasons.append("projected_full_run_exceeded_6_hours")
+    return {
+        "stop": bool(reasons),
+        "reasons": reasons,
+        "first_pair_seconds": (
+            None if first_pair_seconds is None else float(first_pair_seconds)
+        ),
+        "elapsed_seconds": float(elapsed_seconds),
+        "completed_restart_count": completed_count,
+        "projected_full_run_seconds": projected,
+        "first_pair_limit_seconds": FIRST_PAIR_WATCHDOG_SECONDS,
+        "full_run_limit_seconds": FULL_RUN_WATCHDOG_SECONDS,
+    }
+
+
+def write_runtime_rejection(output, assessment, identity_provenance):
+    output = Path(output)
+    rejection = output.with_name(f"{output.stem}.runtime_rejected.json")
+    latest = partial_latest_path(output)
+    payload = {
+        "schema_version": 1,
+        "diagnostic": "pointmass2d_stage0_runtime_watchdog_rejection",
+        "oracle_only": True,
+        "benchmark_seed_eligible": False,
+        "runtime_rejected": True,
+        "incomplete": True,
+        "all_stage0_gates_pass": False,
+        "all_stage0_gates_status": "not_applicable_runtime_rejected",
+        "watchdog": assessment,
+        "latest_complete_checkpoint_pointer": (
+            str(latest) if latest.exists() else None
+        ),
+        "identity_provenance": identity_provenance,
+        "automatic_resume_or_rerun_authorized": False,
+    }
+    _atomic_write_json(rejection, payload)
+    return rejection
+
+
+def _first_pair_alarm_handler(_signal_number, _frame):
+    raise OracleRuntimeWatchdogStop("first pair exceeded 5-minute wall watchdog")
+
+
 class Stage0Problem:
     """Exact terminal-eliminated oracle problem for one frozen task."""
 
@@ -295,12 +366,15 @@ class Stage0Problem:
         return self.nullspace.T @ gradient
 
     def objective_hessian(self, z):
+        return sparse.csc_matrix(self.objective_hessian_dense(z))
+
+    def objective_hessian_dense(self, z):
         _, _, hessian, _ = objective_control_derivatives(
             self.task, self.controls(z), self.protocol
         )
         return self.nullspace.T @ hessian @ self.nullspace
 
-    def _linear_constraint(self, anchor_side):
+    def _linear_constraint_dense_components(self, anchor_side):
         control_matrix = self.nullspace
         control_offset = self.particular
         state_matrix = self.dense_z_map.reshape(-1, self.variable_count)
@@ -347,9 +421,11 @@ class Stage0Problem:
             matrices.append(row[None, :])
             lower.append(np.asarray([required - offset]))
             upper.append(np.asarray([np.inf]))
-        return LinearConstraint(
-            np.vstack(matrices), np.concatenate(lower), np.concatenate(upper)
-        )
+        return np.vstack(matrices), np.concatenate(lower), np.concatenate(upper)
+
+    def _linear_constraint(self, anchor_side):
+        matrix, lower, upper = self._linear_constraint_dense_components(anchor_side)
+        return LinearConstraint(sparse.csr_matrix(matrix), lower, upper)
 
     def clearance(self, z):
         positions = self.dense_states(z)[:, :2]
@@ -358,6 +434,9 @@ class Stage0Problem:
         return np.sum(delta * delta, axis=1) - required * required
 
     def clearance_jacobian(self, z):
+        return sparse.csr_matrix(self.clearance_jacobian_dense(z))
+
+    def clearance_jacobian_dense(self, z):
         positions = self.dense_states(z)[:, :2]
         delta = positions - np.asarray(self.task["disk_center_m"])[None, :]
         return 2.0 * np.einsum(
@@ -365,6 +444,11 @@ class Stage0Problem:
         )
 
     def clearance_hessian(self, z, multipliers):
+        return sparse.csc_matrix(
+            self.clearance_hessian_dense(z, multipliers)
+        )
+
+    def clearance_hessian_dense(self, z, multipliers):
         del z
         return 2.0 * np.einsum(
             "s,sia,sib->ab",
@@ -427,7 +511,8 @@ class Stage0Problem:
         stationarity_vector = (
             gradient
             + linear_constraint.A.T @ linear_multiplier
-            + self.clearance_jacobian(result.x).T @ clearance_multiplier
+            + self.clearance_jacobian_dense(result.x).T
+            @ clearance_multiplier
         )
         linear_value = linear_constraint.A @ np.asarray(result.x)
         finite_lower = np.isfinite(linear_constraint.lb)
@@ -853,13 +938,14 @@ def run_stage0(output):
     output = Path(output)
     final_npz = output.with_suffix(".npz")
     final_manifest = output.with_suffix(".sha256.json")
+    runtime_rejection = output.with_name(f"{output.stem}.runtime_rejected.json")
     latest_checkpoint = partial_latest_path(output)
     existing_checkpoint_files = list(
         output.parent.glob(f"{output.stem}.partial.*")
     )
     forbidden_existing = [
         path
-        for path in (output, final_npz, final_manifest)
+        for path in (output, final_npz, final_manifest, runtime_rejection)
         if path.exists()
     ] + existing_checkpoint_files
     if forbidden_existing:
@@ -911,16 +997,53 @@ def run_stage0(output):
         arrays[f"task{task_seed}_solver_reference_float32"] = task["reference"]
     problems = {}
     completed_records = []
+    run_started = time.monotonic()
+    first_pair_seconds = None
 
     def execute_pair(identity):
+        nonlocal first_pair_seconds
         task_seed = identity["task_seed"]
         if task_seed not in problems:
             problems[task_seed] = Stage0Problem(tasks[task_seed])
-        return solve_restart(
-            problems[task_seed],
-            identity["mode_side"],
-            identity["restart_index"],
-        )
+        pair_started = time.monotonic()
+        first_pair = len(completed_records) == 0
+        previous_handler = None
+        previous_timer = None
+        if first_pair:
+            previous_handler = signal.signal(
+                signal.SIGALRM, _first_pair_alarm_handler
+            )
+            previous_timer = signal.setitimer(
+                signal.ITIMER_REAL, FIRST_PAIR_WATCHDOG_SECONDS
+            )
+        try:
+            row = solve_restart(
+                problems[task_seed],
+                identity["mode_side"],
+                identity["restart_index"],
+            )
+        except OracleRuntimeWatchdogStop:
+            elapsed = time.monotonic() - run_started
+            first_pair_seconds = max(
+                time.monotonic() - pair_started,
+                np.nextafter(FIRST_PAIR_WATCHDOG_SECONDS, np.inf),
+            )
+            assessment = watchdog_assessment(first_pair_seconds, elapsed, 0)
+            write_runtime_rejection(output, assessment, identity_provenance)
+            raise
+        finally:
+            if first_pair:
+                signal.setitimer(signal.ITIMER_REAL, 0.0)
+                signal.signal(signal.SIGALRM, previous_handler)
+                if previous_timer and previous_timer[0] > 0.0:
+                    signal.setitimer(
+                        signal.ITIMER_REAL, previous_timer[0], previous_timer[1]
+                    )
+        pair_seconds = time.monotonic() - pair_started
+        if first_pair:
+            first_pair_seconds = pair_seconds
+        row["runtime_pair_wall_seconds"] = pair_seconds
+        return row
 
     def retain_completed_pair(identity, row):
         if (
@@ -929,6 +1052,12 @@ def run_stage0(output):
             or row["mode_side"] != identity["mode_side"]
         ):
             raise RuntimeError("solver row identity differs from frozen order")
+        assessment = watchdog_assessment(
+            first_pair_seconds,
+            time.monotonic() - run_started,
+            len(completed_records) + 1,
+        )
+        row["runtime_watchdog_assessment_after_pair"] = assessment
         prefix = identity["key"]
         arrays[f"{prefix}_acquisition_initial_z"] = row[
             "acquisition_initial_z"
@@ -959,6 +1088,11 @@ def run_stage0(output):
             arrays,
             current_provenance,
         )
+        if assessment["stop"]:
+            write_runtime_rejection(output, assessment, current_provenance)
+            raise OracleRuntimeWatchdogStop(
+                "Stage0 runtime watchdog stopped the single authorized run"
+            )
 
     execute_ordered_pairs(expected_identities, execute_pair, retain_completed_pair)
     if len(completed_records) != 80:
