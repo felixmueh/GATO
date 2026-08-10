@@ -77,6 +77,45 @@ candidate in an independent batch-1 solve, preventing a cap-heavy member from
 setting the batched wall time for every other candidate. `--execution batched`
 is available on `run` when batched PCG behavior is itself under study.
 
+The prototype also provides obstacle-agnostic multistarts. `random-task` keeps
+the common start and goal, samples smooth antithetic task-space bumps transverse
+to start-goal travel, and scales them only by endpoint distance. It does not use
+pillar position, radius, winding labels, clearance results, or an oracle. The
+proposal seed is separate from the instance seed:
+
+```sh
+python tiago_examples/tiago_multimodal_pillar.py run \
+  --difficulty easy --seed 31 --proposal-seed 1000 \
+  --proposal-strategy random-task --candidate-budget 8 --execution batched
+```
+
+For performance claims, use `batch-benchmark`. It warms both paths, uses the
+exact same ordered input candidates, balances and deterministically randomizes
+measured order, retains raw paired samples, and checks input hashes, complete
+certificate/objective/iteration telemetry, and trajectory parity. Its primary
+end-to-end time includes proposal generation, CUDA dynamics calibration, SQP,
+exact replay, evaluation, and selection; `solver_wall` is explicitly the
+narrow solve-only measurement.
+
+```sh
+python tiago_examples/tiago_multimodal_pillar.py batch-benchmark \
+  --difficulty easy --seed 31 --proposal-seed 1000 \
+  --proposal-strategy random-task --candidate-budget 8 \
+  --warmup-repeats 1 --repeats 20 \
+  --output example_artifacts/tiago_multimodal_pillar/campaign/easy_31_1000.json
+```
+
+Repeat over predeclared instance and proposal seeds in at least two difficulty
+lanes. Preserve unsuccessful coverage and PCG-cap cases. Aggregate all JSONs
+without filtering them:
+
+```sh
+python tiago_tools/summarize_multimodal_batch_campaign.py \
+  example_artifacts/tiago_multimodal_pillar/campaign \
+  --output example_artifacts/tiago_multimodal_pillar/campaign_summary.json \
+  --markdown example_artifacts/tiago_multimodal_pillar/campaign_summary.md
+```
+
 Each output contains a self-contained `instance.json`, `summary.json`, a mode plot,
 and an NPZ archive that distinguishes optimizer states from exact CUDA rollout
 states. Summaries record source/model/extension hashes and report mode coverage,
