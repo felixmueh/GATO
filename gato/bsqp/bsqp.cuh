@@ -156,17 +156,18 @@ class BSQP {
                                 T q_max = std::abs(*std::max_element(q_ptr, q_ptr + STATE_P_KNOTS, abs_cmp));
                                 T c_max = std::abs(*std::max_element(c_ptr, c_ptr + STATE_P_KNOTS, abs_cmp));
 
-                                // within kkt exit tol or pcg exit tol (no steps taken)
-                                if (pcg_stats.num_iterations[b] == 0) {   // || (q_max < kkt_tol_ && c_max < kkt_tol_)
-                                        h_kkt_converged_batch_[b] = 1;
+                                // Count an outer iteration only while this lane
+                                // is active. Batched kernels skip converged lanes,
+                                // whose zero PCG count must not increment telemetry
+                                // again during other lanes' later iterations.
+                                if (!h_kkt_converged_batch_[b]) {
                                         h_sqp_iters_B_[b] += 1;
+                                        // within kkt exit tol or pcg exit tol (no steps taken)
+                                        if (pcg_stats.num_iterations[b] == 0) {   // || (q_max < kkt_tol_ && c_max < kkt_tol_)
+                                                h_kkt_converged_batch_[b] = 1;
+                                        }
                                 }
-
-                                if (h_kkt_converged_batch_[b]) {
-                                        num_solved++;
-                                } else {
-                                        h_sqp_iters_B_[b] += 1;
-                                }
+                                if (h_kkt_converged_batch_[b]) { num_solved++; }
                         }
 
                         if (num_solved >= BatchSize * solve_ratio_) break;
