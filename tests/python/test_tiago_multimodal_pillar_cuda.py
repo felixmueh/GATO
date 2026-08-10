@@ -14,13 +14,71 @@ KNOTS = 32
 MODULE = f"bsqp.bsqpN{KNOTS}_tiago_right_multimodal"
 
 
-@pytest.mark.cuda
-@pytest.mark.tracking
-def test_easy_pillar_instance_covers_two_ranked_winding_modes(tmp_path):
+def _require_multimodal_cuda():
     if os.environ.get("GATO_RUN_MULTIMODAL_TESTS") != "1":
         pytest.skip("set GATO_RUN_MULTIMODAL_TESTS=1 to run the multimodal CUDA test")
     if importlib.util.find_spec(MODULE) is None:
         pytest.skip(f"built solver extension is not available: {MODULE}")
+
+
+@pytest.mark.cuda
+def test_sim_forward_supports_broadcast_and_distinct_batch_rows():
+    _require_multimodal_cuda()
+    sys.path.insert(0, str(REPO_ROOT / "python"))
+    sys.path.insert(0, str(REPO_ROOT / "tiago_src"))
+    from bsqp.interface import BSQP
+    from gato_tiago.multimodal_pillar import DIFFICULTIES, MODEL_PATH, generate_instance, load_model
+
+    model = load_model(REPO_ROOT / MODEL_PATH)
+    instance = generate_instance(30, DIFFICULTIES["easy"], model=model)
+    kwargs = {
+        "model_path": str(REPO_ROOT / MODEL_PATH),
+        "N": KNOTS,
+        "dt": DIFFICULTIES["easy"].dt,
+        "plant_type": "tiago_right_multimodal",
+    }
+    batched = BSQP(batch_size=4, **kwargs)
+    scalar = BSQP(batch_size=1, **kwargs)
+    x0 = np.asarray(instance.start_q + (0.0,) * model.nv, dtype=np.float32)
+    u0 = np.zeros(model.nv, dtype=np.float32)
+
+    broadcast = batched.sim_forward(x0, u0, kwargs["dt"])
+    np.testing.assert_array_equal(broadcast, np.tile(broadcast[0], (4, 1)))
+
+    x_batch = np.tile(x0, (4, 1))
+    u_batch = np.tile(u0, (4, 1))
+    x_batch[:, model.nq :] += np.arange(4, dtype=np.float32)[:, None] * 0.01
+    u_batch += np.arange(4, dtype=np.float32)[:, None] * 0.1
+    actual = batched.sim_forward(x_batch, u_batch, kwargs["dt"])
+    expected = np.vstack(
+        [scalar.sim_forward(x_batch[index], u_batch[index], kwargs["dt"])[0] for index in range(4)]
+    )
+    np.testing.assert_array_equal(actual, expected)
+
+    mixed = batched.sim_forward(x_batch, u0, kwargs["dt"])
+    mixed_expected = np.vstack(
+        [scalar.sim_forward(x_batch[index], u0, kwargs["dt"])[0] for index in range(4)]
+    )
+    np.testing.assert_array_equal(mixed, mixed_expected)
+
+    # pybind's force-cast path must handle float64 and non-contiguous views.
+    x_wide = np.zeros((4, x_batch.shape[1] * 2), dtype=np.float64)
+    u_wide = np.zeros((4, u_batch.shape[1] * 2), dtype=np.float64)
+    x_wide[:, ::2] = x_batch
+    u_wide[:, ::2] = u_batch
+    coerced = batched.sim_forward(x_wide[:, ::2], u_wide[:, ::2], kwargs["dt"])
+    np.testing.assert_array_equal(coerced, expected)
+
+    with pytest.raises(ValueError, match="xk must have shape"):
+        batched.sim_forward(x_batch[:3], u_batch, kwargs["dt"])
+    with pytest.raises(ValueError, match="uk must have shape"):
+        batched.sim_forward(x_batch, u_batch[:3], kwargs["dt"])
+
+
+@pytest.mark.cuda
+@pytest.mark.tracking
+def test_easy_pillar_instance_covers_two_ranked_winding_modes(tmp_path):
+    _require_multimodal_cuda()
 
     command = [
         sys.executable,

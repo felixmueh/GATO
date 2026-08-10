@@ -1,6 +1,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/numpy.h>
 #include <pybind11/stl.h>
+#include <algorithm>
 #include "bsqp/bsqp.cuh"
 #include "types.cuh"
 #include "utils/cuda.cuh"
@@ -18,10 +19,12 @@ class PyBSQP {
                 gpuErrchk(cudaMalloc(&d_x_s_batch_, STATE_SIZE * BatchSize * sizeof(T)));
                 gpuErrchk(cudaMalloc(&d_reference_traj_batch_, REFERENCE_TRAJ_SIZE * BatchSize * sizeof(T)));
                 gpuErrchk(cudaMalloc(&d_xkp1_batch_, STATE_SIZE * BatchSize * sizeof(T)));
-                gpuErrchk(cudaMalloc(&d_xk_, STATE_SIZE * sizeof(T)));
-                gpuErrchk(cudaMalloc(&d_uk_, CONTROL_SIZE * sizeof(T)));
+                gpuErrchk(cudaMalloc(&d_xk_, STATE_SIZE * BatchSize * sizeof(T)));
+                gpuErrchk(cudaMalloc(&d_uk_, CONTROL_SIZE * BatchSize * sizeof(T)));
 
                 h_xkp1_batch_.resize(STATE_SIZE * BatchSize);
+                h_xk_batch_.resize(STATE_SIZE * BatchSize);
+                h_uk_batch_.resize(CONTROL_SIZE * BatchSize);
         }
 
         PyBSQP(const T        dt,
@@ -51,10 +54,12 @@ class PyBSQP {
                 gpuErrchk(cudaMalloc(&d_x_s_batch_, STATE_SIZE * BatchSize * sizeof(T)));
                 gpuErrchk(cudaMalloc(&d_reference_traj_batch_, REFERENCE_TRAJ_SIZE * BatchSize * sizeof(T)));
                 gpuErrchk(cudaMalloc(&d_xkp1_batch_, STATE_SIZE * BatchSize * sizeof(T)));
-                gpuErrchk(cudaMalloc(&d_xk_, STATE_SIZE * sizeof(T)));
-                gpuErrchk(cudaMalloc(&d_uk_, CONTROL_SIZE * sizeof(T)));
+                gpuErrchk(cudaMalloc(&d_xk_, STATE_SIZE * BatchSize * sizeof(T)));
+                gpuErrchk(cudaMalloc(&d_uk_, CONTROL_SIZE * BatchSize * sizeof(T)));
 
                 h_xkp1_batch_.resize(STATE_SIZE * BatchSize);
+                h_xk_batch_.resize(STATE_SIZE * BatchSize);
+                h_uk_batch_.resize(CONTROL_SIZE * BatchSize);
         }
 
         ~PyBSQP()
@@ -187,13 +192,40 @@ class PyBSQP {
                 solver_.set_pcg_tol_batch(static_cast<T*>(buf.ptr));
         }
 
-        py::array_t<T> sim_forward(py::array_t<T> xk, py::array_t<T> uk, T dt)
+        py::array_t<T> sim_forward(py::array_t<T, py::array::c_style | py::array::forcecast> xk,
+                                   py::array_t<T, py::array::c_style | py::array::forcecast> uk,
+                                   T dt)
         {
                 py::buffer_info xk_buf = xk.request();
                 py::buffer_info uk_buf = uk.request();
 
-                gpuErrchk(cudaMemcpy(d_xk_, xk_buf.ptr, STATE_SIZE * sizeof(T), cudaMemcpyHostToDevice));
-                gpuErrchk(cudaMemcpy(d_uk_, uk_buf.ptr, CONTROL_SIZE * sizeof(T), cudaMemcpyHostToDevice));
+                const bool x_broadcast = xk_buf.ndim == 1 && xk_buf.shape[0] == STATE_SIZE;
+                const bool u_broadcast = uk_buf.ndim == 1 && uk_buf.shape[0] == CONTROL_SIZE;
+                const bool x_batched = xk_buf.ndim == 2 && xk_buf.shape[0] == BatchSize && xk_buf.shape[1] == STATE_SIZE;
+                const bool u_batched = uk_buf.ndim == 2 && uk_buf.shape[0] == BatchSize && uk_buf.shape[1] == CONTROL_SIZE;
+                if (!x_broadcast && !x_batched) {
+                        throw py::value_error("xk must have shape (STATE_SIZE,) or (BatchSize, STATE_SIZE)");
+                }
+                if (!u_broadcast && !u_batched) {
+                        throw py::value_error("uk must have shape (CONTROL_SIZE,) or (BatchSize, CONTROL_SIZE)");
+                }
+
+                const T* h_xk = static_cast<const T*>(xk_buf.ptr);
+                const T* h_uk = static_cast<const T*>(uk_buf.ptr);
+                if (x_broadcast) {
+                        for (uint32_t batch = 0; batch < BatchSize; ++batch) {
+                                std::copy(h_xk, h_xk + STATE_SIZE, h_xk_batch_.data() + batch * STATE_SIZE);
+                        }
+                        h_xk = h_xk_batch_.data();
+                }
+                if (u_broadcast) {
+                        for (uint32_t batch = 0; batch < BatchSize; ++batch) {
+                                std::copy(h_uk, h_uk + CONTROL_SIZE, h_uk_batch_.data() + batch * CONTROL_SIZE);
+                        }
+                        h_uk = h_uk_batch_.data();
+                }
+                gpuErrchk(cudaMemcpy(d_xk_, h_xk, STATE_SIZE * BatchSize * sizeof(T), cudaMemcpyHostToDevice));
+                gpuErrchk(cudaMemcpy(d_uk_, h_uk, CONTROL_SIZE * BatchSize * sizeof(T), cudaMemcpyHostToDevice));
 
                 solver_.sim_forward(d_xkp1_batch_, d_xk_, d_uk_, dt);
                 gpuErrchk(cudaDeviceSynchronize());
@@ -215,7 +247,7 @@ class PyBSQP {
 
         // for sim_forward
         T *            d_xkp1_batch_, *d_xk_, *d_uk_;
-        std::vector<T> h_xkp1_batch_;
+        std::vector<T> h_xkp1_batch_, h_xk_batch_, h_uk_batch_;
 };
 
 

@@ -23,6 +23,8 @@ void simForwardBatchedKernel(
 ) {
     const uint32_t solve_idx = blockIdx.y;
     T *d_xkp1 = d_xkp1_batch + solve_idx * STATE_SIZE;
+    const T *d_xk_solve = d_xk + solve_idx * STATE_SIZE;
+    const T *d_uk_solve = d_uk + solve_idx * CONTROL_SIZE;
     T *d_f_ext = getOffsetWrench<T, BatchSize>(d_f_ext_batch, solve_idx);
 
     extern __shared__ T s_mem[];
@@ -31,8 +33,8 @@ void simForwardBatchedKernel(
     T *s_uk = s_xk + STATE_SIZE;
     T *s_temp = s_uk + CONTROL_SIZE;
 
-    block::copy<T, STATE_SIZE>(s_xk, d_xk);
-    block::copy<T, CONTROL_SIZE>(s_uk, d_uk);
+    block::copy<T, STATE_SIZE>(s_xk, d_xk_solve);
+    block::copy<T, CONTROL_SIZE>(s_uk, d_uk_solve);
 
     sim_step<T, INTEGRATOR_TYPE, ANGLE_WRAP>(
         s_xkp1,
@@ -85,5 +87,4 @@ void simForwardBatched(
         dt
     );
 }
-
 

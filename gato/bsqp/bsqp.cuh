@@ -90,7 +90,12 @@ class BSQP {
 
         void set_rho_adaptation(bool enabled) { adapt_rho_ = enabled; }
 
-        void sim_forward(T* d_xkp1_batch, T* d_xk, T* d_uk, T dt) { simForwardBatched<T, BatchSize>(d_xkp1_batch, d_xk, d_uk, d_GRiD_mem_, d_f_ext_batch_, dt, stream_); }
+        // d_xk and d_uk contain BatchSize contiguous rows. Host bindings may
+        // explicitly broadcast one input row before calling this method.
+        void sim_forward(T* d_xkp1_batch, T* d_xk_batch, T* d_uk_batch, T dt)
+        {
+                simForwardBatched<T, BatchSize>(d_xkp1_batch, d_xk_batch, d_uk_batch, d_GRiD_mem_, d_f_ext_batch_, dt, stream_);
+        }
 
         void copy_final_merit_to_host(T* h_out)
         {
