@@ -12,6 +12,10 @@ from gato_tiago.multimodal_pillar import (
     generate_instance,
     load_model,
     pillar_residual_and_gradient,
+    perturb_joint_path,
+    perturb_task_path,
+    random_candidate_specs,
+    random_task_candidate_specs,
     reference_batch,
     task_seed_path,
     winding_signature,
@@ -189,3 +193,55 @@ def test_certificate_requires_certifiable_support_in_both_modes():
 def test_candidate_budgets_use_only_supported_batch_sizes():
     for budget in (1, 2, 4, 8):
         assert len(candidate_specs(budget)) == budget
+
+
+def test_random_candidate_budgets_are_nested_deterministic_and_obstacle_agnostic():
+    full = random_candidate_specs(8, seed=991)
+    assert random_candidate_specs(1, seed=991) == full[:1]
+    assert random_candidate_specs(2, seed=991) == full[:2]
+    assert random_candidate_specs(4, seed=991) == full[:4]
+    assert random_candidate_specs(8, seed=991) == full
+    assert random_candidate_specs(8, seed=992) != full
+    assert full[0].name == "cold"
+    assert full[1].name == "straight_unperturbed"
+    assert all(spec.route_side in (None, 0) for spec in full)
+    assert all(spec.route_scale == 1.0 for spec in full)
+
+
+def test_random_joint_perturbation_is_reproducible_antithetic_and_endpoint_fixed():
+    model = load_model()
+    knots = 32
+    progress = np.linspace(0.0, 1.0, knots)
+    instance = generate_instance(17, DIFFICULTIES["easy"], model=model)
+    q_path = np.tile(np.asarray(instance.start_q), (knots, 1))
+    plus = perturb_joint_path(q_path, progress, model, seed=17, sign=1)
+    repeated = perturb_joint_path(q_path, progress, model, seed=17, sign=1)
+    minus = perturb_joint_path(q_path, progress, model, seed=17, sign=-1)
+
+    np.testing.assert_array_equal(plus, repeated)
+    np.testing.assert_array_equal(plus[[0, -1]], q_path[[0, -1]])
+    np.testing.assert_array_equal(minus[[0, -1]], q_path[[0, -1]])
+    np.testing.assert_allclose(plus + minus, 2.0 * q_path, atol=1e-12)
+    assert np.max(np.abs(plus - q_path)) <= 0.20 * 1.45 + 1e-12
+    assert np.any(plus[1:-1] != q_path[1:-1])
+
+
+def test_random_task_candidates_and_paths_are_nested_antithetic_and_endpoint_fixed():
+    full = random_task_candidate_specs(8, seed=41)
+    assert random_task_candidate_specs(1, seed=41) == full[:1]
+    assert random_task_candidate_specs(2, seed=41) == full[:2]
+    assert random_task_candidate_specs(4, seed=41) == full[:4]
+    assert all(spec.route_side in (None, 0) for spec in full)
+
+    progress = np.linspace(0.0, 1.0, 32)
+    path = np.column_stack([0.3 * progress, -0.2 + 0.02 * progress, 0.9 + 0.01 * progress])
+    plus = perturb_task_path(path, seed=99, sign=1, amplitude_fraction=0.5)
+    minus = perturb_task_path(path, seed=99, sign=-1, amplitude_fraction=0.5)
+    repeated = perturb_task_path(path, seed=99, sign=1, amplitude_fraction=0.5)
+    np.testing.assert_array_equal(plus, repeated)
+    np.testing.assert_array_equal(plus[[0, -1]], path[[0, -1]])
+    np.testing.assert_array_equal(minus[[0, -1]], path[[0, -1]])
+    np.testing.assert_allclose(plus + minus, 2.0 * path, atol=1e-12)
+    travel = path[-1] - path[0]
+    displacement = plus - path
+    np.testing.assert_allclose(displacement @ travel, 0.0, atol=1e-12)

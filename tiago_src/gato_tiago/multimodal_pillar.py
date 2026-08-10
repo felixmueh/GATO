@@ -174,6 +174,11 @@ class CandidateSpec:
     name: str
     route_side: int | None
     route_scale: float = 1.0
+    joint_perturbation_seed: int | None = None
+    joint_perturbation_sign: int = 1
+    task_perturbation_seed: int | None = None
+    task_perturbation_sign: int = 1
+    task_perturbation_scale: float = 0.0
 
 
 def load_model(model_path: Path | str = MODEL_PATH):
@@ -306,6 +311,66 @@ def candidate_specs(budget: int) -> list[CandidateSpec]:
     return master[:budget]
 
 
+def random_candidate_specs(budget: int, seed: int) -> list[CandidateSpec]:
+    """Return a nested, reproducible, obstacle-agnostic proposal family.
+
+    The first two candidates are the cold and unperturbed straight task-space
+    baselines.  Remaining candidates perturb the straight-path joint
+    configurations in antithetic pairs.  Their distribution depends only on
+    ``seed`` and the robot joint space: pillar position, radius, and route side
+    are deliberately not inputs.
+    """
+
+    if budget not in (1, 2, 4, 8):
+        raise ValueError("candidate budget must be one of 1, 2, 4, or 8")
+    # Keep seeds stable when the requested budget grows. SeedSequence avoids
+    # accidental correlations between nearby instance seeds.
+    child_seeds = np.random.SeedSequence(int(seed)).spawn(3)
+    random_seeds = [int(child.generate_state(1, dtype=np.uint32)[0]) for child in child_seeds]
+    master = [
+        CandidateSpec("cold", None),
+        CandidateSpec("straight_unperturbed", 0),
+        CandidateSpec("random_0_plus", 0, joint_perturbation_seed=random_seeds[0]),
+        CandidateSpec(
+            "random_0_minus", 0,
+            joint_perturbation_seed=random_seeds[0], joint_perturbation_sign=-1,
+        ),
+        CandidateSpec("random_1_plus", 0, joint_perturbation_seed=random_seeds[1]),
+        CandidateSpec(
+            "random_1_minus", 0,
+            joint_perturbation_seed=random_seeds[1], joint_perturbation_sign=-1,
+        ),
+        CandidateSpec("random_2_plus", 0, joint_perturbation_seed=random_seeds[2]),
+        CandidateSpec(
+            "random_2_minus", 0,
+            joint_perturbation_seed=random_seeds[2], joint_perturbation_sign=-1,
+        ),
+    ]
+    return master[:budget]
+
+
+def random_task_candidate_specs(budget: int, seed: int) -> list[CandidateSpec]:
+    """Return generic random task-space bumps between fixed boundary poses."""
+
+    if budget not in (1, 2, 4, 8):
+        raise ValueError("candidate budget must be one of 1, 2, 4, or 8")
+    child_seeds = np.random.SeedSequence(int(seed)).spawn(3)
+    random_seeds = [int(child.generate_state(1, dtype=np.uint32)[0]) for child in child_seeds]
+    master = [CandidateSpec("cold", None), CandidateSpec("straight_unperturbed", 0)]
+    for index, scale in enumerate((0.35, 0.50, 0.65)):
+        for label, sign in (("plus", 1), ("minus", -1)):
+            master.append(
+                CandidateSpec(
+                    f"random_task_{index}_{label}",
+                    0,
+                    task_perturbation_seed=random_seeds[index],
+                    task_perturbation_sign=sign,
+                    task_perturbation_scale=scale,
+                )
+            )
+    return master[:budget]
+
+
 def minimum_jerk_progress(knots: int) -> np.ndarray:
     t = np.linspace(0.0, 1.0, knots, dtype=np.float64)
     return 10.0 * t**3 - 15.0 * t**4 + 6.0 * t**5
@@ -335,6 +400,50 @@ def task_seed_path(
             np.sin(np.pi * progress)[:, None] * (desired_mid - line_mid)[None, :]
         )
     return points
+
+
+def perturb_task_path(
+    points: np.ndarray,
+    *,
+    seed: int,
+    sign: int = 1,
+    amplitude_fraction: float,
+) -> np.ndarray:
+    """Add a smooth random bump transverse to the start-to-goal direction.
+
+    Magnitude is a fixed fraction of endpoint travel. No obstacle geometry,
+    collision result, winding label, or candidate objective enters sampling.
+    """
+
+    points = np.asarray(points, dtype=np.float64)
+    if points.ndim != 2 or points.shape[1] != 3 or points.shape[0] < 2:
+        raise ValueError("task path must have shape (knots, 3)")
+    if sign not in (-1, 1):
+        raise ValueError("task perturbation sign must be -1 or 1")
+    travel = points[-1] - points[0]
+    travel_norm = float(np.linalg.norm(travel))
+    if travel_norm <= 1e-9:
+        raise ValueError("task path endpoints must be distinct")
+    direction = travel / travel_norm
+    rng = np.random.default_rng(int(seed))
+    random_direction = rng.normal(size=3)
+    transverse = random_direction - float(random_direction @ direction) * direction
+    transverse_norm = float(np.linalg.norm(transverse))
+    if transverse_norm <= 1e-9:
+        raise RuntimeError("random transverse task direction was degenerate")
+    transverse /= transverse_norm
+    progress = np.linspace(0.0, 1.0, points.shape[0], dtype=np.float64)
+    envelope = np.sin(np.pi * progress) ** 2
+    perturbed = points + (
+        float(sign)
+        * float(amplitude_fraction)
+        * travel_norm
+        * envelope[:, None]
+        * transverse[None, :]
+    )
+    perturbed[0] = points[0]
+    perturbed[-1] = points[-1]
+    return perturbed
 
 
 def solve_position_path_ik(
@@ -379,6 +488,56 @@ def solve_position_path_ik(
     return np.asarray(q_path, dtype=np.float64), max_error
 
 
+def perturb_joint_path(
+    q_path: np.ndarray,
+    progress: np.ndarray,
+    model,
+    *,
+    seed: int,
+    sign: int = 1,
+    max_amplitude_rad: float = 0.20,
+) -> np.ndarray:
+    """Apply a smooth random joint-space perturbation with fixed endpoints.
+
+    This is intentionally unaware of task obstacles.  A two-frequency random
+    series supplies broad intermediate-configuration diversity, while a sine
+    envelope preserves the shared initial state and terminal IK configuration.
+    Antithetic ``sign`` pairs cheaply explore opposite joint-space directions.
+    """
+
+    q_path = np.asarray(q_path, dtype=np.float64)
+    progress = np.asarray(progress, dtype=np.float64)
+    if q_path.ndim != 2 or progress.shape != (q_path.shape[0],):
+        raise ValueError("q_path and progress shapes are inconsistent")
+    if sign not in (-1, 1):
+        raise ValueError("joint perturbation sign must be -1 or 1")
+    rng = np.random.default_rng(int(seed))
+    directions = rng.normal(size=(2, q_path.shape[1]))
+    directions /= np.maximum(np.linalg.norm(directions, axis=1, keepdims=True), 1e-12)
+    amplitudes = rng.uniform(0.65, 1.0, size=2)
+    envelope = np.sin(np.pi * progress) ** 2
+    perturbation = envelope[:, None] * (
+        amplitudes[0] * directions[0]
+        + 0.45 * amplitudes[1] * np.sin(2.0 * np.pi * progress)[:, None] * directions[1]
+    )
+    perturbation *= float(max_amplitude_rad)
+    lower = model.lowerPositionLimit.astype(np.float64) + 0.01
+    upper = model.upperPositionLimit.astype(np.float64) - 0.01
+    # Use one symmetric scale for an antithetic pair. This preserves exact
+    # plus/minus symmetry while keeping both members inside joint limits.
+    symmetric_margin = np.minimum(q_path - lower, upper - q_path)
+    active = np.abs(perturbation) > 1e-12
+    feasible_scale = float(
+        np.min(symmetric_margin[active] / np.abs(perturbation[active]), initial=1.0)
+    )
+    perturbation *= min(1.0, max(0.0, feasible_scale))
+    perturbed = q_path + float(sign) * perturbation
+    # Preserve exact endpoint equality even if clipping behavior changes.
+    perturbed[0] = q_path[0]
+    perturbed[-1] = q_path[-1]
+    return perturbed
+
+
 def _discrete_state_derivatives(q_path: np.ndarray, dt: float):
     """Choose qd/qdd that exactly reproduce q under GATO's trapezoidal step."""
 
@@ -409,7 +568,22 @@ def pack_warm_start(
         task_path = task_seed_path(
             instance, difficulty, spec.route_side, route_scale=spec.route_scale
         )
+        if spec.task_perturbation_seed is not None:
+            task_path = perturb_task_path(
+                task_path,
+                seed=spec.task_perturbation_seed,
+                sign=spec.task_perturbation_sign,
+                amplitude_fraction=spec.task_perturbation_scale,
+            )
         q_path, ik_error = solve_position_path_ik(model, start_q, task_path)
+        if spec.joint_perturbation_seed is not None:
+            q_path = perturb_joint_path(
+                q_path,
+                minimum_jerk_progress(difficulty.knots),
+                model,
+                seed=spec.joint_perturbation_seed,
+                sign=spec.joint_perturbation_sign,
+            )
 
     qd_path, qdd_path = _discrete_state_derivatives(q_path, difficulty.dt)
     controls = np.empty((difficulty.knots - 1, nu), dtype=np.float64)

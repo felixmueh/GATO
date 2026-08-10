@@ -43,6 +43,8 @@ from gato_tiago.multimodal_pillar import (
     load_model,
     pack_trajectory,
     pack_warm_start,
+    random_candidate_specs,
+    random_task_candidate_specs,
     reference_batch,
     tool_position,
     unpack_trajectory,
@@ -100,6 +102,11 @@ def _sha256_file(path):
     return digest.hexdigest()
 
 
+def _sha256_array(value):
+    array = np.ascontiguousarray(np.asarray(value))
+    return hashlib.sha256(array.tobytes()).hexdigest()
+
+
 def _provenance(difficulty):
     source_paths = (
         REPO_ROOT / "gato/dynamics/tiago_right/tiago_right_plant.cuh",
@@ -135,93 +142,149 @@ def _provenance(difficulty):
     }
 
 
-def _calibrate_warm_start_to_cuda(solver, model, difficulty, packed, iterations=3):
-    """Create an executable, feedback-stabilized rollout in the CUDA plant."""
+def _calibrate_warm_starts_to_cuda(solver, model, difficulty, packed_batch, iterations=3):
+    """Create executable CUDA rollouts for all candidates in parallel."""
 
-    desired_q, desired_qd, _ = unpack_trajectory(packed, model, difficulty.knots)
-    data = model.createData()
+    packed_batch = np.asarray(packed_batch, dtype=np.float32)
+    if packed_batch.ndim != 2 or packed_batch.shape[0] != solver.batch_size:
+        raise ValueError("packed warm starts must match the solver batch size")
+    desired = [
+        unpack_trajectory(packed, model, difficulty.knots) for packed in packed_batch
+    ]
+    desired_q = np.asarray([item[0] for item in desired], dtype=np.float64)
+    desired_qd = np.asarray([item[1] for item in desired], dtype=np.float64)
+    data = [model.createData() for _ in range(solver.batch_size)]
     nx = model.nq + model.nv
     stride = nx + model.nv
-    calibrated = np.zeros_like(np.asarray(packed, dtype=np.float32))
-    rollout_state = np.hstack([desired_q[0], desired_qd[0]]).astype(np.float32)
-    controls = np.empty((difficulty.knots - 1, model.nv), dtype=np.float64)
-    max_tracking_error = 0.0
+    calibrated = np.zeros_like(packed_batch)
+    rollout_state = np.hstack([desired_q[:, 0], desired_qd[:, 0]]).astype(np.float32)
+    controls = np.empty(
+        (solver.batch_size, difficulty.knots - 1, model.nv), dtype=np.float64
+    )
+    max_tracking_error = np.zeros(solver.batch_size, dtype=np.float64)
     for knot in range(difficulty.knots - 1):
-        q = rollout_state[: model.nq].astype(np.float64)
-        qd = rollout_state[model.nq :].astype(np.float64)
-        feedforward = (desired_qd[knot + 1] - desired_qd[knot]) / difficulty.dt
+        q = rollout_state[:, : model.nq].astype(np.float64)
+        qd = rollout_state[:, model.nq :].astype(np.float64)
+        feedforward = (desired_qd[:, knot + 1] - desired_qd[:, knot]) / difficulty.dt
         target_acceleration = (
             feedforward
-            + 100.0 * (desired_q[knot] - q)
-            + 20.0 * (desired_qd[knot] - qd)
+            + 100.0 * (desired_q[:, knot] - q)
+            + 20.0 * (desired_qd[:, knot] - qd)
         )
-        control = pin.rnea(model, data, q, qd, target_acceleration)
-        mass = pin.crba(model, data, q).copy()
-        mass = np.triu(mass) + np.triu(mass, 1).T
+        control = np.asarray(
+            [
+                pin.rnea(model, data[index], q[index], qd[index], target_acceleration[index])
+                for index in range(solver.batch_size)
+            ],
+            dtype=np.float64,
+        )
+        mass = np.asarray(
+            [pin.crba(model, data[index], q[index]).copy() for index in range(solver.batch_size)]
+        )
+        mass = np.triu(mass) + np.swapaxes(np.triu(mass, 1), 1, 2)
         for _ in range(iterations):
             predicted = np.asarray(
                 solver.sim_forward(
                     rollout_state, control.astype(np.float32), difficulty.dt
-                )[0],
+                ),
                 dtype=np.float64,
             )
-            acceleration = (predicted[model.nq :] - qd) / difficulty.dt
-            control += mass @ (target_acceleration - acceleration)
+            acceleration = (predicted[:, model.nq :] - qd) / difficulty.dt
+            control += np.einsum(
+                "bij,bj->bi", mass, target_acceleration - acceleration
+            )
         predicted = np.asarray(
-            solver.sim_forward(rollout_state, control.astype(np.float32), difficulty.dt)[0],
+            solver.sim_forward(rollout_state, control.astype(np.float32), difficulty.dt),
             dtype=np.float64,
         )
-        target_state = np.hstack([desired_q[knot + 1], desired_qd[knot + 1]])
-        max_tracking_error = max(
-            max_tracking_error, float(np.linalg.norm(predicted - target_state))
+        target_state = np.hstack(
+            [desired_q[:, knot + 1], desired_qd[:, knot + 1]]
         )
-        controls[knot] = control
+        max_tracking_error = np.maximum(
+            max_tracking_error, np.linalg.norm(predicted - target_state, axis=1)
+        )
+        controls[:, knot] = control
         offset = knot * stride
-        calibrated[offset : offset + nx] = rollout_state
-        calibrated[offset + nx : offset + stride] = control
+        calibrated[:, offset : offset + nx] = rollout_state
+        calibrated[:, offset + nx : offset + stride] = control
         rollout_state = predicted.astype(np.float32)
-    calibrated[(difficulty.knots - 1) * stride :] = rollout_state
-    return calibrated, {
-        "seed_cuda_max_tracking_error": max_tracking_error,
-        "seed_cuda_exact_rollout": True,
-        "seed_cuda_max_torque_ratio": float(
-            np.max(np.abs(controls) / model.effortLimit.astype(np.float64))
-        ),
-    }
+    calibrated[:, (difficulty.knots - 1) * stride :] = rollout_state
+    torque_ratios = np.max(
+        np.abs(controls) / model.effortLimit.astype(np.float64), axis=(1, 2)
+    )
+    metadata = [
+        {
+            "seed_cuda_max_tracking_error": float(max_tracking_error[index]),
+            "seed_cuda_exact_rollout": True,
+            "seed_cuda_max_torque_ratio": float(torque_ratios[index]),
+        }
+        for index in range(solver.batch_size)
+    ]
+    return calibrated, metadata
+
+
+def _calibrate_warm_start_to_cuda(solver, model, difficulty, packed, iterations=3):
+    calibrated, metadata = _calibrate_warm_starts_to_cuda(
+        solver, model, difficulty, np.asarray(packed, dtype=np.float32)[None, :], iterations
+    )
+    return calibrated[0], metadata[0]
 
 
 def _rollout_and_gpu_defect(solver, model, difficulty, trajectory, x0):
-    planned_q, planned_qd, controls = unpack_trajectory(
-        trajectory, model, difficulty.knots
+    rollouts, defects = _rollout_and_gpu_defect_batch(
+        solver,
+        model,
+        difficulty,
+        np.asarray(trajectory, dtype=np.float32)[None, :],
+        x0,
     )
+    return rollouts[0], float(defects[0])
+
+
+def _rollout_and_gpu_defect_batch(solver, model, difficulty, trajectories, x0):
+    trajectories = np.asarray(trajectories, dtype=np.float32)
+    if trajectories.ndim != 2 or trajectories.shape[0] != solver.batch_size:
+        raise ValueError("trajectories must match the solver batch size")
+    unpacked = [
+        unpack_trajectory(trajectory, model, difficulty.knots)
+        for trajectory in trajectories
+    ]
+    planned_q = np.asarray([item[0] for item in unpacked], dtype=np.float64)
+    planned_qd = np.asarray([item[1] for item in unpacked], dtype=np.float64)
+    controls = np.asarray([item[2] for item in unpacked], dtype=np.float32)
     nx = model.nq + model.nv
     stride = nx + model.nv
-    rollout = np.zeros_like(trajectory)
-    rollout_state = np.asarray(x0, dtype=np.float32).copy()
-    max_gpu_defect = 0.0
+    rollouts = np.zeros_like(trajectories)
+    rollout_state = np.tile(np.asarray(x0, dtype=np.float32), (solver.batch_size, 1))
+    max_gpu_defect = np.zeros(solver.batch_size, dtype=np.float64)
     for knot in range(difficulty.knots):
         offset = knot * stride
-        rollout[offset : offset + nx] = rollout_state
+        rollouts[:, offset : offset + nx] = rollout_state
         if knot >= difficulty.knots - 1:
             continue
-        rollout[offset + nx : offset + stride] = controls[knot]
-        planned_state = np.hstack([planned_q[knot], planned_qd[knot]]).astype(np.float32)
+        rollouts[:, offset + nx : offset + stride] = controls[:, knot]
+        planned_state = np.hstack(
+            [planned_q[:, knot], planned_qd[:, knot]]
+        ).astype(np.float32)
         predicted_planned = np.asarray(
-            solver.sim_forward(planned_state, controls[knot], difficulty.dt)[0],
+            solver.sim_forward(planned_state, controls[:, knot], difficulty.dt),
             dtype=np.float64,
         )
-        planned_next = np.hstack([planned_q[knot + 1], planned_qd[knot + 1]])
-        max_gpu_defect = max(
-            max_gpu_defect, float(np.linalg.norm(predicted_planned - planned_next))
+        planned_next = np.hstack(
+            [planned_q[:, knot + 1], planned_qd[:, knot + 1]]
         )
-        if np.all(np.isfinite(rollout_state)):
-            rollout_state = np.asarray(
-                solver.sim_forward(rollout_state, controls[knot], difficulty.dt)[0],
-                dtype=np.float32,
-            )
-        else:
-            rollout_state = np.full_like(rollout_state, np.nan)
-    return rollout, max_gpu_defect
+        max_gpu_defect = np.maximum(
+            max_gpu_defect,
+            np.linalg.norm(predicted_planned - planned_next, axis=1),
+        )
+        finite = np.all(np.isfinite(rollout_state), axis=1)
+        predicted_rollout = np.asarray(
+            solver.sim_forward(rollout_state, controls[:, knot], difficulty.dt),
+            dtype=np.float32,
+        )
+        predicted_rollout[~finite] = np.nan
+        rollout_state = predicted_rollout
+    return rollouts, max_gpu_defect
 
 
 def _modeled_limit_preflight(model, difficulty, trajectory):
@@ -293,10 +356,10 @@ def _solve_candidate_specs(instance: PillarInstance, specs):
         )
         raise RuntimeError(f"Multimodal solver extension is unavailable. Build it with: {command}") from exc
 
-    for index in range(budget):
-        warm_starts[index], calibration = _calibrate_warm_start_to_cuda(
-            solver, model, difficulty, warm_starts[index]
-        )
+    warm_starts, calibration_metadata = _calibrate_warm_starts_to_cuda(
+        solver, model, difficulty, warm_starts
+    )
+    for index, calibration in enumerate(calibration_metadata):
         seed_metadata[index].update(calibration)
     warm_start_done = time.perf_counter()
 
@@ -304,6 +367,9 @@ def _solve_candidate_specs(instance: PillarInstance, specs):
         _modeled_limit_preflight(model, difficulty, warm_start)
         for warm_start in warm_starts
     ]
+    x0_sha256 = _sha256_array(x0.astype(np.float32))
+    reference_sha256 = _sha256_array(references[0].astype(np.float32))
+    warm_start_sha256 = [_sha256_array(row.astype(np.float32)) for row in warm_starts]
     unsafe_indices = [
         index for index, preflight in enumerate(preflights)
         if not preflight["safe_for_solver"]
@@ -346,6 +412,9 @@ def _solve_candidate_specs(instance: PillarInstance, specs):
             solver_modified_calibrated_seed=False,
             solver_skipped_reason="calibrated_seed_outside_modeled_limits",
             seed_limit_preflight=preflights[0],
+            input_x0_sha256=x0_sha256,
+            input_reference_sha256=reference_sha256,
+            input_warm_start_sha256=warm_start_sha256[0],
             **seed_metadata[0],
         )
         certificate = certify_results([result], min_support_per_mode=2)
@@ -373,6 +442,9 @@ def _solve_candidate_specs(instance: PillarInstance, specs):
     sqp = np.asarray(stats["sqp_iters"], dtype=np.int32)
     final_merit = np.asarray(stats["final_merit"], dtype=np.float64)
     pcg = np.asarray(stats.get("pcg_iters", []), dtype=np.int32)
+    rollout_batch, gpu_planned_defects = _rollout_and_gpu_defect_batch(
+        solver, model, difficulty, trajectories, x0
+    )
 
     results = []
     for index, spec in enumerate(specs):
@@ -383,9 +455,8 @@ def _solve_candidate_specs(instance: PillarInstance, specs):
         independent_planned_defect = dynamics_defect(
             model, planned_q, planned_qd, controls, difficulty.dt
         )
-        rollout, gpu_planned_defect = _rollout_and_gpu_defect(
-            solver, model, difficulty, trajectories[index], x0
-        )
+        rollout = rollout_batch[index]
+        gpu_planned_defect = float(gpu_planned_defects[index])
         rollout_q, rollout_qd, _ = unpack_trajectory(
             rollout, model, difficulty.knots
         )
@@ -441,6 +512,9 @@ def _solve_candidate_specs(instance: PillarInstance, specs):
             ),
             solver_skipped_reason=None,
             seed_limit_preflight=preflights[index],
+            input_x0_sha256=x0_sha256,
+            input_reference_sha256=reference_sha256,
+            input_warm_start_sha256=warm_start_sha256[index],
             **seed_metadata[index],
         )
         results.append(result)
@@ -461,8 +535,34 @@ def _solve_candidate_specs(instance: PillarInstance, specs):
     return model, trajectories, results, certificate, timings
 
 
-def solve_instance(instance: PillarInstance, *, budget: int, execution="independent"):
-    specs = candidate_specs(budget)
+def _proposal_specs(
+    instance: PillarInstance,
+    budget: int,
+    strategy: str,
+    proposal_seed: int | None = None,
+):
+    if proposal_seed is None:
+        proposal_seed = instance.seed
+    if strategy == "informed":
+        return candidate_specs(budget)
+    if strategy == "random-joint":
+        return random_candidate_specs(budget, seed=proposal_seed)
+    if strategy == "random-task":
+        return random_task_candidate_specs(budget, seed=proposal_seed)
+    raise ValueError(
+        "proposal strategy must be 'informed', 'random-joint', or 'random-task'"
+    )
+
+
+def solve_instance(
+    instance: PillarInstance,
+    *,
+    budget: int,
+    execution="independent",
+    proposal_strategy="informed",
+    proposal_seed=None,
+):
+    specs = _proposal_specs(instance, budget, proposal_strategy, proposal_seed)
     if execution == "batched":
         return _solve_candidate_specs(instance, specs)
     if execution != "independent":
@@ -497,6 +597,119 @@ def solve_instance(instance: PillarInstance, *, budget: int, execution="independ
         certificate,
         accumulated_timings,
     )
+
+
+def _benchmark_result_snapshot(trajectories, results, certificate, timings, wall_ms):
+    return {
+        "wall_time_ms": float(wall_ms),
+        "reported_timings": timings,
+        "trajectory_sha256": hashlib.sha256(
+            np.asarray(trajectories, dtype=np.float32).tobytes()
+        ).hexdigest(),
+        "candidate_names": [row["candidate_name"] for row in results],
+        "certifiable": [bool(row["certifiable"]) for row in results],
+        "modes": [row["mode"] for row in results],
+        "objectives": [float(row["objective"]) for row in results],
+        "total_pcg_iterations": [int(row["total_pcg_iterations"]) for row in results],
+        "input_x0_sha256": [row["input_x0_sha256"] for row in results],
+        "input_reference_sha256": [row["input_reference_sha256"] for row in results],
+        "input_warm_start_sha256": [row["input_warm_start_sha256"] for row in results],
+        "seed_limit_preflights": [row["seed_limit_preflight"] for row in results],
+        "certificate": certificate,
+        "trajectories": np.asarray(trajectories, dtype=np.float32),
+    }
+
+
+def _run_benchmark_execution(instance, budget, strategy, proposal_seed, execution):
+    start = time.perf_counter()
+    model, trajectories, results, certificate, timings = solve_instance(
+        instance,
+        budget=budget,
+        execution=execution,
+        proposal_strategy=strategy,
+        proposal_seed=proposal_seed,
+    )
+    wall_ms = 1e3 * (time.perf_counter() - start)
+    return model, _benchmark_result_snapshot(
+        trajectories, results, certificate, timings, wall_ms
+    )
+
+
+def _parity_snapshot(independent, batched):
+    independent_trajectories = independent["trajectories"]
+    batched_trajectories = batched["trajectories"]
+    independent_objectives = np.asarray(independent["objectives"], dtype=np.float64)
+    batched_objectives = np.asarray(batched["objectives"], dtype=np.float64)
+    finite = np.isfinite(independent_objectives) & np.isfinite(batched_objectives)
+    same_nonfinite_pattern = bool(
+        np.array_equal(np.isfinite(independent_objectives), np.isfinite(batched_objectives))
+        and np.array_equal(np.isnan(independent_objectives), np.isnan(batched_objectives))
+        and np.array_equal(np.isposinf(independent_objectives), np.isposinf(batched_objectives))
+        and np.array_equal(np.isneginf(independent_objectives), np.isneginf(batched_objectives))
+    )
+    finite_objective_delta = (
+        batched_objectives[finite] - independent_objectives[finite]
+    )
+    return {
+        "same_candidate_order": independent["candidate_names"] == batched["candidate_names"],
+        "same_input_x0_hashes": independent["input_x0_sha256"] == batched["input_x0_sha256"],
+        "same_input_reference_hashes": independent["input_reference_sha256"] == batched["input_reference_sha256"],
+        "same_input_warm_start_hashes": independent["input_warm_start_sha256"] == batched["input_warm_start_sha256"],
+        "same_certifiable_flags": independent["certifiable"] == batched["certifiable"],
+        "same_modes": independent["modes"] == batched["modes"],
+        "same_total_pcg_iterations": independent["total_pcg_iterations"] == batched["total_pcg_iterations"],
+        "same_full_certificate": _jsonable(independent["certificate"]) == _jsonable(batched["certificate"]),
+        "same_objective_nonfinite_pattern": same_nonfinite_pattern,
+        "finite_objectives_allclose_rtol_1e-6_atol_1e-6": bool(
+            np.allclose(
+                independent_objectives[finite],
+                batched_objectives[finite],
+                rtol=1e-6,
+                atol=1e-6,
+            )
+        ),
+        "max_abs_trajectory_delta": float(
+            np.max(np.abs(batched_trajectories - independent_trajectories), initial=0.0)
+        ),
+        "max_abs_objective_delta": float(
+            np.max(np.abs(finite_objective_delta), initial=0.0)
+        ),
+        "trajectory_allclose_rtol_1e-5_atol_1e-6": bool(
+            np.allclose(
+                batched_trajectories,
+                independent_trajectories,
+                rtol=1e-5,
+                atol=1e-6,
+                equal_nan=True,
+            )
+        ),
+    }
+
+
+def _timing_statistics(samples):
+    values = np.asarray(samples, dtype=np.float64)
+    return {
+        "samples_ms": values.tolist(),
+        "median_ms": float(np.median(values)),
+        "minimum_ms": float(np.min(values)),
+        "maximum_ms": float(np.max(values)),
+        "p95_ms": float(np.percentile(values, 95.0)),
+    }
+
+
+def _bootstrap_median_interval(values, *, seed=0, resamples=10000):
+    values = np.asarray(values, dtype=np.float64)
+    if values.size == 0:
+        raise ValueError("cannot bootstrap an empty sample")
+    rng = np.random.default_rng(seed)
+    indices = rng.integers(0, values.size, size=(resamples, values.size))
+    medians = np.median(values[indices], axis=1)
+    return {
+        "resamples": int(resamples),
+        "confidence": 0.95,
+        "lower": float(np.percentile(medians, 2.5)),
+        "upper": float(np.percentile(medians, 97.5)),
+    }
 
 
 def _best_for_mode(results, mode):
@@ -757,12 +970,25 @@ def write_artifacts(
     return summary
 
 
-def run_instance(instance, budget, output_root, *, write=True, execution="independent"):
+def run_instance(
+    instance,
+    budget,
+    output_root,
+    *,
+    write=True,
+    execution="independent",
+    proposal_strategy="informed",
+    proposal_seed=None,
+):
     difficulty_name = instance.difficulty
     difficulty = DIFFICULTIES[difficulty_name]
     model = load_model(REPO_ROOT / MODEL_PATH)
     model, trajectories, results, certificate, timings = solve_instance(
-        instance, budget=budget, execution=execution
+        instance,
+        budget=budget,
+        execution=execution,
+        proposal_strategy=proposal_strategy,
+        proposal_seed=proposal_seed,
     )
     output_dir = (
         output_root
@@ -778,12 +1004,28 @@ def run_instance(instance, budget, output_root, *, write=True, execution="indepe
     return output_dir, instance, certificate, summary
 
 
-def run_seed(seed, difficulty_name, budget, output_root, *, write=True, execution="independent"):
+def run_seed(
+    seed,
+    difficulty_name,
+    budget,
+    output_root,
+    *,
+    write=True,
+    execution="independent",
+    proposal_strategy="informed",
+    proposal_seed=None,
+):
     difficulty = DIFFICULTIES[difficulty_name]
     model = load_model(REPO_ROOT / MODEL_PATH)
     instance = generate_instance(seed, difficulty, model=model)
     return run_instance(
-        instance, budget, output_root, write=write, execution=execution
+        instance,
+        budget,
+        output_root,
+        write=write,
+        execution=execution,
+        proposal_strategy=proposal_strategy,
+        proposal_seed=proposal_seed,
     )
 
 
@@ -807,12 +1049,19 @@ def run_command(args):
     if args.instance_file:
         instance = load_instance_file(args.instance_file)
         output_dir, _, certificate, summary = run_instance(
-            instance, args.candidate_budget, args.output_root, execution=args.execution
+            instance,
+            args.candidate_budget,
+            args.output_root,
+            execution=args.execution,
+            proposal_strategy=args.proposal_strategy,
+            proposal_seed=args.proposal_seed,
         )
     else:
         output_dir, _, certificate, summary = run_seed(
             args.seed, args.difficulty, args.candidate_budget, args.output_root,
             execution=args.execution,
+            proposal_strategy=args.proposal_strategy,
+            proposal_seed=args.proposal_seed,
         )
     print(f"artifacts: {output_dir}")
     print(f"PRIMARY BENCHMARK PROPERTY: {summary['primary_benchmark_property']}")
@@ -1085,6 +1334,200 @@ def evaluate_command(args):
     )
 
 
+def batch_benchmark_command(args):
+    """Benchmark one batched solve against exact-candidate batch-1 solves."""
+
+    if args.repeats < 1 or args.warmup_repeats < 0:
+        raise ValueError("repeats must be positive and warmup repeats nonnegative")
+    difficulty = DIFFICULTIES[args.difficulty]
+    model = load_model(REPO_ROOT / MODEL_PATH)
+    instance = generate_instance(args.seed, difficulty, model=model)
+    expected_names = [
+        spec.name
+        for spec in _proposal_specs(
+            instance,
+            args.candidate_budget,
+            args.proposal_strategy,
+            args.proposal_seed,
+        )
+    ]
+
+    # Warm both paths independently. Measured first position is balanced and
+    # deterministically shuffled so load cannot consistently favor one path.
+    for _ in range(args.warmup_repeats):
+        for execution in ("independent", "batched"):
+            _run_benchmark_execution(
+                instance,
+                args.candidate_budget,
+                args.proposal_strategy,
+                args.proposal_seed,
+                execution,
+            )
+
+    raw_repeats = []
+    measured_by_execution = {"independent": [], "batched": []}
+    first_execution = np.asarray(
+        ["independent", "batched"] * ((args.repeats + 1) // 2), dtype=object
+    )[: args.repeats]
+    order_rng = np.random.default_rng(
+        np.random.SeedSequence([args.seed, args.proposal_seed, args.candidate_budget])
+    )
+    order_rng.shuffle(first_execution)
+    for repeat in range(args.repeats):
+        first = str(first_execution[repeat])
+        second = "batched" if first == "independent" else "independent"
+        order = (first, second)
+        paired = {}
+        for execution in order:
+            _, snapshot = _run_benchmark_execution(
+                instance,
+                args.candidate_budget,
+                args.proposal_strategy,
+                args.proposal_seed,
+                execution,
+            )
+            if snapshot["candidate_names"] != expected_names:
+                raise AssertionError("candidate order changed between benchmark executions")
+            paired[execution] = snapshot
+            measured_by_execution[execution].append(snapshot)
+        parity = _parity_snapshot(paired["independent"], paired["batched"])
+        serializable_pair = {}
+        for execution, snapshot in paired.items():
+            serializable_pair[execution] = {
+                key: value for key, value in snapshot.items() if key != "trajectories"
+            }
+        raw_repeats.append(
+            {
+                "repeat": repeat,
+                "execution_order": list(order),
+                "runs": serializable_pair,
+                "parity": parity,
+            }
+        )
+
+    timing_summary = {}
+    for execution, snapshots in measured_by_execution.items():
+        timing_summary[execution] = {
+            "end_to_end": _timing_statistics(
+                [snapshot["wall_time_ms"] for snapshot in snapshots]
+            ),
+            "solver_wall": _timing_statistics(
+                [snapshot["reported_timings"]["solver_wall_time_ms"] for snapshot in snapshots]
+            ),
+            "candidate_generation_calibration": _timing_statistics(
+                [
+                    snapshot["reported_timings"]["geometric_warm_start_generation_ms"]
+                    + snapshot["reported_timings"]["cuda_dynamics_calibration_ms"]
+                    for snapshot in snapshots
+                ]
+            ),
+            "evaluation": _timing_statistics(
+                [snapshot["reported_timings"]["evaluation_ms"] for snapshot in snapshots]
+            ),
+            "unique_trajectory_hashes": sorted(
+                {snapshot["trajectory_sha256"] for snapshot in snapshots}
+            ),
+        }
+    independent_median = timing_summary["independent"]["end_to_end"]["median_ms"]
+    batched_median = timing_summary["batched"]["end_to_end"]["median_ms"]
+    independent_solver_median = timing_summary["independent"]["solver_wall"]["median_ms"]
+    batched_solver_median = timing_summary["batched"]["solver_wall"]["median_ms"]
+    independent_wall = np.asarray(
+        [snapshot["wall_time_ms"] for snapshot in measured_by_execution["independent"]],
+        dtype=np.float64,
+    )
+    batched_wall = np.asarray(
+        [snapshot["wall_time_ms"] for snapshot in measured_by_execution["batched"]],
+        dtype=np.float64,
+    )
+    paired_delta_ms = independent_wall - batched_wall
+    paired_reduction_fraction = paired_delta_ms / independent_wall
+    summary = {
+        "schema_version": 1,
+        "benchmark": "tiago_multimodal_exact_candidate_batch_ab",
+        "instance": instance.metadata(),
+        "difficulty": args.difficulty,
+        "candidate_budget": args.candidate_budget,
+        "candidate_names": expected_names,
+        "proposal_strategy": args.proposal_strategy,
+        "proposal_seed": args.proposal_seed,
+        "initializer_distribution": {
+            "random-joint": (
+                "cold, straight task-space IK, then fixed-seed smooth antithetic "
+                "joint-space perturbations independent of pillar geometry"
+            ),
+            "random-task": (
+                "cold, straight task-space IK, then fixed-seed smooth antithetic "
+                "task-space bumps transverse to start-goal travel and independent of "
+                "pillar geometry"
+            ),
+            "informed": "fixed route-informed reference candidate family",
+        }[args.proposal_strategy],
+        "warmup_repeats_per_execution": args.warmup_repeats,
+        "measured_repeats_per_execution": args.repeats,
+        "solver_parameters": solver_parameters(difficulty),
+        "provenance": _provenance(difficulty),
+        "timings": timing_summary,
+        "median_end_to_end_speedup": float(independent_median / batched_median),
+        "median_solver_speedup": float(independent_solver_median / batched_solver_median),
+        "paired_end_to_end_improvement": {
+            "delta_ms_independent_minus_batched": paired_delta_ms.tolist(),
+            "reduction_fraction": paired_reduction_fraction.tolist(),
+            "median_delta_ms": float(np.median(paired_delta_ms)),
+            "median_reduction_fraction": float(np.median(paired_reduction_fraction)),
+            "bootstrap_95_ci_median_delta_ms": _bootstrap_median_interval(
+                paired_delta_ms, seed=0
+            ),
+            "bootstrap_95_ci_median_reduction_fraction": _bootstrap_median_interval(
+                paired_reduction_fraction, seed=1
+            ),
+        },
+        "all_repeats_candidate_and_certificate_parity": bool(
+            all(
+                row["parity"]["same_candidate_order"]
+                and row["parity"]["same_input_x0_hashes"]
+                and row["parity"]["same_input_reference_hashes"]
+                and row["parity"]["same_input_warm_start_hashes"]
+                and row["parity"]["same_certifiable_flags"]
+                and row["parity"]["same_modes"]
+                and row["parity"]["same_total_pcg_iterations"]
+                and row["parity"]["same_full_certificate"]
+                and row["parity"]["same_objective_nonfinite_pattern"]
+                and row["parity"]["finite_objectives_allclose_rtol_1e-6_atol_1e-6"]
+                for row in raw_repeats
+            )
+        ),
+        "all_repeats_trajectory_allclose": bool(
+            all(
+                row["parity"]["trajectory_allclose_rtol_1e-5_atol_1e-6"]
+                for row in raw_repeats
+            )
+        ),
+        "raw_repeats": raw_repeats,
+    }
+    args.output.parent.mkdir(parents=True, exist_ok=True)
+    with args.output.open("w", encoding="utf-8") as stream:
+        json.dump(_jsonable(summary), stream, indent=2, sort_keys=True, allow_nan=False)
+        stream.write("\n")
+    print(f"benchmark: {args.output}")
+    print(
+        json.dumps(
+            {
+                "median_end_to_end_speedup": summary["median_end_to_end_speedup"],
+                "median_solver_speedup": summary["median_solver_speedup"],
+                "all_repeats_candidate_and_certificate_parity": summary[
+                    "all_repeats_candidate_and_certificate_parity"
+                ],
+                "all_repeats_trajectory_allclose": summary[
+                    "all_repeats_trajectory_allclose"
+                ],
+            },
+            indent=2,
+            sort_keys=True,
+        )
+    )
+
+
 def parse_args():
     parser = argparse.ArgumentParser(description=__doc__)
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -1095,6 +1538,12 @@ def parse_args():
     run.add_argument("--output-root", type=Path, default=DEFAULT_OUTPUT)
     run.add_argument("--instance-file", type=Path)
     run.add_argument("--execution", choices=("independent", "batched"), default="independent")
+    run.add_argument(
+        "--proposal-strategy",
+        choices=("informed", "random-joint", "random-task"),
+        default="informed",
+    )
+    run.add_argument("--proposal-seed", type=int)
     run.add_argument("--require-two-mode", action="store_true")
     run.add_argument("--require-ranked", action="store_true")
     run.set_defaults(func=run_command)
@@ -1129,6 +1578,30 @@ def parse_args():
     evaluate.add_argument("--proposal-budget", type=int, required=True)
     evaluate.add_argument("--oracle-summary", type=Path)
     evaluate.set_defaults(func=evaluate_command)
+
+    benchmark = subparsers.add_parser(
+        "batch-benchmark",
+        help="measure one batched solve against exact-candidate independent solves",
+    )
+    benchmark.add_argument("--seed", type=int, default=30)
+    benchmark.add_argument("--difficulty", choices=tuple(DIFFICULTIES), default="easy")
+    benchmark.add_argument(
+        "--candidate-budget", type=int, choices=(1, 2, 4, 8), default=8
+    )
+    benchmark.add_argument(
+        "--proposal-strategy",
+        choices=("informed", "random-joint", "random-task"),
+        default="random-task",
+    )
+    benchmark.add_argument("--proposal-seed", type=int, default=1000)
+    benchmark.add_argument("--warmup-repeats", type=int, default=1)
+    benchmark.add_argument("--repeats", type=int, default=20)
+    benchmark.add_argument(
+        "--output",
+        type=Path,
+        default=DEFAULT_OUTPUT / "batch_benchmark.json",
+    )
+    benchmark.set_defaults(func=batch_benchmark_command)
     return parser.parse_args()
 
 
