@@ -251,7 +251,9 @@ class PyBSQP {
 };
 
 
-#if defined(TIAGO_MULTIMODAL_PILLAR)
+#if defined(IIWA_MULTIMODAL_PILLAR)
+#define PLANT_SUFFIX iiwa14_multimodal
+#elif defined(TIAGO_MULTIMODAL_PILLAR)
 #define PLANT_SUFFIX tiago_right_multimodal
 #elif defined(PLANT_INDY7)
 #define PLANT_SUFFIX indy7

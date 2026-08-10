@@ -31,7 +31,7 @@ class BSQP:
         mu_batch=None,
         pcg_tol_batch=None,
         adapt_rho=True,
-        plant_type='indy7',  # 'indy7', 'iiwa14', 'tiago_right', or 'tiago_right_multimodal'
+        plant_type='indy7',  # e.g. 'indy7', 'iiwa14', 'iiwa14_multimodal', or 'tiago_right'
     ):
         # Dynamically import the correct bsqp_N* module and get the solver class
         # The modules should be named like 'bsqpN{N}_{plant_type}', e.g., 'bsqpN32_indy7'

@@ -49,6 +49,30 @@ namespace plant {
                 return pose_idx < 3 ? position_cost : orientation_cost;
         }
 
+#if defined(IIWA_MULTIMODAL_PILLAR)
+        // Reference layout: [goal_x, goal_y, goal_z, pillar_x, pillar_y, radius].
+        // Every batch lane shares this mode-neutral objective. The positive-part
+        // residual represents an infinite vertical cylinder and yields a PSD
+        // Gauss-Newton curvature term.
+        template<class T>
+        __device__ T pillarResidualAndWorkspaceGradient(const T* s_ee_pos, const T* s_reference, T* workspace_gradient)
+        {
+                const T dx = s_ee_pos[0] - s_reference[3];
+                const T dy = s_ee_pos[1] - s_reference[4];
+                const T radius = s_reference[5];
+                const T inv_radius_sq = static_cast<T>(1) / (radius * radius);
+                const T residual = static_cast<T>(1) - (dx * dx + dy * dy) * inv_radius_sq;
+                if (residual <= static_cast<T>(0)) {
+                        workspace_gradient[0] = static_cast<T>(0);
+                        workspace_gradient[1] = static_cast<T>(0);
+                        return static_cast<T>(0);
+                }
+                workspace_gradient[0] = -static_cast<T>(2) * dx * inv_radius_sq;
+                workspace_gradient[1] = -static_cast<T>(2) * dy * inv_radius_sq;
+                return residual;
+        }
+#endif
+
         template<class T>
         __host__ __device__ constexpr T JOINT_LIMIT_MARGIN()
         {
@@ -313,11 +337,21 @@ namespace plant {
                                   T                          ctrl_lim_cost)
         {
                 T              err;
-                const bool     track_orientation = ee_orient_cost != static_cast<T>(0) || ee_orient_N_cost != static_cast<T>(0);
+                const bool track_orientation =
+#if defined(IIWA_MULTIMODAL_PILLAR)
+                    false;
+#else
+                    ee_orient_cost != static_cast<T>(0) || ee_orient_N_cost != static_cast<T>(0);
+#endif
                 const uint32_t threadsNeeded = state_size / 2 + control_size * (blockIdx.x < knot_points - 1);
+#if defined(IIWA_MULTIMODAL_PILLAR)
+                const uint32_t tracking_terms = 4;
+#else
+                const uint32_t tracking_terms = track_orientation ? grid::EE_POS_SIZE : 3;
+#endif
 
                 T* s_cost_vec = s_temp;
-                T* s_eePos_cost = s_cost_vec + threadsNeeded + (track_orientation ? grid::EE_POS_SIZE : 3);
+                T* s_eePos_cost = s_cost_vec + threadsNeeded + tracking_terms;
                 T* s_scratch = s_eePos_cost + 6;
 
                 grid::end_effector_pose_device<T>(s_eePos_cost, s_xu, s_scratch, d_robotModel);
@@ -354,9 +388,17 @@ namespace plant {
                                 }
                         }
                 }
+#if defined(IIWA_MULTIMODAL_PILLAR)
+                if (threadIdx.x == 0) {
+                        T workspace_gradient[2];
+                        const T residual = pillarResidualAndWorkspaceGradient<T>(s_eePos_cost, s_eePos_traj, workspace_gradient);
+                        const T weight = blockIdx.x == KNOT_POINTS - 1 ? ee_orient_N_cost : ee_orient_cost;
+                        s_cost_vec[threadsNeeded + 3] = static_cast<T>(0.5) * weight * residual * residual;
+                }
+#endif
                 __syncthreads();
 
-                block::reduce<T>(threadsNeeded + (track_orientation ? grid::EE_POS_SIZE : 3), s_cost_vec);
+                block::reduce<T>(threadsNeeded + tracking_terms, s_cost_vec);
                 __syncthreads();
 
                 return s_cost_vec[0];
@@ -368,7 +410,11 @@ namespace plant {
                 // threadsNeeded (NQ + NU on non-terminal knots) + 3 (position error terms)
                 // + EE pose size (6) + EE pose dynamic shared mem used by the GRiD device call.
                 // Using grid constants keeps it consistent with compile-time configuration.
-                return grid::NQ / 2 + grid::NU + 2 * grid::NEE + grid::EE_POS_DYNAMIC_SHARED_MEM_COUNT;
+#if defined(IIWA_MULTIMODAL_PILLAR)
+                return grid::NQ + grid::NU + 4 + grid::EE_POS_SIZE + grid::EE_POS_DYNAMIC_SHARED_MEM_COUNT;
+#else
+                return grid::NQ + grid::NU + 2 * grid::EE_POS_SIZE + grid::EE_POS_DYNAMIC_SHARED_MEM_COUNT;
+#endif
         }
 
         template<typename T, bool computeR = true>
@@ -397,10 +443,20 @@ namespace plant {
                 T* s_scratch = s_eePos_grad + (6 * grid::NQ);
 
                 const uint32_t threads_needed = grid::NX + grid::NU * computeR;
-                const bool     track_orientation = ee_orient_cost != static_cast<T>(0) || ee_orient_N_cost != static_cast<T>(0);
+                const bool track_orientation =
+#if defined(IIWA_MULTIMODAL_PILLAR)
+                    false;
+#else
+                    ee_orient_cost != static_cast<T>(0) || ee_orient_N_cost != static_cast<T>(0);
+#endif
 
                 grid::end_effector_pose_device<T>(s_eePos, s_xu, s_scratch, (grid::robotModel<T>*)d_robotModel);
                 grid::end_effector_pose_gradient_device<T>(s_eePos_grad, s_xu, s_scratch, (grid::robotModel<T>*)d_robotModel);
+#if defined(IIWA_MULTIMODAL_PILLAR)
+                T pillar_workspace_gradient[2];
+                const T pillar_residual = pillarResidualAndWorkspaceGradient<T>(s_eePos, s_eePos_traj, pillar_workspace_gradient);
+                const T pillar_weight = blockIdx.x == KNOT_POINTS - 1 ? ee_orient_N_cost : ee_orient_cost;
+#endif
 
                 // Gradient (qk, rk)
                 for (int i = threadIdx.x; i < threads_needed; i += blockDim.x) {
@@ -422,6 +478,12 @@ namespace plant {
                                                            + s_eePos_grad[6 * i + 2] * (s_eePos[2] - s_eePos_traj[2]))
                                                           * (blockIdx.x == KNOT_POINTS - 1 ? N_cost : q_cost);
                                         }
+#if defined(IIWA_MULTIMODAL_PILLAR)
+                                        const T pillar_jacobian =
+                                            pillar_workspace_gradient[0] * s_eePos_grad[6 * i + 0]
+                                            + pillar_workspace_gradient[1] * s_eePos_grad[6 * i + 1];
+                                        s_qk[i] += pillar_weight * pillar_residual * pillar_jacobian;
+#endif
                                         // joint barrier
                                         s_qk[i] += q_lim_cost * jointBarrierGradient(s_xu[i], JOINT_LIMITS<T>()[i][0], JOINT_LIMITS<T>()[i][1]);
                                 } else {
@@ -451,11 +513,26 @@ namespace plant {
                                                         }
                                                         s_Qk[i * grid::NX + j] = tracking_hessian;
                                                 } else {
+#if defined(IIWA_MULTIMODAL_PILLAR)
+                                                        s_Qk[i * grid::NX + j] =
+                                                            (s_eePos_grad[6 * i + 0] * s_eePos_grad[6 * j + 0]
+                                                             + s_eePos_grad[6 * i + 1] * s_eePos_grad[6 * j + 1]
+                                                             + s_eePos_grad[6 * i + 2] * s_eePos_grad[6 * j + 2])
+                                                            * (blockIdx.x == KNOT_POINTS - 1 ? N_cost : q_cost);
+                                                        const T pillar_jacobian_i =
+                                                            pillar_workspace_gradient[0] * s_eePos_grad[6 * i + 0]
+                                                            + pillar_workspace_gradient[1] * s_eePos_grad[6 * i + 1];
+                                                        const T pillar_jacobian_j =
+                                                            pillar_workspace_gradient[0] * s_eePos_grad[6 * j + 0]
+                                                            + pillar_workspace_gradient[1] * s_eePos_grad[6 * j + 1];
+                                                        s_Qk[i * grid::NX + j] += pillar_weight * pillar_jacobian_i * pillar_jacobian_j;
+#else
                                                         // tracking err
                                                         s_Qk[i * grid::NX + j] = ((s_eePos_grad[6 * i + 0] * (s_eePos[0] - s_eePos_traj[0]) + s_eePos_grad[6 * i + 1] * (s_eePos[1] - s_eePos_traj[1])
                                                                                    + s_eePos_grad[6 * i + 2] * (s_eePos[2] - s_eePos_traj[2]))
                                                                                   * (s_eePos_grad[6 * j + 0] * (s_eePos[0] - s_eePos_traj[0]) + s_eePos_grad[6 * j + 1] * (s_eePos[1] - s_eePos_traj[1])
                                                                                      + s_eePos_grad[6 * j + 2] * (s_eePos[2] - s_eePos_traj[2]))) * (blockIdx.x == KNOT_POINTS - 1 ? N_cost : q_cost);
+#endif
                                                 }
 
                                                 // Add exact diagonal barrier Hessian for joint limits
