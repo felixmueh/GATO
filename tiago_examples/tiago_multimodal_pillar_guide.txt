@@ -1,0 +1,118 @@
+# Tiago Multimodal Pillar Benchmark
+
+## PRIMARY BENCHMARK PROPERTY: INITIALIZATION DETERMINES THE RESULT
+
+Every candidate in an instance has exactly the same robot initial state, task
+reference, and objective. The only experimental variable is the full trajectory
+initialization supplied to SQP.
+
+Poor initial trajectories can:
+
+- fail to produce an executable route;
+- lock the result into the worse winding class; or
+- retain a substantially worse objective even within the same winding class.
+
+In the reference hard case, SQP returns every accepted route-informed proposal
+bit-for-bit unchanged: zero trajectory delta and zero objective improvement.
+The cold initialization fails. Therefore the built-in results demonstrate
+extreme initialization sensitivity, not SQP convergence to local optima. All
+quality comparisons are against the best-known proposal, never a proven global
+optimum.
+
+This benchmark asks Tiago's 7-DoF right arm to move its tool center roughly
+0.3--0.4 m from one side of an infinite vertical pillar to the other. A single
+terminal goal and obstacle objective admits clockwise and counterclockwise
+routes. Their planar winding signatures make the covered modes easy to see
+and mechanically classify.
+
+Every candidate for an instance receives the same six-value reference at every
+knot:
+
+```text
+[goal_x, goal_y, goal_z, pillar_x, pillar_y, clearance_radius]
+```
+
+The CUDA obstacle residual is part of both the merit and KKT derivatives. Its
+Gauss--Newton Hessian is positive semidefinite, preserving the assumption made
+by PCG. Mode-specific references are never used.
+
+## Difficulty lanes
+
+| Difficulty | Knots | Tool travel | Pillar radius | Purpose |
+|---|---:|---:|---:|---|
+| easy | 32 | about 0.28 m | about 0.075 m | fast multimodal proposal coverage |
+| medium | 64 | about 0.34 m | about 0.105 m | longer, narrower route choice |
+| hard | 128 | about 0.40 m | about 0.13 m | long-horizon SQP/PCG stress |
+
+Seeds vary the start posture, travel direction, goal height, pillar position,
+and radius. Generate-and-reject acceptance is essential: a random geometric
+instance is retained only after executable proposals are available in both
+winding classes with at least two route-informed candidates per class and a
+measurable best-mode cost gap.
+
+## Run and compare
+
+Build the required horizon first:
+
+```sh
+./tools/build.sh --plant tiago_right_multimodal --knots 64 \
+  --target bsqpN64_tiago_right_multimodal --native-cuda-arch
+```
+
+Then solve one instance or construct an accepted suite:
+
+```sh
+python tiago_examples/tiago_multimodal_pillar.py run \
+  --difficulty medium --seed 30 --candidate-budget 8 --require-ranked
+
+python tiago_examples/tiago_multimodal_pillar.py compare \
+  --difficulty medium --seed 30
+
+python tiago_examples/tiago_multimodal_pillar.py suite \
+  --difficulty medium --count 10 --candidate-budget 8
+```
+
+Candidate budgets 1, 2, 4, and 8 are nested. The default evaluates each
+candidate in an independent batch-1 solve, preventing a cap-heavy member from
+setting the batched wall time for every other candidate. `--execution batched`
+is available on `run` when batched PCG behavior is itself under study.
+
+Each output contains a self-contained `instance.json`, `summary.json`, a mode plot,
+and an NPZ archive that distinguishes optimizer states from exact CUDA rollout
+states. Summaries record source/model/extension hashes and report mode coverage,
+best-known full solver objective, additive-invariant cost gap, exact and independent dynamics defects,
+dense clearance, goal error, modeled limits, PCG caps, and timing.
+
+To validate trajectories produced by another multimodal method, provide packed
+multiple-shooting trajectories using either `planned_packed_trajectories` or
+`packed_trajectories` in an NPZ file. Declare the method's runtime and proposal
+budget; the evaluator rejects archives whose trajectory count differs from the
+declared budget. An optional fixed oracle summary adds normalized regret:
+
+```sh
+python tiago_examples/tiago_multimodal_pillar.py evaluate \
+  --instance-file path/to/instance.json \
+  --trajectories path/to/method_output.npz \
+  --output-dir path/to/evaluation \
+  --method-name my-method --method-runtime-ms 12.3 --proposal-budget 8 \
+  --oracle-summary path/to/fixed-oracle-summary.json
+```
+
+The evaluator records instance/archive/oracle hashes and replays every control
+sequence from the common initial state through the exact CUDA plant. A trajectory is accepted only if the replay is
+finite, reaches the goal, stays outside the tool keep-out between knots, stays
+within modeled joint/velocity/torque limits, and has strict CUDA and independent
+Pinocchio shooting defects. Support counts deduplicate paths by a 5 mm RMS
+tool-path separation. Fair method comparisons must use the same fixed instance,
+oracle, and declared proposal budget.
+
+## Scope and claims
+
+The cylinder constrains the tool center only. Arm-link and self-collision are
+not modeled, and plots state this explicitly. The current Tiago model is the
+arm rooted at `torso_lift_link`; the mobile base and torso are not optimized.
+
+The built-in baseline measures finite-budget proposal coverage. It does not certify KKT
+stationarity, local optimality, or a true global optimum. `kkt_converged` in the
+current solver is exposed only as zero-PCG-exit telemetry. Results should be
+reported as regret to a best-known, independently budgeted candidate set.
