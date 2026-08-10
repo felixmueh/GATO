@@ -69,6 +69,36 @@ namespace plant {
                 return static_cast<T>(0);
         }
 
+#if defined(TIAGO_MULTIMODAL_PILLAR)
+        // IMPORTANT: this plant defines one common objective for every
+        // candidate. The benchmark varies only the host-supplied trajectory
+        // initialization; mode-specific references would invalidate the test.
+        // Multimodal benchmark reference layout:
+        // [goal_x, goal_y, goal_z, pillar_x, pillar_y, clearance_radius].
+        // The pillar is infinite along z, so collision-free paths on opposite
+        // sides have distinct planar winding signatures.  The positive-part
+        // residual is dimensionless and its Gauss-Newton Hessian remains PSD.
+        template<class T>
+        __device__ T pillarResidualAndWorkspaceGradient(const T* s_ee_pos, const T* s_reference, T* workspace_gradient)
+        {
+                const T dx = s_ee_pos[0] - s_reference[3];
+                const T dy = s_ee_pos[1] - s_reference[4];
+                const T radius = s_reference[5];
+                const T inv_radius_sq = static_cast<T>(1) / (radius * radius);
+                const T residual = static_cast<T>(1) - (dx * dx + dy * dy) * inv_radius_sq;
+
+                if (residual <= static_cast<T>(0)) {
+                        workspace_gradient[0] = static_cast<T>(0);
+                        workspace_gradient[1] = static_cast<T>(0);
+                        return static_cast<T>(0);
+                }
+
+                workspace_gradient[0] = -static_cast<T>(2) * dx * inv_radius_sq;
+                workspace_gradient[1] = -static_cast<T>(2) * dy * inv_radius_sq;
+                return residual;
+        }
+#endif
+
         template<class T>
         __device__ void buildSharedMappedDynamicsVectors(T* s_mapped, const T* s_q, const T* s_qd, const T* s_u)
         {
@@ -346,11 +376,21 @@ namespace plant {
                 __syncthreads();
 
                 T err;
-                const bool track_orientation = ee_orient_cost != static_cast<T>(0) || ee_orient_N_cost != static_cast<T>(0);
+                const bool track_orientation =
+#if defined(TIAGO_MULTIMODAL_PILLAR)
+                    false;
+#else
+                    ee_orient_cost != static_cast<T>(0) || ee_orient_N_cost != static_cast<T>(0);
+#endif
                 const uint32_t threadsNeeded = state_size / 2 + control_size * (blockIdx.x < knot_points - 1);
+#if defined(TIAGO_MULTIMODAL_PILLAR)
+                const uint32_t tracking_terms = 4;
+#else
+                const uint32_t tracking_terms = track_orientation ? grid::EE_POS_SIZE : 3;
+#endif
 
                 T* s_cost_vec = s_temp;
-                T* s_eePos_cost = s_cost_vec + threadsNeeded + (track_orientation ? grid::EE_POS_SIZE : 3);
+                T* s_eePos_cost = s_cost_vec + threadsNeeded + tracking_terms;
                 T* s_ee_workspace = s_eePos_cost + grid::EE_POS_SIZE;
                 computeTiagoToolPose<T>(s_eePos_cost, s_q_grid, d_robotModel, s_ee_workspace);
 
@@ -381,9 +421,21 @@ namespace plant {
                                 s_cost_vec[threadsNeeded + i] = static_cast<T>(0.5) * (blockIdx.x == KNOT_POINTS - 1 ? N_cost : q_cost) * err * err;
                         }
                 }
+#if defined(TIAGO_MULTIMODAL_PILLAR)
+                if (threadIdx.x == 0) {
+                        T workspace_gradient[2];
+                        const T residual = pillarResidualAndWorkspaceGradient<T>(s_eePos_cost, s_eePos_traj, workspace_gradient);
+                        // In this plant variant the orientation-cost slots are
+                        // intentionally repurposed as running/terminal pillar
+                        // weights.  The last-block helper already promotes the
+                        // terminal value into ee_orient_cost.
+                        const T pillar_weight = blockIdx.x == KNOT_POINTS - 1 ? ee_orient_N_cost : ee_orient_cost;
+                        s_cost_vec[threadsNeeded + 3] = static_cast<T>(0.5) * pillar_weight * residual * residual;
+                }
+#endif
                 __syncthreads();
 
-                block::reduce<T>(threadsNeeded + (track_orientation ? grid::EE_POS_SIZE : 3), s_cost_vec);
+                block::reduce<T>(threadsNeeded + tracking_terms, s_cost_vec);
                 __syncthreads();
 
                 return s_cost_vec[0];
@@ -423,13 +475,23 @@ namespace plant {
                 __syncthreads();
 
                 const grid::robotModel<T>* d_robotModel = static_cast<const grid::robotModel<T>*>(d_dynMem_const);
-                const bool track_orientation = ee_orient_cost != static_cast<T>(0) || ee_orient_N_cost != static_cast<T>(0);
+                const bool track_orientation =
+#if defined(TIAGO_MULTIMODAL_PILLAR)
+                    false;
+#else
+                    ee_orient_cost != static_cast<T>(0) || ee_orient_N_cost != static_cast<T>(0);
+#endif
                 T* s_eePos = s_temp;
                 T* s_eePos_grad = s_eePos + grid::EE_POS_SIZE;
                 T* s_ee_workspace = s_eePos_grad + 6 * grid::NUM_JOINTS;
                 const uint32_t threads_needed = state_size + control_size * computeR;
 
                 computeTiagoToolPoseAndGradient<T>(s_eePos, s_eePos_grad, s_q_grid, d_robotModel, s_ee_workspace);
+
+#if defined(TIAGO_MULTIMODAL_PILLAR)
+                T pillar_workspace_gradient[2];
+                const T pillar_residual = pillarResidualAndWorkspaceGradient<T>(s_eePos, s_eePos_traj, pillar_workspace_gradient);
+#endif
 
                 for (int i = threadIdx.x; i < threads_needed; i += blockDim.x) {
                         if (i < state_size) {
@@ -452,6 +514,12 @@ namespace plant {
                                                 s_qk[i] = (grad_x * (s_eePos[0] - s_eePos_traj[0]) + grad_y * (s_eePos[1] - s_eePos_traj[1]) + grad_z * (s_eePos[2] - s_eePos_traj[2]))
                                                           * (blockIdx.x == KNOT_POINTS - 1 ? N_cost : q_cost);
                                         }
+#if defined(TIAGO_MULTIMODAL_PILLAR)
+                                        const T pillar_jacobian =
+                                            pillar_workspace_gradient[0] * s_eePos_grad[6 * i + 0] * tiagoJointSign<T>(i)
+                                            + pillar_workspace_gradient[1] * s_eePos_grad[6 * i + 1] * tiagoJointSign<T>(i);
+                                        s_qk[i] += ee_orient_cost * pillar_residual * pillar_jacobian;
+#endif
                                         s_qk[i] += q_lim_cost * jointBarrierGradient(s_xu[i], JOINT_LIMITS<T>()[i][0], JOINT_LIMITS<T>()[i][1]);
                                 } else {
                                         s_qk[i] = qd_cost * s_xu[i];
@@ -489,6 +557,15 @@ namespace plant {
                                                         const T grad_jz = s_eePos_grad[6 * j + 2] * tiagoJointSign<T>(j);
                                                         s_Qk[i * state_size + j] = (grad_ix * grad_jx + grad_iy * grad_jy + grad_iz * grad_jz) * (blockIdx.x == KNOT_POINTS - 1 ? N_cost : q_cost);
                                                 }
+#if defined(TIAGO_MULTIMODAL_PILLAR)
+                                                const T pillar_jacobian_i =
+                                                    pillar_workspace_gradient[0] * s_eePos_grad[6 * i + 0] * tiagoJointSign<T>(i)
+                                                    + pillar_workspace_gradient[1] * s_eePos_grad[6 * i + 1] * tiagoJointSign<T>(i);
+                                                const T pillar_jacobian_j =
+                                                    pillar_workspace_gradient[0] * s_eePos_grad[6 * j + 0] * tiagoJointSign<T>(j)
+                                                    + pillar_workspace_gradient[1] * s_eePos_grad[6 * j + 1] * tiagoJointSign<T>(j);
+                                                s_Qk[i * state_size + j] += ee_orient_cost * pillar_jacobian_i * pillar_jacobian_j;
+#endif
                                                 if (i == j) {
                                                         s_Qk[i * state_size + j] += q_lim_cost * jointBarrierHessian<T>(s_xu[i], JOINT_LIMITS<T>()[i][0], JOINT_LIMITS<T>()[i][1]);
                                                 }
