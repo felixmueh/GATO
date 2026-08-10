@@ -611,6 +611,8 @@ def _benchmark_result_snapshot(trajectories, results, certificate, timings, wall
         "modes": [row["mode"] for row in results],
         "objectives": [float(row["objective"]) for row in results],
         "total_pcg_iterations": [int(row["total_pcg_iterations"]) for row in results],
+        "pcg_cap_hits": [int(row["pcg_cap_hits"]) for row in results],
+        "sqp_iterations": [int(row["sqp_iterations"]) for row in results],
         "input_x0_sha256": [row["input_x0_sha256"] for row in results],
         "input_reference_sha256": [row["input_reference_sha256"] for row in results],
         "input_warm_start_sha256": [row["input_warm_start_sha256"] for row in results],
@@ -658,6 +660,8 @@ def _parity_snapshot(independent, batched):
         "same_certifiable_flags": independent["certifiable"] == batched["certifiable"],
         "same_modes": independent["modes"] == batched["modes"],
         "same_total_pcg_iterations": independent["total_pcg_iterations"] == batched["total_pcg_iterations"],
+        "same_pcg_cap_hits": independent["pcg_cap_hits"] == batched["pcg_cap_hits"],
+        "same_sqp_iterations": independent["sqp_iterations"] == batched["sqp_iterations"],
         "same_full_certificate": _jsonable(independent["certificate"]) == _jsonable(batched["certificate"]),
         "same_objective_nonfinite_pattern": same_nonfinite_pattern,
         "finite_objectives_allclose_rtol_1e-6_atol_1e-6": bool(
@@ -841,6 +845,7 @@ def write_artifacts(
     timings,
     *,
     evaluation_metadata=None,
+    proposal_metadata=None,
 ):
     output_dir.mkdir(parents=True, exist_ok=True)
     difficulty = DIFFICULTIES[instance.difficulty]
@@ -940,6 +945,8 @@ def write_artifacts(
         "certificate": certificate,
         "results": [_result_summary(result) for result in results],
     }
+    if proposal_metadata is not None:
+        summary["proposal_metadata"] = _jsonable(proposal_metadata)
     if evaluation_metadata is not None:
         summary["evaluation_metadata"] = _jsonable(evaluation_metadata)
     with (output_dir / "instance.json").open("w", encoding="utf-8") as stream:
@@ -998,8 +1005,22 @@ def run_instance(
     )
     summary = None
     if write:
+        resolved_proposal_seed = (
+            instance.seed if proposal_seed is None else int(proposal_seed)
+        )
         summary = write_artifacts(
-            output_dir, model, instance, trajectories, results, certificate, timings
+            output_dir,
+            model,
+            instance,
+            trajectories,
+            results,
+            certificate,
+            timings,
+            proposal_metadata={
+                "strategy": proposal_strategy,
+                "seed": resolved_proposal_seed,
+                "seed_was_implicit_instance_seed": proposal_seed is None,
+            },
         )
     return output_dir, instance, certificate, summary
 
@@ -1491,6 +1512,8 @@ def batch_benchmark_command(args):
                 and row["parity"]["same_certifiable_flags"]
                 and row["parity"]["same_modes"]
                 and row["parity"]["same_total_pcg_iterations"]
+                and row["parity"]["same_pcg_cap_hits"]
+                and row["parity"]["same_sqp_iterations"]
                 and row["parity"]["same_full_certificate"]
                 and row["parity"]["same_objective_nonfinite_pattern"]
                 and row["parity"]["finite_objectives_allclose_rtol_1e-6_atol_1e-6"]
