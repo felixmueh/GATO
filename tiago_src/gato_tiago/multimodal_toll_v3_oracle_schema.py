@@ -1,7 +1,7 @@
-"""Quarantined exact-eight-DLS reachable-task constructor for V2.
+"""Quarantined exact-eight-DLS reachable-task constructor for V3.
 
 This module is oracle-only.  Benchmark and initializer modules must never
-import it or receive :class:`V2ConstructionWitness`.
+import it or receive :class:`V3ConstructionWitness`.
 """
 
 from __future__ import annotations
@@ -33,11 +33,11 @@ from gato_tiago.multimodal_toll import (
     _sha256_array,
     physical_clearance,
 )
-from gato_tiago.multimodal_toll_v2 import (
+from gato_tiago.multimodal_toll_v3 import (
     DLS_DAMPING,
     DLS_ITERATIONS,
     DLS_UNIT_STEP,
-    validate_v2_task_seed,
+    validate_v3_task_seed,
 )
 
 
@@ -73,7 +73,7 @@ class DLSHistory:
 
 
 @dataclass(frozen=True)
-class V2ConstructionWitness:
+class V3ConstructionWitness:
     q0_jitter: tuple[float, ...]
     phi: float
     offset_sign: int
@@ -178,7 +178,7 @@ def certify_history_regeneration(left: DLSHistory, right: DLSHistory) -> dict:
 
 
 def certify_witness_regeneration(
-    witness: V2ConstructionWitness, regenerated: DLSHistory
+    witness: V3ConstructionWitness, regenerated: DLSHistory
 ) -> dict:
     history_gate = certify_history_regeneration(witness.history, regenerated)
     stored_hashes_exact = bool(
@@ -206,16 +206,75 @@ def q_history_gate(history: DLSHistory, lower, upper) -> dict:
         and lower.dtype == upper.dtype == np.float64
     )
     finite = bool(exact_shapes and np.all(np.isfinite(q)))
-    inside = bool(
-        finite
-        and np.all(q - lower >= GOAL_JOINT_MARGIN_RAD)
-        and np.all(upper - q >= GOAL_JOINT_MARGIN_RAD)
-    )
+    if exact_shapes:
+        hard_signed = np.minimum(q - lower, upper - q)
+        reserve_signed = hard_signed - GOAL_JOINT_MARGIN_RAD
+        intermediate_hard = hard_signed[1:8]
+        intermediate_reserve = reserve_signed[1:8]
+        hard_flat_index = int(np.argmin(intermediate_hard))
+        reserve_flat_index = int(np.argmin(intermediate_reserve))
+        hard_local = np.unravel_index(hard_flat_index, intermediate_hard.shape)
+        reserve_local = np.unravel_index(
+            reserve_flat_index, intermediate_reserve.shape
+        )
+        hard_worst_iterate_per_joint = np.argmin(
+            intermediate_hard, axis=0
+        ) + 1
+        reserve_worst_iterate_per_joint = np.argmin(
+            intermediate_reserve, axis=0
+        ) + 1
+    else:
+        hard_signed = np.full((9, 7), np.nan)
+        reserve_signed = np.full((9, 7), np.nan)
+        intermediate_hard = hard_signed[1:8]
+        intermediate_reserve = reserve_signed[1:8]
+        hard_local = reserve_local = (0, 0)
+        hard_worst_iterate_per_joint = np.zeros(7, dtype=np.int64)
+        reserve_worst_iterate_per_joint = np.zeros(7, dtype=np.int64)
+    q0_margin = bool(finite and np.all(reserve_signed[0] >= 0.0))
+    q8_margin = bool(finite and np.all(reserve_signed[8] >= 0.0))
     return {
         "all_nine_q_iterates_exact_shape_dtype": exact_shapes,
         "all_nine_q_iterates_finite": finite,
-        "all_nine_q_iterates_inside_joint_margin": inside,
-        "all_q_history_gates_pass": bool(exact_shapes and finite and inside),
+        "q0_inside_frozen_reserve": q0_margin,
+        "q8_inside_frozen_reserve": q8_margin,
+        "intermediate_numerical_ik_iterates_report_only": True,
+        "intermediate_iterates_never_executed": True,
+        "intermediate_iterates_never_public": True,
+        "intermediate_iterates_never_exposed_to_public_task_or_benchmark": True,
+        "intermediate_iterates_never_used_by_initializer": True,
+        "intermediate_iterates_never_used_by_sqp": True,
+        "intermediate_hard_signed_margin_float64": intermediate_hard.tolist(),
+        "intermediate_reserve_signed_margin_float64": intermediate_reserve.tolist(),
+        "intermediate_hard_min_per_joint": np.min(
+            intermediate_hard, axis=0
+        ).tolist(),
+        "intermediate_reserve_min_per_joint": np.min(
+            intermediate_reserve, axis=0
+        ).tolist(),
+        "intermediate_min_hard_signed_margin": float(np.min(intermediate_hard)),
+        "intermediate_min_reserve_signed_margin": float(
+            np.min(intermediate_reserve)
+        ),
+        "intermediate_worst_hard_iterate_index": int(hard_local[0] + 1),
+        "intermediate_worst_hard_joint_index": int(hard_local[1]),
+        "intermediate_worst_reserve_iterate_index": int(reserve_local[0] + 1),
+        "intermediate_worst_reserve_joint_index": int(reserve_local[1]),
+        "intermediate_worst_hard_iterate_per_joint": (
+            hard_worst_iterate_per_joint.tolist()
+        ),
+        "intermediate_worst_reserve_iterate_per_joint": (
+            reserve_worst_iterate_per_joint.tolist()
+        ),
+        "intermediate_all_inside_hard_limits_report_only": bool(
+            finite and np.all(intermediate_hard >= 0.0)
+        ),
+        "intermediate_all_inside_reserve_report_only": bool(
+            finite and np.all(intermediate_reserve >= 0.0)
+        ),
+        "all_q_history_gates_pass": bool(
+            exact_shapes and finite and q0_margin and q8_margin
+        ),
     }
 
 
@@ -234,7 +293,7 @@ def _pin_position_and_jacobian(model, data):
     return evaluate
 
 
-def regenerate_witness_history(model, witness: V2ConstructionWitness) -> DLSHistory:
+def regenerate_witness_history(model, witness: V3ConstructionWitness) -> DLSHistory:
     """Independently replay the frozen construction recurrence for auditing."""
 
     data = model.createData()
@@ -280,7 +339,7 @@ def construct_task_from_draws(model, q0_jitter, phi, offset_sign, *, task_seed=-
         q0, requested_target, evaluator, final_position=position_only
     )
     if not q_history_gate(history, lower, upper)["all_q_history_gates_pass"]:
-        raise RuntimeError("a V2 DLS q iterate violates the frozen joint gate")
+        raise RuntimeError("a V3 physical endpoint violates the frozen joint gate")
     goal = history.tool_position_float64[-1]
     actual_travel = float(np.linalg.norm(goal - start))
     planar_travel = float(np.linalg.norm(goal[:2] - start[:2]))
@@ -328,7 +387,7 @@ def construct_task_from_draws(model, q0_jitter, phi, offset_sign, *, task_seed=-
         solver_x0_sha256=_sha256_array(x0),
         solver_reference_sha256=_sha256_array(ref32),
     )
-    witness = V2ConstructionWitness(
+    witness = V3ConstructionWitness(
         q0_jitter=tuple(float(value) for value in jitter),
         phi=float(phi),
         offset_sign=int(offset_sign),
@@ -346,12 +405,12 @@ def construct_task_from_draws(model, q0_jitter, phi, offset_sign, *, task_seed=-
 
 
 def generate_task(task_seed, model, *, authorization=None):
-    validate_v2_task_seed(task_seed)
+    validate_v3_task_seed(task_seed)
     if (
         TASK_CONSTRUCTION_AUTHORIZATION is None
         or authorization is not TASK_CONSTRUCTION_AUTHORIZATION
     ):
-        raise RuntimeError("V2 task instantiation is blocked pending verifier authorization")
+        raise RuntimeError("V3 task instantiation is blocked pending verifier authorization")
     rng = np.random.default_rng(int(task_seed))
     jitter = rng.uniform(-Q0_JITTER_RAD, Q0_JITTER_RAD, size=7)
     phi = float(rng.uniform(-PLANAR_ANGLE_RAD, PLANAR_ANGLE_RAD))

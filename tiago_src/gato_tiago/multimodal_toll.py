@@ -102,6 +102,10 @@ FORBIDDEN_INITIALIZER_FIELDS = frozenset(
         "oracle_path",
         "oracle_witness",
         "construction_witness",
+        "dls_history",
+        "dls_intermediate_q",
+        "ik_iterates",
+        "intermediate_joint_margins",
         "collision",
         "winding",
     }

@@ -13,8 +13,11 @@ from gato_tiago import multimodal_toll_v0_worker as v0_worker
 from gato_tiago import multimodal_toll_v1_runner as v1_runner
 from gato_tiago import multimodal_toll_v1_worker as v1_worker
 from gato_tiago import multimodal_toll_v2 as v2
-from gato_tiago import multimodal_toll_v2_oracle_schema as oracle
-from gato_tiago import multimodal_toll_v2_runner as runner
+from gato_tiago import multimodal_toll_v2_oracle_schema as v2_oracle
+from gato_tiago import multimodal_toll_v2_runner as v2_runner
+from gato_tiago import multimodal_toll_v3 as v3
+from gato_tiago import multimodal_toll_v3_oracle_schema as oracle
+from gato_tiago import multimodal_toll_v3_runner as runner
 from gato_tiago.config import TIAGO_RIGHT_START_CONFIGS
 
 
@@ -29,31 +32,45 @@ def _linear_callback(counter=None):
     return evaluate
 
 
-def test_v2_exact_identity_and_public_protocol_are_frozen_without_rng():
-    assert v2.DEVELOPMENT_TASK_SEEDS == (12200, 12201, 12202, 12203)
-    assert v2.HELDOUT_TASK_SEEDS == tuple(range(12300, 12308))
-    assert len(v2.EXPECTED_TASK_IDENTITIES) == 12
-    assert v2.DLS_ITERATIONS == 8
-    assert v2.DLS_DAMPING == toll.DAMPING == 0.05
-    assert v2.DLS_UNIT_STEP == 1.0
-    metadata = v2.frozen_v2_metadata()
+def test_v3_exact_identity_and_public_protocol_are_frozen_without_rng():
+    assert v3.DEVELOPMENT_TASK_SEEDS == (12400, 12401, 12402, 12403)
+    assert v3.HELDOUT_TASK_SEEDS == tuple(range(12500, 12508))
+    assert len(v3.EXPECTED_TASK_IDENTITIES) == 12
+    assert v3.DLS_ITERATIONS == 8
+    assert v3.DLS_DAMPING == toll.DAMPING == 0.05
+    assert v3.DLS_UNIT_STEP == 1.0
+    metadata = v3.frozen_v3_metadata()
     assert metadata["construction"]["early_exit"] is False
     assert metadata["construction"]["step_cap"] is False
     assert metadata["construction"]["clip"] is False
     assert metadata["construction"]["projection"] is False
     assert metadata["construction"]["line_search"] is False
     assert metadata["construction"]["target"] == "p0 + 0.15*[cos(phi),sin(phi),0]"
-    assert metadata["v2_task_seed_override"] == {
-        "development": [12200, 12201, 12202, 12203],
-        "heldout": list(range(12300, 12308)),
+    assert metadata["construction"]["q0_q8_reserve_margin_is_acceptance_gate"] is True
+    assert metadata["construction"]["q1_q7_reserve_and_hard_margins_are_report_only"] is True
+    assert metadata["construction"]["q1_q7_are_numerical_ik_iterates"] is True
+    assert metadata["construction"]["q1_q7_are_executed_states"] is False
+    assert metadata["construction"]["q1_q7_are_public_task_data"] is False
+    assert metadata["construction"]["q1_q7_are_exposed_to_benchmark"] is False
+    assert metadata["construction"]["q1_q7_are_initializer_inputs"] is False
+    assert metadata["construction"]["q1_q7_are_sqp_inputs"] is False
+    assert metadata["v3_task_seed_override"] == {
+        "development": [12400, 12401, 12402, 12403],
+        "heldout": list(range(12500, 12508)),
     }
     assert metadata["unchanged_non_seed_protocol"] == {
         name: toll.frozen_protocol_metadata()[name]
-        for name in v2.NON_SEED_PUBLIC_PROTOCOL_FIELDS
+        for name in v3.NON_SEED_PUBLIC_PROTOCOL_FIELDS
     }
     assert metadata["unchanged_non_seed_protocol_matches_base"] is True
     assert len(metadata["unchanged_non_seed_protocol_sha256"]) == 64
     assert "protocol" not in metadata["unchanged_non_seed_protocol"]
+    assert metadata["predecessor_artifacts_consumed"] is False
+    assert set(metadata["rejected_predecessor_artifact_hashes_report_only"]) >= {
+        "v2_latest_pointer",
+        "v2_generation13_json",
+        "v2_generation13_npz",
+    }
 
 
 def test_exact_dls_runs_eight_unit_steps_and_retains_every_array():
@@ -136,7 +153,7 @@ def test_history_regeneration_is_exact_and_mutations_fail():
     assert oracle.certify_history_regeneration(first, second)[
         "all_history_regeneration_gates_pass"
     ]
-    witness = oracle.V2ConstructionWitness(
+    witness = oracle.V3ConstructionWitness(
         q0_jitter=tuple(np.zeros(7)),
         phi=0.0,
         offset_sign=1,
@@ -174,7 +191,13 @@ def test_history_regeneration_is_exact_and_mutations_fail():
     )["all_witness_regeneration_gates_pass"]
 
 
-def test_q_history_gate_requires_all_nine_finite_margin_safe_iterates():
+def _copy_history(history):
+    return oracle.DLSHistory(
+        **{name: value.copy() for name, value in history.__dict__.items()}
+    )
+
+
+def test_q_history_gate_accepts_report_only_intermediate_limit_violation():
     history = oracle.exact_eight_dls(
         np.zeros(7, dtype=np.float64),
         np.asarray([0.01, 0.0, 0.0], dtype=np.float64),
@@ -183,25 +206,93 @@ def test_q_history_gate_requires_all_nine_finite_margin_safe_iterates():
     )
     lower = np.full(7, -1.0, dtype=np.float64)
     upper = np.full(7, 1.0, dtype=np.float64)
-    assert oracle.q_history_gate(history, lower, upper)["all_q_history_gates_pass"]
-    history.q_float64[4, 6] = np.nan
-    assert not oracle.q_history_gate(history, lower, upper)["all_q_history_gates_pass"]
+    baseline = oracle.q_history_gate(history, lower, upper)
+    assert baseline["all_q_history_gates_pass"]
+
+    intermediate_violation = _copy_history(history)
+    intermediate_violation.q_float64[4, 6] = 1.05
+    report = oracle.q_history_gate(intermediate_violation, lower, upper)
+    assert report["all_q_history_gates_pass"]
+    assert report["q0_inside_frozen_reserve"]
+    assert report["q8_inside_frozen_reserve"]
+    assert not report["intermediate_all_inside_hard_limits_report_only"]
+    assert not report["intermediate_all_inside_reserve_report_only"]
+    assert report["intermediate_min_hard_signed_margin"] == pytest.approx(-0.05)
+    assert report["intermediate_worst_hard_iterate_index"] == 4
+    assert report["intermediate_worst_hard_joint_index"] == 6
+    assert np.asarray(report["intermediate_hard_signed_margin_float64"]).shape == (7, 7)
+    assert np.asarray(report["intermediate_reserve_signed_margin_float64"]).shape == (7, 7)
+    assert len(report["intermediate_hard_min_per_joint"]) == 7
+    assert len(report["intermediate_reserve_min_per_joint"]) == 7
+    assert len(report["intermediate_worst_hard_iterate_per_joint"]) == 7
+    assert len(report["intermediate_worst_reserve_iterate_per_joint"]) == 7
+    assert report["intermediate_worst_hard_iterate_per_joint"][6] == 4
+    assert report["intermediate_worst_reserve_iterate_per_joint"][6] == 4
+    assert report["intermediate_numerical_ik_iterates_report_only"] is True
+    assert report["intermediate_iterates_never_executed"] is True
+    assert report["intermediate_iterates_never_public"] is True
+    assert report[
+        "intermediate_iterates_never_exposed_to_public_task_or_benchmark"
+    ] is True
+    assert report["intermediate_iterates_never_used_by_initializer"] is True
+    assert report["intermediate_iterates_never_used_by_sqp"] is True
 
 
-def test_rejected_v2_capabilities_are_closed_without_opening_runtime(monkeypatch):
+def test_q_history_gate_fails_endpoint_margin_nonfinite_and_shape_mutations():
+    history = oracle.exact_eight_dls(
+        np.zeros(7, dtype=np.float64),
+        np.asarray([0.01, 0.0, 0.0], dtype=np.float64),
+        _linear_callback(),
+        final_position=lambda q: np.asarray(q[:3], dtype=np.float64),
+    )
+    lower = np.full(7, -1.0, dtype=np.float64)
+    upper = np.full(7, 1.0, dtype=np.float64)
+
+    bad_q0 = _copy_history(history)
+    bad_q0.q_float64[0, 2] = -0.93
+    report = oracle.q_history_gate(bad_q0, lower, upper)
+    assert not report["q0_inside_frozen_reserve"]
+    assert not report["all_q_history_gates_pass"]
+
+    bad_q8 = _copy_history(history)
+    bad_q8.q_float64[8, 2] = 0.93
+    report = oracle.q_history_gate(bad_q8, lower, upper)
+    assert not report["q8_inside_frozen_reserve"]
+    assert not report["all_q_history_gates_pass"]
+
+    bad_intermediate = _copy_history(history)
+    bad_intermediate.q_float64[4, 6] = np.nan
+    report = oracle.q_history_gate(bad_intermediate, lower, upper)
+    assert not report["all_nine_q_iterates_finite"]
+    assert not report["all_q_history_gates_pass"]
+
+    bad_shape_arrays = {
+        name: value.copy() for name, value in history.__dict__.items()
+    }
+    bad_shape_arrays["q_float64"] = bad_shape_arrays["q_float64"][:, :6]
+    bad_shape = oracle.DLSHistory(**bad_shape_arrays)
+    report = oracle.q_history_gate(bad_shape, lower, upper)
+    assert not report["all_nine_q_iterates_exact_shape_dtype"]
+    assert not report["all_q_history_gates_pass"]
+
+
+def test_all_v3_and_predecessor_capabilities_are_closed_without_opening_runtime(monkeypatch):
     assert v0_runner.RUNNER_EXECUTION_AUTHORIZATION is None
     assert v0_worker.WORKER_EXECUTION_AUTHORIZATION is None
     assert v1_runner.RUNNER_EXECUTION_AUTHORIZATION is None
     assert v1_worker.WORKER_EXECUTION_AUTHORIZATION is None
     assert v01_oracle.TASK_CONSTRUCTION_AUTHORIZATION is None
     assert v2.V2_EXECUTION_AUTHORIZATION is None
+    assert v2_oracle.TASK_CONSTRUCTION_AUTHORIZATION is None
+    assert v2_runner.RUNNER_EXECUTION_AUTHORIZATION is None
+    assert v3.V3_EXECUTION_AUTHORIZATION is None
     assert oracle.TASK_CONSTRUCTION_AUTHORIZATION is None
     assert runner.RUNNER_EXECUTION_AUTHORIZATION is None
-    assert v2.V2_OUTPUT_PATH == Path(
-        "/tmp/tiago-tool-center-toll-v2-task-construction-authorized-once/v2.json"
+    assert v3.V3_OUTPUT_PATH == Path(
+        "/tmp/tiago-tool-center-toll-v3-task-construction-authorized-once/v3.json"
     )
-    assert runner.AUTHORIZED_OUTPUT_PATH == v2.V2_OUTPUT_PATH
-    frozen = {seed for _, seed in v2.EXPECTED_TASK_IDENTITIES}
+    assert runner.AUTHORIZED_OUTPUT_PATH == v3.V3_OUTPUT_PATH
+    frozen = {seed for _, seed in v3.EXPECTED_TASK_IDENTITIES}
     opened = []
     original = np.random.default_rng
 
@@ -211,20 +302,20 @@ def test_rejected_v2_capabilities_are_closed_without_opening_runtime(monkeypatch
         return original(seed)
 
     monkeypatch.setattr(np.random, "default_rng", guarded)
-    for _, seed in v2.EXPECTED_TASK_IDENTITIES:
+    for _, seed in v3.EXPECTED_TASK_IDENTITIES:
         with pytest.raises(RuntimeError, match="blocked"):
             oracle.generate_task(seed, object())
     with pytest.raises(RuntimeError, match="blocked"):
-        runner.execute_v2_runner(v2.V2_OUTPUT_PATH)
+        runner.execute_v3_runner(v3.V3_OUTPUT_PATH)
     assert opened == []
 
 
-def test_v2_sources_are_isolated_and_benchmark_cannot_import_oracle():
+def test_v3_sources_are_isolated_and_benchmark_cannot_import_oracle():
     root = Path(__file__).resolve().parents[2]
     paths = [
-        root / "tiago_src/gato_tiago/multimodal_toll_v2.py",
-        root / "tiago_src/gato_tiago/multimodal_toll_v2_oracle_schema.py",
-        root / "tiago_src/gato_tiago/multimodal_toll_v2_runner.py",
+        root / "tiago_src/gato_tiago/multimodal_toll_v3.py",
+        root / "tiago_src/gato_tiago/multimodal_toll_v3_oracle_schema.py",
+        root / "tiago_src/gato_tiago/multimodal_toll_v3_runner.py",
     ]
     trees = [ast.parse(path.read_text(), filename=str(path)) for path in paths]
     imported = {
@@ -242,20 +333,26 @@ def test_v2_sources_are_isolated_and_benchmark_cannot_import_oracle():
     )
     assert not any("multimodal_toll_v0" in name for name in imported)
     assert not any("multimodal_toll_v1" in name for name in imported)
+    assert not any("multimodal_toll_v2" in name for name in imported)
     benchmark = (root / "tiago_examples/tiago_multimodal_toll_benchmark.py").read_text()
     initializer = (root / "tiago_src/gato_tiago/multimodal_toll.py").read_text()
-    assert "multimodal_toll_v2_oracle_schema" not in benchmark
-    assert "multimodal_toll_v2_oracle_schema" not in initializer
+    assert "multimodal_toll_v3_oracle_schema" not in benchmark
+    assert "multimodal_toll_v3_oracle_schema" not in initializer
     assert "history" not in toll.TollTask.__dataclass_fields__
     assert "q_goal" not in toll.TollTask.__dataclass_fields__
     assert hasattr(oracle, "regenerate_witness_history")
+    assert set(v3.frozen_v3_metadata()["forbidden_public_or_initializer_fields"]) <= set(
+        toll.FORBIDDEN_INITIALIZER_FIELDS
+    )
+    with pytest.raises(ValueError, match="tainted"):
+        toll.validate_initializer_inputs({"dls_intermediate_q": np.zeros((7, 7))})
 
 
 def test_runner_declaration_is_static_and_fail_closed():
-    metadata = runner.describe_v2_runner()
+    metadata = runner.describe_v3_runner()
     assert metadata["authorization_enabled"] is False
     assert metadata["expected_identities"] == [
-        list(row) for row in v2.EXPECTED_TASK_IDENTITIES
+        list(row) for row in v3.EXPECTED_TASK_IDENTITIES
     ]
     assert metadata["expected_model_load_calls"] == 1
     assert metadata["expected_task_construction_calls"] == 12
@@ -266,11 +363,11 @@ def test_runner_declaration_is_static_and_fail_closed():
     assert metadata["route_oracle_calls"] == 0
     assert metadata["construction_only"] is True
     assert metadata["benchmark_evidence"] is False
-    assert set(metadata["required_source_paths"]) == set(v2.REQUIRED_SOURCE_PATHS)
+    assert set(metadata["required_source_paths"]) == set(v3.REQUIRED_SOURCE_PATHS)
     assert runner.RUNNER_EXECUTION_AUTHORIZATION is None
     assert oracle.TASK_CONSTRUCTION_AUTHORIZATION is None
     with pytest.raises(RuntimeError, match="blocked"):
-        runner.execute_v2_runner(v2.V2_OUTPUT_PATH)
+        runner.execute_v3_runner(v3.V3_OUTPUT_PATH)
 
 
 def _synthetic_ledger():
@@ -334,7 +431,7 @@ def _synthetic_certifiable_task(task_seed=99000):
         solver_x0_sha256=toll._sha256_array(x0),
         solver_reference_sha256=toll._sha256_array(ref32),
     )
-    witness = oracle.V2ConstructionWitness(
+    witness = oracle.V3ConstructionWitness(
         q0_jitter=tuple(draws[:7]),
         phi=float(draws[7]),
         offset_sign=sign,
@@ -406,7 +503,7 @@ def _synthetic_model_factory(output, call_order):
 
 
 def test_transaction_gen0_precedes_model_and_exact_twelve_attempts(tmp_path):
-    output = tmp_path / "v2.json"
+    output = tmp_path / "v3.json"
     ledger = _synthetic_ledger()
     call_order = []
 
@@ -431,14 +528,14 @@ def test_transaction_gen0_precedes_model_and_exact_twelve_attempts(tmp_path):
     )
     assert call_order == ["model", *ledger]
     assert result["incomplete"] is False
-    assert result["all_v2_gates_pass"] is False
+    assert result["all_v3_gates_pass"] is False
     assert result["task_construction_attempt_count"] == 12
     assert result["worker_calls"] == result["cuda_calls"] == 0
     assert result["sqp_calls"] == result["route_oracle_calls"] == 0
     assert result["benchmark_evidence"] is False
     assert result["optimization_evidence"] is False
     assert all(
-        (tmp_path / f"v2.partial.{generation:04d}.json").exists()
+        (tmp_path / f"v3.partial.{generation:04d}.json").exists()
         for generation in range(14)
     )
     assert output.exists() and output.with_suffix(".npz").exists()
@@ -446,7 +543,7 @@ def test_transaction_gen0_precedes_model_and_exact_twelve_attempts(tmp_path):
 
 
 def test_failed_task_is_retained_all_twelve_are_attempted_and_no_final_is_published(tmp_path):
-    output = tmp_path / "v2.json"
+    output = tmp_path / "v3.json"
     ledger = _synthetic_ledger()
     call_order = []
 
@@ -463,7 +560,7 @@ def test_failed_task_is_retained_all_twelve_are_attempted_and_no_final_is_publis
             "replacement_count": 0,
         }, {}
 
-    with pytest.raises(RuntimeError, match="V2 closes"):
+    with pytest.raises(RuntimeError, match="V3 closes"):
         runner._run_pipeline(
             output,
             ledger=ledger,
@@ -473,7 +570,7 @@ def test_failed_task_is_retained_all_twelve_are_attempted_and_no_final_is_publis
             test_override=False,
         )
     assert call_order == list(ledger)
-    pointer = json.loads((tmp_path / "v2.partial.latest.json").read_text())
+    pointer = json.loads((tmp_path / "v3.partial.latest.json").read_text())
     assert pointer["generation"] == 13
     latest = json.loads(Path(pointer["json_path"]).read_text())
     assert latest["incomplete"] is True
@@ -489,7 +586,7 @@ def test_failed_task_is_retained_all_twelve_are_attempted_and_no_final_is_publis
 
 
 def test_interruption_after_second_attempt_retains_generation_and_no_final(tmp_path):
-    output = tmp_path / "v2.json"
+    output = tmp_path / "v3.json"
     ledger = _synthetic_ledger()
 
     def task_factory(identity, model):
@@ -517,7 +614,7 @@ def test_interruption_after_second_attempt_retains_generation_and_no_final(tmp_p
             test_override=True,
             after_attempt=interrupt,
         )
-    pointer = json.loads((tmp_path / "v2.partial.latest.json").read_text())
+    pointer = json.loads((tmp_path / "v3.partial.latest.json").read_text())
     assert pointer["generation"] == 3
     latest = json.loads(Path(pointer["json_path"]).read_text())
     assert latest["task_construction_attempt_count"] == 2
@@ -526,7 +623,7 @@ def test_interruption_after_second_attempt_retains_generation_and_no_final(tmp_p
 
 
 def test_false_aggregate_certificate_never_publishes_final_artifacts(tmp_path):
-    output = tmp_path / "v2.json"
+    output = tmp_path / "v3.json"
     ledger = _synthetic_ledger()
 
     def task_factory(identity, model):
@@ -548,7 +645,7 @@ def test_false_aggregate_certificate_never_publishes_final_artifacts(tmp_path):
             task_factory=task_factory,
             test_override=False,
         )
-    pointer = json.loads((tmp_path / "v2.partial.latest.json").read_text())
+    pointer = json.loads((tmp_path / "v3.partial.latest.json").read_text())
     assert pointer["generation"] == 13
     latest = json.loads(Path(pointer["json_path"]).read_text())
     assert latest["task_construction_attempt_count"] == 12
@@ -568,6 +665,7 @@ def test_task_only_runner_has_no_worker_cuda_optimizer_or_predecessor_data_path(
     }
     assert not any("multimodal_toll_v0" in name for name in imported_modules)
     assert not any("multimodal_toll_v1" in name for name in imported_modules)
+    assert not any("multimodal_toll_v2" in name for name in imported_modules)
     for forbidden in (
         "worker_launcher",
         "sim_forward",
