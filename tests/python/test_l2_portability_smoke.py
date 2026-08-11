@@ -70,10 +70,10 @@ def _provenance():
     }
 
 
-def test_one_shot_authorization_enables_only_runner_and_worker():
+def test_completed_one_shot_authorizations_are_closed():
     assert schema.SMOKE_EXECUTION_AUTHORIZATION is None
-    assert runner.RUNNER_EXECUTION_AUTHORIZATION is not None
-    assert worker.WORKER_EXECUTION_AUTHORIZATION is not None
+    assert runner.RUNNER_EXECUTION_AUTHORIZATION is None
+    assert worker.WORKER_EXECUTION_AUTHORIZATION is None
     assert schema.AUTHORIZED_OUTPUT_PATH == Path(
         "/tmp/tiago-tool-center-l2-portability-smoke-authorized-once/smoke.json"
     )
@@ -104,6 +104,10 @@ def test_one_shot_authorization_enables_only_runner_and_worker():
 def test_authorized_entrypoints_reject_wrong_paths_and_refuse_overwrite(
     tmp_path, monkeypatch
 ):
+    runner_authorization = object()
+    worker_authorization = object()
+    monkeypatch.setattr(runner, "RUNNER_EXECUTION_AUTHORIZATION", runner_authorization)
+    monkeypatch.setattr(worker, "WORKER_EXECUTION_AUTHORIZATION", worker_authorization)
     authorized = tmp_path / "authorized" / "smoke.json"
     monkeypatch.setattr(runner, "AUTHORIZED_OUTPUT_PATH", authorized)
     monkeypatch.setattr(worker, "AUTHORIZED_OUTPUT_PATH", authorized)
@@ -121,18 +125,18 @@ def test_authorized_entrypoints_reject_wrong_paths_and_refuse_overwrite(
     with pytest.raises(RuntimeError, match="not authorized"):
         runner.execute_smoke(
             tmp_path / "wrong.json",
-            authorization=runner.RUNNER_EXECUTION_AUTHORIZATION,
+            authorization=runner_authorization,
         )
     assert runner.execute_smoke(
         authorized,
-        authorization=runner.RUNNER_EXECUTION_AUTHORIZATION,
+        authorization=runner_authorization,
     ) == {"mock": True}
     authorized.parent.mkdir(parents=True, exist_ok=True)
     authorized.with_name("smoke.partial.latest.json").write_text("{}")
     with pytest.raises(RuntimeError, match="overwrite, resume, or rerun"):
         runner.execute_smoke(
             authorized,
-            authorization=runner.RUNNER_EXECUTION_AUTHORIZATION,
+            authorization=runner_authorization,
         )
     assert runner_calls == [authorized]
 
@@ -157,19 +161,19 @@ def test_authorized_entrypoints_reject_wrong_paths_and_refuse_overwrite(
         assert worker.execute_worker(
             request,
             output,
-            authorization=worker.WORKER_EXECUTION_AUTHORIZATION,
+            authorization=worker_authorization,
         ) == {"mock": True}
     with pytest.raises(RuntimeError, match="not authorized"):
         worker.execute_worker(
             expected_pairs[0][0],
             expected_pairs[1][1],
-            authorization=worker.WORKER_EXECUTION_AUTHORIZATION,
+            authorization=worker_authorization,
         )
     expected_pairs[0][1].write_text("{}")
     with pytest.raises(RuntimeError, match="overwrite or rerun"):
         worker.execute_worker(
             *expected_pairs[0],
-            authorization=worker.WORKER_EXECUTION_AUTHORIZATION,
+            authorization=worker_authorization,
         )
     assert worker_calls == expected_pairs
 

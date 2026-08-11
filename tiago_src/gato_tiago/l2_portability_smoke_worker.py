@@ -22,7 +22,7 @@ from gato_tiago.l2_portability_smoke import (
 )
 
 
-WORKER_EXECUTION_AUTHORIZATION = object()
+WORKER_EXECUTION_AUTHORIZATION = None
 WORKER_PROTOCOL_VERSION = PROTOCOL_VERSION + "_worker_1"
 SUPPORTED_MODULES = {row["module_name"]: dict(row) for row in FROZEN_MODULES}
 
