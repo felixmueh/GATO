@@ -1,4 +1,4 @@
-"""Transactional artifact-only V4 Tiago model-preflight-v3 runner.
+"""Transactional artifact-only V4 Tiago model-preflight-v4 runner.
 
 All execution capabilities are disabled in this static checkpoint.
 """
@@ -20,7 +20,7 @@ from typing import Callable, Mapping, Sequence
 import numpy as np
 
 from gato_tiago import multimodal_toll as toll
-from gato_tiago.multimodal_toll_v4_model_preflight_v3 import (
+from gato_tiago.multimodal_toll_v4_model_preflight_v4 import (
     AUTHORIZED_CWD,
     AUTHORIZED_ORIG_ARGV,
     AUTHORIZED_OUTPUT_PATH,
@@ -50,6 +50,8 @@ from gato_tiago.multimodal_toll_v4_model_preflight_v3 import (
     Q8_PUBLIC_GOAL_TOLERANCE_M,
     REJECTED_V1_ARTIFACT_HASHES_REPORT_ONLY,
     REJECTED_V2_ARTIFACT_HASHES_REPORT_ONLY,
+    REJECTED_V3_EXPECTED_DOWNSTREAM_CALL_COUNTS,
+    REJECTED_V3_LAUNCH_REPORT_ONLY,
     REQUIRED_SOURCE_PATHS,
     V4_ARTIFACT_PATHS_AND_HASHES,
     array_hash,
@@ -57,7 +59,7 @@ from gato_tiago.multimodal_toll_v4_model_preflight_v3 import (
     generate_broad_algebraic_rows,
     is_sha256,
 )
-from gato_tiago.multimodal_toll_v4_model_preflight_v3_worker import (
+from gato_tiago.multimodal_toll_v4_model_preflight_v4_worker import (
     EXPECTED_WORKER_ARRAY_NAMES,
     SUPPORTED_MODULES,
     WORKER_EXECUTION_AUTHORIZATION,
@@ -81,7 +83,7 @@ def repository_root(module_path=Path(__file__)) -> Path:
         root / REQUIRED_SOURCE_PATHS["preflight_worker"],
     )
     if not all(path.exists() for path in sentinels):
-        raise RuntimeError("V4 model-preflight-v3 repository root sentinel mismatch")
+        raise RuntimeError("V4 model-preflight-v4 repository root sentinel mismatch")
     return root
 
 
@@ -188,7 +190,7 @@ def _checkpoint(output, generation, stage, rows, arrays, provenance):
     )
     pointer_path = output.with_name(f"{output.stem}.partial.latest.json")
     if npz_path.exists() or json_path.exists():
-        raise RuntimeError("V4 model-preflight-v3 checkpoint generation already exists")
+        raise RuntimeError("V4 model-preflight-v4 checkpoint generation already exists")
     retained = {name: _retained_array(name, value) for name, value in arrays.items()}
     _atomic_npz(npz_path, retained)
     attempted_worker_modules = [
@@ -290,6 +292,8 @@ def _source_provenance(repo):
         "rejected_v2_artifact_hashes_report_only": dict(
             REJECTED_V2_ARTIFACT_HASHES_REPORT_ONLY
         ),
+        "rejected_v3_artifact_loads": 0,
+        "rejected_v3_launch_report_only": dict(REJECTED_V3_LAUNCH_REPORT_ONLY),
         "task_rng_calls": 0,
         "task_construction_calls": 0,
         "predecessor_artifact_loads": 0,
@@ -1112,7 +1116,7 @@ def _validate_worker_boundary(row, spec, input_hash):
         sys.executable,
         "-B",
         "-m",
-        "gato_tiago.multimodal_toll_v4_model_preflight_v3_worker",
+        "gato_tiago.multimodal_toll_v4_model_preflight_v4_worker",
         "--request",
         str(request_path),
         "--output",
@@ -1205,6 +1209,20 @@ def certify_runner_provenance(provenance):
         and provenance.get("rejected_v2_artifact_loads") == 0
         and provenance.get("rejected_v2_artifact_hashes_report_only")
         == REJECTED_V2_ARTIFACT_HASHES_REPORT_ONLY
+        and provenance.get("rejected_v3_artifact_loads") == 0
+        and provenance.get("rejected_v3_launch_report_only")
+        == REJECTED_V3_LAUNCH_REPORT_ONLY
+        and set(
+            provenance.get("rejected_v3_launch_report_only", {})
+            .get("downstream_call_counts", {})
+        )
+        == set(REJECTED_V3_EXPECTED_DOWNSTREAM_CALL_COUNTS)
+        and all(
+            type(value) is int and value == 0
+            for value in provenance.get("rejected_v3_launch_report_only", {})
+            .get("downstream_call_counts", {})
+            .values()
+        )
         and provenance.get("portability_smoke_authentication", {}).get(
             "all_portability_smoke_authentication_gates_pass"
         )
@@ -1388,6 +1406,7 @@ def _run_pipeline(
         "accepted_v4_artifact_loads": 4,
         "rejected_v1_artifact_loads": 0,
         "rejected_v2_artifact_loads": 0,
+        "rejected_v3_artifact_loads": 0,
         "worker_subprocess_calls": len(rows),
         "diagnostic_zero_iteration_solve_calls": 2 * len(rows),
         "sqp_optimization_calls": 0,
@@ -1442,7 +1461,7 @@ def _run_pipeline(
 
 def _production_pipeline(output, *, token=None):  # pragma: no cover
     if token is not _PRODUCTION_PIPELINE_TOKEN:
-        raise RuntimeError("V4 model-preflight-v3 production pipeline is private")
+        raise RuntimeError("V4 model-preflight-v4 production pipeline is private")
     repo = repository_root()
     provenance = _source_provenance(repo)
     extension_specs = [dict(row) for row in FROZEN_EXTENSIONS]
@@ -1600,7 +1619,7 @@ def _production_pipeline(output, *, token=None):  # pragma: no cover
             sys.executable,
             "-B",
             "-m",
-            "gato_tiago.multimodal_toll_v4_model_preflight_v3_worker",
+            "gato_tiago.multimodal_toll_v4_model_preflight_v4_worker",
             "--request",
             str(request_path),
             "--output",
@@ -1726,9 +1745,9 @@ def execute_model_preflight(output, *, authorization=None):
         RUNNER_EXECUTION_AUTHORIZATION is None
         or authorization is not RUNNER_EXECUTION_AUTHORIZATION
     ):
-        raise RuntimeError("V4 model-preflight-v3 runner execution is blocked")
+        raise RuntimeError("V4 model-preflight-v4 runner execution is blocked")
     if Path(output).resolve() != AUTHORIZED_OUTPUT_PATH.resolve():
-        raise RuntimeError("V4 model-preflight-v3 output is not the authorized path")
+        raise RuntimeError("V4 model-preflight-v4 output is not the authorized path")
     return _production_pipeline(output, token=_PRODUCTION_PIPELINE_TOKEN)
 
 
@@ -1746,7 +1765,7 @@ def main(argv=None):
         print(json.dumps(describe_model_preflight(), indent=2, sort_keys=True))
         return 0
     if not args.execute or RUNNER_EXECUTION_AUTHORIZATION is None:
-        raise SystemExit("V4 model-preflight-v3 execution is blocked")
+        raise SystemExit("V4 model-preflight-v4 execution is blocked")
     execute_model_preflight(
         args.output, authorization=RUNNER_EXECUTION_AUTHORIZATION
     )

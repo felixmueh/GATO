@@ -299,7 +299,7 @@ def test_wrong_authorizations_touch_no_files_or_subprocess(tmp_path, monkeypatch
     assert list(tmp_path.iterdir()) == []
 
 
-def test_only_successor_v3_runner_and_worker_tokens_are_enabled_repo_wide():
+def test_all_public_execution_tokens_are_disabled_repo_wide():
     root = Path(__file__).resolve().parents[2]
     enabled = []
     pattern = re.compile(r"^([A-Z][A-Z0-9_]*AUTHORIZATION) = object\(\)$")
@@ -307,16 +307,7 @@ def test_only_successor_v3_runner_and_worker_tokens_are_enabled_repo_wide():
         for line in path.read_text().splitlines():
             if pattern.fullmatch(line):
                 enabled.append((path.name, line))
-    assert enabled == [
-        (
-            "multimodal_toll_v4_model_preflight_v3_runner.py",
-            "RUNNER_EXECUTION_AUTHORIZATION = object()",
-        ),
-        (
-            "multimodal_toll_v4_model_preflight_v3_worker.py",
-            "WORKER_EXECUTION_AUTHORIZATION = object()",
-        ),
-    ]
+    assert enabled == []
 
 
 def test_authorized_boundaries_are_exact_one_shot_paths_without_real_execution(

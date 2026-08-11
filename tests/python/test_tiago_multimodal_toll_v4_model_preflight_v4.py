@@ -9,15 +9,18 @@ import numpy as np
 import pytest
 
 from gato_tiago import multimodal_toll as toll
-from gato_tiago import multimodal_toll_v4_model_preflight_v3 as schema
-from gato_tiago import multimodal_toll_v4_model_preflight_v3_runner as runner
-from gato_tiago import multimodal_toll_v4_model_preflight_v3_worker as worker
+from gato_tiago import multimodal_toll_v4_model_preflight_v4 as schema
+from gato_tiago import multimodal_toll_v4_model_preflight_v4_runner as runner
+from gato_tiago import multimodal_toll_v4_model_preflight_v4_worker as worker
 from gato_tiago import multimodal_toll_v4_model_preflight as v1_schema
 from gato_tiago import multimodal_toll_v4_model_preflight_runner as v1_runner
 from gato_tiago import multimodal_toll_v4_model_preflight_worker as v1_worker
 from gato_tiago import multimodal_toll_v4_model_preflight_v2 as v2_schema
 from gato_tiago import multimodal_toll_v4_model_preflight_v2_runner as v2_runner
 from gato_tiago import multimodal_toll_v4_model_preflight_v2_worker as v2_worker
+from gato_tiago import multimodal_toll_v4_model_preflight_v3 as v3_schema
+from gato_tiago import multimodal_toll_v4_model_preflight_v3_runner as v3_runner
+from gato_tiago import multimodal_toll_v4_model_preflight_v3_worker as v3_worker
 from gato_tiago import multimodal_toll_v4_oracle_schema as v4_oracle
 from gato_tiago import multimodal_toll_v4_runner as v4_runner
 
@@ -131,6 +134,10 @@ def _valid_runner_provenance():
         "rejected_v2_artifact_hashes_report_only": dict(
             schema.REJECTED_V2_ARTIFACT_HASHES_REPORT_ONLY
         ),
+        "rejected_v3_artifact_loads": 0,
+        "rejected_v3_launch_report_only": copy.deepcopy(
+            schema.REJECTED_V3_LAUNCH_REPORT_ONLY
+        ),
         "portability_smoke_authentication": {
             "all_portability_smoke_authentication_gates_pass": True
         },
@@ -234,6 +241,9 @@ def test_rejected_model_preflight_tokens_are_disabled_and_artifact_is_hard_pinne
     assert schema.MODEL_PREFLIGHT_EXECUTION_AUTHORIZATION is None
     assert runner.RUNNER_EXECUTION_AUTHORIZATION is None
     assert worker.WORKER_EXECUTION_AUTHORIZATION is None
+    assert v3_schema.MODEL_PREFLIGHT_EXECUTION_AUTHORIZATION is None
+    assert v3_runner.RUNNER_EXECUTION_AUTHORIZATION is None
+    assert v3_worker.WORKER_EXECUTION_AUTHORIZATION is None
     assert v2_schema.MODEL_PREFLIGHT_EXECUTION_AUTHORIZATION is None
     assert v2_runner.RUNNER_EXECUTION_AUTHORIZATION is None
     assert v2_worker.WORKER_EXECUTION_AUTHORIZATION is None
@@ -263,16 +273,46 @@ def test_rejected_model_preflight_tokens_are_disabled_and_artifact_is_hard_pinne
         "final_manifest": "190391b0ce331dbf8317f0d8cb68f558aab6b52dc63e439b1684e2bcdafe76e0",
         "generation7_pointer": "93fa6ecc442c71e0c9c34d61bade615252c1d7caf8a7d8889745cc0c13b42c52",
     }
+    assert schema.REJECTED_V3_LAUNCH_REPORT_ONLY == {
+        "classification": "launch_invalid_before_generation0",
+        "commit": "c2129c5eef21658b0e4fc225ecf69e28ae31c176",
+        "exact_command": (
+            "PYTHONPATH=tiago_src:python python -B -m "
+            "gato_tiago.multimodal_toll_v4_model_preflight_v3_runner --execute "
+            "--output /tmp/tiago-tool-center-toll-v4-model-preflight-v3-authorized-once/model.json"
+        ),
+        "exit_code": 1,
+        "wall_time_seconds": 0.561821705,
+        "output_root_absent": True,
+        "generation0_published": False,
+        "downstream_call_counts": {
+            "portability_smoke_artifact_loads": 0,
+            "v4_task_artifact_loads": 0,
+            "pinocchio_model_calls": 0,
+            "worker_subprocess_calls": 0,
+            "cuda_calls": 0,
+            "task_rng_calls": 0,
+            "task_construction_calls": 0,
+            "initializer_calls": 0,
+            "diagnostic_zero_iteration_solve_calls": 0,
+            "sqp_optimization_calls": 0,
+        },
+    }
+    metadata = schema.frozen_model_preflight_metadata()
+    assert metadata["rejected_v3_artifact_loads"] == 0
+    assert metadata["rejected_v3_launch_report_only"] == (
+        schema.REJECTED_V3_LAUNCH_REPORT_ONLY
+    )
     assert schema.frozen_model_preflight_metadata()["rejected_v2_artifact_loads"] == 0
     assert schema.AUTHORIZED_OUTPUT_PATH == Path(
-        "/tmp/tiago-tool-center-toll-v4-model-preflight-v3-authorized-once/model.json"
+        "/tmp/tiago-tool-center-toll-v4-model-preflight-v4-authorized-once/model.json"
     )
     assert schema.AUTHORIZED_CWD == Path("/workspace/GATO")
     assert list(schema.AUTHORIZED_ORIG_ARGV) == [
         "python",
         "-B",
         "-m",
-        "gato_tiago.multimodal_toll_v4_model_preflight_v3_runner",
+        "gato_tiago.multimodal_toll_v4_model_preflight_v4_runner",
         "--execute",
         "--output",
         str(schema.AUTHORIZED_OUTPUT_PATH),
@@ -1135,11 +1175,37 @@ def test_runner_provenance_rejects_head_command_cwd_clean_and_source_mutations()
     mutated["source_hashes_at_start"] = copy.deepcopy(mutated["source_hashes"])
     mutated["source_hashes_at_end"] = copy.deepcopy(mutated["source_hashes"])
     mutations.append(mutated)
+    mutated = copy.deepcopy(provenance)
+    mutated["rejected_v3_artifact_loads"] = 1
+    mutations.append(mutated)
+    mutated = copy.deepcopy(provenance)
+    mutated["rejected_v3_launch_report_only"]["exit_code"] = 0
+    mutations.append(mutated)
+    mutated = copy.deepcopy(provenance)
+    mutated["rejected_v3_launch_report_only"]["downstream_call_counts"][
+        "cuda_calls"
+    ] = 1
+    mutations.append(mutated)
+    mutated = copy.deepcopy(provenance)
+    del mutated["rejected_v3_launch_report_only"]["downstream_call_counts"][
+        "cuda_calls"
+    ]
+    mutations.append(mutated)
+    mutated = copy.deepcopy(provenance)
+    mutated["rejected_v3_launch_report_only"]["downstream_call_counts"][
+        "unexpected_alias"
+    ] = 0
+    mutations.append(mutated)
+    mutated = copy.deepcopy(provenance)
+    mutated["rejected_v3_launch_report_only"]["downstream_call_counts"][
+        "cuda_calls"
+    ] = False
+    mutations.append(mutated)
     for mutated in mutations:
         assert not runner.certify_runner_provenance(mutated)
 
 
-def test_v3_sources_never_import_or_load_rejected_predecessor_namespaces():
+def test_v4_sources_never_import_or_load_rejected_predecessor_namespaces():
     sources = "\n".join(
         Path(module.__file__).read_text() for module in (schema, runner, worker)
     )
@@ -1151,9 +1217,13 @@ def test_v3_sources_never_import_or_load_rejected_predecessor_namespaces():
     assert "rejected_v1_artifact_loads" in sources
     assert "REJECTED_V2_ARTIFACT_HASHES_REPORT_ONLY" in sources
     assert "rejected_v2_artifact_loads" in sources
+    assert "multimodal_toll_v4_model_preflight_v3 import" not in sources
+    assert "REJECTED_V3_LAUNCH_REPORT_ONLY" in sources
+    assert "rejected_v3_artifact_loads" in sources
+    assert "V3_ARTIFACT_ROOT" not in sources
 
 
-def test_v3_preserves_every_v2_scientific_constant_and_pure_certificate():
+def test_v4_preserves_every_v3_scientific_constant_and_pure_certificate():
     constant_names = (
         "EXPECTED_NONWORKER_ARRAY_NAMES",
         "ONE_STEP_DT",
@@ -1177,27 +1247,24 @@ def test_v3_preserves_every_v2_scientific_constant_and_pure_certificate():
         "BROAD_CODE_HALF_RANGE",
     )
     for name in constant_names:
-        assert getattr(schema, name) == getattr(v2_schema, name)
-    assert worker.EXPECTED_WORKER_ARRAY_NAMES == v2_worker.EXPECTED_WORKER_ARRAY_NAMES
+        assert getattr(schema, name) == getattr(v3_schema, name)
+    assert worker.EXPECTED_WORKER_ARRAY_NAMES == v3_worker.EXPECTED_WORKER_ARRAY_NAMES
     base = _base()
     rows, worker_arrays = _rows_and_arrays(base)
     assert runner.certify_model_preflight(base, rows, worker_arrays) == (
-        v2_runner.certify_model_preflight(base, rows, worker_arrays)
+        v3_runner.certify_model_preflight(base, rows, worker_arrays)
     )
     assert worker.certify_reference_smoke(
         _smoke_raw(), variant="toll", reference_size=10
-    ) == v2_worker.certify_reference_smoke(
+    ) == v3_worker.certify_reference_smoke(
         _smoke_raw(), variant="toll", reference_size=10
     )
 
 
-def test_v3_worker_is_a_namespace_only_port_of_closed_v2_worker():
-    v2_source = Path(v2_worker.__file__).read_text()
-    v3_source = Path(worker.__file__).read_text()
-    normalized = v3_source.replace(
-        "multimodal_toll_v4_model_preflight_v3", "multimodal_toll_v4_model_preflight_v2"
-    ).replace("model-preflight-v3", "model-preflight-v2").replace(
-        "WORKER_EXECUTION_AUTHORIZATION = object()",
-        "WORKER_EXECUTION_AUTHORIZATION = None",
-    )
-    assert normalized == v2_source
+def test_v4_worker_is_a_namespace_only_port_of_closed_v3_worker():
+    v3_source = Path(v3_worker.__file__).read_text()
+    v4_source = Path(worker.__file__).read_text()
+    normalized = v4_source.replace(
+        "multimodal_toll_v4_model_preflight_v4", "multimodal_toll_v4_model_preflight_v3"
+    ).replace("model-preflight-v4", "model-preflight-v3")
+    assert normalized == v3_source

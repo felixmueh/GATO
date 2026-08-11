@@ -19,7 +19,7 @@ from typing import Mapping
 import numpy as np
 
 from gato_tiago import multimodal_toll as toll
-from gato_tiago.multimodal_toll_v4_model_preflight_v3 import (
+from gato_tiago.multimodal_toll_v4_model_preflight_v4 import (
     AUTHORIZED_OUTPUT_PATH,
     BROAD_ROW_COUNT,
     DENSE_SUBSTEPS,
@@ -461,7 +461,7 @@ def _run_authorized_worker(request_path, output_path):
         )
     )
     if not exact_inputs:
-        raise ValueError("worker model-preflight-v3 inputs have invalid shape/dtype/domain")
+        raise ValueError("worker model-preflight-v4 inputs have invalid shape/dtype/domain")
 
     module = importlib.import_module(validated["module_name"])
     if (
