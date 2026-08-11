@@ -34,7 +34,7 @@ from gato_tiago.multimodal_toll_v2 import (
 )
 
 
-RUNNER_EXECUTION_AUTHORIZATION = None
+RUNNER_EXECUTION_AUTHORIZATION = object()
 AUTHORIZED_OUTPUT_PATH = Path(V2_OUTPUT_PATH)
 RUNNER_PROTOCOL_VERSION = "tiago_tool_center_toll_v2_construction_runner_1"
 EXPECTED_TASK_COUNT = 12
@@ -900,7 +900,7 @@ def _production_pipeline(output: Path, *, token=None):
 def describe_v2_runner() -> dict:
     return {
         "protocol_version": RUNNER_PROTOCOL_VERSION,
-        "authorization": RUNNER_EXECUTION_AUTHORIZATION,
+        "authorization_enabled": RUNNER_EXECUTION_AUTHORIZATION is not None,
         "authorized_output_path": str(AUTHORIZED_OUTPUT_PATH),
         "expected_identities": [list(row) for row in EXPECTED_TASK_IDENTITIES],
         "schema": frozen_v2_metadata(),

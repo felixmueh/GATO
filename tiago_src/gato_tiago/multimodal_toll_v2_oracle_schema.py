@@ -41,7 +41,9 @@ from gato_tiago.multimodal_toll_v2 import (
 )
 
 
-TASK_CONSTRUCTION_AUTHORIZATION = None
+# Narrow V2 construction-only capability. It authorizes neither route
+# optimization nor benchmark initialization, CUDA, SQP, or timing.
+TASK_CONSTRUCTION_AUTHORIZATION = object()
 
 
 def _history_hash(array: np.ndarray) -> str:

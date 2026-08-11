@@ -23,7 +23,7 @@ EXPECTED_TASK_IDENTITIES = tuple(
     + [("heldout", seed) for seed in HELDOUT_TASK_SEEDS]
 )
 V2_OUTPUT_PATH = Path(
-    "/tmp/tiago-tool-center-toll-v2-authorized-once/v2.json"
+    "/tmp/tiago-tool-center-toll-v2-task-construction-authorized-once/v2.json"
 )
 
 DLS_ITERATIONS = 8
