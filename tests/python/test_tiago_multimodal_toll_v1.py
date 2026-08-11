@@ -109,13 +109,13 @@ def test_v1_metadata_records_exact_diff_and_excludes_rejected_v0_artifacts():
     assert runner_metadata["fresh_artifact_namespace"] == v1.V1_OUTPUT_PATH
 
 
-def test_exactly_three_v1_capabilities_enabled_and_all_other_paths_blocked():
+def test_rejected_v0_v1_and_shared_capabilities_are_closed():
     assert v0_runner.RUNNER_EXECUTION_AUTHORIZATION is None
     assert v0_worker.WORKER_EXECUTION_AUTHORIZATION is None
     assert v1.V1_EXECUTION_AUTHORIZATION is None
-    assert v1_runner.RUNNER_EXECUTION_AUTHORIZATION is not None
-    assert v1_worker.WORKER_EXECUTION_AUTHORIZATION is not None
-    assert oracle.TASK_CONSTRUCTION_AUTHORIZATION is not None
+    assert v1_runner.RUNNER_EXECUTION_AUTHORIZATION is None
+    assert v1_worker.WORKER_EXECUTION_AUTHORIZATION is None
+    assert oracle.TASK_CONSTRUCTION_AUTHORIZATION is None
     assert toll.OPTIMIZER_EXECUTION_AUTHORIZATION is None
     stage0_source = (
         Path(__file__).resolve().parents[2]
@@ -147,8 +147,8 @@ def test_v1_static_sources_keep_runtime_behind_blocked_boundaries_and_exclude_v0
     worker = (root / "tiago_src/gato_tiago/multimodal_toll_v1_worker.py").read_text()
 
     # The schema stays pure.  The full runner/worker intentionally contain the
-    # future call-boundary implementation. Only their exact-path one-shot
-    # capabilities are enabled in this authorization checkpoint.
+    # future call-boundary implementation, but both rejected runtime
+    # capabilities are closed.
     for forbidden in (
         "generate_task(",
         "load_model(",
@@ -160,8 +160,8 @@ def test_v1_static_sources_keep_runtime_behind_blocked_boundaries_and_exclude_v0
         "np.load(",
     ):
         assert forbidden not in schema
-    assert v1_runner.RUNNER_EXECUTION_AUTHORIZATION is not None
-    assert v1_worker.WORKER_EXECUTION_AUTHORIZATION is not None
+    assert v1_runner.RUNNER_EXECUTION_AUTHORIZATION is None
+    assert v1_worker.WORKER_EXECUTION_AUTHORIZATION is None
     assert "/tmp/tiago-tool-center-toll-v0-authorized-once" not in runner
     assert "/tmp/tiago-tool-center-toll-v0-authorized-once" not in worker
 
@@ -170,8 +170,8 @@ def test_v1_full_port_preserves_extension_and_task_ledgers_without_opening_rng(m
     assert v1_runner.FROZEN_EXTENSIONS == v0_runner.FROZEN_EXTENSIONS
     assert v1_runner.EXPECTED_TASK_IDENTITIES == v0_runner.EXPECTED_TASK_IDENTITIES
     assert v1_runner.AUTHORIZED_OUTPUT_PATH == Path(v1.V1_OUTPUT_PATH)
-    assert v1_runner.RUNNER_EXECUTION_AUTHORIZATION is not None
-    assert v1_worker.WORKER_EXECUTION_AUTHORIZATION is not None
+    assert v1_runner.RUNNER_EXECUTION_AUTHORIZATION is None
+    assert v1_worker.WORKER_EXECUTION_AUTHORIZATION is None
     frozen = {seed for _, seed in v1_runner.EXPECTED_TASK_IDENTITIES}
     original = np.random.default_rng
 
@@ -182,82 +182,6 @@ def test_v1_full_port_preserves_extension_and_task_ledgers_without_opening_rng(m
     monkeypatch.setattr(np.random, "default_rng", guarded)
     with pytest.raises(RuntimeError, match="blocked"):
         v1_runner.execute_v1_runner(v1.V1_OUTPUT_PATH, authorization=object())
-
-
-def test_v1_runner_allows_only_exact_fresh_output_without_crossing_runtime(tmp_path, monkeypatch):
-    authorized = (tmp_path / "authorized" / "v1.json").resolve()
-    calls = []
-    monkeypatch.setattr(v1_runner, "AUTHORIZED_OUTPUT_PATH", authorized)
-
-    def fake_pipeline(output):
-        output = Path(output)
-        v1_runner._no_existing_artifacts(output)
-        calls.append(output)
-        v1_runner._publish_pre_model_checkpoint(
-            output, {"static_test": True}, v1_runner.FROZEN_EXTENSIONS
-        )
-        return {"ok": True}
-
-    monkeypatch.setattr(v1_runner, "_production_pipeline", fake_pipeline)
-    with pytest.raises(RuntimeError, match="single authorized path"):
-        v1_runner.execute_v1_runner(
-            tmp_path / "replacement.json",
-            authorization=v1_runner.RUNNER_EXECUTION_AUTHORIZATION,
-        )
-    assert calls == []
-    assert v1_runner.execute_v1_runner(
-        authorized, authorization=v1_runner.RUNNER_EXECUTION_AUTHORIZATION
-    ) == {"ok": True}
-    assert calls == [authorized]
-    with pytest.raises(RuntimeError, match="resume, overwrite, or rerun"):
-        v1_runner.execute_v1_runner(
-            authorized, authorization=v1_runner.RUNNER_EXECUTION_AUTHORIZATION
-        )
-    assert calls == [authorized]
-
-
-def test_v1_worker_allows_only_three_exact_pairs_and_refuses_overwrite(tmp_path, monkeypatch):
-    root = (tmp_path / "authorized").resolve()
-    monkeypatch.setattr(v1_worker, "AUTHORIZED_RUN_ROOT", root)
-    calls = []
-
-    def fake_run(request_path, output_path):
-        request_path = Path(request_path)
-        output_path = Path(output_path)
-        calls.append((request_path, output_path))
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-        output_path.write_text("{}")
-        return {"ok": True}
-
-    monkeypatch.setattr(v1_worker, "_run_authorized_worker", fake_run)
-    for module in v1_worker.SUPPORTED_MODULES:
-        leaf = module.split(".")[-1]
-        request = root / f"v1.{leaf}.request.json"
-        output = root / f"v1.{leaf}.json"
-        assert v1_worker.execute_worker(
-            request,
-            output,
-            authorization=v1_worker.WORKER_EXECUTION_AUTHORIZATION,
-        ) == {"ok": True}
-    assert len(calls) == 3
-
-    module = next(iter(v1_worker.SUPPORTED_MODULES))
-    leaf = module.split(".")[-1]
-    request = root / f"v1.{leaf}.request.json"
-    output = root / f"v1.{leaf}.json"
-    with pytest.raises(RuntimeError, match="overwrite or rerun"):
-        v1_worker.execute_worker(
-            request,
-            output,
-            authorization=v1_worker.WORKER_EXECUTION_AUTHORIZATION,
-        )
-    with pytest.raises(RuntimeError, match="outside the single authorized run"):
-        v1_worker.execute_worker(
-            request,
-            root / "v1.wrong.json",
-            authorization=v1_worker.WORKER_EXECUTION_AUTHORIZATION,
-        )
-    assert len(calls) == 3
 
 
 def test_v1_independent_authenticity_rejects_any_draw_mutation():
