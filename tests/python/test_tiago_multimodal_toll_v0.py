@@ -366,6 +366,12 @@ def test_independent_pin_one_step_uses_one_aba_and_frozen_constant_acceleration_
     assert "pinocchio.aba" in metadata["acceleration"]
 
 
+def test_task_joint_margin_uses_retained_float64_goal_not_promoted_solver_bytes():
+    source = Path(v0.__file__).read_text()
+    assert "q_goal64 = q_goal64_retained" in source
+    assert "q_goal64 = q_goal.astype(np.float64)" not in source
+
+
 def _dense_certificate(**overrides):
     sample_count = v0.DENSE_SAMPLE_COUNT
     goal = np.asarray([0.10, 0.0, 1.0])

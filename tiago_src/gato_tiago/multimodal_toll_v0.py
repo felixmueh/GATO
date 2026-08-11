@@ -78,7 +78,10 @@ REQUIRED_SOURCE_PATHS = {
     "toll_tests": "tests/python/test_tiago_multimodal_toll.py",
     "tool_position_kernel": "gato/bsqp/kernels/tool_position.cuh",
     "v0_schema": "tiago_src/gato_tiago/multimodal_toll_v0.py",
+    "v0_runner": "tiago_src/gato_tiago/multimodal_toll_v0_runner.py",
+    "v0_worker": "tiago_src/gato_tiago/multimodal_toll_v0_worker.py",
     "v0_tests": "tests/python/test_tiago_multimodal_toll_v0.py",
+    "v0_runner_tests": "tests/python/test_tiago_multimodal_toll_v0_runner.py",
 }
 REQUIRED_SOURCE_HASH_LABELS = frozenset(REQUIRED_SOURCE_PATHS)
 
@@ -91,6 +94,16 @@ def _array_hash(value: np.ndarray) -> str:
 
 def _is_sha256(value) -> bool:
     if not isinstance(value, str) or len(value) != 64:
+        return False
+    try:
+        int(value, 16)
+    except ValueError:
+        return False
+    return True
+
+
+def _is_git_commit(value) -> bool:
+    if not isinstance(value, str) or len(value) not in (40, 64):
         return False
     try:
         int(value, 16)
@@ -349,7 +362,7 @@ def _task_gate(row, lower, upper, comfortable_q):
     ref = toll.TollReference.from_solver_bytes(reference)
     goal = np.asarray(ref.goal_xyz, dtype=np.float64)
     q0 = x0[:7].astype(np.float64)
-    q_goal64 = q_goal.astype(np.float64)
+    q_goal64 = q_goal64_retained
     start_frame_error = float(np.linalg.norm(pin_start - cuda_start.astype(np.float64)))
     goal_frame_error = float(np.linalg.norm(pin_goal - cuda_goal.astype(np.float64)))
     pin_target_error = float(np.linalg.norm(pin_goal - goal))
@@ -492,6 +505,11 @@ def _extension_manifest_gate(extension_manifest, toll_extension_sha256, source_c
             pin_fk_max_error = float(row.get("pin_fk_max_error_m", np.inf))
         except (TypeError, ValueError):
             return False
+        expected_source_commit = (
+            source_commit.get(module_name)
+            if isinstance(source_commit, Mapping)
+            else source_commit
+        )
         if (
             row.get("native_reference_shape_accepted") is not True
             or row.get("wrong_reference_shape_rejected") is not True
@@ -513,7 +531,7 @@ def _extension_manifest_gate(extension_manifest, toll_extension_sha256, source_c
             or not row.get("test_command")
             or not isinstance(row.get("extension_path"), str)
             or not row.get("extension_path")
-            or row.get("source_commit") != source_commit
+            or row.get("source_commit") != expected_source_commit
         ):
             return False
     return (
@@ -616,7 +634,7 @@ def certify_v0(
     provenance_pass = (
         provenance.get("tracked_tree_clean_at_start") is True
         and provenance.get("tracked_tree_clean_at_end") is True
-        and _is_sha256(provenance.get("git_head_at_start"))
+        and _is_git_commit(provenance.get("git_head_at_start"))
         and provenance.get("git_head_at_end") == provenance.get("git_head_at_start")
         and _is_sha256(provenance.get("model_sha256"))
         and provenance.get("model_path") == str(toll.MODEL_PATH)
@@ -639,7 +657,9 @@ def certify_v0(
     manifest_pass = _extension_manifest_gate(
         extension_manifest,
         provenance.get("extension_sha256"),
-        provenance.get("git_head_at_start"),
+        provenance.get(
+            "extension_source_commits", provenance.get("git_head_at_start")
+        ),
     )
     retained_array_hashes = {
         "captured_fk_q_float32": _array_hash(captured_fk),
