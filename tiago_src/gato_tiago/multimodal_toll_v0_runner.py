@@ -39,7 +39,7 @@ from gato_tiago.multimodal_toll_v0_worker import (
 )
 
 
-RUNNER_EXECUTION_AUTHORIZATION = object()
+RUNNER_EXECUTION_AUTHORIZATION = None
 RUNNER_PROTOCOL_VERSION = "tiago_tool_center_toll_v0_runner_1"
 AUTHORIZED_OUTPUT_PATH = Path(
     "/tmp/tiago-tool-center-toll-v0-authorized-once/v0.json"

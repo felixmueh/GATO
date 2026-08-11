@@ -108,10 +108,10 @@ def test_worker_and_runner_block_before_read_import_or_filesystem(tmp_path, monk
     ]
 
 
-def test_exactly_three_v0_capabilities_enabled_and_legacy_tokens_stay_blocked():
-    assert runner.RUNNER_EXECUTION_AUTHORIZATION is not None
-    assert worker.WORKER_EXECUTION_AUTHORIZATION is not None
-    assert oracle_schema.TASK_CONSTRUCTION_AUTHORIZATION is not None
+def test_rejected_v0_capabilities_and_legacy_tokens_are_blocked():
+    assert runner.RUNNER_EXECUTION_AUTHORIZATION is None
+    assert worker.WORKER_EXECUTION_AUTHORIZATION is None
+    assert oracle_schema.TASK_CONSTRUCTION_AUTHORIZATION is None
     assert runner.AUTHORIZED_OUTPUT_PATH.parent == worker.AUTHORIZED_RUN_ROOT
     assert v0_schema.V0_EXECUTION_AUTHORIZATION is None
     stage0_source = (
@@ -122,7 +122,7 @@ def test_exactly_three_v0_capabilities_enabled_and_legacy_tokens_stay_blocked():
     assert "MAX_SQP_ITERS = 60" in (Path(runner.toll.__file__).read_text())
 
 
-def test_runner_allows_only_one_exact_output_path_without_crossing_runtime(tmp_path, monkeypatch):
+def test_rejected_v0_runner_cannot_cross_runtime_boundary(tmp_path, monkeypatch):
     authorized = (tmp_path / "authorized" / "v0.json").resolve()
     calls = []
     monkeypatch.setattr(runner, "AUTHORIZED_OUTPUT_PATH", authorized)
@@ -136,24 +136,20 @@ def test_runner_allows_only_one_exact_output_path_without_crossing_runtime(tmp_p
         return {"ok": True}
 
     monkeypatch.setattr(runner, "_production_pipeline", fake_pipeline)
-    with pytest.raises(RuntimeError, match="single authorized path"):
+    with pytest.raises(RuntimeError, match="blocked"):
         runner.execute_v0_runner(
             tmp_path / "replacement.json",
             authorization=runner.RUNNER_EXECUTION_AUTHORIZATION,
         )
     assert calls == []
-    assert runner.execute_v0_runner(
-        authorized, authorization=runner.RUNNER_EXECUTION_AUTHORIZATION
-    ) == {"ok": True}
-    assert calls == [authorized]
-    with pytest.raises(RuntimeError, match="resume, overwrite, or rerun"):
+    with pytest.raises(RuntimeError, match="blocked"):
         runner.execute_v0_runner(
             authorized, authorization=runner.RUNNER_EXECUTION_AUTHORIZATION
         )
-    assert calls == [authorized]
+    assert calls == []
 
 
-def test_worker_exact_pair_and_no_overwrite_boundary(tmp_path, monkeypatch):
+def test_rejected_v0_worker_cannot_cross_runtime_boundary(tmp_path, monkeypatch):
     root = (tmp_path / "authorized").resolve()
     monkeypatch.setattr(worker, "AUTHORIZED_RUN_ROOT", root)
     module = next(iter(worker.SUPPORTED_MODULES))
@@ -169,21 +165,18 @@ def test_worker_exact_pair_and_no_overwrite_boundary(tmp_path, monkeypatch):
         return {"ok": True}
 
     monkeypatch.setattr(worker, "_run_authorized_worker", fake_run)
-    with pytest.raises(RuntimeError, match="outside the single authorized run"):
+    with pytest.raises(RuntimeError, match="blocked"):
         worker.execute_worker(
             request,
             root / "v0.wrong.json",
             authorization=worker.WORKER_EXECUTION_AUTHORIZATION,
         )
     assert calls == []
-    assert worker.execute_worker(
-        request, output, authorization=worker.WORKER_EXECUTION_AUTHORIZATION
-    ) == {"ok": True}
-    with pytest.raises(RuntimeError, match="overwrite or rerun"):
+    with pytest.raises(RuntimeError, match="blocked"):
         worker.execute_worker(
             request, output, authorization=worker.WORKER_EXECUTION_AUTHORIZATION
         )
-    assert len(calls) == 1
+    assert calls == []
 
 
 def test_frozen_worker_specs_are_exact_and_one_module_each():
