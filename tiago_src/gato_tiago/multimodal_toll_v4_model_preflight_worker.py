@@ -31,7 +31,7 @@ from gato_tiago.multimodal_toll_v4_model_preflight import (
 )
 
 
-WORKER_EXECUTION_AUTHORIZATION = None
+WORKER_EXECUTION_AUTHORIZATION = object()
 WORKER_PROTOCOL_VERSION = MODEL_PREFLIGHT_PROTOCOL_VERSION + "_worker_1"
 AUTHORIZED_RUN_ROOT = AUTHORIZED_OUTPUT_PATH.parent
 SUPPORTED_MODULES = {
@@ -690,8 +690,8 @@ def execute_worker(request_path, output_path, *, authorization=None):
     output_path = Path(output_path).resolve()
     allowed_pairs = {
         (
-            AUTHORIZED_RUN_ROOT / f"preflight.{name.split('.')[-1]}.request.json",
-            AUTHORIZED_RUN_ROOT / f"preflight.{name.split('.')[-1]}.json",
+            AUTHORIZED_RUN_ROOT / f"model.{name.split('.')[-1]}.request.json",
+            AUTHORIZED_RUN_ROOT / f"model.{name.split('.')[-1]}.json",
         )
         for name in SUPPORTED_MODULES
     }

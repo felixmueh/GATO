@@ -10,7 +10,7 @@ import numpy as np
 MODEL_PREFLIGHT_PROTOCOL_VERSION = "tiago_tool_center_toll_v4_model_preflight_1"
 MODEL_PREFLIGHT_EXECUTION_AUTHORIZATION = None
 AUTHORIZED_OUTPUT_PATH = Path(
-    "/tmp/tiago-tool-center-toll-v4-model-preflight-authorized-once/preflight.json"
+    "/tmp/tiago-tool-center-toll-v4-model-preflight-authorized-once/model.json"
 )
 V4_ARTIFACT_ROOT = Path(
     "/tmp/tiago-tool-center-toll-v4-task-construction-authorized-once"

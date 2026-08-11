@@ -54,12 +54,13 @@ from gato_tiago.multimodal_toll_v4_model_preflight import (
 from gato_tiago.multimodal_toll_v4_model_preflight_worker import (
     EXPECTED_WORKER_ARRAY_NAMES,
     SUPPORTED_MODULES,
+    WORKER_EXECUTION_AUTHORIZATION,
     WORKER_PROTOCOL_VERSION,
     certify_reference_smoke,
 )
 
 
-RUNNER_EXECUTION_AUTHORIZATION = None
+RUNNER_EXECUTION_AUTHORIZATION = object()
 RUNNER_PROTOCOL_VERSION = MODEL_PREFLIGHT_PROTOCOL_VERSION + "_runner_1"
 _PRODUCTION_PIPELINE_TOKEN = object()
 
@@ -114,6 +115,7 @@ def _atomic_json(path, value):
 
 def _atomic_npz(path, arrays):
     path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
     descriptor, temporary = tempfile.mkstemp(
         dir=path.parent, prefix=f".{path.name}.", suffix=".tmp"
     )
@@ -1411,7 +1413,7 @@ def describe_model_preflight():
         **frozen_model_preflight_metadata(),
         "runner_protocol_version": RUNNER_PROTOCOL_VERSION,
         "runner_execution_authorized": RUNNER_EXECUTION_AUTHORIZATION is not None,
-        "worker_execution_authorized": False,
+        "worker_execution_authorized": WORKER_EXECUTION_AUTHORIZATION is not None,
         "expected_worker_modules": [row["module_name"] for row in FROZEN_EXTENSIONS],
         "transaction_generations": [
             "gen0_before_artifact_or_model",

@@ -173,10 +173,10 @@ def _rows_and_arrays(base):
     return rows, arrays
 
 
-def test_static_tokens_are_closed_and_v4_artifact_is_hard_pinned():
+def test_exactly_runner_and_worker_tokens_are_enabled_and_v4_artifact_is_hard_pinned():
     assert schema.MODEL_PREFLIGHT_EXECUTION_AUTHORIZATION is None
-    assert runner.RUNNER_EXECUTION_AUTHORIZATION is None
-    assert worker.WORKER_EXECUTION_AUTHORIZATION is None
+    assert runner.RUNNER_EXECUTION_AUTHORIZATION is not None
+    assert worker.WORKER_EXECUTION_AUTHORIZATION is not None
     assert v4_runner.RUNNER_EXECUTION_AUTHORIZATION is None
     assert v4_oracle.TASK_CONSTRUCTION_AUTHORIZATION is None
     assert schema.EXPECTED_V4_ARRAY_COUNT == 603
@@ -184,6 +184,9 @@ def test_static_tokens_are_closed_and_v4_artifact_is_hard_pinned():
     assert all(
         schema.is_sha256(digest)
         for _, digest in schema.V4_ARTIFACT_PATHS_AND_HASHES.values()
+    )
+    assert schema.AUTHORIZED_OUTPUT_PATH == Path(
+        "/tmp/tiago-tool-center-toll-v4-model-preflight-authorized-once/model.json"
     )
 
 
@@ -197,6 +200,71 @@ def test_blocked_entrypoints_touch_no_files_or_subprocess(tmp_path, monkeypatch)
         runner.execute_model_preflight(tmp_path / "preflight.json")
     assert calls == []
     assert list(tmp_path.iterdir()) == []
+
+
+def test_authorized_boundaries_are_exact_one_shot_paths_without_real_execution(
+    tmp_path, monkeypatch
+):
+    root = (tmp_path / "authorized").resolve()
+    authorized = root / "model.json"
+    runner_calls = []
+
+    def fake_pipeline(output, *, token=None):
+        assert token is runner._PRODUCTION_PIPELINE_TOKEN
+        runner._no_existing_artifacts(output)
+        runner_calls.append(Path(output))
+        runner._checkpoint(output, 0, "mock", [], {}, {"test_override": True})
+        return {"mock": True}
+
+    monkeypatch.setattr(runner, "AUTHORIZED_OUTPUT_PATH", authorized)
+    monkeypatch.setattr(runner, "_production_pipeline", fake_pipeline)
+    with pytest.raises(RuntimeError, match="authorized path"):
+        runner.execute_model_preflight(
+            root / "replacement.json",
+            authorization=runner.RUNNER_EXECUTION_AUTHORIZATION,
+        )
+    assert runner_calls == []
+    assert runner.execute_model_preflight(
+        authorized, authorization=runner.RUNNER_EXECUTION_AUTHORIZATION
+    ) == {"mock": True}
+    assert runner_calls == [authorized]
+    with pytest.raises(RuntimeError, match="resume, overwrite, or rerun"):
+        runner.execute_model_preflight(
+            authorized, authorization=runner.RUNNER_EXECUTION_AUTHORIZATION
+        )
+
+    monkeypatch.setattr(worker, "AUTHORIZED_RUN_ROOT", root)
+    worker_calls = []
+
+    def fake_worker(request, output):
+        worker_calls.append((Path(request), Path(output)))
+        return {"mock": True}
+
+    monkeypatch.setattr(worker, "_run_authorized_worker", fake_worker)
+    module = next(iter(worker.SUPPORTED_MODULES))
+    leaf = module.split(".")[-1]
+    request = root / f"model.{leaf}.request.json"
+    output = root / f"model.{leaf}.json"
+    with pytest.raises(RuntimeError, match="single authorized run"):
+        worker.execute_worker(
+            root / "wrong.request.json",
+            output,
+            authorization=worker.WORKER_EXECUTION_AUTHORIZATION,
+        )
+    assert worker.execute_worker(
+        request,
+        output,
+        authorization=worker.WORKER_EXECUTION_AUTHORIZATION,
+    ) == {"mock": True}
+    assert worker_calls == [(request, output)]
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text("{}")
+    with pytest.raises(RuntimeError, match="overwrite or rerun"):
+        worker.execute_worker(
+            request,
+            output,
+            authorization=worker.WORKER_EXECUTION_AUTHORIZATION,
+        )
 
 
 def test_reference_smoke_retains_zero_iteration_native_width_behavior():
