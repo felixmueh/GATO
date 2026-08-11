@@ -276,7 +276,7 @@ def test_q_history_gate_requires_exact_recurrence_and_all_nine_reserve():
     ]
 
 
-def test_all_v4_and_predecessor_capabilities_are_closed_without_opening_rng(monkeypatch):
+def test_exactly_two_v4_capabilities_are_enabled_without_opening_rng(monkeypatch):
     assert v0_runner.RUNNER_EXECUTION_AUTHORIZATION is None
     assert v0_worker.WORKER_EXECUTION_AUTHORIZATION is None
     assert v1_runner.RUNNER_EXECUTION_AUTHORIZATION is None
@@ -289,8 +289,8 @@ def test_all_v4_and_predecessor_capabilities_are_closed_without_opening_rng(monk
     assert v3_oracle.TASK_CONSTRUCTION_AUTHORIZATION is None
     assert v3_runner.RUNNER_EXECUTION_AUTHORIZATION is None
     assert v4.V4_EXECUTION_AUTHORIZATION is None
-    assert oracle.TASK_CONSTRUCTION_AUTHORIZATION is None
-    assert runner.RUNNER_EXECUTION_AUTHORIZATION is None
+    assert oracle.TASK_CONSTRUCTION_AUTHORIZATION is not None
+    assert runner.RUNNER_EXECUTION_AUTHORIZATION is not None
     frozen = {seed for _, seed in v4.EXPECTED_TASK_IDENTITIES}
     opened = []
     original = np.random.default_rng
@@ -348,7 +348,7 @@ def test_v4_sources_are_isolated_tainted_and_benchmark_cannot_import_oracle():
 
 def test_runner_declaration_is_static_and_fail_closed():
     metadata = runner.describe_v4_runner()
-    assert metadata["authorization_enabled"] is False
+    assert metadata["authorization_enabled"] is True
     assert metadata["expected_identities"] == [
         list(row) for row in v4.EXPECTED_TASK_IDENTITIES
     ]
@@ -362,6 +362,47 @@ def test_runner_declaration_is_static_and_fail_closed():
     assert set(metadata["required_source_paths"]) == set(v4.REQUIRED_SOURCE_PATHS)
     with pytest.raises(RuntimeError, match="blocked"):
         runner.execute_v4_runner(v4.V4_OUTPUT_PATH)
+
+
+def test_authorized_runner_is_hard_pinned_to_one_fresh_path(tmp_path, monkeypatch):
+    authorized = (tmp_path / "authorized" / "v4.json").resolve()
+    monkeypatch.setattr(runner, "AUTHORIZED_OUTPUT_PATH", authorized)
+    calls = []
+
+    def fake_pipeline(output, *, token=None):
+        assert token is runner._PRODUCTION_PIPELINE_TOKEN
+        output = Path(output)
+        runner._no_existing_artifacts(output)
+        calls.append(output)
+        runner._checkpoint(
+            output,
+            generation=0,
+            stage="static_authorization_test",
+            expected=runner.EXPECTED_TASK_IDENTITIES,
+            attempted=(),
+            completed=(),
+            rows=(),
+            arrays={},
+            provenance={"test_override": True},
+        )
+        return {"ok": True}
+
+    monkeypatch.setattr(runner, "_production_pipeline", fake_pipeline)
+    with pytest.raises(RuntimeError, match="single authorized path"):
+        runner.execute_v4_runner(
+            tmp_path / "replacement.json",
+            authorization=runner.RUNNER_EXECUTION_AUTHORIZATION,
+        )
+    assert calls == []
+    assert runner.execute_v4_runner(
+        authorized, authorization=runner.RUNNER_EXECUTION_AUTHORIZATION
+    ) == {"ok": True}
+    assert calls == [authorized]
+    with pytest.raises(RuntimeError, match="resume, overwrite, or rerun"):
+        runner.execute_v4_runner(
+            authorized, authorization=runner.RUNNER_EXECUTION_AUTHORIZATION
+        )
+    assert calls == [authorized]
 
 
 def _synthetic_ledger():

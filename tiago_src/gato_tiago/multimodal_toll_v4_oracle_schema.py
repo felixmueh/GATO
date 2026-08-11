@@ -47,7 +47,7 @@ from gato_tiago.multimodal_toll_v4 import (
 )
 
 
-TASK_CONSTRUCTION_AUTHORIZATION = None
+TASK_CONSTRUCTION_AUTHORIZATION = object()
 
 
 def _history_hash(array: np.ndarray) -> str:

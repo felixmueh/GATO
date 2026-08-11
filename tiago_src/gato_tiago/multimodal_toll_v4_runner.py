@@ -34,7 +34,7 @@ from gato_tiago.multimodal_toll_v4 import (
 )
 
 
-RUNNER_EXECUTION_AUTHORIZATION = None
+RUNNER_EXECUTION_AUTHORIZATION = object()
 AUTHORIZED_OUTPUT_PATH = Path(V4_OUTPUT_PATH)
 RUNNER_PROTOCOL_VERSION = "tiago_tool_center_toll_v4_construction_runner_1"
 EXPECTED_TASK_COUNT = 12
