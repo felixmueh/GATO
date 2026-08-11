@@ -173,10 +173,10 @@ def _rows_and_arrays(base):
     return rows, arrays
 
 
-def test_exactly_runner_and_worker_tokens_are_enabled_and_v4_artifact_is_hard_pinned():
+def test_rejected_model_preflight_tokens_are_disabled_and_artifact_is_hard_pinned():
     assert schema.MODEL_PREFLIGHT_EXECUTION_AUTHORIZATION is None
-    assert runner.RUNNER_EXECUTION_AUTHORIZATION is not None
-    assert worker.WORKER_EXECUTION_AUTHORIZATION is not None
+    assert runner.RUNNER_EXECUTION_AUTHORIZATION is None
+    assert worker.WORKER_EXECUTION_AUTHORIZATION is None
     assert v4_runner.RUNNER_EXECUTION_AUTHORIZATION is None
     assert v4_oracle.TASK_CONSTRUCTION_AUTHORIZATION is None
     assert schema.EXPECTED_V4_ARRAY_COUNT == 603
@@ -205,6 +205,10 @@ def test_blocked_entrypoints_touch_no_files_or_subprocess(tmp_path, monkeypatch)
 def test_authorized_boundaries_are_exact_one_shot_paths_without_real_execution(
     tmp_path, monkeypatch
 ):
+    runner_authorization = object()
+    worker_authorization = object()
+    monkeypatch.setattr(runner, "RUNNER_EXECUTION_AUTHORIZATION", runner_authorization)
+    monkeypatch.setattr(worker, "WORKER_EXECUTION_AUTHORIZATION", worker_authorization)
     root = (tmp_path / "authorized").resolve()
     authorized = root / "model.json"
     runner_calls = []
@@ -221,16 +225,16 @@ def test_authorized_boundaries_are_exact_one_shot_paths_without_real_execution(
     with pytest.raises(RuntimeError, match="authorized path"):
         runner.execute_model_preflight(
             root / "replacement.json",
-            authorization=runner.RUNNER_EXECUTION_AUTHORIZATION,
+            authorization=runner_authorization,
         )
     assert runner_calls == []
     assert runner.execute_model_preflight(
-        authorized, authorization=runner.RUNNER_EXECUTION_AUTHORIZATION
+        authorized, authorization=runner_authorization
     ) == {"mock": True}
     assert runner_calls == [authorized]
     with pytest.raises(RuntimeError, match="resume, overwrite, or rerun"):
         runner.execute_model_preflight(
-            authorized, authorization=runner.RUNNER_EXECUTION_AUTHORIZATION
+            authorized, authorization=runner_authorization
         )
 
     monkeypatch.setattr(worker, "AUTHORIZED_RUN_ROOT", root)
@@ -249,12 +253,12 @@ def test_authorized_boundaries_are_exact_one_shot_paths_without_real_execution(
         worker.execute_worker(
             root / "wrong.request.json",
             output,
-            authorization=worker.WORKER_EXECUTION_AUTHORIZATION,
+            authorization=worker_authorization,
         )
     assert worker.execute_worker(
         request,
         output,
-        authorization=worker.WORKER_EXECUTION_AUTHORIZATION,
+        authorization=worker_authorization,
     ) == {"mock": True}
     assert worker_calls == [(request, output)]
     output.parent.mkdir(parents=True, exist_ok=True)
@@ -263,7 +267,7 @@ def test_authorized_boundaries_are_exact_one_shot_paths_without_real_execution(
         worker.execute_worker(
             request,
             output,
-            authorization=worker.WORKER_EXECUTION_AUTHORIZATION,
+            authorization=worker_authorization,
         )
 
 
