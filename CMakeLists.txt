@@ -115,7 +115,7 @@ set(KNOTS
 set(PLANT
     "${PLANT_DEFAULT}"
     CACHE STRING
-          "Semicolon-separated plant targets (e.g., indy7;iiwa14;iiwa14_multimodal;tiago_right;tiago_right_multimodal)")
+          "Semicolon-separated plant targets (e.g., indy7;iiwa14;iiwa14_multimodal;tiago_right;tiago_right_multimodal;tiago_right_multimodal_toll)")
 # Normalize to semicolon lists (accept commas/spaces)
 string(REPLACE "," ";" KNOTS "${KNOTS}")
 string(REPLACE " " ";" KNOTS "${KNOTS}")
@@ -159,6 +159,12 @@ function(add_gato_python_module plant knot)
       PRIVATE KNOT_POINTS=${knot}
               PLANT_TIAGO_RIGHT=1
               TIAGO_MULTIMODAL_PILLAR=1)
+  elseif(plant STREQUAL "tiago_right_multimodal_toll")
+    target_compile_definitions(
+      ${MODULE_NAME}
+      PRIVATE KNOT_POINTS=${knot}
+              PLANT_TIAGO_RIGHT=1
+              TIAGO_MULTIMODAL_TOLL=1)
   else()
     message(FATAL_ERROR "Unsupported PLANT value for Python module: ${plant}")
   endif()

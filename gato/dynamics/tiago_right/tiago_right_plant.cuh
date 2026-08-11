@@ -14,6 +14,11 @@ namespace grid {
     constexpr int NU = NUM_JOINTS;
     constexpr int NEE = 6;
     constexpr int EE_POS_SIZE = 6;
+#if defined(TIAGO_MULTIMODAL_TOLL)
+    constexpr int REFERENCE_SIZE = 10;
+#else
+    constexpr int REFERENCE_SIZE = EE_POS_SIZE;
+#endif
 }  // namespace grid
 
 #include "utils/linalg.cuh"
@@ -69,12 +74,14 @@ namespace plant {
                 return static_cast<T>(0);
         }
 
-#if defined(TIAGO_MULTIMODAL_PILLAR)
+#if defined(TIAGO_MULTIMODAL_PILLAR) || defined(TIAGO_MULTIMODAL_TOLL)
         // IMPORTANT: this plant defines one common objective for every
         // candidate. The benchmark varies only the host-supplied trajectory
         // initialization; mode-specific references would invalidate the test.
-        // Multimodal benchmark reference layout:
+        // Pillar reference layout is six-wide:
         // [goal_x, goal_y, goal_z, pillar_x, pillar_y, clearance_radius].
+        // The toll variant is explicitly ten-wide:
+        // [goal_xyz, cylinder_xy, physical_radius, toll_xy, sigma, margin].
         // The pillar is infinite along z, so collision-free paths on opposite
         // sides have distinct planar winding signatures.  The positive-part
         // residual is dimensionless and its Gauss-Newton Hessian remains PSD.
@@ -83,7 +90,11 @@ namespace plant {
         {
                 const T dx = s_ee_pos[0] - s_reference[3];
                 const T dy = s_ee_pos[1] - s_reference[4];
+#if defined(TIAGO_MULTIMODAL_TOLL)
+                const T radius = s_reference[5] + s_reference[9];
+#else
                 const T radius = s_reference[5];
+#endif
                 const T inv_radius_sq = static_cast<T>(1) / (radius * radius);
                 const T residual = static_cast<T>(1) - (dx * dx + dy * dy) * inv_radius_sq;
 
@@ -95,6 +106,35 @@ namespace plant {
 
                 workspace_gradient[0] = -static_cast<T>(2) * dx * inv_radius_sq;
                 workspace_gradient[1] = -static_cast<T>(2) * dy * inv_radius_sq;
+                return residual;
+        }
+#endif
+
+#if defined(TIAGO_MULTIMODAL_TOLL)
+        template<class T>
+        __host__ __device__ constexpr T tollWeight()
+        {
+                return static_cast<T>(0.5);
+        }
+
+        template<class T>
+        __host__ __device__ constexpr T cylinderWeight()
+        {
+                return static_cast<T>(800.0);
+        }
+
+        // Explicit toll reference fields are [toll_x, toll_y, sigma] at 6:9.
+        // The returned derivatives are with respect to tool workspace x/y.
+        template<class T>
+        __device__ T tollResidualAndWorkspaceGradient(const T* s_ee_pos, const T* s_reference, T* workspace_gradient)
+        {
+                const T dx = s_ee_pos[0] - s_reference[6];
+                const T dy = s_ee_pos[1] - s_reference[7];
+                const T sigma = s_reference[8];
+                const T inv_sigma_sq = static_cast<T>(1) / (sigma * sigma);
+                const T residual = exp(-(dx * dx + dy * dy) * inv_sigma_sq / static_cast<T>(2));
+                workspace_gradient[0] = -residual * dx * inv_sigma_sq;
+                workspace_gradient[1] = -residual * dy * inv_sigma_sq;
                 return residual;
         }
 #endif
@@ -380,13 +420,15 @@ namespace plant {
 
                 T err;
                 const bool track_orientation =
-#if defined(TIAGO_MULTIMODAL_PILLAR)
+#if defined(TIAGO_MULTIMODAL_PILLAR) || defined(TIAGO_MULTIMODAL_TOLL)
                     false;
 #else
                     ee_orient_cost != static_cast<T>(0) || ee_orient_N_cost != static_cast<T>(0);
 #endif
                 const uint32_t threadsNeeded = state_size / 2 + control_size * (blockIdx.x < knot_points - 1);
-#if defined(TIAGO_MULTIMODAL_PILLAR)
+#if defined(TIAGO_MULTIMODAL_TOLL)
+                const uint32_t tracking_terms = 5;
+#elif defined(TIAGO_MULTIMODAL_PILLAR)
                 const uint32_t tracking_terms = 4;
 #else
                 const uint32_t tracking_terms = track_orientation ? grid::EE_POS_SIZE : 3;
@@ -424,7 +466,21 @@ namespace plant {
                                 s_cost_vec[threadsNeeded + i] = static_cast<T>(0.5) * (blockIdx.x == KNOT_POINTS - 1 ? N_cost : q_cost) * err * err;
                         }
                 }
-#if defined(TIAGO_MULTIMODAL_PILLAR)
+#if defined(TIAGO_MULTIMODAL_TOLL)
+                if (threadIdx.x == 0) {
+                        T cylinder_workspace_gradient[2];
+                        const T cylinder_residual = pillarResidualAndWorkspaceGradient<T>(s_eePos_cost, s_eePos_traj, cylinder_workspace_gradient);
+                        s_cost_vec[threadsNeeded + 3] = static_cast<T>(0.5) * cylinderWeight<T>() * cylinder_residual * cylinder_residual;
+
+                        // The toll is running-only and never participates in
+                        // physical feasibility.  Its cost is 0.5*w*t^2.
+                        T toll_workspace_gradient[2];
+                        const T toll_residual = tollResidualAndWorkspaceGradient<T>(s_eePos_cost, s_eePos_traj, toll_workspace_gradient);
+                        s_cost_vec[threadsNeeded + 4] = blockIdx.x == KNOT_POINTS - 1
+                            ? static_cast<T>(0)
+                            : static_cast<T>(0.5) * tollWeight<T>() * toll_residual * toll_residual;
+                }
+#elif defined(TIAGO_MULTIMODAL_PILLAR)
                 if (threadIdx.x == 0) {
                         T workspace_gradient[2];
                         const T residual = pillarResidualAndWorkspaceGradient<T>(s_eePos_cost, s_eePos_traj, workspace_gradient);
@@ -479,7 +535,7 @@ namespace plant {
 
                 const grid::robotModel<T>* d_robotModel = static_cast<const grid::robotModel<T>*>(d_dynMem_const);
                 const bool track_orientation =
-#if defined(TIAGO_MULTIMODAL_PILLAR)
+#if defined(TIAGO_MULTIMODAL_PILLAR) || defined(TIAGO_MULTIMODAL_TOLL)
                     false;
 #else
                     ee_orient_cost != static_cast<T>(0) || ee_orient_N_cost != static_cast<T>(0);
@@ -491,9 +547,13 @@ namespace plant {
 
                 computeTiagoToolPoseAndGradient<T>(s_eePos, s_eePos_grad, s_q_grid, d_robotModel, s_ee_workspace);
 
-#if defined(TIAGO_MULTIMODAL_PILLAR)
+#if defined(TIAGO_MULTIMODAL_PILLAR) || defined(TIAGO_MULTIMODAL_TOLL)
                 T pillar_workspace_gradient[2];
                 const T pillar_residual = pillarResidualAndWorkspaceGradient<T>(s_eePos, s_eePos_traj, pillar_workspace_gradient);
+#endif
+#if defined(TIAGO_MULTIMODAL_TOLL)
+                T toll_workspace_gradient[2];
+                const T toll_residual = tollResidualAndWorkspaceGradient<T>(s_eePos, s_eePos_traj, toll_workspace_gradient);
 #endif
 
                 for (int i = threadIdx.x; i < threads_needed; i += blockDim.x) {
@@ -517,7 +577,18 @@ namespace plant {
                                                 s_qk[i] = (grad_x * (s_eePos[0] - s_eePos_traj[0]) + grad_y * (s_eePos[1] - s_eePos_traj[1]) + grad_z * (s_eePos[2] - s_eePos_traj[2]))
                                                           * (blockIdx.x == KNOT_POINTS - 1 ? N_cost : q_cost);
                                         }
-#if defined(TIAGO_MULTIMODAL_PILLAR)
+#if defined(TIAGO_MULTIMODAL_TOLL)
+                                        const T pillar_jacobian =
+                                            pillar_workspace_gradient[0] * s_eePos_grad[6 * i + 0] * tiagoJointSign<T>(i)
+                                            + pillar_workspace_gradient[1] * s_eePos_grad[6 * i + 1] * tiagoJointSign<T>(i);
+                                        s_qk[i] += cylinderWeight<T>() * pillar_residual * pillar_jacobian;
+                                        if (computeR) {
+                                                const T toll_jacobian =
+                                                    toll_workspace_gradient[0] * s_eePos_grad[6 * i + 0] * tiagoJointSign<T>(i)
+                                                    + toll_workspace_gradient[1] * s_eePos_grad[6 * i + 1] * tiagoJointSign<T>(i);
+                                                s_qk[i] += tollWeight<T>() * toll_residual * toll_jacobian;
+                                        }
+#elif defined(TIAGO_MULTIMODAL_PILLAR)
                                         const T pillar_jacobian =
                                             pillar_workspace_gradient[0] * s_eePos_grad[6 * i + 0] * tiagoJointSign<T>(i)
                                             + pillar_workspace_gradient[1] * s_eePos_grad[6 * i + 1] * tiagoJointSign<T>(i);
@@ -560,7 +631,24 @@ namespace plant {
                                                         const T grad_jz = s_eePos_grad[6 * j + 2] * tiagoJointSign<T>(j);
                                                         s_Qk[i * state_size + j] = (grad_ix * grad_jx + grad_iy * grad_jy + grad_iz * grad_jz) * (blockIdx.x == KNOT_POINTS - 1 ? N_cost : q_cost);
                                                 }
-#if defined(TIAGO_MULTIMODAL_PILLAR)
+#if defined(TIAGO_MULTIMODAL_TOLL)
+                                                const T pillar_jacobian_i =
+                                                    pillar_workspace_gradient[0] * s_eePos_grad[6 * i + 0] * tiagoJointSign<T>(i)
+                                                    + pillar_workspace_gradient[1] * s_eePos_grad[6 * i + 1] * tiagoJointSign<T>(i);
+                                                const T pillar_jacobian_j =
+                                                    pillar_workspace_gradient[0] * s_eePos_grad[6 * j + 0] * tiagoJointSign<T>(j)
+                                                    + pillar_workspace_gradient[1] * s_eePos_grad[6 * j + 1] * tiagoJointSign<T>(j);
+                                                s_Qk[i * state_size + j] += cylinderWeight<T>() * pillar_jacobian_i * pillar_jacobian_j;
+                                                if (computeR) {
+                                                        const T toll_jacobian_i =
+                                                            toll_workspace_gradient[0] * s_eePos_grad[6 * i + 0] * tiagoJointSign<T>(i)
+                                                            + toll_workspace_gradient[1] * s_eePos_grad[6 * i + 1] * tiagoJointSign<T>(i);
+                                                        const T toll_jacobian_j =
+                                                            toll_workspace_gradient[0] * s_eePos_grad[6 * j + 0] * tiagoJointSign<T>(j)
+                                                            + toll_workspace_gradient[1] * s_eePos_grad[6 * j + 1] * tiagoJointSign<T>(j);
+                                                        s_Qk[i * state_size + j] += tollWeight<T>() * toll_jacobian_i * toll_jacobian_j;
+                                                }
+#elif defined(TIAGO_MULTIMODAL_PILLAR)
                                                 const T pillar_jacobian_i =
                                                     pillar_workspace_gradient[0] * s_eePos_grad[6 * i + 0] * tiagoJointSign<T>(i)
                                                     + pillar_workspace_gradient[1] * s_eePos_grad[6 * i + 1] * tiagoJointSign<T>(i);
@@ -621,7 +709,7 @@ namespace plant {
                     state_size,
                     control_size,
                     s_xkp1,
-                    &s_eePos_traj[grid::EE_POS_SIZE],
+                    &s_eePos_traj[grid::REFERENCE_SIZE],
                     s_Qkp1,
                     s_qkp1,
                     nullptr,

@@ -13,6 +13,12 @@
 
 using namespace sqp;
 
+namespace grid {
+    // Solver references need not have the same width as the generated pose.
+    // Existing plants retain the historical six-scalar reference contract.
+    constexpr int REFERENCE_SIZE = EE_POS_SIZE;
+}
+
 namespace gato {
 namespace plant {
 
@@ -589,7 +595,7 @@ namespace plant {
                 trackingCostGradientAndHessian<T>(state_size, control_size, s_xux, s_eePos_traj, s_Qk, s_qk, s_Rk, s_rk, s_temp, d_dynMem_const, q_cost, qd_cost, u_cost, N_cost, ee_orient_cost, ee_orient_N_cost, q_lim_cost, vel_lim_cost, ctrl_lim_cost);
                 T* s_xkp1 = s_xux + state_size + control_size;
                 trackingCostGradientAndHessian<T, false>(
-                    state_size, control_size, s_xkp1, &s_eePos_traj[6], s_Qkp1, s_qkp1, nullptr, nullptr, s_temp, d_dynMem_const, N_cost, qd_cost, u_cost, N_cost, ee_orient_N_cost, ee_orient_N_cost, q_lim_cost, vel_lim_cost, ctrl_lim_cost);
+                    state_size, control_size, s_xkp1, &s_eePos_traj[grid::REFERENCE_SIZE], s_Qkp1, s_qkp1, nullptr, nullptr, s_temp, d_dynMem_const, N_cost, qd_cost, u_cost, N_cost, ee_orient_N_cost, ee_orient_N_cost, q_lim_cost, vel_lim_cost, ctrl_lim_cost);
         }
 
         __host__ __device__ constexpr unsigned trackingCostGradientAndHessian_TempMemSize_Shared()

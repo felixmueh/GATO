@@ -53,22 +53,27 @@ def figure8(dt, A_x=0.4, A_z=0.4, offset=[0.0, 0.5, 0.6], period=6, cycles=5, th
     return np.tile(fig_8, int(cycles))
 
 
-def sample_reference(reference_traj, times, dt):
-    """Linearly sample a flattened 6D reference trajectory at continuous times."""
-    reference = np.asarray(reference_traj, dtype=np.float64).reshape(-1, 6)
+def sample_reference(reference_traj, times, dt, reference_size=6):
+    """Linearly sample a flattened reference trajectory at continuous times."""
+    reference_size = int(reference_size)
+    if reference_size <= 0:
+        raise ValueError("reference_size must be positive")
+    reference = np.asarray(reference_traj, dtype=np.float64).reshape(-1, reference_size)
     times = np.asarray(times, dtype=np.float64)
     sample = np.clip(times / float(dt), 0.0, reference.shape[0] - 1)
     lower = np.floor(sample).astype(np.int64)
     upper = np.minimum(lower + 1, reference.shape[0] - 1)
     alpha = (sample - lower).reshape(-1, 1)
     values = (1.0 - alpha) * reference[lower] + alpha * reference[upper]
-    return values.reshape(times.shape + (6,))
+    return values.reshape(times.shape + (reference_size,))
 
 
-def sample_reference_horizon(reference_traj, start_time, dt, knots):
-    """Return a flattened 6D reference horizon starting at a continuous time."""
+def sample_reference_horizon(reference_traj, start_time, dt, knots, reference_size=6):
+    """Return a flattened reference horizon starting at a continuous time."""
     times = float(start_time) + np.arange(knots, dtype=np.float64) * float(dt)
-    return sample_reference(reference_traj, times, dt).reshape(-1)
+    return sample_reference(
+        reference_traj, times, dt, reference_size=reference_size
+    ).reshape(-1)
 
 
 def shift_packed_trajectory_warm_start(XU, x_current, nx, nu, knots, elapsed, dt):

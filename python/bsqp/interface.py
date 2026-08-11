@@ -4,6 +4,16 @@ import pinocchio as pin
 import torch
 
 
+def validate_reference_shape(reference, batch_size, knots, reference_size, plant_type):
+    expected = (int(batch_size), int(knots) * int(reference_size))
+    if np.shape(reference) != expected:
+        raise ValueError(
+            f"reference input must have shape {expected} for plant {plant_type}; "
+            f"got {np.shape(reference)}"
+        )
+    return expected
+
+
 class BSQP:
     def __init__(
         self,
@@ -63,6 +73,7 @@ class BSQP:
         self.lib = base
         self.solver_class = getattr(base, class_name)
         self.plant_type = plant_type
+        self.reference_size = int(getattr(base, "REFERENCE_SIZE", 6))
 
         self.solver = self.solver_class(
             dt,
@@ -130,6 +141,13 @@ class BSQP:
         # Ensure float32 inputs for CUDA bindings
         xcur_B = np.asarray(xcur_B, dtype=np.float32)
         eepos_goals_B = np.asarray(eepos_goals_B, dtype=np.float32)
+        validate_reference_shape(
+            eepos_goals_B,
+            self.batch_size,
+            self.N,
+            self.reference_size,
+            self.plant_type,
+        )
         if XU_B is None:
             XU_B = self.XU_B
         else:
@@ -218,7 +236,7 @@ class BSQP:
 
     def ee_pos(self, q):
         pin.forwardKinematics(self.model, self.data, q)
-        if self.plant_type == "tiago_right":
+        if self.plant_type.startswith("tiago_right"):
             pin.updateFramePlacements(self.model, self.data)
             torso_id = self.model.getFrameId("torso_lift_link")
             tool_id = self.model.getFrameId("arm_right_tool_link")
@@ -227,7 +245,7 @@ class BSQP:
 
     def ee_tool_axis_error(self, q, target_rpy):
         pin.forwardKinematics(self.model, self.data, q)
-        if self.plant_type == "tiago_right":
+        if self.plant_type.startswith("tiago_right"):
             pin.updateFramePlacements(self.model, self.data)
             torso_id = self.model.getFrameId("torso_lift_link")
             tool_id = self.model.getFrameId("arm_right_tool_link")
@@ -251,7 +269,7 @@ class BSQP:
 
     def set_f_ext_B(self, f_ext_B):
         self.f_ext_B = np.asarray(f_ext_B, dtype=np.float32)
-        if self.plant_type == "tiago_right" and np.any(self.f_ext_B):
+        if self.plant_type.startswith("tiago_right") and np.any(self.f_ext_B):
             raise NotImplementedError(
                 "External wrench dynamics are not implemented for plant_type='tiago_right'. "
                 "Use a zero wrench or implement Tiago's GRiD external-force path first."

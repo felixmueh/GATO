@@ -2,11 +2,15 @@
 #include <pybind11/numpy.h>
 #include <pybind11/stl.h>
 #include <algorithm>
+#include <string>
 #include "bsqp/bsqp.cuh"
 #include "types.cuh"
 #include "utils/cuda.cuh"
 
 namespace py = pybind11;
+
+template<typename T>
+using CArray = py::array_t<T, py::array::c_style | py::array::forcecast>;
 
 template<typename T, uint32_t BatchSize>
 class PyBSQP {
@@ -72,11 +76,23 @@ class PyBSQP {
                 gpuErrchk(cudaFree(d_uk_));
         }
 
-        py::dict solve(py::array_t<T> xu_traj_batch, T timestep, py::array_t<T> x_s_batch, py::array_t<T> reference_traj_batch)
+        py::dict solve(CArray<T> xu_traj_batch, T timestep, CArray<T> x_s_batch, CArray<T> reference_traj_batch)
         {
                 py::buffer_info xu_buf = xu_traj_batch.request();
                 py::buffer_info xs_buf = x_s_batch.request();
                 py::buffer_info ref_buf = reference_traj_batch.request();
+
+                if (xu_buf.ndim != 2 || xu_buf.shape[0] != BatchSize || xu_buf.shape[1] != TRAJ_SIZE) {
+                        throw py::value_error("trajectory input must have shape (batch_size, trajectory_size)");
+                }
+                if (xs_buf.ndim != 2 || xs_buf.shape[0] != BatchSize || xs_buf.shape[1] != STATE_SIZE) {
+                        throw py::value_error("initial-state input must have shape (batch_size, state_size)");
+                }
+                if (ref_buf.ndim != 2 || ref_buf.shape[0] != BatchSize || ref_buf.shape[1] != REFERENCE_TRAJ_SIZE) {
+                        throw py::value_error(
+                            "reference input must have shape (batch_size, "
+                            + std::to_string(REFERENCE_TRAJ_SIZE) + ") for this plant");
+                }
 
                 gpuErrchk(cudaMemcpy(d_xu_traj_batch_, xu_buf.ptr, TRAJ_SIZE * BatchSize * sizeof(T), cudaMemcpyHostToDevice));
                 gpuErrchk(cudaMemcpy(d_x_s_batch_, xs_buf.ptr, STATE_SIZE * BatchSize * sizeof(T), cudaMemcpyHostToDevice));
@@ -253,6 +269,8 @@ class PyBSQP {
 
 #if defined(IIWA_MULTIMODAL_PILLAR)
 #define PLANT_SUFFIX iiwa14_multimodal
+#elif defined(TIAGO_MULTIMODAL_TOLL)
+#define PLANT_SUFFIX tiago_right_multimodal_toll
 #elif defined(TIAGO_MULTIMODAL_PILLAR)
 #define PLANT_SUFFIX tiago_right_multimodal
 #elif defined(PLANT_INDY7)
@@ -287,6 +305,7 @@ class PyBSQP {
 PYBIND11_MODULE(MODULE_NAME(KNOT_POINTS, PLANT_SUFFIX), m)
 {
         m.attr("KNOT_POINTS") = KNOT_POINTS;  // to check num knots for current module
+        m.attr("REFERENCE_SIZE") = grid::REFERENCE_SIZE;
 
 
 #ifdef USE_DOUBLES
