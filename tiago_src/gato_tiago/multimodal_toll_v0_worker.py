@@ -22,8 +22,9 @@ from gato_tiago import multimodal_toll as toll
 from gato_tiago.multimodal_toll_v0 import _array_hash, _is_sha256
 
 
-WORKER_EXECUTION_AUTHORIZATION = None
+WORKER_EXECUTION_AUTHORIZATION = object()
 WORKER_PROTOCOL_VERSION = "tiago_tool_center_toll_v0_extension_worker_1"
+AUTHORIZED_RUN_ROOT = Path("/tmp/tiago-tool-center-toll-v0-authorized-once")
 SUPPORTED_MODULES = {
     "bsqp.bsqpN64_tiago_right_multimodal_toll": (10, "toll"),
     "bsqp.bsqpN64_tiago_right": (6, "plain_ref6"),
@@ -580,6 +581,19 @@ def execute_worker(request_path, output_path, *, authorization=None):
         or authorization is not WORKER_EXECUTION_AUTHORIZATION
     ):
         raise RuntimeError("Stage V0 extension worker execution is blocked")
+    request_path = Path(request_path).resolve()
+    output_path = Path(output_path).resolve()
+    allowed_pairs = {
+        (
+            AUTHORIZED_RUN_ROOT / f"v0.{name.split('.')[-1]}.request.json",
+            AUTHORIZED_RUN_ROOT / f"v0.{name.split('.')[-1]}.json",
+        )
+        for name in SUPPORTED_MODULES
+    }
+    if (request_path, output_path) not in allowed_pairs:
+        raise RuntimeError("Stage V0 worker path is outside the single authorized run")
+    if output_path.exists() or output_path.with_suffix(".npz").exists():
+        raise RuntimeError("Stage V0 worker refuses overwrite or rerun")
     return _run_authorized_worker(request_path, output_path)
 
 

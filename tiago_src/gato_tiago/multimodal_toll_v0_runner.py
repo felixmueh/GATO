@@ -39,8 +39,11 @@ from gato_tiago.multimodal_toll_v0_worker import (
 )
 
 
-RUNNER_EXECUTION_AUTHORIZATION = None
+RUNNER_EXECUTION_AUTHORIZATION = object()
 RUNNER_PROTOCOL_VERSION = "tiago_tool_center_toll_v0_runner_1"
+AUTHORIZED_OUTPUT_PATH = Path(
+    "/tmp/tiago-tool-center-toll-v0-authorized-once/v0.json"
+)
 EXPECTED_TASK_COUNT = 12
 EXPECTED_WORKER_COUNT = 3
 EXPECTED_SQP_OPTIMIZATION_CALLS = 0
@@ -187,6 +190,7 @@ def _atomic_json(path, value):
 
 def _atomic_npz(path, arrays):
     path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
     descriptor, temporary = tempfile.mkstemp(
         dir=path.parent, prefix=f".{path.name}.", suffix=".tmp"
     )
@@ -1075,6 +1079,8 @@ def execute_v0_runner(output, *, authorization=None):
         or authorization is not RUNNER_EXECUTION_AUTHORIZATION
     ):
         raise RuntimeError("Stage V0 runner execution is blocked")
+    if Path(output).resolve() != AUTHORIZED_OUTPUT_PATH:
+        raise RuntimeError("Stage V0 runner output is not the single authorized path")
     return _production_pipeline(output)
 
 

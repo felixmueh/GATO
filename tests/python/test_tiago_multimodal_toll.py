@@ -159,7 +159,7 @@ def test_initializer_schema_is_obstacle_and_mode_neutral_and_antithetic():
 
 
 def test_task_and_optimizer_execution_are_fail_closed_without_instantiating_seed(monkeypatch):
-    assert toll_oracle.TASK_CONSTRUCTION_AUTHORIZATION is None
+    assert toll_oracle.TASK_CONSTRUCTION_AUTHORIZATION is not None
     assert toll.OPTIMIZER_EXECUTION_AUTHORIZATION is None
     synthetic_allowed_seed = 99000
     monkeypatch.setattr(
@@ -448,7 +448,7 @@ def test_stage_clis_and_import_boundary_are_fail_closed(tmp_path):
     forbidden_import_fragments = ("stage0", "oracle", "tangent", "route_template")
     imports = [line for line in (module + "\n" + benchmark).splitlines() if line.startswith(("import ", "from "))]
     assert not any(fragment in line.lower() for fragment in forbidden_import_fragments for line in imports)
-    assert "TASK_CONSTRUCTION_AUTHORIZATION = None" in oracle_module
+    assert "TASK_CONSTRUCTION_AUTHORIZATION = object()" in oracle_module
     assert "q_goal" not in toll.TollTask.__dataclass_fields__
     assert "dq" not in toll.TollTask.__dataclass_fields__
     assert "construction_metadata" not in toll.TollTask.__dataclass_fields__

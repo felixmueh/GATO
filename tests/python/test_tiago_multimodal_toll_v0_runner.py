@@ -7,6 +7,8 @@ import pytest
 
 from gato_tiago import multimodal_toll_v0_runner as runner
 from gato_tiago import multimodal_toll_v0_worker as worker
+from gato_tiago import multimodal_toll_oracle_schema as oracle_schema
+from gato_tiago import multimodal_toll_v0 as v0_schema
 
 
 def _smoke_raw(reference_size=10, delta=0.25):
@@ -104,6 +106,84 @@ def test_worker_and_runner_block_before_read_import_or_filesystem(tmp_path, monk
         "output",
         "authorization",
     ]
+
+
+def test_exactly_three_v0_capabilities_enabled_and_legacy_tokens_stay_blocked():
+    assert runner.RUNNER_EXECUTION_AUTHORIZATION is not None
+    assert worker.WORKER_EXECUTION_AUTHORIZATION is not None
+    assert oracle_schema.TASK_CONSTRUCTION_AUTHORIZATION is not None
+    assert runner.AUTHORIZED_OUTPUT_PATH.parent == worker.AUTHORIZED_RUN_ROOT
+    assert v0_schema.V0_EXECUTION_AUTHORIZATION is None
+    stage0_source = (
+        Path(__file__).resolve().parents[2]
+        / "tiago_examples/tiago_multimodal_toll_stage0.py"
+    ).read_text()
+    assert "STAGE0_EXECUTION_AUTHORIZATION = None" in stage0_source
+    assert "MAX_SQP_ITERS = 60" in (Path(runner.toll.__file__).read_text())
+
+
+def test_runner_allows_only_one_exact_output_path_without_crossing_runtime(tmp_path, monkeypatch):
+    authorized = (tmp_path / "authorized" / "v0.json").resolve()
+    calls = []
+    monkeypatch.setattr(runner, "AUTHORIZED_OUTPUT_PATH", authorized)
+    def fake_pipeline(output):
+        output = Path(output)
+        runner._no_existing_artifacts(output)
+        calls.append(output)
+        runner._publish_pre_model_checkpoint(
+            output, {"static_test": True}, runner.FROZEN_EXTENSIONS
+        )
+        return {"ok": True}
+
+    monkeypatch.setattr(runner, "_production_pipeline", fake_pipeline)
+    with pytest.raises(RuntimeError, match="single authorized path"):
+        runner.execute_v0_runner(
+            tmp_path / "replacement.json",
+            authorization=runner.RUNNER_EXECUTION_AUTHORIZATION,
+        )
+    assert calls == []
+    assert runner.execute_v0_runner(
+        authorized, authorization=runner.RUNNER_EXECUTION_AUTHORIZATION
+    ) == {"ok": True}
+    assert calls == [authorized]
+    with pytest.raises(RuntimeError, match="resume, overwrite, or rerun"):
+        runner.execute_v0_runner(
+            authorized, authorization=runner.RUNNER_EXECUTION_AUTHORIZATION
+        )
+    assert calls == [authorized]
+
+
+def test_worker_exact_pair_and_no_overwrite_boundary(tmp_path, monkeypatch):
+    root = (tmp_path / "authorized").resolve()
+    monkeypatch.setattr(worker, "AUTHORIZED_RUN_ROOT", root)
+    module = next(iter(worker.SUPPORTED_MODULES))
+    leaf = module.split(".")[-1]
+    request = root / f"v0.{leaf}.request.json"
+    output = root / f"v0.{leaf}.json"
+    calls = []
+
+    def fake_run(request_path, output_path):
+        calls.append((Path(request_path), Path(output_path)))
+        output.parent.mkdir(parents=True, exist_ok=True)
+        output.write_text("{}")
+        return {"ok": True}
+
+    monkeypatch.setattr(worker, "_run_authorized_worker", fake_run)
+    with pytest.raises(RuntimeError, match="outside the single authorized run"):
+        worker.execute_worker(
+            request,
+            root / "v0.wrong.json",
+            authorization=worker.WORKER_EXECUTION_AUTHORIZATION,
+        )
+    assert calls == []
+    assert worker.execute_worker(
+        request, output, authorization=worker.WORKER_EXECUTION_AUTHORIZATION
+    ) == {"ok": True}
+    with pytest.raises(RuntimeError, match="overwrite or rerun"):
+        worker.execute_worker(
+            request, output, authorization=worker.WORKER_EXECUTION_AUTHORIZATION
+        )
+    assert len(calls) == 1
 
 
 def test_frozen_worker_specs_are_exact_and_one_module_each():

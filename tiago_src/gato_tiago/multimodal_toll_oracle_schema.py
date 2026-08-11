@@ -37,7 +37,9 @@ from gato_tiago.multimodal_toll import (
 )
 
 
-TASK_CONSTRUCTION_AUTHORIZATION = None
+# Narrow Stage V0 task-construction capability.  This does not authorize any
+# route oracle, optimizer, benchmark initializer, or SQP execution.
+TASK_CONSTRUCTION_AUTHORIZATION = object()
 
 
 @dataclass(frozen=True)
