@@ -22,7 +22,7 @@ from gato_tiago.multimodal_toll_oracle_v1 import (
 from gato_tiago import multimodal_toll as toll
 
 
-WORKER_EXECUTION_AUTHORIZATION = None
+WORKER_EXECUTION_AUTHORIZATION = object()
 WORKER_PROTOCOL_VERSION = "tiago_tool_center_toll_oracle_v1_worker_1"
 AUTHORIZED_ROOT = ORACLE_OUTPUT_PATH.parent
 EXPECTED_REPLAY_ARRAY_NAMES = frozenset({

@@ -26,7 +26,7 @@ from gato_tiago.multimodal_toll_oracle_v1_worker import (
 )
 
 
-RUNNER_EXECUTION_AUTHORIZATION = None
+RUNNER_EXECUTION_AUTHORIZATION = object()
 RUNNER_PROTOCOL_VERSION = ORACLE_PROTOCOL_VERSION + "_runner_1"
 _PRODUCTION_TOKEN = object()
 

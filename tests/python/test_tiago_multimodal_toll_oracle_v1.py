@@ -16,8 +16,8 @@ from gato_tiago import multimodal_toll_v4_model_preflight_v4_worker as model_wor
 
 def test_static_contract_tokens_pins_ledger_and_grid_are_exact():
     assert oracle.ORACLE_EXECUTION_AUTHORIZATION is None
-    assert runner.RUNNER_EXECUTION_AUTHORIZATION is None
-    assert worker.WORKER_EXECUTION_AUTHORIZATION is None
+    assert runner.RUNNER_EXECUTION_AUTHORIZATION is not None
+    assert worker.WORKER_EXECUTION_AUTHORIZATION is not None
     assert model_runner.RUNNER_EXECUTION_AUTHORIZATION is None
     assert model_worker.WORKER_EXECUTION_AUTHORIZATION is None
     assert oracle.Z_WIDTH == 1337
@@ -50,7 +50,10 @@ def test_all_execution_tokens_are_disabled_repo_wide():
     for path in sorted((root/"tiago_src/gato_tiago").glob("*.py")):
         for line in path.read_text().splitlines():
             if pattern.fullmatch(line): enabled.append((path.name,line))
-    assert enabled == []
+    assert enabled == [
+        ("multimodal_toll_oracle_v1_runner.py", "RUNNER_EXECUTION_AUTHORIZATION = object()"),
+        ("multimodal_toll_oracle_v1_worker.py", "WORKER_EXECUTION_AUTHORIZATION = object()"),
+    ]
 
 
 def test_template_endpoints_progress_and_opposite_turns():
@@ -916,6 +919,17 @@ def test_execution_boundaries_are_blocked_without_touching_files(tmp_path,monkey
     with pytest.raises(RuntimeError,match="blocked"): runner.execute_oracle(tmp_path/"oracle.json",authorization=object())
     with pytest.raises(RuntimeError,match="blocked"): worker.execute_worker(tmp_path/"r.json",tmp_path/"o.json",authorization=object())
     assert calls==[] and list(tmp_path.iterdir())==[]
+
+
+def test_authorized_runner_is_hard_path_and_one_shot_before_private_pipeline(tmp_path,monkeypatch):
+    calls=[]; monkeypatch.setattr(runner,"_production_pipeline",lambda path,**_k:calls.append(Path(path)) or {"ok":True})
+    with pytest.raises(RuntimeError,match="path not authorized"):
+        runner.execute_oracle(tmp_path/"oracle.json",authorization=runner.RUNNER_EXECUTION_AUTHORIZATION)
+    assert calls==[]
+    assert runner.execute_oracle(oracle.ORACLE_OUTPUT_PATH,authorization=runner.RUNNER_EXECUTION_AUTHORIZATION)=={"ok":True}
+    assert calls==[oracle.ORACLE_OUTPUT_PATH]
+    source=inspect.getsource(runner._no_existing)
+    assert "refuses resume, overwrite, or rerun" in source and "worker.*" in source
 
 
 
