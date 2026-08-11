@@ -232,8 +232,8 @@ def _rows_and_arrays(base):
 
 def test_rejected_model_preflight_tokens_are_disabled_and_artifact_is_hard_pinned():
     assert schema.MODEL_PREFLIGHT_EXECUTION_AUTHORIZATION is None
-    assert runner.RUNNER_EXECUTION_AUTHORIZATION is None
-    assert worker.WORKER_EXECUTION_AUTHORIZATION is None
+    assert runner.RUNNER_EXECUTION_AUTHORIZATION is not None
+    assert worker.WORKER_EXECUTION_AUTHORIZATION is not None
     assert v2_schema.MODEL_PREFLIGHT_EXECUTION_AUTHORIZATION is None
     assert v2_runner.RUNNER_EXECUTION_AUTHORIZATION is None
     assert v2_worker.WORKER_EXECUTION_AUTHORIZATION is None
@@ -317,7 +317,7 @@ def test_wrong_authorizations_touch_no_files_or_subprocess(tmp_path, monkeypatch
     assert list(tmp_path.iterdir()) == []
 
 
-def test_all_public_execution_tokens_are_disabled_repo_wide():
+def test_exactly_v3_runner_and_worker_public_tokens_are_enabled_repo_wide():
     root = Path(__file__).resolve().parents[2]
     enabled = []
     pattern = re.compile(r"^([A-Z][A-Z0-9_]*AUTHORIZATION) = object\(\)$")
@@ -325,14 +325,23 @@ def test_all_public_execution_tokens_are_disabled_repo_wide():
         for line in path.read_text().splitlines():
             if pattern.fullmatch(line):
                 enabled.append((path.name, line))
-    assert enabled == []
+    assert enabled == [
+        (
+            "multimodal_toll_v4_model_preflight_v3_runner.py",
+            "RUNNER_EXECUTION_AUTHORIZATION = object()",
+        ),
+        (
+            "multimodal_toll_v4_model_preflight_v3_worker.py",
+            "WORKER_EXECUTION_AUTHORIZATION = object()",
+        ),
+    ]
 
 
 def test_authorized_boundaries_are_exact_one_shot_paths_without_real_execution(
     tmp_path, monkeypatch
 ):
-    runner_authorization = object()
-    worker_authorization = object()
+    runner_authorization = runner.RUNNER_EXECUTION_AUTHORIZATION
+    worker_authorization = worker.WORKER_EXECUTION_AUTHORIZATION
     root = (tmp_path / "authorized").resolve()
     authorized = root / "model.json"
     runner_calls = []
@@ -345,7 +354,6 @@ def test_authorized_boundaries_are_exact_one_shot_paths_without_real_execution(
         return {"mock": True}
 
     monkeypatch.setattr(runner, "AUTHORIZED_OUTPUT_PATH", authorized)
-    monkeypatch.setattr(runner, "RUNNER_EXECUTION_AUTHORIZATION", runner_authorization)
     monkeypatch.setattr(runner, "_production_pipeline", fake_pipeline)
     with pytest.raises(RuntimeError, match="authorized path"):
         runner.execute_model_preflight(
@@ -363,7 +371,6 @@ def test_authorized_boundaries_are_exact_one_shot_paths_without_real_execution(
         )
 
     monkeypatch.setattr(worker, "AUTHORIZED_RUN_ROOT", root)
-    monkeypatch.setattr(worker, "WORKER_EXECUTION_AUTHORIZATION", worker_authorization)
     worker_calls = []
 
     def fake_worker(request, output):
@@ -1196,5 +1203,8 @@ def test_v3_worker_is_a_namespace_only_port_of_closed_v2_worker():
     v3_source = Path(worker.__file__).read_text()
     normalized = v3_source.replace(
         "multimodal_toll_v4_model_preflight_v3", "multimodal_toll_v4_model_preflight_v2"
-    ).replace("model-preflight-v3", "model-preflight-v2")
+    ).replace("model-preflight-v3", "model-preflight-v2").replace(
+        "WORKER_EXECUTION_AUTHORIZATION = object()",
+        "WORKER_EXECUTION_AUTHORIZATION = None",
+    )
     assert normalized == v2_source
