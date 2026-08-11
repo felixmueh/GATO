@@ -47,20 +47,44 @@ void printDeviceInfo() {
 // - Repeated accesses to data region in the global memory are considered to be persisting.
 // Allocate a fraction of the L2 cache for persisting accesses to global memory
 void setL2PersistingAccess(float fraction, bool verbose = false) {
+#if defined(CUDART_VERSION) && CUDART_VERSION >= 11000
+   int device = 0;
+   gpuErrchk(cudaGetDevice(&device));
    cudaDeviceProp prop;
-   cudaGetDeviceProperties(&prop, 0); // device 0
+   gpuErrchk(cudaGetDeviceProperties(&prop, device));
    size_t l2_kb = prop.l2CacheSize / 1024;
    size_t persisting_l2_max_kb = prop.persistingL2CacheMaxSize / 1024;
+   if (prop.persistingL2CacheMaxSize == 0) {
+      if (verbose) {
+         std::cout << "Persisting L2 access is unsupported on this device; skipping." << std::endl;
+      }
+      return;
+   }
    size_t size = std::min(static_cast<size_t>(prop.l2CacheSize * fraction), static_cast<size_t>(prop.persistingL2CacheMaxSize));
    size_t size_kb = size / 1024;
    if (verbose) {
       std::cout << "Total L2 cache size: " << l2_kb << " kB" << std::endl;
       std::cout << "Setting persisting L2 size to: " << size_kb << " / " << persisting_l2_max_kb << " kB" << std::endl;
    }
-   cudaDeviceSetLimit(cudaLimitPersistingL2CacheSize, size);
+   gpuErrchk(cudaDeviceSetLimit(cudaLimitPersistingL2CacheSize, size));
+#else
+   (void)fraction;
+   if (verbose) {
+      std::cout << "Persisting L2 access requires CUDA 11 or newer; skipping." << std::endl;
+   }
+#endif
 }
 
 void resetL2PersistingAccess() {
+#if defined(CUDART_VERSION) && CUDART_VERSION >= 11000
+   int device = 0;
+   gpuErrchk(cudaGetDevice(&device));
+   cudaDeviceProp prop;
+   gpuErrchk(cudaGetDeviceProperties(&prop, device));
+   if (prop.persistingL2CacheMaxSize == 0) {
+      return;
+   }
    gpuErrchk(cudaDeviceSetLimit(cudaLimitPersistingL2CacheSize, 0));
    gpuErrchk(cudaCtxResetPersistingL2Cache()); //reset all persisting L2 cache lines to normal
+#endif
 }
