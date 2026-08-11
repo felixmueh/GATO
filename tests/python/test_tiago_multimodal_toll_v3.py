@@ -276,7 +276,7 @@ def test_q_history_gate_fails_endpoint_margin_nonfinite_and_shape_mutations():
     assert not report["all_q_history_gates_pass"]
 
 
-def test_all_v3_and_predecessor_capabilities_are_closed_without_opening_runtime(monkeypatch):
+def test_exactly_two_v3_capabilities_are_enabled_without_opening_runtime(monkeypatch):
     assert v0_runner.RUNNER_EXECUTION_AUTHORIZATION is None
     assert v0_worker.WORKER_EXECUTION_AUTHORIZATION is None
     assert v1_runner.RUNNER_EXECUTION_AUTHORIZATION is None
@@ -286,8 +286,8 @@ def test_all_v3_and_predecessor_capabilities_are_closed_without_opening_runtime(
     assert v2_oracle.TASK_CONSTRUCTION_AUTHORIZATION is None
     assert v2_runner.RUNNER_EXECUTION_AUTHORIZATION is None
     assert v3.V3_EXECUTION_AUTHORIZATION is None
-    assert oracle.TASK_CONSTRUCTION_AUTHORIZATION is None
-    assert runner.RUNNER_EXECUTION_AUTHORIZATION is None
+    assert oracle.TASK_CONSTRUCTION_AUTHORIZATION is not None
+    assert runner.RUNNER_EXECUTION_AUTHORIZATION is not None
     assert v3.V3_OUTPUT_PATH == Path(
         "/tmp/tiago-tool-center-toll-v3-task-construction-authorized-once/v3.json"
     )
@@ -350,7 +350,7 @@ def test_v3_sources_are_isolated_and_benchmark_cannot_import_oracle():
 
 def test_runner_declaration_is_static_and_fail_closed():
     metadata = runner.describe_v3_runner()
-    assert metadata["authorization_enabled"] is False
+    assert metadata["authorization_enabled"] is True
     assert metadata["expected_identities"] == [
         list(row) for row in v3.EXPECTED_TASK_IDENTITIES
     ]
@@ -364,10 +364,51 @@ def test_runner_declaration_is_static_and_fail_closed():
     assert metadata["construction_only"] is True
     assert metadata["benchmark_evidence"] is False
     assert set(metadata["required_source_paths"]) == set(v3.REQUIRED_SOURCE_PATHS)
-    assert runner.RUNNER_EXECUTION_AUTHORIZATION is None
-    assert oracle.TASK_CONSTRUCTION_AUTHORIZATION is None
+    assert runner.RUNNER_EXECUTION_AUTHORIZATION is not None
+    assert oracle.TASK_CONSTRUCTION_AUTHORIZATION is not None
     with pytest.raises(RuntimeError, match="blocked"):
         runner.execute_v3_runner(v3.V3_OUTPUT_PATH)
+
+
+def test_authorized_runner_is_hard_pinned_to_one_fresh_path(tmp_path, monkeypatch):
+    authorized = (tmp_path / "authorized" / "v3.json").resolve()
+    monkeypatch.setattr(runner, "AUTHORIZED_OUTPUT_PATH", authorized)
+    calls = []
+
+    def fake_pipeline(output, *, token=None):
+        assert token is runner._PRODUCTION_PIPELINE_TOKEN
+        output = Path(output)
+        runner._no_existing_artifacts(output)
+        calls.append(output)
+        runner._checkpoint(
+            output,
+            generation=0,
+            stage="static_authorization_test",
+            expected=runner.EXPECTED_TASK_IDENTITIES,
+            attempted=(),
+            completed=(),
+            rows=(),
+            arrays={},
+            provenance={"test_override": True},
+        )
+        return {"ok": True}
+
+    monkeypatch.setattr(runner, "_production_pipeline", fake_pipeline)
+    with pytest.raises(RuntimeError, match="single authorized path"):
+        runner.execute_v3_runner(
+            tmp_path / "replacement.json",
+            authorization=runner.RUNNER_EXECUTION_AUTHORIZATION,
+        )
+    assert calls == []
+    assert runner.execute_v3_runner(
+        authorized, authorization=runner.RUNNER_EXECUTION_AUTHORIZATION
+    ) == {"ok": True}
+    assert calls == [authorized]
+    with pytest.raises(RuntimeError, match="resume, overwrite, or rerun"):
+        runner.execute_v3_runner(
+            authorized, authorization=runner.RUNNER_EXECUTION_AUTHORIZATION
+        )
+    assert calls == [authorized]
 
 
 def _synthetic_ledger():
