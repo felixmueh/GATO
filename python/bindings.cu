@@ -296,7 +296,10 @@ class PyBSQP {
                 gpuErrchk(cudaDeviceSynchronize());
                 gpuErrchk(cudaMemcpy(h_tool_position_batch_.data(), d_tool_position_batch_,
                                      3 * BatchSize * sizeof(T), cudaMemcpyDeviceToHost));
-                return py::array_t<T>({BatchSize, 3}, h_tool_position_batch_.data());
+                const std::vector<py::ssize_t> shape = {
+                    static_cast<py::ssize_t>(BatchSize), static_cast<py::ssize_t>(3)
+                };
+                return py::array_t<T>(shape, h_tool_position_batch_.data());
         }
 #endif
 

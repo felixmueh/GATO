@@ -473,6 +473,9 @@ def test_tiago_tool_position_binding_is_read_only_batched_exact_frame_api():
     assert '#if defined(PLANT_TIAGO_RIGHT)' in bindings
     assert '.def("tool_position"' in bindings
     assert 'm.attr("TOOL_POSITION_FRAME") = "arm_right_tool_joint_origin"' in bindings
+    assert "const std::vector<py::ssize_t> shape" in bindings
+    assert "static_cast<py::ssize_t>(BatchSize)" in bindings
+    assert "static_cast<py::ssize_t>(3)" in bindings
 
 
 def test_static_checkpoint_does_not_instantiate_frozen_tasks_or_touch_generated_grid():
