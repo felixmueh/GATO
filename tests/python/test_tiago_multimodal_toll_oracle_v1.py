@@ -50,7 +50,12 @@ def test_all_execution_tokens_are_disabled_repo_wide():
     for path in sorted((root/"tiago_src/gato_tiago").glob("*.py")):
         for line in path.read_text().splitlines():
             if pattern.fullmatch(line): enabled.append((path.name,line))
-    assert enabled == []
+    assert enabled == [
+        (
+            "multimodal_toll_oracle_v2_prerequisite_runner.py",
+            "RUNNER_EXECUTION_AUTHORIZATION = object()",
+        )
+    ]
 
 
 def test_template_endpoints_progress_and_opposite_turns():

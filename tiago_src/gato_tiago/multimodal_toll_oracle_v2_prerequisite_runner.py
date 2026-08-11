@@ -38,7 +38,7 @@ from gato_tiago.multimodal_toll_oracle_v2 import (
 )
 
 
-RUNNER_EXECUTION_AUTHORIZATION = None
+RUNNER_EXECUTION_AUTHORIZATION = object()
 REQUIRED_SOURCE_PATHS = {
     "v2_schema": "tiago_src/gato_tiago/multimodal_toll_oracle_v2.py",
     "v2_prerequisite_runner": (
