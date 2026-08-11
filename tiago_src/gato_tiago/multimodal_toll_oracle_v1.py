@@ -82,6 +82,7 @@ ACQUISITION_MAXITER = 1200
 POLISH_MAXITER = 2000
 ACQUISITION_WALL_LIMIT_S = 900.0
 POLISH_WALL_LIMIT_S = 1800.0
+CAMPAIGN_WALL_LIMIT_S = 21600.0
 TRUST_CONSTR_OPTIONS = {
     "method": "trust-constr", "gtol": 1e-10, "xtol": 1e-12,
     "barrier_tol": 1e-12, "sparse_jacobian": True,

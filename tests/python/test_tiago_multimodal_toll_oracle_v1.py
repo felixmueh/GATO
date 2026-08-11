@@ -550,6 +550,40 @@ def test_transaction_gen0_and_exact120_synthetic_pairs(tmp_path,monkeypatch):
     assert len(stages)==124
 
 
+@pytest.mark.parametrize("elapsed,trigger",[(181.,"projected_total"),(21600.,"total_deadline")])
+def test_campaign_watchdog_rejects_after_first_pair_and_retains_partial(tmp_path,monkeypatch,elapsed,trigger):
+    output=tmp_path/"oracle.json"; calls={"acquisition":0,"polish":0,"worker":0}; times=iter((0.,elapsed))
+    monkeypatch.setattr(runner,"authenticate_summary",lambda *_a,**_k:True)
+    monkeypatch.setattr(runner,"cross_bind_prerequisites",lambda *_:True)
+    model={"public_solver_x0_float32":np.zeros((12,14),np.float32),"public_reference_float32":np.zeros((12,10),np.float32),
+        "public_default_side_int8":np.ones(12,np.int8),"quarantined_q8_float64":np.zeros((12,7)),
+        "model_lower_float64":-np.ones(7),"model_upper_float64":np.ones(7),
+        "model_velocity_float64":np.ones(7),"model_effort_float64":np.ones(7)}
+    def acquisition(*_):
+        calls["acquisition"]+=1
+        return {"finite":True,"passes":True},{name:np.zeros(shape,dtype) for name,(shape,dtype) in oracle.ROW_ARRAY_SPECS.items() if name in oracle.ACQUISITION_ARRAY_NAMES}
+    def polish(_):
+        calls["polish"]+=1
+        return {"passes":True},{name:np.zeros(shape,dtype) for name,(shape,dtype) in oracle.ROW_ARRAY_SPECS.items() if name in oracle.POLISH_ARRAY_NAMES}
+    def replay(*_):
+        calls["worker"]+=1
+        return {"artifact":{}},{name:np.zeros(shape,dtype) for name,(shape,dtype) in oracle.ROW_ARRAY_SPECS.items() if name in oracle.REPLAY_ARRAY_NAMES}
+    deadlines=[]
+    with pytest.raises(RuntimeError,match="permanently rejected"):
+        runner._run_pipeline(output,provenance={},task_loader=lambda:({},[],{}),model_loader=lambda:({},model),
+            acquisition_solver=acquisition,polish_solver=polish,replay_solver=replay,
+            finish_provenance=lambda _p:None,test_override=True,monotonic=lambda:next(times),
+            campaign_deadline_setter=deadlines.append)
+    assert calls=={"acquisition":1,"polish":1,"worker":1} and deadlines==[oracle.CAMPAIGN_WALL_LIMIT_S]
+    pointer=json.loads((tmp_path/"oracle.partial.latest.json").read_text())
+    retained=json.loads(Path(pointer["json_path"]).read_text())
+    assert retained["stage"]=="runtime_watchdog_rejected" and retained["completed_count"]==1
+    assert len(retained["pending_identities"])==119 and retained["runtime_watchdog"]["trigger"]==trigger
+    assert retained["runtime_watchdog"]["threshold_seconds"]==21600.
+    assert retained["all_oracle_gates_pass"] is False and retained["runtime_watchdog"]["oracle_evidence"] is False
+    assert not output.exists() and not output.with_suffix(".npz").exists()
+
+
 def test_polish_boundary_rejects_every_oracle_taint_field():
     payload={"acquisition_primal_float64":np.zeros(oracle.Z_WIDTH),
              "public_x0_float32":np.zeros(14,dtype=np.float32),
@@ -884,6 +918,8 @@ def test_execution_boundaries_are_blocked_without_touching_files(tmp_path,monkey
     assert calls==[] and list(tmp_path.iterdir())==[]
 
 
+
+
 def test_oracle_sources_do_not_open_task_rng_or_generate_tasks():
     sources="\n".join(Path(module.__file__).read_text() for module in (oracle,runner,worker))
     assert "generate_task(" not in sources
@@ -907,6 +943,15 @@ def test_dls_enumeration_is_not_repeated_in_prebootstrap_pass():
     assert "reenumerate=False" in inspect.getsource(runner.ProductionOracleDependencies.before_finish)
     assert "reenumerate=True" in inspect.getsource(runner._production_pipeline)
     assert "reenumerate=True" in inspect.getsource(runner.recertify_retained_oracle)
+
+
+def test_solver_callbacks_share_campaign_deadline_without_changing_per_call_limits():
+    source=inspect.getsource(runner._trust_constr)
+    assert "now>=campaign_deadline" in source and "now-start > wall_limit" in source
+    assert oracle.ACQUISITION_WALL_LIMIT_S==900. and oracle.POLISH_WALL_LIMIT_S==1800.
+    assert oracle.CAMPAIGN_WALL_LIMIT_S==21600.
+    assert "campaign_deadline=self.campaign_deadline" in inspect.getsource(runner.ProductionOracleDependencies.acquisition)
+    assert "campaign_deadline=self.campaign_deadline" in inspect.getsource(runner.ProductionOracleDependencies.polish)
 
 
 def test_unanchored_solver_source_has_no_template_q8_side_or_anchor_input():

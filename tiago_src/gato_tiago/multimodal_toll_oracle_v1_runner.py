@@ -219,7 +219,9 @@ def load_authenticated_model_artifact():  # pragma: no cover
 class ProductionOracleDependencies:  # pragma: no cover - all capabilities disabled
     def __init__(self,output,provenance):
         self.output=Path(output); self.provenance=provenance; self.pin=None
-        self.model_arrays=None; self.derivatives_checked=False
+        self.model_arrays=None; self.derivatives_checked=False; self.campaign_deadline=None
+
+    def set_campaign_deadline(self,deadline): self.campaign_deadline=float(deadline)
 
     def task_loader(self):
         summary,rows,arrays=load_authenticated_task_artifact(); self.provenance["task_artifact_loads"]+=1
@@ -256,7 +258,7 @@ class ProductionOracleDependencies:  # pragma: no cover - all capabilities disab
             if not diagnostic["all_pin_derivative_diagnostics_pass"]: raise RuntimeError("production Pin derivatives failed")
             self.provenance["pin_derivative_diagnostics"]=_json_value(diagnostic); self.derivatives_checked=True
         anchored=self._problem(task_index,seed["template_float64"])
-        result=solve_anchored_acquisition(anchored,seed["primal_float64"]); self.provenance["acquisition_optimizer_calls"]+=1
+        result=solve_anchored_acquisition(anchored,seed["primal_float64"],campaign_deadline=self.campaign_deadline); self.provenance["acquisition_optimizer_calls"]+=1
         primal=np.asarray(result.x,dtype=np.float64); x,u=unpack_z(primal); tool,_=anchored.positions_and_jacobians(x)
         dense_state,dense_tool=self.pin.dense_replay(model_arrays["public_solver_x0_float32"][task_index],u)
         arrays={"template_float64":seed["template_float64"],"seed_q_float64":seed["q_float64"],
@@ -274,7 +276,7 @@ class ProductionOracleDependencies:  # pragma: no cover - all capabilities disab
         task_index=next(i for i in range(12) if np.array_equal(self.model_arrays["public_solver_x0_float32"][i],payload["public_x0_float32"])
                         and np.array_equal(self.model_arrays["public_reference_float32"][i],payload["public_reference_float32"]))
         problem=self._problem(task_index)
-        result=solve_unanchored_polish(problem,payload); self.provenance["polish_optimizer_calls"]+=1
+        result=solve_unanchored_polish(problem,payload,campaign_deadline=self.campaign_deadline); self.provenance["polish_optimizer_calls"]+=1
         primal=np.asarray(result.x,dtype=np.float64); x,u=unpack_z(primal); tool,_=problem.positions_and_jacobians(x)
         pin_state,pin_tool=self.pin.dense_replay(problem.x0,u)
         arrays={"polish_primal_float64":primal,"polish_tool_float64":tool,
@@ -388,7 +390,7 @@ def _no_existing(output):
         raise RuntimeError("oracle refuses resume, overwrite, or rerun")
 
 
-def _checkpoint(output, generation, stage, rows, arrays, provenance):
+def _checkpoint(output, generation, stage, rows, arrays, provenance, *, watchdog=None):
     output = Path(output)
     npz = output.with_name(f"{output.stem}.partial.{generation:04d}.npz")
     summary = output.with_name(f"{output.stem}.partial.{generation:04d}.json")
@@ -402,6 +404,9 @@ def _checkpoint(output, generation, stage, rows, arrays, provenance):
                "completed_count":len(rows),"pending_identities":[list(v) for v in EXPECTED_LEDGER[len(rows):]],
                "rows":rows,"provenance":provenance,"all_oracle_gates_pass":False,
                "array_names":sorted(retained),"array_hashes":{k:array_hash(v) for k,v in retained.items()}}
+    if watchdog is not None:
+        payload["runtime_watchdog"]={**watchdog,"operational_timing_only":True,
+            "oracle_evidence":False,"benchmark_timing_evidence":False,"permanently_rejects_protocol":True}
     payload["npz_path"] = str(npz); payload["npz_sha256"] = sha256_file(npz)
     _atomic_json(summary,payload)
     _atomic_json(pointer,{"generation":generation,"json_path":str(summary),"json_sha256":sha256_file(summary),
@@ -514,12 +519,14 @@ def production_pin_derivative_diagnostics(problem,q0,q8,rnea):
             "all_pin_derivative_diagnostics_pass":all(r["passes"] for r in rows)}
 
 
-def _trust_constr(problem, initial, *, maxiter, wall_limit):  # pragma: no cover
+def _trust_constr(problem, initial, *, maxiter, wall_limit, campaign_deadline):  # pragma: no cover
     from scipy.optimize import BFGS, Bounds, NonlinearConstraint, minimize
     from scipy.sparse import csr_matrix
     start=time.monotonic()
     def callback(_x,_state=None):
-        if time.monotonic()-start > wall_limit: raise TimeoutError("frozen oracle wall limit")
+        now=time.monotonic()
+        if now>=campaign_deadline: raise TimeoutError("frozen oracle campaign wall limit")
+        if now-start > wall_limit: raise TimeoutError("frozen oracle per-call wall limit")
     constraints=(NonlinearConstraint(problem.equality,0.,0.,jac=lambda z:csr_matrix(problem.equality_jacobian(z))),
                  NonlinearConstraint(problem.inequality,0.,np.inf,jac=lambda z:csr_matrix(problem.inequality_jacobian(z))))
     lower,upper=problem.bounds_arrays()
@@ -529,19 +536,20 @@ def _trust_constr(problem, initial, *, maxiter, wall_limit):  # pragma: no cover
                                                "barrier_tol":1e-12,"sparse_jacobian":True})
 
 
-def solve_anchored_acquisition(problem, initial):  # pragma: no cover
+def solve_anchored_acquisition(problem, initial, *, campaign_deadline):  # pragma: no cover
     """Acquisition-only solve; ``problem`` may contain template/anchor data."""
     return _trust_constr(problem, initial, maxiter=ACQUISITION_MAXITER,
-                         wall_limit=ACQUISITION_WALL_LIMIT_S)
+                         wall_limit=ACQUISITION_WALL_LIMIT_S,campaign_deadline=campaign_deadline)
 
 
-def solve_unanchored_polish(problem, polish_input):  # pragma: no cover
+def solve_unanchored_polish(problem, polish_input, *, campaign_deadline):  # pragma: no cover
     """Certifying solve whose boundary is deliberately free of oracle hints."""
     validate_unanchored_polish_input(polish_input)
     if not certify_polish_problem_binding(problem,polish_input):
         raise ValueError("polish problem is not exact public unanchored OriginalOracleNLP")
     return _trust_constr(problem, polish_input["acquisition_primal_float64"],
-                         maxiter=POLISH_MAXITER, wall_limit=POLISH_WALL_LIMIT_S)
+                         maxiter=POLISH_MAXITER, wall_limit=POLISH_WALL_LIMIT_S,
+                         campaign_deadline=campaign_deadline)
 
 
 def retained_scipy_multipliers(result):
@@ -1348,8 +1356,11 @@ def recertify_retained_oracle(summary_path,npz_path,manifest_path,pointer_path):
 def _run_pipeline(output, *, provenance, task_loader:Callable, model_loader:Callable,
                   acquisition_solver:Callable, polish_solver:Callable, replay_solver:Callable,
                   finish_provenance:Callable, test_override:bool,
-                  final_certifier:Callable|None=None,before_finish:Callable|None=None):
+                  final_certifier:Callable|None=None,before_finish:Callable|None=None,
+                  monotonic:Callable=time.monotonic,campaign_deadline_setter:Callable|None=None):
     output=Path(output); _no_existing(output); rows=[]; arrays={}
+    campaign_start=float(monotonic()); campaign_deadline=campaign_start+CAMPAIGN_WALL_LIMIT_S
+    if campaign_deadline_setter is not None: campaign_deadline_setter(campaign_deadline)
     _checkpoint(output,0,"before_prerequisite_loads",rows,arrays,provenance)
     task_summary,task_rows,task_arrays=task_loader();
     if not authenticate_summary(task_summary,task_arrays,kind="task"): raise RuntimeError("task prerequisite failed")
@@ -1396,7 +1407,17 @@ def _run_pipeline(output, *, provenance, task_loader:Callable, model_loader:Call
                 row["pair_side_artifact"]=publish_pair(output,index,identity,retained_row)
         except BaseException as error:
             row.update({"error_type":type(error).__name__,"error":str(error),"traceback":traceback.format_exc()})
-        rows.append(row); _checkpoint(output,index+3,"pair_completed",rows,arrays,provenance)
+        rows.append(row)
+        elapsed=max(0.,float(monotonic())-campaign_start); completed=index+1
+        projected=elapsed/completed*EXPECTED_PAIR_COUNT
+        rejected=elapsed>=CAMPAIGN_WALL_LIMIT_S or projected>CAMPAIGN_WALL_LIMIT_S
+        if rejected:
+            watchdog={"completed_count":completed,"elapsed_seconds":elapsed,"projected_total_seconds":projected,
+                      "threshold_seconds":CAMPAIGN_WALL_LIMIT_S,
+                      "trigger":"total_deadline" if elapsed>=CAMPAIGN_WALL_LIMIT_S else "projected_total"}
+            _checkpoint(output,index+3,"runtime_watchdog_rejected",rows,arrays,provenance,watchdog=watchdog)
+            raise RuntimeError("oracle V1 runtime watchdog permanently rejected campaign")
+        _checkpoint(output,index+3,"pair_completed",rows,arrays,provenance)
     if before_finish is not None: before_finish(rows,arrays,provenance)
     finish_provenance(provenance); _checkpoint(output,123,"end_provenance",rows,arrays,provenance)
     if test_override: return {"rows":rows,"incomplete":True,"all_oracle_gates_pass":False}
@@ -1412,6 +1433,7 @@ def _production_pipeline(output, *, token=None):  # pragma: no cover
         model_loader=dependencies.model_loader,acquisition_solver=dependencies.acquisition,
         polish_solver=dependencies.polish,replay_solver=dependencies.replay,
         before_finish=dependencies.before_finish,finish_provenance=finish_runner_provenance,
+        campaign_deadline_setter=dependencies.set_campaign_deadline,
         final_certifier=lambda rows,arrays,p:certify_final_oracle(rows,arrays,p,dependencies.problem_factory,reenumerate=True),
         test_override=False)
 
