@@ -1,6 +1,7 @@
 import inspect
 import json
 import copy
+import re
 from pathlib import Path
 
 import numpy as np
@@ -223,8 +224,8 @@ def _rows_and_arrays(base):
 
 def test_rejected_model_preflight_tokens_are_disabled_and_artifact_is_hard_pinned():
     assert schema.MODEL_PREFLIGHT_EXECUTION_AUTHORIZATION is None
-    assert runner.RUNNER_EXECUTION_AUTHORIZATION is None
-    assert worker.WORKER_EXECUTION_AUTHORIZATION is None
+    assert runner.RUNNER_EXECUTION_AUTHORIZATION is not None
+    assert worker.WORKER_EXECUTION_AUTHORIZATION is not None
     assert v1_schema.MODEL_PREFLIGHT_EXECUTION_AUTHORIZATION is None
     assert v1_runner.RUNNER_EXECUTION_AUTHORIZATION is None
     assert v1_worker.WORKER_EXECUTION_AUTHORIZATION is None
@@ -279,25 +280,50 @@ def test_rejected_model_preflight_tokens_are_disabled_and_artifact_is_hard_pinne
     }
 
 
-def test_blocked_entrypoints_touch_no_files_or_subprocess(tmp_path, monkeypatch):
+def test_wrong_authorizations_touch_no_files_or_subprocess(tmp_path, monkeypatch):
     calls = []
     monkeypatch.setattr(worker, "_run_authorized_worker", lambda *_: calls.append("worker"))
     monkeypatch.setattr(runner, "_production_pipeline", lambda *_args, **_kwargs: calls.append("runner"))
     with pytest.raises(RuntimeError, match="blocked"):
-        worker.execute_worker(tmp_path / "request.json", tmp_path / "worker.json")
+        worker.execute_worker(
+            tmp_path / "request.json",
+            tmp_path / "worker.json",
+            authorization=object(),
+        )
     with pytest.raises(RuntimeError, match="blocked"):
-        runner.execute_model_preflight(tmp_path / "preflight.json")
+        runner.execute_model_preflight(
+            tmp_path / "preflight.json",
+            authorization=object(),
+        )
     assert calls == []
     assert list(tmp_path.iterdir()) == []
+
+
+def test_exactly_v2_runner_and_worker_public_tokens_are_enabled_repo_wide():
+    root = Path(__file__).resolve().parents[2]
+    enabled = []
+    pattern = re.compile(r"^([A-Z][A-Z0-9_]*AUTHORIZATION) = object\(\)$")
+    for path in sorted((root / "tiago_src/gato_tiago").glob("*.py")):
+        for line in path.read_text().splitlines():
+            if pattern.fullmatch(line):
+                enabled.append((path.name, line))
+    assert enabled == [
+        (
+            "multimodal_toll_v4_model_preflight_v2_runner.py",
+            "RUNNER_EXECUTION_AUTHORIZATION = object()",
+        ),
+        (
+            "multimodal_toll_v4_model_preflight_v2_worker.py",
+            "WORKER_EXECUTION_AUTHORIZATION = object()",
+        ),
+    ]
 
 
 def test_authorized_boundaries_are_exact_one_shot_paths_without_real_execution(
     tmp_path, monkeypatch
 ):
-    runner_authorization = object()
-    worker_authorization = object()
-    monkeypatch.setattr(runner, "RUNNER_EXECUTION_AUTHORIZATION", runner_authorization)
-    monkeypatch.setattr(worker, "WORKER_EXECUTION_AUTHORIZATION", worker_authorization)
+    runner_authorization = runner.RUNNER_EXECUTION_AUTHORIZATION
+    worker_authorization = worker.WORKER_EXECUTION_AUTHORIZATION
     root = (tmp_path / "authorized").resolve()
     authorized = root / "model.json"
     runner_calls = []
@@ -334,28 +360,29 @@ def test_authorized_boundaries_are_exact_one_shot_paths_without_real_execution(
         return {"mock": True}
 
     monkeypatch.setattr(worker, "_run_authorized_worker", fake_worker)
-    module = next(iter(worker.SUPPORTED_MODULES))
-    leaf = module.split(".")[-1]
-    request = root / f"model.{leaf}.request.json"
-    output = root / f"model.{leaf}.json"
+    pairs = []
+    for module in worker.SUPPORTED_MODULES:
+        leaf = module.split(".")[-1]
+        request = root / f"model.{leaf}.request.json"
+        output = root / f"model.{leaf}.json"
+        pairs.append((request, output))
+        assert worker.execute_worker(
+            request,
+            output,
+            authorization=worker_authorization,
+        ) == {"mock": True}
     with pytest.raises(RuntimeError, match="single authorized run"):
         worker.execute_worker(
             root / "wrong.request.json",
-            output,
+            pairs[0][1],
             authorization=worker_authorization,
         )
-    assert worker.execute_worker(
-        request,
-        output,
-        authorization=worker_authorization,
-    ) == {"mock": True}
-    assert worker_calls == [(request, output)]
-    output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text("{}")
+    assert worker_calls == pairs
+    pairs[0][1].parent.mkdir(parents=True, exist_ok=True)
+    pairs[0][1].write_text("{}")
     with pytest.raises(RuntimeError, match="overwrite or rerun"):
         worker.execute_worker(
-            request,
-            output,
+            *pairs[0],
             authorization=worker_authorization,
         )
 
