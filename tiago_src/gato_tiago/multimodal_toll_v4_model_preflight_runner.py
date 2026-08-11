@@ -60,7 +60,7 @@ from gato_tiago.multimodal_toll_v4_model_preflight_worker import (
 )
 
 
-RUNNER_EXECUTION_AUTHORIZATION = object()
+RUNNER_EXECUTION_AUTHORIZATION = None
 RUNNER_PROTOCOL_VERSION = MODEL_PREFLIGHT_PROTOCOL_VERSION + "_runner_1"
 _PRODUCTION_PIPELINE_TOKEN = object()
 

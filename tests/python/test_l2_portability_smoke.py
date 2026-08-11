@@ -70,10 +70,10 @@ def _provenance():
     }
 
 
-def test_static_contract_is_fresh_hard_pinned_and_fully_blocked():
+def test_one_shot_authorization_enables_only_runner_and_worker():
     assert schema.SMOKE_EXECUTION_AUTHORIZATION is None
-    assert runner.RUNNER_EXECUTION_AUTHORIZATION is None
-    assert worker.WORKER_EXECUTION_AUTHORIZATION is None
+    assert runner.RUNNER_EXECUTION_AUTHORIZATION is not None
+    assert worker.WORKER_EXECUTION_AUTHORIZATION is not None
     assert schema.AUTHORIZED_OUTPUT_PATH == Path(
         "/tmp/tiago-tool-center-l2-portability-smoke-authorized-once/smoke.json"
     )
@@ -101,16 +101,77 @@ def test_static_contract_is_fresh_hard_pinned_and_fully_blocked():
     assert all(value == 0 for value in schema.FORBIDDEN_CALL_COUNTS.values())
 
 
-def test_blocked_entrypoints_do_not_touch_files_or_private_workers(tmp_path, monkeypatch):
-    calls = []
-    monkeypatch.setattr(runner, "_production_pipeline", lambda *_args, **_kw: calls.append("runner"))
-    monkeypatch.setattr(worker, "_run_worker", lambda *_args, **_kw: calls.append("worker"))
+def test_authorized_entrypoints_reject_wrong_paths_and_refuse_overwrite(
+    tmp_path, monkeypatch
+):
+    authorized = tmp_path / "authorized" / "smoke.json"
+    monkeypatch.setattr(runner, "AUTHORIZED_OUTPUT_PATH", authorized)
+    monkeypatch.setattr(worker, "AUTHORIZED_OUTPUT_PATH", authorized)
+    runner_calls = []
+
+    def fake_pipeline(output, *, token=None):
+        assert token is runner._PRODUCTION_TOKEN
+        runner._no_existing(output)
+        runner_calls.append(Path(output))
+        return {"mock": True}
+
+    monkeypatch.setattr(runner, "_production_pipeline", fake_pipeline)
     with pytest.raises(RuntimeError, match="blocked"):
-        runner.execute_smoke(tmp_path / "smoke.json")
+        runner.execute_smoke(authorized, authorization=object())
+    with pytest.raises(RuntimeError, match="not authorized"):
+        runner.execute_smoke(
+            tmp_path / "wrong.json",
+            authorization=runner.RUNNER_EXECUTION_AUTHORIZATION,
+        )
+    assert runner.execute_smoke(
+        authorized,
+        authorization=runner.RUNNER_EXECUTION_AUTHORIZATION,
+    ) == {"mock": True}
+    authorized.parent.mkdir(parents=True, exist_ok=True)
+    authorized.with_name("smoke.partial.latest.json").write_text("{}")
+    with pytest.raises(RuntimeError, match="overwrite, resume, or rerun"):
+        runner.execute_smoke(
+            authorized,
+            authorization=runner.RUNNER_EXECUTION_AUTHORIZATION,
+        )
+    assert runner_calls == [authorized]
+
+    worker_calls = []
+    monkeypatch.setattr(
+        worker,
+        "_run_worker",
+        lambda request, output: worker_calls.append((request, output)) or {"mock": True},
+    )
     with pytest.raises(RuntimeError, match="blocked"):
-        worker.execute_worker(tmp_path / "request.json", tmp_path / "worker.json")
-    assert calls == []
-    assert list(tmp_path.iterdir()) == []
+        worker.execute_worker(
+            authorized.parent / "wrong.request.json",
+            authorized.parent / "wrong.json",
+            authorization=object(),
+        )
+    expected_pairs = []
+    for spec in schema.FROZEN_MODULES:
+        leaf = spec["module_name"].split(".")[-1]
+        request = authorized.parent / f"smoke.{leaf}.request.json"
+        output = authorized.parent / f"smoke.{leaf}.json"
+        expected_pairs.append((request.resolve(), output.resolve()))
+        assert worker.execute_worker(
+            request,
+            output,
+            authorization=worker.WORKER_EXECUTION_AUTHORIZATION,
+        ) == {"mock": True}
+    with pytest.raises(RuntimeError, match="not authorized"):
+        worker.execute_worker(
+            expected_pairs[0][0],
+            expected_pairs[1][1],
+            authorization=worker.WORKER_EXECUTION_AUTHORIZATION,
+        )
+    expected_pairs[0][1].write_text("{}")
+    with pytest.raises(RuntimeError, match="overwrite or rerun"):
+        worker.execute_worker(
+            *expected_pairs[0],
+            authorization=worker.WORKER_EXECUTION_AUTHORIZATION,
+        )
+    assert worker_calls == expected_pairs
 
 
 def test_worker_pure_certificate_accepts_only_exact_zero_and_repeated_fk():

@@ -39,7 +39,7 @@ from gato_tiago.l2_portability_smoke_worker import (
 )
 
 
-RUNNER_EXECUTION_AUTHORIZATION = None
+RUNNER_EXECUTION_AUTHORIZATION = object()
 RUNNER_PROTOCOL_VERSION = PROTOCOL_VERSION + "_runner_1"
 _PRODUCTION_TOKEN = object()
 
