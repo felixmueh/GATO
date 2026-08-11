@@ -111,7 +111,9 @@ def test_worker_and_runner_block_before_read_import_or_filesystem(tmp_path, monk
 def test_rejected_v0_capabilities_and_legacy_tokens_are_blocked():
     assert runner.RUNNER_EXECUTION_AUTHORIZATION is None
     assert worker.WORKER_EXECUTION_AUTHORIZATION is None
-    assert oracle_schema.TASK_CONSTRUCTION_AUTHORIZATION is None
+    # The shared construction token belongs exclusively to the V1 runner; V0
+    # cannot reach it because both V0 runtime boundaries remain closed.
+    assert oracle_schema.TASK_CONSTRUCTION_AUTHORIZATION is not None
     assert runner.AUTHORIZED_OUTPUT_PATH.parent == worker.AUTHORIZED_RUN_ROOT
     assert v0_schema.V0_EXECUTION_AUTHORIZATION is None
     stage0_source = (

@@ -22,7 +22,7 @@ from gato_tiago import multimodal_toll as toll
 from gato_tiago.multimodal_toll_v1 import _array_hash, _is_sha256
 
 
-WORKER_EXECUTION_AUTHORIZATION = None
+WORKER_EXECUTION_AUTHORIZATION = object()
 WORKER_PROTOCOL_VERSION = "tiago_tool_center_toll_v1_extension_worker_1"
 AUTHORIZED_RUN_ROOT = Path("/tmp/tiago-tool-center-toll-v1-authorized-once")
 SUPPORTED_MODULES = {
