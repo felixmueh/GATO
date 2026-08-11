@@ -190,7 +190,7 @@ def _finish(provenance):
 
 
 def test_tokens_paths_pins_and_rejected_v1_report_are_frozen():
-    assert runner.RUNNER_EXECUTION_AUTHORIZATION is not None
+    assert runner.RUNNER_EXECUTION_AUTHORIZATION is None
     assert v1_runner.RUNNER_EXECUTION_AUTHORIZATION is None
     assert v1_worker.WORKER_EXECUTION_AUTHORIZATION is None
     assert schema.AUTHORIZED_OUTPUT == Path(
@@ -677,7 +677,7 @@ def test_execution_boundary_blocks_before_root_or_artifact_access(tmp_path, monk
     assert calls == [] and list(tmp_path.iterdir()) == []
 
 
-def test_authorized_boundary_is_hard_path_fresh_and_exact_token(
+def test_closed_boundary_rejects_even_hard_path_and_exact_old_token(
     tmp_path, monkeypatch
 ):
     output = tmp_path / "fresh" / "prerequisite.json"
@@ -694,19 +694,16 @@ def test_authorized_boundary_is_hard_path_fresh_and_exact_token(
         "_run_pipeline",
         lambda path, **_kwargs: calls.append(Path(path)) or {"passes": True},
     )
-    with pytest.raises(RuntimeError, match="blocked"):
-        runner.execute_prerequisite(str(output), object())
+    for token in (object(), None):
+        with pytest.raises(RuntimeError, match="blocked"):
+            runner.execute_prerequisite(str(output), token)
     assert calls == []
-    assert runner.execute_prerequisite(
-        str(output), runner.RUNNER_EXECUTION_AUTHORIZATION
-    ) == {"passes": True}
-    assert calls == [output]
     output.parent.mkdir()
-    with pytest.raises(RuntimeError, match="root must be absent"):
+    with pytest.raises(RuntimeError, match="blocked"):
         runner.execute_prerequisite(
-            str(output), runner.RUNNER_EXECUTION_AUTHORIZATION
+            str(output), object()
         )
-    assert calls == [output]
+    assert calls == []
 
 
 def test_public_recertifier_rejects_wrong_path_before_predecessor_load(
