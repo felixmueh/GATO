@@ -1,4 +1,5 @@
 from pathlib import Path
+import json
 
 import numpy as np
 import pytest
@@ -131,12 +132,15 @@ def test_v1_draw_inputs_are_exact_finite_float64_vectors(field):
         v1.generate_v1_draws(*values)
 
 
-def test_v1_static_sources_do_not_open_tasks_models_cuda_or_v0_artifacts():
+def test_v1_static_sources_keep_runtime_behind_blocked_boundaries_and_exclude_v0_artifacts():
     root = Path(__file__).resolve().parents[2]
     schema = (root / "tiago_src/gato_tiago/multimodal_toll_v1.py").read_text()
     runner = (root / "tiago_src/gato_tiago/multimodal_toll_v1_runner.py").read_text()
     worker = (root / "tiago_src/gato_tiago/multimodal_toll_v1_worker.py").read_text()
-    combined = schema + runner + worker
+
+    # The schema stays pure.  The full runner/worker intentionally contain the
+    # future call-boundary implementation, but neither public boundary has an
+    # authorization capability in this static checkpoint.
     for forbidden in (
         "generate_task(",
         "load_model(",
@@ -147,4 +151,140 @@ def test_v1_static_sources_do_not_open_tasks_models_cuda_or_v0_artifacts():
         ".solve(",
         "np.load(",
     ):
-        assert forbidden not in combined
+        assert forbidden not in schema
+    assert v1_runner.RUNNER_EXECUTION_AUTHORIZATION is None
+    assert v1_worker.WORKER_EXECUTION_AUTHORIZATION is None
+    assert "/tmp/tiago-tool-center-toll-v0-authorized-once" not in runner
+    assert "/tmp/tiago-tool-center-toll-v0-authorized-once" not in worker
+
+
+def test_v1_full_port_preserves_extension_and_task_ledgers_without_opening_rng(monkeypatch):
+    assert v1_runner.FROZEN_EXTENSIONS == v0_runner.FROZEN_EXTENSIONS
+    assert v1_runner.EXPECTED_TASK_IDENTITIES == v0_runner.EXPECTED_TASK_IDENTITIES
+    assert v1_runner.AUTHORIZED_OUTPUT_PATH == Path(v1.V1_OUTPUT_PATH)
+    assert v1_runner.RUNNER_EXECUTION_AUTHORIZATION is None
+    assert v1_worker.WORKER_EXECUTION_AUTHORIZATION is None
+    frozen = {seed for _, seed in v1_runner.EXPECTED_TASK_IDENTITIES}
+    original = np.random.default_rng
+
+    def guarded(seed=None):
+        assert seed not in frozen
+        return original(seed)
+
+    monkeypatch.setattr(np.random, "default_rng", guarded)
+    with pytest.raises(RuntimeError, match="blocked"):
+        v1_runner.execute_v1_runner(v1.V1_OUTPUT_PATH)
+
+
+def test_v1_independent_authenticity_rejects_any_draw_mutation():
+    draws = v1.generate_v1_draws(*_inputs())
+    assert v1._draws_are_authentic_v1(draws)[0]
+    changed = draws.dynamics_q_float64.copy()
+    changed[0, 0] = np.nextafter(changed[0, 0], np.inf)
+    mutated = v1.V1Draws(
+        **{
+            **draws.__dict__,
+            "dynamics_q_float64": changed,
+        }
+    )
+    assert not v1._draws_are_authentic_v1(mutated)[0]
+
+
+def test_v1_transaction_mock_is_synthetic_only_and_non_evidence(tmp_path):
+    ledger = tuple(("synthetic", 93000 + index) for index in range(12))
+    task_calls = []
+    worker_calls = []
+
+    def task_factory(identity):
+        task_calls.append(identity)
+        return {"identity": identity, "passes": True}, {"q": np.zeros(7)}
+
+    specs = [{"module_name": f"synthetic.v1.module{index}"} for index in range(3)]
+
+    def worker_launcher(spec, arrays):
+        worker_calls.append(spec["module_name"])
+        return {
+            "identity": ("worker", spec["module_name"]),
+            "passes": True,
+            "command": ["python-static-mock", "-m", spec["module_name"]],
+        }, {"captured_count": np.asarray([len(arrays)], dtype=np.int64)}
+
+    output = tmp_path / "v1.json"
+    result = v1_runner._run_pipeline(
+        output,
+        ledger=ledger,
+        task_factory=task_factory,
+        worker_specs=specs,
+        worker_launcher=worker_launcher,
+        base_arrays={"base": np.zeros(1)},
+        provenance={"test_override": True, "v0_artifacts_consumed": False},
+        test_override=True,
+    )
+    assert task_calls == list(ledger)
+    assert worker_calls == [row["module_name"] for row in specs]
+    assert result["all_v1_gates_pass"] is False
+    assert result["test_override"] is True
+    assert result["optimization_evidence"] is False
+    assert result["sqp_optimization_calls"] == 0
+    assert result["task_construction_calls"] == 12
+    assert result["worker_subprocess_calls"] == 3
+    manifest = json.loads(output.with_suffix(".manifest.json").read_text())
+    assert manifest["incomplete"] is False
+    assert manifest["supersedes_partial_generation"] == 15
+
+
+def test_v1_gen0_and_failed_task_are_immutable_and_fail_closed(tmp_path):
+    output = tmp_path / "v1.json"
+    ledger = tuple(("synthetic", 94000 + index) for index in range(12))
+    calls = 0
+
+    def fail_second(identity):
+        nonlocal calls
+        calls += 1
+        if calls == 2:
+            raise ValueError("synthetic V1 task failure")
+        return {"identity": identity, "passes": True}, {"q": np.zeros(7)}
+
+    with pytest.raises(ValueError, match="synthetic V1 task failure"):
+        v1_runner._run_pipeline(
+            output,
+            ledger=ledger,
+            task_factory=fail_second,
+            worker_specs=(),
+            worker_launcher=lambda *_: pytest.fail("worker called"),
+            base_arrays={"base": np.zeros(1)},
+            provenance={"test_override": True, "v0_artifacts_consumed": False},
+            test_override=True,
+        )
+    pointer = json.loads((tmp_path / "v1.partial.latest.json").read_text())
+    assert pointer["generation"] == 2
+    checkpoint = json.loads(Path(pointer["json_path"]).read_text())
+    assert checkpoint["incomplete"] is True
+    assert checkpoint["all_v1_gates_pass"] is False
+    assert checkpoint["task_construction_attempt_count"] == 2
+    assert checkpoint["rows"][-1]["error_type"] == "ValueError"
+    assert checkpoint["rows"][-1]["identity"] == list(ledger[1])
+    assert not output.exists()
+    with pytest.raises(RuntimeError, match="resume, overwrite, or rerun"):
+        v1_runner._no_existing_artifacts(output)
+
+
+def test_v1_source_provenance_is_versioned_and_v0_data_is_excluded():
+    assert {
+        "v1_schema",
+        "v1_runner",
+        "v1_worker",
+        "v1_tests",
+        "shared_preflight_gate_source",
+    }.issubset(v1.REQUIRED_SOURCE_PATHS)
+    assert not {
+        "v0_runner",
+        "v0_worker",
+        "v0_tests",
+        "v0_runner_tests",
+    }.intersection(v1.REQUIRED_SOURCE_PATHS)
+    runner_source = Path(v1_runner.__file__).read_text()
+    worker_source = Path(v1_worker.__file__).read_text()
+    assert "/tmp/tiago-tool-center-toll-v0-authorized-once" not in runner_source
+    assert "/tmp/tiago-tool-center-toll-v0-authorized-once" not in worker_source
+    assert "np.load(" not in Path(v1.__file__).read_text()
