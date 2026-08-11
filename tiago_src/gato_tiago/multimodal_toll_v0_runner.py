@@ -73,6 +73,19 @@ FROZEN_EXTENSIONS = (
 )
 
 
+def repository_root(module_path=Path(__file__)):
+    root = Path(module_path).resolve().parents[2]
+    sentinels = (
+        root / ".git",
+        root / "CMakeLists.txt",
+        root / "gato/bsqp/bsqp.cuh",
+        root / "tiago_src/gato_tiago/multimodal_toll_v0_runner.py",
+    )
+    if not all(path.exists() for path in sentinels):
+        raise RuntimeError("Stage V0 repository root sentinel mismatch")
+    return root
+
+
 def exact_invocation_provenance():
     original = list(sys.orig_argv)
     return {
@@ -656,7 +669,7 @@ def _production_pipeline(output):  # pragma: no cover - execution is blocked
 
     output = Path(output).resolve()
     _no_existing_artifacts(output)
-    repo = Path(__file__).resolve().parents[3]
+    repo = repository_root()
     head_start = subprocess.check_output(
         ["git", "rev-parse", "HEAD"], cwd=repo, text=True
     ).strip()

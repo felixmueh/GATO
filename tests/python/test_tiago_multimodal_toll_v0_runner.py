@@ -198,6 +198,19 @@ def test_frozen_worker_specs_are_exact_and_one_module_each():
     assert source.count("oracle.generate_task(") == 1
 
 
+def test_repository_root_uses_actual_module_path_and_hard_sentinels(tmp_path):
+    expected = Path(__file__).resolve().parents[2]
+    assert runner.repository_root(Path(runner.__file__)) == expected
+    assert (expected / ".git").exists()
+    assert (expected / "CMakeLists.txt").is_file()
+    assert (expected / "gato/bsqp/bsqp.cuh").is_file()
+    fake_module = tmp_path / "a" / "b" / "runner.py"
+    fake_module.parent.mkdir(parents=True)
+    fake_module.write_text("# fake\n")
+    with pytest.raises(RuntimeError, match="repository root sentinel mismatch"):
+        runner.repository_root(fake_module)
+
+
 def _synthetic_ledger():
     return tuple(("synthetic", 900000 + index) for index in range(12))
 
