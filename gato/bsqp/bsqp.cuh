@@ -14,6 +14,9 @@
 #include "kernels/merit.cuh"
 #include "kernels/line_search.cuh"
 #include "kernels/sim.cuh"
+#if defined(PLANT_TIAGO_RIGHT)
+#include "kernels/tool_position.cuh"
+#endif
 
 using namespace sqp;
 
@@ -96,6 +99,16 @@ class BSQP {
         {
                 simForwardBatched<T, BatchSize>(d_xkp1_batch, d_xk_batch, d_uk_batch, d_GRiD_mem_, d_f_ext_batch_, dt, stream_);
         }
+
+#if defined(PLANT_TIAGO_RIGHT)
+        // Query the same arm_right_tool_joint origin used by Tiago tracking
+        // costs. This is read-only and does not mutate any optimizer state.
+        void tool_position(T* d_positions, const T* d_q_batch)
+        {
+                gato::kernels::tiagoToolPositionBatched<T, BatchSize>(
+                    d_positions, d_q_batch, d_GRiD_mem_, stream_);
+        }
+#endif
 
         void copy_final_merit_to_host(T* h_out)
         {

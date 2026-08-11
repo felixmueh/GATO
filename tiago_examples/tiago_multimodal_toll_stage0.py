@@ -11,6 +11,7 @@ import argparse
 import json
 
 from gato_tiago.multimodal_toll import frozen_protocol_metadata
+from gato_tiago.multimodal_toll_v0 import frozen_v0_metadata
 
 
 STAGE0_EXECUTION_AUTHORIZATION = None
@@ -27,7 +28,16 @@ def parse_args(argv=None):
 def main(argv=None):
     args = parse_args(argv)
     if args.describe and not args.execute:
-        print(json.dumps(frozen_protocol_metadata(), indent=2, sort_keys=True))
+        print(
+            json.dumps(
+                {
+                    "benchmark": frozen_protocol_metadata(),
+                    "stage_v0": frozen_v0_metadata(),
+                },
+                indent=2,
+                sort_keys=True,
+            )
+        )
         return 0
     if STAGE0_EXECUTION_AUTHORIZATION is None:
         raise SystemExit("Stage V0/V1 execution is blocked pending verifier authorization")

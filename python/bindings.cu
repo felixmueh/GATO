@@ -25,10 +25,18 @@ class PyBSQP {
                 gpuErrchk(cudaMalloc(&d_xkp1_batch_, STATE_SIZE * BatchSize * sizeof(T)));
                 gpuErrchk(cudaMalloc(&d_xk_, STATE_SIZE * BatchSize * sizeof(T)));
                 gpuErrchk(cudaMalloc(&d_uk_, CONTROL_SIZE * BatchSize * sizeof(T)));
+#if defined(PLANT_TIAGO_RIGHT)
+                gpuErrchk(cudaMalloc(&d_tool_q_batch_, grid::NQ * BatchSize * sizeof(T)));
+                gpuErrchk(cudaMalloc(&d_tool_position_batch_, 3 * BatchSize * sizeof(T)));
+#endif
 
                 h_xkp1_batch_.resize(STATE_SIZE * BatchSize);
                 h_xk_batch_.resize(STATE_SIZE * BatchSize);
                 h_uk_batch_.resize(CONTROL_SIZE * BatchSize);
+#if defined(PLANT_TIAGO_RIGHT)
+                h_tool_q_batch_.resize(grid::NQ * BatchSize);
+                h_tool_position_batch_.resize(3 * BatchSize);
+#endif
         }
 
         PyBSQP(const T        dt,
@@ -60,10 +68,18 @@ class PyBSQP {
                 gpuErrchk(cudaMalloc(&d_xkp1_batch_, STATE_SIZE * BatchSize * sizeof(T)));
                 gpuErrchk(cudaMalloc(&d_xk_, STATE_SIZE * BatchSize * sizeof(T)));
                 gpuErrchk(cudaMalloc(&d_uk_, CONTROL_SIZE * BatchSize * sizeof(T)));
+#if defined(PLANT_TIAGO_RIGHT)
+                gpuErrchk(cudaMalloc(&d_tool_q_batch_, grid::NQ * BatchSize * sizeof(T)));
+                gpuErrchk(cudaMalloc(&d_tool_position_batch_, 3 * BatchSize * sizeof(T)));
+#endif
 
                 h_xkp1_batch_.resize(STATE_SIZE * BatchSize);
                 h_xk_batch_.resize(STATE_SIZE * BatchSize);
                 h_uk_batch_.resize(CONTROL_SIZE * BatchSize);
+#if defined(PLANT_TIAGO_RIGHT)
+                h_tool_q_batch_.resize(grid::NQ * BatchSize);
+                h_tool_position_batch_.resize(3 * BatchSize);
+#endif
         }
 
         ~PyBSQP()
@@ -74,6 +90,10 @@ class PyBSQP {
                 gpuErrchk(cudaFree(d_xkp1_batch_));
                 gpuErrchk(cudaFree(d_xk_));
                 gpuErrchk(cudaFree(d_uk_));
+#if defined(PLANT_TIAGO_RIGHT)
+                gpuErrchk(cudaFree(d_tool_q_batch_));
+                gpuErrchk(cudaFree(d_tool_position_batch_));
+#endif
         }
 
         py::dict solve(CArray<T> xu_traj_batch, T timestep, CArray<T> x_s_batch, CArray<T> reference_traj_batch)
@@ -251,6 +271,35 @@ class PyBSQP {
                 return py::array_t<T>({BatchSize, STATE_SIZE}, h_xkp1_batch_.data());
         }
 
+#if defined(PLANT_TIAGO_RIGHT)
+        py::array_t<T> tool_position(CArray<T> q)
+        {
+                py::buffer_info q_buf = q.request();
+                const bool broadcast = q_buf.ndim == 1 && q_buf.shape[0] == grid::NQ;
+                const bool batched = q_buf.ndim == 2 && q_buf.shape[0] == BatchSize
+                                     && q_buf.shape[1] == grid::NQ;
+                if (!broadcast && !batched) {
+                        throw py::value_error("q must have shape (NQ,) or (BatchSize, NQ)");
+                }
+
+                const T* h_q = static_cast<const T*>(q_buf.ptr);
+                if (broadcast) {
+                        for (uint32_t batch = 0; batch < BatchSize; ++batch) {
+                                std::copy(h_q, h_q + grid::NQ,
+                                          h_tool_q_batch_.data() + batch * grid::NQ);
+                        }
+                        h_q = h_tool_q_batch_.data();
+                }
+                gpuErrchk(cudaMemcpy(d_tool_q_batch_, h_q,
+                                     grid::NQ * BatchSize * sizeof(T), cudaMemcpyHostToDevice));
+                solver_.tool_position(d_tool_position_batch_, d_tool_q_batch_);
+                gpuErrchk(cudaDeviceSynchronize());
+                gpuErrchk(cudaMemcpy(h_tool_position_batch_.data(), d_tool_position_batch_,
+                                     3 * BatchSize * sizeof(T), cudaMemcpyDeviceToHost));
+                return py::array_t<T>({BatchSize, 3}, h_tool_position_batch_.data());
+        }
+#endif
+
         void reset_dual() { solver_.reset_dual(); }
         void reset_rho() { solver_.reset_rho(); }
         void set_rho_adaptation(bool enabled) { solver_.set_rho_adaptation(enabled); }
@@ -264,6 +313,10 @@ class PyBSQP {
         // for sim_forward
         T *            d_xkp1_batch_, *d_xk_, *d_uk_;
         std::vector<T> h_xkp1_batch_, h_xk_batch_, h_uk_batch_;
+#if defined(PLANT_TIAGO_RIGHT)
+        T *d_tool_q_batch_, *d_tool_position_batch_;
+        std::vector<T> h_tool_q_batch_, h_tool_position_batch_;
+#endif
 };
 
 
@@ -286,6 +339,13 @@ class PyBSQP {
 #define MODULE_NAME_HELPER(knot, plant) bsqpN##knot##_##plant
 #define MODULE_NAME(knot, plant) MODULE_NAME_HELPER(knot, plant)
 
+#if defined(PLANT_TIAGO_RIGHT)
+#define TIAGO_TOOL_POSITION_BINDING(Type, BatchSize) \
+            .def("tool_position", &PyBSQP<Type, BatchSize>::tool_position)
+#else
+#define TIAGO_TOOL_POSITION_BINDING(Type, BatchSize)
+#endif
+
 // Macro to register a PyBSQP class with the given precision type and batch size
 #define REGISTER_BSQP_CLASS(Type, BatchSize)                                                                                                                                                     \
         py::class_<PyBSQP<Type, BatchSize>>(m, "BSQP_" #BatchSize "_" #Type)                                                                                                                     \
@@ -299,6 +359,7 @@ class PyBSQP {
             .def("set_mu_batch", &PyBSQP<Type, BatchSize>::set_mu_batch)                                                                                                                          \
             .def("set_pcg_tol_batch", &PyBSQP<Type, BatchSize>::set_pcg_tol_batch)                                                                                                                \
             .def("sim_forward", &PyBSQP<Type, BatchSize>::sim_forward)                                                                                                                           \
+            TIAGO_TOOL_POSITION_BINDING(Type, BatchSize)                                                                                                                                        \
             .def("reset_rho", &PyBSQP<Type, BatchSize>::reset_rho)                                                                                                                                \
             .def("set_rho_adaptation", &PyBSQP<Type, BatchSize>::set_rho_adaptation)
 
@@ -306,6 +367,10 @@ PYBIND11_MODULE(MODULE_NAME(KNOT_POINTS, PLANT_SUFFIX), m)
 {
         m.attr("KNOT_POINTS") = KNOT_POINTS;  // to check num knots for current module
         m.attr("REFERENCE_SIZE") = grid::REFERENCE_SIZE;
+#if defined(PLANT_TIAGO_RIGHT)
+        m.attr("TOOL_POSITION_FRAME") = "arm_right_tool_joint_origin";
+        m.attr("TOOL_POSITION_SIZE") = 3;
+#endif
 
 
 #ifdef USE_DOUBLES

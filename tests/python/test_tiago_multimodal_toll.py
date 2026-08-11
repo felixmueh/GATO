@@ -158,11 +158,16 @@ def test_initializer_schema_is_obstacle_and_mode_neutral_and_antithetic():
     np.testing.assert_array_equal(dq[3:], 0.0)
 
 
-def test_task_and_optimizer_execution_are_fail_closed_without_instantiating_seed():
+def test_task_and_optimizer_execution_are_fail_closed_without_instantiating_seed(monkeypatch):
     assert toll_oracle.TASK_CONSTRUCTION_AUTHORIZATION is None
     assert toll.OPTIMIZER_EXECUTION_AUTHORIZATION is None
+    synthetic_allowed_seed = 99000
+    monkeypatch.setattr(
+        toll_oracle, "DEVELOPMENT_TASK_SEEDS", (synthetic_allowed_seed,)
+    )
+    monkeypatch.setattr(toll_oracle, "HELDOUT_TASK_SEEDS", ())
     with pytest.raises(RuntimeError, match="blocked"):
-        toll_oracle.generate_task(toll.DEVELOPMENT_TASK_SEEDS[0], object())
+        toll_oracle.generate_task(synthetic_allowed_seed, object())
     for replacement in (11999, 12004, 12108, 99999):
         with pytest.raises(ValueError, match="frozen"):
             toll_oracle.generate_task(replacement, object())
