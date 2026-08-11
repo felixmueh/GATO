@@ -1,4 +1,4 @@
-"""Transactional artifact-only V4 Tiago model-preflight-v2 runner.
+"""Transactional artifact-only V4 Tiago model-preflight-v3 runner.
 
 All execution capabilities are disabled in this static checkpoint.
 """
@@ -20,7 +20,7 @@ from typing import Callable, Mapping, Sequence
 import numpy as np
 
 from gato_tiago import multimodal_toll as toll
-from gato_tiago.multimodal_toll_v4_model_preflight_v2 import (
+from gato_tiago.multimodal_toll_v4_model_preflight_v3 import (
     AUTHORIZED_CWD,
     AUTHORIZED_ORIG_ARGV,
     AUTHORIZED_OUTPUT_PATH,
@@ -49,6 +49,7 @@ from gato_tiago.multimodal_toll_v4_model_preflight_v2 import (
     PORTABILITY_SMOKE_PATHS_AND_HASHES,
     Q8_PUBLIC_GOAL_TOLERANCE_M,
     REJECTED_V1_ARTIFACT_HASHES_REPORT_ONLY,
+    REJECTED_V2_ARTIFACT_HASHES_REPORT_ONLY,
     REQUIRED_SOURCE_PATHS,
     V4_ARTIFACT_PATHS_AND_HASHES,
     array_hash,
@@ -56,7 +57,7 @@ from gato_tiago.multimodal_toll_v4_model_preflight_v2 import (
     generate_broad_algebraic_rows,
     is_sha256,
 )
-from gato_tiago.multimodal_toll_v4_model_preflight_v2_worker import (
+from gato_tiago.multimodal_toll_v4_model_preflight_v3_worker import (
     EXPECTED_WORKER_ARRAY_NAMES,
     SUPPORTED_MODULES,
     WORKER_EXECUTION_AUTHORIZATION,
@@ -80,7 +81,7 @@ def repository_root(module_path=Path(__file__)) -> Path:
         root / REQUIRED_SOURCE_PATHS["preflight_worker"],
     )
     if not all(path.exists() for path in sentinels):
-        raise RuntimeError("V4 model-preflight-v2 repository root sentinel mismatch")
+        raise RuntimeError("V4 model-preflight-v3 repository root sentinel mismatch")
     return root
 
 
@@ -166,6 +167,17 @@ def _json_value(value):
     return value
 
 
+def _retained_array(name, value):
+    """Preserve the sole frozen scalar while keeping all other V2 layouts."""
+
+    array = np.asarray(value)
+    if name == "v4_artifact_authentication_gate_bool":
+        if array.shape != () or array.dtype != np.dtype(np.bool_):
+            raise RuntimeError("V4 authentication gate must be a bool scalar")
+        return array.copy()
+    return np.ascontiguousarray(array)
+
+
 def _checkpoint(output, generation, stage, rows, arrays, provenance):
     output = Path(output)
     npz_path = output.with_name(
@@ -176,8 +188,8 @@ def _checkpoint(output, generation, stage, rows, arrays, provenance):
     )
     pointer_path = output.with_name(f"{output.stem}.partial.latest.json")
     if npz_path.exists() or json_path.exists():
-        raise RuntimeError("V4 model-preflight-v2 checkpoint generation already exists")
-    retained = {name: np.ascontiguousarray(value) for name, value in arrays.items()}
+        raise RuntimeError("V4 model-preflight-v3 checkpoint generation already exists")
+    retained = {name: _retained_array(name, value) for name, value in arrays.items()}
     _atomic_npz(npz_path, retained)
     attempted_worker_modules = [
         row.get("module_name")
@@ -273,6 +285,10 @@ def _source_provenance(repo):
         "rejected_v1_artifact_loads": 0,
         "rejected_v1_artifact_hashes_report_only": dict(
             REJECTED_V1_ARTIFACT_HASHES_REPORT_ONLY
+        ),
+        "rejected_v2_artifact_loads": 0,
+        "rejected_v2_artifact_hashes_report_only": dict(
+            REJECTED_V2_ARTIFACT_HASHES_REPORT_ONLY
         ),
         "task_rng_calls": 0,
         "task_construction_calls": 0,
@@ -708,10 +724,10 @@ def certify_model_preflight(base, worker_rows, worker_arrays):
             )
         }
         smoke_raw["ls_num_iters_b1"] = int(
-            arrays["reference_smoke_ls_num_iters_b1"]
+            np.asarray(arrays["reference_smoke_ls_num_iters_b1"]).item()
         )
         smoke_raw["ls_num_iters_b16"] = int(
-            arrays["reference_smoke_ls_num_iters_b16"]
+            np.asarray(arrays["reference_smoke_ls_num_iters_b16"]).item()
         )
         spec = next(row for row in FROZEN_EXTENSIONS if row["module_name"] == module)
         independent_reference = certify_reference_smoke(
@@ -983,6 +999,90 @@ def certify_model_preflight(base, worker_rows, worker_arrays):
     }
 
 
+def recertify_retained_model_preflight(summary_path, npz_path):
+    """Rebuild the public pure certificate from an exact retained JSON/NPZ pair."""
+
+    try:
+        summary = json.loads(Path(summary_path).read_text())
+        with np.load(npz_path, allow_pickle=False) as archive:
+            retained = {name: archive[name] for name in archive.files}
+        expected = set(EXPECTED_NONWORKER_ARRAY_NAMES)
+        for spec in FROZEN_EXTENSIONS:
+            leaf = spec["module_name"].split(".")[-1]
+            expected.update(
+                f"worker_{leaf}_{name}" for name in EXPECTED_WORKER_ARRAY_NAMES
+            )
+        names_exact = bool(
+            set(retained) == expected
+            and set(summary.get("array_names", ())) == expected
+            and set(summary.get("array_hashes", ())) == expected
+            and all(
+                array_hash(retained[name]) == summary["array_hashes"][name]
+                for name in expected
+            )
+        )
+        gate = retained.get("v4_artifact_authentication_gate_bool")
+        scalar_exact = bool(
+            isinstance(gate, np.ndarray)
+            and gate.shape == ()
+            and gate.dtype == np.dtype(np.bool_)
+            and bool(gate)
+        )
+        rows = summary.get("rows", ())
+        rows_exact = bool(
+            len(rows) == EXPECTED_WORKER_COUNT
+            and [row.get("identity") for row in rows]
+            == [
+                ["worker", spec["module_name"]]
+                for spec in FROZEN_EXTENSIONS
+            ]
+        )
+        if not names_exact or not scalar_exact or not rows_exact:
+            return {
+                "exact_array_map": names_exact,
+                "authentication_gate_bool_scalar_exact": scalar_exact,
+                "worker_rows_exact": rows_exact,
+                "stored_detail_equals_recomputed": False,
+                "all_roundtrip_recertification_gates_pass": False,
+            }
+        base = {name: retained[name] for name in EXPECTED_NONWORKER_ARRAY_NAMES}
+        worker_arrays = {}
+        for spec in FROZEN_EXTENSIONS:
+            leaf = spec["module_name"].split(".")[-1]
+            prefix = f"worker_{leaf}_"
+            worker_arrays[spec["module_name"]] = {
+                name: retained[f"{prefix}{name}"]
+                for name in EXPECTED_WORKER_ARRAY_NAMES
+            }
+        recomputed = _json_value(certify_model_preflight(base, rows, worker_arrays))
+        stored = dict(summary.get("certificate", {}))
+        provenance_pass = stored.pop("provenance_pass", None)
+        detail_equal = stored == recomputed
+        overall = bool(
+            names_exact
+            and scalar_exact
+            and rows_exact
+            and detail_equal
+            and recomputed.get("all_model_preflight_gates_pass") is True
+            and provenance_pass is True
+            and summary.get("certificate", {}).get(
+                "all_model_preflight_gates_pass"
+            )
+            is True
+            and summary.get("all_model_preflight_gates_pass") is True
+        )
+        return {
+            "exact_array_map": names_exact,
+            "authentication_gate_bool_scalar_exact": scalar_exact,
+            "worker_rows_exact": rows_exact,
+            "stored_detail_equals_recomputed": detail_equal,
+            "recomputed_certificate": recomputed,
+            "all_roundtrip_recertification_gates_pass": overall,
+        }
+    except (KeyError, OSError, TypeError, ValueError, json.JSONDecodeError):
+        return {"all_roundtrip_recertification_gates_pass": False}
+
+
 def certify_worker_module_identity(summary, spec):
     return bool(
         summary.get("extension_sha256") == spec["extension_sha256"]
@@ -1012,7 +1112,7 @@ def _validate_worker_boundary(row, spec, input_hash):
         sys.executable,
         "-B",
         "-m",
-        "gato_tiago.multimodal_toll_v4_model_preflight_v2_worker",
+        "gato_tiago.multimodal_toll_v4_model_preflight_v3_worker",
         "--request",
         str(request_path),
         "--output",
@@ -1102,6 +1202,9 @@ def certify_runner_provenance(provenance):
         and provenance.get("rejected_v1_artifact_loads") == 0
         and provenance.get("rejected_v1_artifact_hashes_report_only")
         == REJECTED_V1_ARTIFACT_HASHES_REPORT_ONLY
+        and provenance.get("rejected_v2_artifact_loads") == 0
+        and provenance.get("rejected_v2_artifact_hashes_report_only")
+        == REJECTED_V2_ARTIFACT_HASHES_REPORT_ONLY
         and provenance.get("portability_smoke_authentication", {}).get(
             "all_portability_smoke_authentication_gates_pass"
         )
@@ -1284,6 +1387,7 @@ def _run_pipeline(
         "accepted_portability_smoke_artifact_loads": 4,
         "accepted_v4_artifact_loads": 4,
         "rejected_v1_artifact_loads": 0,
+        "rejected_v2_artifact_loads": 0,
         "worker_subprocess_calls": len(rows),
         "diagnostic_zero_iteration_solve_calls": 2 * len(rows),
         "sqp_optimization_calls": 0,
@@ -1291,7 +1395,7 @@ def _run_pipeline(
         "timing_evidence": False,
         "provenance": _json_value(provenance),
     }
-    final_arrays = {name: np.ascontiguousarray(value) for name, value in arrays.items()}
+    final_arrays = {name: _retained_array(name, value) for name, value in arrays.items()}
     npz_path = output.with_suffix(".npz")
     _atomic_npz(npz_path, final_arrays)
     summary.update(
@@ -1338,7 +1442,7 @@ def _run_pipeline(
 
 def _production_pipeline(output, *, token=None):  # pragma: no cover
     if token is not _PRODUCTION_PIPELINE_TOKEN:
-        raise RuntimeError("V4 model-preflight-v2 production pipeline is private")
+        raise RuntimeError("V4 model-preflight-v3 production pipeline is private")
     repo = repository_root()
     provenance = _source_provenance(repo)
     extension_specs = [dict(row) for row in FROZEN_EXTENSIONS]
@@ -1496,7 +1600,7 @@ def _production_pipeline(output, *, token=None):  # pragma: no cover
             sys.executable,
             "-B",
             "-m",
-            "gato_tiago.multimodal_toll_v4_model_preflight_v2_worker",
+            "gato_tiago.multimodal_toll_v4_model_preflight_v3_worker",
             "--request",
             str(request_path),
             "--output",
@@ -1622,9 +1726,9 @@ def execute_model_preflight(output, *, authorization=None):
         RUNNER_EXECUTION_AUTHORIZATION is None
         or authorization is not RUNNER_EXECUTION_AUTHORIZATION
     ):
-        raise RuntimeError("V4 model-preflight-v2 runner execution is blocked")
+        raise RuntimeError("V4 model-preflight-v3 runner execution is blocked")
     if Path(output).resolve() != AUTHORIZED_OUTPUT_PATH.resolve():
-        raise RuntimeError("V4 model-preflight-v2 output is not the authorized path")
+        raise RuntimeError("V4 model-preflight-v3 output is not the authorized path")
     return _production_pipeline(output, token=_PRODUCTION_PIPELINE_TOKEN)
 
 
@@ -1642,7 +1746,7 @@ def main(argv=None):
         print(json.dumps(describe_model_preflight(), indent=2, sort_keys=True))
         return 0
     if not args.execute or RUNNER_EXECUTION_AUTHORIZATION is None:
-        raise SystemExit("V4 model-preflight-v2 execution is blocked")
+        raise SystemExit("V4 model-preflight-v3 execution is blocked")
     execute_model_preflight(
         args.output, authorization=RUNNER_EXECUTION_AUTHORIZATION
     )

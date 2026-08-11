@@ -2,18 +2,22 @@ import inspect
 import json
 import copy
 import re
+import warnings
 from pathlib import Path
 
 import numpy as np
 import pytest
 
 from gato_tiago import multimodal_toll as toll
-from gato_tiago import multimodal_toll_v4_model_preflight_v2 as schema
-from gato_tiago import multimodal_toll_v4_model_preflight_v2_runner as runner
-from gato_tiago import multimodal_toll_v4_model_preflight_v2_worker as worker
+from gato_tiago import multimodal_toll_v4_model_preflight_v3 as schema
+from gato_tiago import multimodal_toll_v4_model_preflight_v3_runner as runner
+from gato_tiago import multimodal_toll_v4_model_preflight_v3_worker as worker
 from gato_tiago import multimodal_toll_v4_model_preflight as v1_schema
 from gato_tiago import multimodal_toll_v4_model_preflight_runner as v1_runner
 from gato_tiago import multimodal_toll_v4_model_preflight_worker as v1_worker
+from gato_tiago import multimodal_toll_v4_model_preflight_v2 as v2_schema
+from gato_tiago import multimodal_toll_v4_model_preflight_v2_runner as v2_runner
+from gato_tiago import multimodal_toll_v4_model_preflight_v2_worker as v2_worker
 from gato_tiago import multimodal_toll_v4_oracle_schema as v4_oracle
 from gato_tiago import multimodal_toll_v4_runner as v4_runner
 
@@ -123,6 +127,10 @@ def _valid_runner_provenance():
         "rejected_v1_artifact_hashes_report_only": dict(
             schema.REJECTED_V1_ARTIFACT_HASHES_REPORT_ONLY
         ),
+        "rejected_v2_artifact_loads": 0,
+        "rejected_v2_artifact_hashes_report_only": dict(
+            schema.REJECTED_V2_ARTIFACT_HASHES_REPORT_ONLY
+        ),
         "portability_smoke_authentication": {
             "all_portability_smoke_authentication_gates_pass": True
         },
@@ -226,6 +234,9 @@ def test_rejected_model_preflight_tokens_are_disabled_and_artifact_is_hard_pinne
     assert schema.MODEL_PREFLIGHT_EXECUTION_AUTHORIZATION is None
     assert runner.RUNNER_EXECUTION_AUTHORIZATION is None
     assert worker.WORKER_EXECUTION_AUTHORIZATION is None
+    assert v2_schema.MODEL_PREFLIGHT_EXECUTION_AUTHORIZATION is None
+    assert v2_runner.RUNNER_EXECUTION_AUTHORIZATION is None
+    assert v2_worker.WORKER_EXECUTION_AUTHORIZATION is None
     assert v1_schema.MODEL_PREFLIGHT_EXECUTION_AUTHORIZATION is None
     assert v1_runner.RUNNER_EXECUTION_AUTHORIZATION is None
     assert v1_worker.WORKER_EXECUTION_AUTHORIZATION is None
@@ -246,15 +257,22 @@ def test_rejected_model_preflight_tokens_are_disabled_and_artifact_is_hard_pinne
         schema.is_sha256(digest)
         for digest in schema.REJECTED_V1_ARTIFACT_HASHES_REPORT_ONLY.values()
     )
+    assert schema.REJECTED_V2_ARTIFACT_HASHES_REPORT_ONLY == {
+        "final_json": "546544dbe86f503c41b8965c30045c7dcfaf070967f3a4e503364fe488ef8d52",
+        "final_npz": "70a57fb26331e9c34940e717fc215bb08ff2c11df8f8a4df67c34396696a6572",
+        "final_manifest": "190391b0ce331dbf8317f0d8cb68f558aab6b52dc63e439b1684e2bcdafe76e0",
+        "generation7_pointer": "93fa6ecc442c71e0c9c34d61bade615252c1d7caf8a7d8889745cc0c13b42c52",
+    }
+    assert schema.frozen_model_preflight_metadata()["rejected_v2_artifact_loads"] == 0
     assert schema.AUTHORIZED_OUTPUT_PATH == Path(
-        "/tmp/tiago-tool-center-toll-v4-model-preflight-v2-authorized-once/model.json"
+        "/tmp/tiago-tool-center-toll-v4-model-preflight-v3-authorized-once/model.json"
     )
     assert schema.AUTHORIZED_CWD == Path("/workspace/GATO")
     assert list(schema.AUTHORIZED_ORIG_ARGV) == [
         "python",
         "-B",
         "-m",
-        "gato_tiago.multimodal_toll_v4_model_preflight_v2_runner",
+        "gato_tiago.multimodal_toll_v4_model_preflight_v3_runner",
         "--execute",
         "--output",
         str(schema.AUTHORIZED_OUTPUT_PATH),
@@ -315,8 +333,6 @@ def test_authorized_boundaries_are_exact_one_shot_paths_without_real_execution(
 ):
     runner_authorization = object()
     worker_authorization = object()
-    monkeypatch.setattr(runner, "RUNNER_EXECUTION_AUTHORIZATION", runner_authorization)
-    monkeypatch.setattr(worker, "WORKER_EXECUTION_AUTHORIZATION", worker_authorization)
     root = (tmp_path / "authorized").resolve()
     authorized = root / "model.json"
     runner_calls = []
@@ -329,6 +345,7 @@ def test_authorized_boundaries_are_exact_one_shot_paths_without_real_execution(
         return {"mock": True}
 
     monkeypatch.setattr(runner, "AUTHORIZED_OUTPUT_PATH", authorized)
+    monkeypatch.setattr(runner, "RUNNER_EXECUTION_AUTHORIZATION", runner_authorization)
     monkeypatch.setattr(runner, "_production_pipeline", fake_pipeline)
     with pytest.raises(RuntimeError, match="authorized path"):
         runner.execute_model_preflight(
@@ -346,6 +363,7 @@ def test_authorized_boundaries_are_exact_one_shot_paths_without_real_execution(
         )
 
     monkeypatch.setattr(worker, "AUTHORIZED_RUN_ROOT", root)
+    monkeypatch.setattr(worker, "WORKER_EXECUTION_AUTHORIZATION", worker_authorization)
     worker_calls = []
 
     def fake_worker(request, output):
@@ -435,6 +453,102 @@ def test_model_certificate_passes_exact_synthetic_boundaries_and_reports_state_l
         row["max_dense_state_l2_report_only"] == 0
         for row in result["per_module"].values()
     )
+
+
+def _write_fake_final(output, retained, rows, certificate):
+    output = Path(output)
+    npz_path = output.with_suffix(".npz")
+    runner._atomic_npz(npz_path, retained)
+    summary = {
+        "rows": runner._json_value(rows),
+        "certificate": {**runner._json_value(certificate), "provenance_pass": True},
+        "all_model_preflight_gates_pass": True,
+        "array_names": sorted(retained),
+        "array_hashes": {
+            name: schema.array_hash(value) for name, value in retained.items()
+        },
+    }
+    runner._atomic_json(output, summary)
+    return output, npz_path
+
+
+def _fake_final_components():
+    base = _base()
+    rows, worker_arrays = _rows_and_arrays(base)
+    certificate = runner.certify_model_preflight(base, rows, worker_arrays)
+    assert certificate["all_model_preflight_gates_pass"]
+    retained = {
+        name: runner._retained_array(name, value) for name, value in base.items()
+    }
+    for spec in schema.FROZEN_EXTENSIONS:
+        leaf = spec["module_name"].split(".")[-1]
+        retained.update(
+            {
+                f"worker_{leaf}_{name}": runner._retained_array(name, value)
+                for name, value in worker_arrays[spec["module_name"]].items()
+            }
+        )
+    return retained, rows, certificate
+
+
+def test_fake_final_roundtrip_recertifies_exact_scalar_and_detail(tmp_path):
+    retained, rows, certificate = _fake_final_components()
+    output, npz_path = _write_fake_final(
+        tmp_path / "model.json", retained, rows, certificate
+    )
+    with np.load(npz_path, allow_pickle=False) as archive:
+        gate = archive["v4_artifact_authentication_gate_bool"]
+        assert gate.shape == ()
+        assert gate.dtype == np.dtype(np.bool_)
+        assert bool(gate)
+    with warnings.catch_warnings():
+        warnings.filterwarnings(
+            "error",
+            message="Conversion of an array with ndim > 0 to a scalar is deprecated",
+            category=DeprecationWarning,
+        )
+        recertified = runner.recertify_retained_model_preflight(output, npz_path)
+    assert recertified["exact_array_map"]
+    assert recertified["authentication_gate_bool_scalar_exact"]
+    assert recertified["stored_detail_equals_recomputed"]
+    assert recertified["recomputed_certificate"] == runner._json_value(certificate)
+    assert recertified["all_roundtrip_recertification_gates_pass"]
+
+
+@pytest.mark.parametrize(
+    "mutation",
+    ["vector_shape", "missing", "extra", "wrong_dtype", "false_value"],
+)
+def test_fake_final_roundtrip_rejects_scalar_and_map_mutations(tmp_path, mutation):
+    retained, rows, certificate = _fake_final_components()
+    name = "v4_artifact_authentication_gate_bool"
+    if mutation == "vector_shape":
+        retained[name] = np.asarray([True], dtype=np.bool_)
+    elif mutation == "missing":
+        del retained[name]
+    elif mutation == "extra":
+        retained["unexpected_extra"] = np.asarray(0, dtype=np.int8)
+    elif mutation == "wrong_dtype":
+        retained[name] = np.asarray(1, dtype=np.int8)
+    else:
+        retained[name] = np.asarray(False, dtype=np.bool_)
+    output, npz_path = _write_fake_final(
+        tmp_path / "model.json", retained, rows, certificate
+    )
+    result = runner.recertify_retained_model_preflight(output, npz_path)
+    assert not result["all_roundtrip_recertification_gates_pass"]
+
+
+def test_scalar_special_case_rejects_shape_dtype_and_leaves_other_layouts_unchanged():
+    name = "v4_artifact_authentication_gate_bool"
+    scalar = runner._retained_array(name, np.asarray(True, dtype=np.bool_))
+    assert scalar.shape == () and scalar.dtype == np.dtype(np.bool_)
+    with pytest.raises(RuntimeError, match="bool scalar"):
+        runner._retained_array(name, np.asarray([True], dtype=np.bool_))
+    with pytest.raises(RuntimeError, match="bool scalar"):
+        runner._retained_array(name, np.asarray(1, dtype=np.int8))
+    ordinary = np.asarray(7, dtype=np.int32)
+    assert runner._retained_array("ordinary", ordinary).shape == (1,)
 
 
 @pytest.mark.parametrize(
@@ -1025,17 +1139,21 @@ def test_runner_provenance_rejects_head_command_cwd_clean_and_source_mutations()
         assert not runner.certify_runner_provenance(mutated)
 
 
-def test_v2_sources_never_import_or_load_rejected_v1_namespace():
+def test_v3_sources_never_import_or_load_rejected_predecessor_namespaces():
     sources = "\n".join(
         Path(module.__file__).read_text() for module in (schema, runner, worker)
     )
     assert "multimodal_toll_v4_model_preflight import" not in sources
     assert "/tmp/tiago-tool-center-toll-v4-model-preflight-authorized-once" not in sources
+    assert "multimodal_toll_v4_model_preflight_v2 import" not in sources
+    assert "/tmp/tiago-tool-center-toll-v4-model-preflight-v2-authorized-once" not in sources
     assert "REJECTED_V1_ARTIFACT_HASHES_REPORT_ONLY" in sources
     assert "rejected_v1_artifact_loads" in sources
+    assert "REJECTED_V2_ARTIFACT_HASHES_REPORT_ONLY" in sources
+    assert "rejected_v2_artifact_loads" in sources
 
 
-def test_v2_preserves_every_v1_scientific_constant_and_pure_certificate():
+def test_v3_preserves_every_v2_scientific_constant_and_pure_certificate():
     constant_names = (
         "EXPECTED_NONWORKER_ARRAY_NAMES",
         "ONE_STEP_DT",
@@ -1059,15 +1177,24 @@ def test_v2_preserves_every_v1_scientific_constant_and_pure_certificate():
         "BROAD_CODE_HALF_RANGE",
     )
     for name in constant_names:
-        assert getattr(schema, name) == getattr(v1_schema, name)
-    assert worker.EXPECTED_WORKER_ARRAY_NAMES == v1_worker.EXPECTED_WORKER_ARRAY_NAMES
+        assert getattr(schema, name) == getattr(v2_schema, name)
+    assert worker.EXPECTED_WORKER_ARRAY_NAMES == v2_worker.EXPECTED_WORKER_ARRAY_NAMES
     base = _base()
     rows, worker_arrays = _rows_and_arrays(base)
     assert runner.certify_model_preflight(base, rows, worker_arrays) == (
-        v1_runner.certify_model_preflight(base, rows, worker_arrays)
+        v2_runner.certify_model_preflight(base, rows, worker_arrays)
     )
     assert worker.certify_reference_smoke(
         _smoke_raw(), variant="toll", reference_size=10
-    ) == v1_worker.certify_reference_smoke(
+    ) == v2_worker.certify_reference_smoke(
         _smoke_raw(), variant="toll", reference_size=10
     )
+
+
+def test_v3_worker_is_a_namespace_only_port_of_closed_v2_worker():
+    v2_source = Path(v2_worker.__file__).read_text()
+    v3_source = Path(worker.__file__).read_text()
+    normalized = v3_source.replace(
+        "multimodal_toll_v4_model_preflight_v3", "multimodal_toll_v4_model_preflight_v2"
+    ).replace("model-preflight-v3", "model-preflight-v2")
+    assert normalized == v2_source
