@@ -1,4 +1,4 @@
-"""Transactional, task-construction-only Tiago toll V3 preflight.
+"""Transactional, task-construction-only Tiago toll V4 preflight.
 
 The production boundary is blocked in this checkpoint.  A future authorized
 run constructs each frozen task exactly once on CPU, retains every DLS witness
@@ -22,21 +22,21 @@ from typing import Callable, Mapping, Sequence
 import numpy as np
 
 from gato_tiago import multimodal_toll as toll
-from gato_tiago import multimodal_toll_v3_oracle_schema as oracle
+from gato_tiago import multimodal_toll_v4_oracle_schema as oracle
 from gato_tiago.config import TIAGO_RIGHT_START_CONFIGS
-from gato_tiago.multimodal_toll_v3 import (
+from gato_tiago.multimodal_toll_v4 import (
     EXPECTED_TASK_IDENTITIES,
     REJECTED_PREDECESSOR_ARTIFACT_HASHES,
     REQUIRED_SOURCE_PATHS,
-    V3_OUTPUT_PATH,
-    V3_PROTOCOL_VERSION,
-    frozen_v3_metadata,
+    V4_OUTPUT_PATH,
+    V4_PROTOCOL_VERSION,
+    frozen_v4_metadata,
 )
 
 
 RUNNER_EXECUTION_AUTHORIZATION = None
-AUTHORIZED_OUTPUT_PATH = Path(V3_OUTPUT_PATH)
-RUNNER_PROTOCOL_VERSION = "tiago_tool_center_toll_v3_construction_runner_1"
+AUTHORIZED_OUTPUT_PATH = Path(V4_OUTPUT_PATH)
+RUNNER_PROTOCOL_VERSION = "tiago_tool_center_toll_v4_construction_runner_1"
 EXPECTED_TASK_COUNT = 12
 EXPECTED_MODEL_LOAD_CALLS = 1
 EXPECTED_TASK_CONSTRUCTION_CALLS = 12
@@ -62,12 +62,12 @@ def repository_root(module_path=Path(__file__)) -> Path:
     sentinels = (
         root / ".git",
         root / "CMakeLists.txt",
-        root / REQUIRED_SOURCE_PATHS["v3_schema"],
-        root / REQUIRED_SOURCE_PATHS["v3_runner"],
+        root / REQUIRED_SOURCE_PATHS["v4_schema"],
+        root / REQUIRED_SOURCE_PATHS["v4_runner"],
         root / REQUIRED_SOURCE_PATHS["model"],
     )
     if not all(path.exists() for path in sentinels):
-        raise RuntimeError("Stage V3 repository root sentinel mismatch")
+        raise RuntimeError("Stage V4 repository root sentinel mismatch")
     return root
 
 
@@ -145,7 +145,7 @@ def _no_existing_artifacts(output: Path) -> None:
     candidates = [output, output.with_suffix(".npz"), output.with_suffix(".manifest.json")]
     candidates.extend(output.parent.glob(f"{output.stem}.partial.*"))
     if any(path.exists() for path in candidates):
-        raise RuntimeError("Stage V3 does not permit resume, overwrite, or rerun")
+        raise RuntimeError("Stage V4 does not permit resume, overwrite, or rerun")
 
 
 def _json_value(value):
@@ -182,7 +182,7 @@ def _checkpoint(
     json_path = Path(f"{stem}.json")
     pointer_path = output.parent / f"{output.stem}.partial.latest.json"
     if npz_path.exists() or json_path.exists():
-        raise RuntimeError("Stage V3 checkpoint generation already exists")
+        raise RuntimeError("Stage V4 checkpoint generation already exists")
     payload_arrays = {
         str(name): np.ascontiguousarray(value) for name, value in arrays.items()
     }
@@ -191,7 +191,7 @@ def _checkpoint(
     attempted_set = set(attempted)
     summary = {
         "runner_protocol_version": RUNNER_PROTOCOL_VERSION,
-        "v3_protocol_version": V3_PROTOCOL_VERSION,
+        "v4_protocol_version": V4_PROTOCOL_VERSION,
         "incomplete": True,
         "checkpoint_generation": int(generation),
         "checkpoint_stage": str(stage),
@@ -225,7 +225,7 @@ def _checkpoint(
         "construction_only": True,
         "benchmark_evidence": False,
         "optimization_evidence": False,
-        "all_v3_gates_pass": False,
+        "all_v4_gates_pass": False,
     }
     _atomic_json(json_path, summary)
     json_hash = _sha256_file(json_path)
@@ -480,13 +480,7 @@ def _expected_final_array_names() -> set[str]:
             }
         )
         for source in ("history", "regenerated"):
-            for field in (
-                "q_float64",
-                "tool_position_float64",
-                "residual_float64",
-                "jacobian_float64",
-                "dq_float64",
-            ):
+            for field in oracle.DLSHistory.__dataclass_fields__:
                 names.add(f"{prefix}_{source}_{field}")
     return names
 
@@ -504,13 +498,7 @@ def _row_arrays_bound(row: Mapping, arrays: Mapping[str, np.ndarray]) -> bool:
         reference = arrays[f"{prefix}_reference_float32"]
         history_arrays = {
             field: arrays[f"{prefix}_history_{field}"]
-            for field in (
-                "q_float64",
-                "tool_position_float64",
-                "residual_float64",
-                "jacobian_float64",
-                "dq_float64",
-            )
+            for field in oracle.DLSHistory.__dataclass_fields__
         }
         regenerated_arrays = {
             field: arrays[f"{prefix}_regenerated_{field}"]
@@ -544,13 +532,7 @@ def _row_arrays_bound(row: Mapping, arrays: Mapping[str, np.ndarray]) -> bool:
             == _array_hash(history_arrays[field])
             and row.get("regenerated_history_hashes", {}).get(field)
             == _array_hash(regenerated_arrays[field])
-            for field in (
-                "q_float64",
-                "tool_position_float64",
-                "residual_float64",
-                "jacobian_float64",
-                "dq_float64",
-            )
+            for field in oracle.DLSHistory.__dataclass_fields__
         )
     )
 
@@ -625,7 +607,7 @@ def certify_final(
         "zero_worker_cuda_sqp_route_calls": True,
         "production_not_test_override": test_override is False,
     }
-    gates["all_v3_gates_pass"] = all(gates.values())
+    gates["all_v4_gates_pass"] = all(gates.values())
     return gates
 
 
@@ -646,7 +628,7 @@ def _finalize(
     )
     summary = {
         "runner_protocol_version": RUNNER_PROTOCOL_VERSION,
-        "v3_protocol_version": V3_PROTOCOL_VERSION,
+        "v4_protocol_version": V4_PROTOCOL_VERSION,
         "incomplete": False,
         "expected_identities": [list(row) for row in expected],
         "attempted_identities": [row["identity"] for row in rows],
@@ -665,7 +647,7 @@ def _finalize(
         ),
         "rows": _json_value(list(rows)),
         "certificate": certificate,
-        "all_v3_gates_pass": certificate["all_v3_gates_pass"],
+        "all_v4_gates_pass": certificate["all_v4_gates_pass"],
         "construction_only": True,
         "benchmark_evidence": False,
         "optimization_evidence": False,
@@ -698,7 +680,7 @@ def _finalize(
         "npz_path": str(npz_path),
         "npz_sha256": summary["npz_sha256"],
         "supersedes_partial_generation": int(latest_generation),
-        "all_v3_gates_pass": summary["all_v3_gates_pass"],
+        "all_v4_gates_pass": summary["all_v4_gates_pass"],
     }
     _atomic_json(manifest_path, manifest)
     return summary
@@ -811,14 +793,14 @@ def _run_pipeline(
             after_attempt(index, row)
     if not test_override and not all(row.get("passes") is True for row in rows):
         raise RuntimeError(
-            "Stage V3 task construction failed; generation 13 is retained and V3 closes"
+            "Stage V4 task construction failed; generation 13 is retained and V4 closes"
         )
     certificate = certify_final(
         rows, provenance, arrays, test_override=test_override
     )
-    if not test_override and not certificate["all_v3_gates_pass"]:
+    if not test_override and not certificate["all_v4_gates_pass"]:
         raise RuntimeError(
-            "Stage V3 aggregate certificate failed; generation 13 is retained and no final is published"
+            "Stage V4 aggregate certificate failed; generation 13 is retained and no final is published"
         )
     return _finalize(
         output,
@@ -834,11 +816,11 @@ def _run_pipeline(
 
 def _production_pipeline(output: Path, *, token=None):
     if token is not _PRODUCTION_PIPELINE_TOKEN:
-        raise RuntimeError("Stage V3 production pipeline is private")
+        raise RuntimeError("Stage V4 production pipeline is private")
     repo = repository_root()
     provenance = _source_provenance(repo)
     if not provenance["tracked_tree_clean_at_start"]:
-        raise RuntimeError("Stage V3 requires a tracked-clean tree before generation zero")
+        raise RuntimeError("Stage V4 requires a tracked-clean tree before generation zero")
 
     def model_factory():
         from gato_tiago.multimodal_pillar import load_model
@@ -897,13 +879,13 @@ def _production_pipeline(output: Path, *, token=None):
     )
 
 
-def describe_v3_runner() -> dict:
+def describe_v4_runner() -> dict:
     return {
         "protocol_version": RUNNER_PROTOCOL_VERSION,
         "authorization_enabled": RUNNER_EXECUTION_AUTHORIZATION is not None,
         "authorized_output_path": str(AUTHORIZED_OUTPUT_PATH),
         "expected_identities": [list(row) for row in EXPECTED_TASK_IDENTITIES],
-        "schema": frozen_v3_metadata(),
+        "schema": frozen_v4_metadata(),
         "required_source_paths": dict(REQUIRED_SOURCE_PATHS),
         "report_only_extension_hashes": dict(REPORT_ONLY_EXTENSION_HASHES),
         "expected_model_load_calls": EXPECTED_MODEL_LOAD_CALLS,
@@ -918,14 +900,14 @@ def describe_v3_runner() -> dict:
     }
 
 
-def execute_v3_runner(output, *, authorization=None):
+def execute_v4_runner(output, *, authorization=None):
     if (
         RUNNER_EXECUTION_AUTHORIZATION is None
         or authorization is not RUNNER_EXECUTION_AUTHORIZATION
     ):
-        raise RuntimeError("Stage V3 runner execution is blocked")
+        raise RuntimeError("Stage V4 runner execution is blocked")
     if Path(output).resolve() != AUTHORIZED_OUTPUT_PATH:
-        raise RuntimeError("Stage V3 runner output is not the single authorized path")
+        raise RuntimeError("Stage V4 runner output is not the single authorized path")
     return _production_pipeline(output, token=_PRODUCTION_PIPELINE_TOKEN)
 
 
@@ -940,11 +922,11 @@ def parse_args(argv=None):
 def main(argv=None):
     args = parse_args(argv)
     if args.describe and not args.execute:
-        print(json.dumps(describe_v3_runner(), indent=2, sort_keys=True))
+        print(json.dumps(describe_v4_runner(), indent=2, sort_keys=True))
         return 0
     if not args.execute or RUNNER_EXECUTION_AUTHORIZATION is None:
-        raise SystemExit("Stage V3 task/model execution is blocked")
-    execute_v3_runner(args.output, authorization=RUNNER_EXECUTION_AUTHORIZATION)
+        raise SystemExit("Stage V4 task/model execution is blocked")
+    execute_v4_runner(args.output, authorization=RUNNER_EXECUTION_AUTHORIZATION)
     return 0
 
 

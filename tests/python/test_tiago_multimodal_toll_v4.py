@@ -16,8 +16,11 @@ from gato_tiago import multimodal_toll_v2 as v2
 from gato_tiago import multimodal_toll_v2_oracle_schema as v2_oracle
 from gato_tiago import multimodal_toll_v2_runner as v2_runner
 from gato_tiago import multimodal_toll_v3 as v3
-from gato_tiago import multimodal_toll_v3_oracle_schema as oracle
-from gato_tiago import multimodal_toll_v3_runner as runner
+from gato_tiago import multimodal_toll_v3_oracle_schema as v3_oracle
+from gato_tiago import multimodal_toll_v3_runner as v3_runner
+from gato_tiago import multimodal_toll_v4 as v4
+from gato_tiago import multimodal_toll_v4_oracle_schema as oracle
+from gato_tiago import multimodal_toll_v4_runner as runner
 from gato_tiago.config import TIAGO_RIGHT_START_CONFIGS
 
 
@@ -32,163 +35,33 @@ def _linear_callback(counter=None):
     return evaluate
 
 
-def test_v3_exact_identity_and_public_protocol_are_frozen_without_rng():
-    assert v3.DEVELOPMENT_TASK_SEEDS == (12400, 12401, 12402, 12403)
-    assert v3.HELDOUT_TASK_SEEDS == tuple(range(12500, 12508))
-    assert len(v3.EXPECTED_TASK_IDENTITIES) == 12
-    assert v3.DLS_ITERATIONS == 8
-    assert v3.DLS_DAMPING == toll.DAMPING == 0.05
-    assert v3.DLS_UNIT_STEP == 1.0
-    metadata = v3.frozen_v3_metadata()
-    assert metadata["construction"]["early_exit"] is False
-    assert metadata["construction"]["step_cap"] is False
-    assert metadata["construction"]["clip"] is False
-    assert metadata["construction"]["projection"] is False
-    assert metadata["construction"]["line_search"] is False
-    assert metadata["construction"]["target"] == "p0 + 0.15*[cos(phi),sin(phi),0]"
-    assert metadata["construction"]["q0_q8_reserve_margin_is_acceptance_gate"] is True
-    assert metadata["construction"]["q1_q7_reserve_and_hard_margins_are_report_only"] is True
-    assert metadata["construction"]["q1_q7_are_numerical_ik_iterates"] is True
-    assert metadata["construction"]["q1_q7_are_executed_states"] is False
-    assert metadata["construction"]["q1_q7_are_public_task_data"] is False
-    assert metadata["construction"]["q1_q7_are_exposed_to_benchmark"] is False
-    assert metadata["construction"]["q1_q7_are_initializer_inputs"] is False
-    assert metadata["construction"]["q1_q7_are_sqp_inputs"] is False
-    assert metadata["v3_task_seed_override"] == {
-        "development": [12400, 12401, 12402, 12403],
-        "heldout": list(range(12500, 12508)),
-    }
-    assert metadata["unchanged_non_seed_protocol"] == {
-        name: toll.frozen_protocol_metadata()[name]
-        for name in v3.NON_SEED_PUBLIC_PROTOCOL_FIELDS
-    }
-    assert metadata["unchanged_non_seed_protocol_matches_base"] is True
-    assert len(metadata["unchanged_non_seed_protocol_sha256"]) == 64
-    assert "protocol" not in metadata["unchanged_non_seed_protocol"]
-    assert metadata["predecessor_artifacts_consumed"] is False
-    assert set(metadata["rejected_predecessor_artifact_hashes_report_only"]) >= {
-        "v2_latest_pointer",
-        "v2_generation13_json",
-        "v2_generation13_npz",
-    }
+def _limits():
+    return (
+        np.full(7, -1.0, dtype=np.float64),
+        np.full(7, 1.0, dtype=np.float64),
+    )
 
 
-def test_exact_dls_runs_eight_unit_steps_and_retains_every_array():
-    q0 = np.zeros(7, dtype=np.float64)
-    target = np.asarray([0.15, -0.04, 0.02], dtype=np.float64)
-    calls = []
-    callback = _linear_callback(calls)
-    final_calls = []
-    history = oracle.exact_eight_dls(
-        q0,
+def _box_history(target=None, *, independent=False):
+    lower, upper = _limits()
+    function = (
+        oracle.independently_reenumerate_eight_box_dls
+        if independent
+        else oracle.exact_eight_box_dls
+    )
+    target = (
+        np.asarray([0.15, -0.04, 0.02], dtype=np.float64)
+        if target is None
+        else np.asarray(target, dtype=np.float64)
+    )
+    return function(
+        np.zeros(7, dtype=np.float64),
         target,
-        callback,
-        final_position=lambda q: final_calls.append(np.asarray(q).copy())
-        or np.asarray(q[:3], dtype=np.float64),
-    )
-    assert len(calls) == 8
-    assert len(final_calls) == 1
-    assert history.q_float64.shape == (9, 7)
-    assert history.tool_position_float64.shape == (9, 3)
-    assert history.residual_float64.shape == (9, 3)
-    assert history.jacobian_float64.shape == (8, 3, 7)
-    assert history.dq_float64.shape == (8, 7)
-    for index in range(8):
-        jacobian = history.jacobian_float64[index]
-        expected = jacobian.T @ np.linalg.solve(
-            jacobian @ jacobian.T + 0.05**2 * np.eye(3),
-            history.residual_float64[index],
-        )
-        np.testing.assert_array_equal(history.dq_float64[index], expected)
-        np.testing.assert_array_equal(
-            history.q_float64[index + 1], history.q_float64[index] + expected
-        )
-    assert set(history.hashes()) == set(history.arrays())
-    np.testing.assert_array_equal(
-        history.residual_float64[-1], target - history.tool_position_float64[-1]
-    )
-
-
-def test_exact_dls_has_no_hidden_step_cap_or_early_exit():
-    calls = []
-    callback = _linear_callback(calls)
-    history = oracle.exact_eight_dls(
-        np.zeros(7, dtype=np.float64),
-        np.asarray([10.0, 0.0, 0.0], dtype=np.float64),
-        callback,
-        final_position=lambda q: np.asarray(q[:3], dtype=np.float64),
-    )
-    assert len(calls) == 8
-    assert history.dq_float64[0, 0] > 9.0
-    assert history.dq_float64.shape[0] == 8
-
-
-def test_dls_unit_step_constant_is_applied_in_every_recurrence(monkeypatch):
-    monkeypatch.setattr(oracle, "DLS_UNIT_STEP", 0.5)
-    history = oracle.exact_eight_dls(
-        np.zeros(7, dtype=np.float64),
-        np.asarray([0.15, 0.0, 0.0], dtype=np.float64),
         _linear_callback(),
+        lower,
+        upper,
         final_position=lambda q: np.asarray(q[:3], dtype=np.float64),
     )
-    for index in range(8):
-        np.testing.assert_array_equal(
-            history.q_float64[index + 1],
-            history.q_float64[index] + 0.5 * history.dq_float64[index],
-        )
-    source = Path(oracle.__file__).read_text()
-    assert "q = q + DLS_UNIT_STEP * dq" in source
-
-
-def test_history_regeneration_is_exact_and_mutations_fail():
-    q0 = np.zeros(7, dtype=np.float64)
-    target = np.asarray([0.15, 0.0, 0.0], dtype=np.float64)
-    final = lambda q: np.asarray(q[:3], dtype=np.float64)
-    first = oracle.exact_eight_dls(
-        q0, target, _linear_callback(), final_position=final
-    )
-    second = oracle.exact_eight_dls(
-        q0, target, _linear_callback(), final_position=final
-    )
-    assert oracle.certify_history_regeneration(first, second)[
-        "all_history_regeneration_gates_pass"
-    ]
-    witness = oracle.V3ConstructionWitness(
-        q0_jitter=tuple(np.zeros(7)),
-        phi=0.0,
-        offset_sign=1,
-        requested_target_xyz=tuple(target),
-        actual_travel_m=0.15,
-        planar_travel_m=0.15,
-        endpoint_physical_clearance_m=0.04,
-        chord_min_distance_to_cylinder_m=0.008,
-        chord_intersects_physical_cylinder=True,
-        chord_intersects_optimizer_keepout=True,
-        history=first,
-        history_hashes=first.hashes(),
-    )
-    assert oracle.certify_witness_regeneration(witness, second)[
-        "all_witness_regeneration_gates_pass"
-    ]
-    changed = oracle.DLSHistory(
-        **{name: value.copy() for name, value in second.__dict__.items()}
-    )
-    changed.dq_float64[0, 0] = np.nextafter(changed.dq_float64[0, 0], np.inf)
-    assert not oracle.certify_history_regeneration(first, changed)[
-        "all_history_regeneration_gates_pass"
-    ]
-    assert not oracle.certify_witness_regeneration(witness, changed)[
-        "all_witness_regeneration_gates_pass"
-    ]
-    changed_final_residual = oracle.DLSHistory(
-        **{name: value.copy() for name, value in second.__dict__.items()}
-    )
-    changed_final_residual.residual_float64[-1, 0] = np.nextafter(
-        changed_final_residual.residual_float64[-1, 0], np.inf
-    )
-    assert not oracle.certify_witness_regeneration(
-        witness, changed_final_residual
-    )["all_witness_regeneration_gates_pass"]
 
 
 def _copy_history(history):
@@ -197,86 +70,213 @@ def _copy_history(history):
     )
 
 
-def test_q_history_gate_accepts_report_only_intermediate_limit_violation():
-    history = oracle.exact_eight_dls(
-        np.zeros(7, dtype=np.float64),
-        np.asarray([0.01, 0.0, 0.0], dtype=np.float64),
-        _linear_callback(),
-        final_position=lambda q: np.asarray(q[:3], dtype=np.float64),
-    )
-    lower = np.full(7, -1.0, dtype=np.float64)
-    upper = np.full(7, 1.0, dtype=np.float64)
-    baseline = oracle.q_history_gate(history, lower, upper)
-    assert baseline["all_q_history_gates_pass"]
+def test_v4_exact_identity_and_active_set_protocol_are_frozen_without_rng():
+    assert v4.DEVELOPMENT_TASK_SEEDS == (12600, 12601, 12602, 12603)
+    assert v4.HELDOUT_TASK_SEEDS == tuple(range(12700, 12708))
+    assert len(v4.EXPECTED_TASK_IDENTITIES) == 12
+    assert v4.DLS_ITERATIONS == 8
+    assert v4.DLS_DAMPING == toll.DAMPING == 0.05
+    assert v4.DLS_UNIT_STEP == 1.0
+    assert v4.FACE_STATUS_ORDER == (-1, 0, 1)
+    assert v4.FACE_COUNT == 2187
+    assert v4.FACE_FEASIBILITY_TOLERANCE == 1e-12
+    assert v4.FREE_NORMAL_RESIDUAL_TOLERANCE == 1e-10
+    assert v4.OBJECTIVE_TIE_ABSOLUTE_TOLERANCE == 1e-12
+    assert v4.VERIFY_DQ_MAXABS_TOLERANCE == 1e-10
+    assert v4.VERIFY_OBJECTIVE_TOLERANCE == 1e-12
+    assert v4.VERIFY_GLOBAL_DOMINANCE_TOLERANCE == 1e-12
+    assert v4.SELECTED_KKT_TOLERANCE == 1e-9
+    metadata = v4.frozen_v4_metadata()
+    construction = metadata["construction"]
+    assert construction["exhaust_all_faces_without_pruning"] is True
+    assert construction["status_order"] == [-1, 0, 1]
+    assert construction["faces_per_step"] == 2187
+    assert construction["free_solver"] == "float64_spd_solve_no_inverse"
+    assert construction["tie_break"] == "lexicographically_first_lower_free_upper"
+    assert construction["independent_verifier_calls_constructor_enumerator"] is False
+    assert construction["all_q0_through_q8_reserve_margin_is_acceptance_gate"] is True
+    assert construction["all_numerical_ik_iterates_are_public_task_data"] is False
+    assert construction["all_numerical_ik_iterates_are_initializer_inputs"] is False
+    assert construction["all_numerical_ik_iterates_are_sqp_inputs"] is False
+    assert metadata["v4_task_seed_override"] == {
+        "development": [12600, 12601, 12602, 12603],
+        "heldout": list(range(12700, 12708)),
+    }
+    assert metadata["unchanged_non_seed_protocol"] == {
+        name: toll.frozen_protocol_metadata()[name]
+        for name in v4.NON_SEED_PUBLIC_PROTOCOL_FIELDS
+    }
+    assert metadata["unchanged_non_seed_protocol_matches_base"] is True
+    assert metadata["predecessor_artifacts_consumed"] is False
+    assert set(metadata["rejected_predecessor_artifact_hashes_report_only"]) >= {
+        "v3_latest_pointer",
+        "v3_generation13_json",
+        "v3_generation13_npz",
+    }
 
-    intermediate_violation = _copy_history(history)
-    intermediate_violation.q_float64[4, 6] = 1.05
-    report = oracle.q_history_gate(intermediate_violation, lower, upper)
+
+def test_constructor_exhausts_all_faces_in_lex_order_and_uses_global_tie_rule():
+    jacobian = np.column_stack((np.eye(3), np.zeros((3, 4)))).astype(np.float64)
+    residual = np.asarray([10.0, -10.0, 0.2], dtype=np.float64)
+    lower = np.full(7, -0.1, dtype=np.float64)
+    upper = np.full(7, 0.1, dtype=np.float64)
+    table = oracle._enumerate_constructor_faces(jacobian, residual, lower, upper)
+    assert table["status"].shape == (2187, 7)
+    assert table["dq"].shape == (2187, 7)
+    assert table["objective"].shape == (2187,)
+    assert table["primal"].shape == (2187,)
+    assert table["free_residual"].shape == (2187,)
+    assert table["feasible"].shape == (2187,)
+    np.testing.assert_array_equal(table["status"][0], np.full(7, -1, dtype=np.int8))
+    np.testing.assert_array_equal(table["status"][-1], np.full(7, 1, dtype=np.int8))
+    assert table["selected"] == int(
+        np.flatnonzero(
+            table["feasible"]
+            & (
+                table["objective"]
+                <= np.min(table["objective"][table["feasible"]]) + 1e-12
+            )
+        )[0]
+    )
+    selected = table["dq"][table["selected"]]
+    assert selected[0] == 0.1
+    assert selected[1] == -0.1
+    assert np.all(table["primal"][table["feasible"]] <= 1e-12)
+    assert np.all(table["free_residual"][table["feasible"]] <= 1e-10)
+
+    tied = oracle._enumerate_constructor_faces(
+        np.zeros((3, 7), dtype=np.float64),
+        np.zeros(3, dtype=np.float64),
+        np.zeros(7, dtype=np.float64),
+        np.zeros(7, dtype=np.float64),
+    )
+    assert np.all(tied["feasible"])
+    assert tied["selected"] == 0
+
+
+def test_independent_reenumerator_never_calls_constructor_enumerator(monkeypatch):
+    jacobian = np.column_stack((np.eye(3), np.zeros((3, 4)))).astype(np.float64)
+    residual = np.asarray([0.2, -0.1, 0.05], dtype=np.float64)
+    lower = np.full(7, -0.1, dtype=np.float64)
+    upper = np.full(7, 0.1, dtype=np.float64)
+    expected = oracle._enumerate_constructor_faces(jacobian, residual, lower, upper)
+
+    def forbidden(*args, **kwargs):
+        raise AssertionError("constructor enumerator called by verifier")
+
+    monkeypatch.setattr(oracle, "_enumerate_constructor_faces", forbidden)
+    actual = oracle._enumerate_verifier_faces(jacobian, residual, lower, upper)
+    np.testing.assert_array_equal(actual["status"], expected["status"])
+    np.testing.assert_array_equal(actual["feasible"], expected["feasible"])
+    assert np.max(np.abs(actual["dq"] - expected["dq"])) <= 1e-10
+    assert np.max(np.abs(actual["objective"] - expected["objective"])) <= 1e-12
+    source = Path(oracle.__file__).read_text()
+    tree = ast.parse(source)
+    verifier = next(
+        node
+        for node in ast.walk(tree)
+        if isinstance(node, ast.FunctionDef)
+        and node.name == "_enumerate_verifier_faces"
+    )
+    assert "_enumerate_constructor_faces" not in ast.unparse(verifier)
+
+
+def test_full_history_retains_every_face_and_independent_certificate_passes():
+    constructor = _box_history()
+    verifier = _box_history(independent=True)
+    assert constructor.q_float64.shape == (9, 7)
+    assert constructor.face_status_int8.shape == (8, 2187, 7)
+    assert constructor.face_dq_float64.shape == (8, 2187, 7)
+    assert constructor.face_objective_float64.shape == (8, 2187)
+    assert constructor.face_primal_violation_float64.shape == (8, 2187)
+    assert constructor.face_free_residual_float64.shape == (8, 2187)
+    assert constructor.face_feasible_bool.shape == (8, 2187)
+    assert constructor.selected_status_int8.shape == (8, 7)
+    assert set(constructor.hashes()) == set(constructor.arrays())
+    certificate = oracle.certify_history_regeneration(constructor, verifier)
+    assert certificate["independent_verifier_calls_constructor_enumerator"] is False
+    assert certificate["selected_dq_agrees"]
+    assert certificate["selected_objective_agrees"]
+    assert certificate["global_dominance_pass"]
+    assert certificate["retained_global_dominance_pass"]
+    assert certificate["selected_face_table_binding_exact"]
+    assert certificate["independent_selected_identity_exact"]
+    assert certificate["selected_kkt_pass"]
+    assert certificate["all_history_regeneration_gates_pass"]
+
+
+def test_certificate_rejects_face_selected_and_kkt_mutations():
+    constructor = _box_history()
+    verifier = _box_history(independent=True)
+
+    changed_face = _copy_history(constructor)
+    changed_face.face_objective_float64[0, 0] -= 1.0
+    assert not oracle.certify_history_regeneration(changed_face, verifier)[
+        "all_history_regeneration_gates_pass"
+    ]
+
+    changed_selected = _copy_history(constructor)
+    changed_selected.dq_float64[0, 0] = np.nextafter(
+        changed_selected.dq_float64[0, 0], np.inf
+    )
+    assert not oracle.certify_history_regeneration(changed_selected, verifier)[
+        "all_history_regeneration_gates_pass"
+    ]
+
+    changed_status = _copy_history(constructor)
+    changed_status.face_status_int8[0, 0, 0] = 0
+    assert not oracle.certify_history_regeneration(changed_status, verifier)[
+        "all_history_regeneration_gates_pass"
+    ]
+
+    changed_gradient = _copy_history(constructor)
+    changed_gradient.selected_gradient_float64[0, 0] = 1.0
+    assert not oracle.certify_history_regeneration(changed_gradient, verifier)[
+        "all_history_regeneration_gates_pass"
+    ]
+
+    malformed_arrays = {
+        name: value.copy() for name, value in constructor.__dict__.items()
+    }
+    malformed_arrays["face_status_int8"] = malformed_arrays[
+        "face_status_int8"
+    ][:, :-1]
+    malformed = oracle.DLSHistory(**malformed_arrays)
+    malformed_certificate = oracle.certify_history_regeneration(
+        malformed, verifier
+    )
+    assert malformed_certificate["exact_array_schema"] is False
+    assert not malformed_certificate["all_history_regeneration_gates_pass"]
+
+
+def test_q_history_gate_requires_exact_recurrence_and_all_nine_reserve():
+    history = _box_history(target=[0.5, 0.0, 0.0])
+    lower, upper = _limits()
+    report = oracle.q_history_gate(history, lower, upper)
+    assert report["all_q0_through_q8_finite"]
+    assert report["exact_recurrence"]
+    assert report["all_q0_through_q8_inside_frozen_reserve"]
     assert report["all_q_history_gates_pass"]
-    assert report["q0_inside_frozen_reserve"]
-    assert report["q8_inside_frozen_reserve"]
-    assert not report["intermediate_all_inside_hard_limits_report_only"]
-    assert not report["intermediate_all_inside_reserve_report_only"]
-    assert report["intermediate_min_hard_signed_margin"] == pytest.approx(-0.05)
-    assert report["intermediate_worst_hard_iterate_index"] == 4
-    assert report["intermediate_worst_hard_joint_index"] == 6
-    assert np.asarray(report["intermediate_hard_signed_margin_float64"]).shape == (7, 7)
-    assert np.asarray(report["intermediate_reserve_signed_margin_float64"]).shape == (7, 7)
-    assert len(report["intermediate_hard_min_per_joint"]) == 7
-    assert len(report["intermediate_reserve_min_per_joint"]) == 7
-    assert len(report["intermediate_worst_hard_iterate_per_joint"]) == 7
-    assert len(report["intermediate_worst_reserve_iterate_per_joint"]) == 7
-    assert report["intermediate_worst_hard_iterate_per_joint"][6] == 4
-    assert report["intermediate_worst_reserve_iterate_per_joint"][6] == 4
-    assert report["intermediate_numerical_ik_iterates_report_only"] is True
-    assert report["intermediate_iterates_never_executed"] is True
-    assert report["intermediate_iterates_never_public"] is True
-    assert report[
-        "intermediate_iterates_never_exposed_to_public_task_or_benchmark"
-    ] is True
-    assert report["intermediate_iterates_never_used_by_initializer"] is True
-    assert report["intermediate_iterates_never_used_by_sqp"] is True
-
-
-def test_q_history_gate_fails_endpoint_margin_nonfinite_and_shape_mutations():
-    history = oracle.exact_eight_dls(
-        np.zeros(7, dtype=np.float64),
-        np.asarray([0.01, 0.0, 0.0], dtype=np.float64),
-        _linear_callback(),
-        final_position=lambda q: np.asarray(q[:3], dtype=np.float64),
-    )
-    lower = np.full(7, -1.0, dtype=np.float64)
-    upper = np.full(7, 1.0, dtype=np.float64)
-
-    bad_q0 = _copy_history(history)
-    bad_q0.q_float64[0, 2] = -0.93
-    report = oracle.q_history_gate(bad_q0, lower, upper)
-    assert not report["q0_inside_frozen_reserve"]
-    assert not report["all_q_history_gates_pass"]
-
-    bad_q8 = _copy_history(history)
-    bad_q8.q_float64[8, 2] = 0.93
-    report = oracle.q_history_gate(bad_q8, lower, upper)
-    assert not report["q8_inside_frozen_reserve"]
-    assert not report["all_q_history_gates_pass"]
 
     bad_intermediate = _copy_history(history)
-    bad_intermediate.q_float64[4, 6] = np.nan
-    report = oracle.q_history_gate(bad_intermediate, lower, upper)
-    assert not report["all_nine_q_iterates_finite"]
-    assert not report["all_q_history_gates_pass"]
+    bad_intermediate.q_float64[4, 6] = np.nextafter(
+        bad_intermediate.q_float64[4, 6], np.inf
+    )
+    assert not oracle.q_history_gate(bad_intermediate, lower, upper)[
+        "all_q_history_gates_pass"
+    ]
 
-    bad_shape_arrays = {
-        name: value.copy() for name, value in history.__dict__.items()
-    }
-    bad_shape_arrays["q_float64"] = bad_shape_arrays["q_float64"][:, :6]
-    bad_shape = oracle.DLSHistory(**bad_shape_arrays)
-    report = oracle.q_history_gate(bad_shape, lower, upper)
-    assert not report["all_nine_q_iterates_exact_shape_dtype"]
-    assert not report["all_q_history_gates_pass"]
+    bad_reserve = _copy_history(history)
+    bad_reserve.q_float64[4, 6] = 0.93
+    bad_reserve.dq_float64[3, 6] = (
+        bad_reserve.q_float64[4, 6] - bad_reserve.q_float64[3, 6]
+    )
+    assert not oracle.q_history_gate(bad_reserve, lower, upper)[
+        "all_q_history_gates_pass"
+    ]
 
 
-def test_rejected_v3_capabilities_are_closed_without_opening_runtime(monkeypatch):
+def test_all_v4_and_predecessor_capabilities_are_closed_without_opening_rng(monkeypatch):
     assert v0_runner.RUNNER_EXECUTION_AUTHORIZATION is None
     assert v0_worker.WORKER_EXECUTION_AUTHORIZATION is None
     assert v1_runner.RUNNER_EXECUTION_AUTHORIZATION is None
@@ -286,13 +286,12 @@ def test_rejected_v3_capabilities_are_closed_without_opening_runtime(monkeypatch
     assert v2_oracle.TASK_CONSTRUCTION_AUTHORIZATION is None
     assert v2_runner.RUNNER_EXECUTION_AUTHORIZATION is None
     assert v3.V3_EXECUTION_AUTHORIZATION is None
+    assert v3_oracle.TASK_CONSTRUCTION_AUTHORIZATION is None
+    assert v3_runner.RUNNER_EXECUTION_AUTHORIZATION is None
+    assert v4.V4_EXECUTION_AUTHORIZATION is None
     assert oracle.TASK_CONSTRUCTION_AUTHORIZATION is None
     assert runner.RUNNER_EXECUTION_AUTHORIZATION is None
-    assert v3.V3_OUTPUT_PATH == Path(
-        "/tmp/tiago-tool-center-toll-v3-task-construction-authorized-once/v3.json"
-    )
-    assert runner.AUTHORIZED_OUTPUT_PATH == v3.V3_OUTPUT_PATH
-    frozen = {seed for _, seed in v3.EXPECTED_TASK_IDENTITIES}
+    frozen = {seed for _, seed in v4.EXPECTED_TASK_IDENTITIES}
     opened = []
     original = np.random.default_rng
 
@@ -302,20 +301,20 @@ def test_rejected_v3_capabilities_are_closed_without_opening_runtime(monkeypatch
         return original(seed)
 
     monkeypatch.setattr(np.random, "default_rng", guarded)
-    for _, seed in v3.EXPECTED_TASK_IDENTITIES:
+    for _, seed in v4.EXPECTED_TASK_IDENTITIES:
         with pytest.raises(RuntimeError, match="blocked"):
             oracle.generate_task(seed, object())
     with pytest.raises(RuntimeError, match="blocked"):
-        runner.execute_v3_runner(v3.V3_OUTPUT_PATH)
+        runner.execute_v4_runner(v4.V4_OUTPUT_PATH)
     assert opened == []
 
 
-def test_v3_sources_are_isolated_and_benchmark_cannot_import_oracle():
+def test_v4_sources_are_isolated_tainted_and_benchmark_cannot_import_oracle():
     root = Path(__file__).resolve().parents[2]
     paths = [
-        root / "tiago_src/gato_tiago/multimodal_toll_v3.py",
-        root / "tiago_src/gato_tiago/multimodal_toll_v3_oracle_schema.py",
-        root / "tiago_src/gato_tiago/multimodal_toll_v3_runner.py",
+        root / "tiago_src/gato_tiago/multimodal_toll_v4.py",
+        root / "tiago_src/gato_tiago/multimodal_toll_v4_oracle_schema.py",
+        root / "tiago_src/gato_tiago/multimodal_toll_v4_runner.py",
     ]
     trees = [ast.parse(path.read_text(), filename=str(path)) for path in paths]
     imported = {
@@ -331,43 +330,38 @@ def test_v3_sources_are_isolated_and_benchmark_cannot_import_oracle():
         for node in ast.walk(tree)
         if isinstance(node, ast.ImportFrom) and node.module
     )
-    assert not any("multimodal_toll_v0" in name for name in imported)
-    assert not any("multimodal_toll_v1" in name for name in imported)
-    assert not any("multimodal_toll_v2" in name for name in imported)
+    for predecessor in ("v0", "v1", "v2", "v3"):
+        assert not any(f"multimodal_toll_{predecessor}" in name for name in imported)
     benchmark = (root / "tiago_examples/tiago_multimodal_toll_benchmark.py").read_text()
     initializer = (root / "tiago_src/gato_tiago/multimodal_toll.py").read_text()
-    assert "multimodal_toll_v3_oracle_schema" not in benchmark
-    assert "multimodal_toll_v3_oracle_schema" not in initializer
+    assert "multimodal_toll_v4_oracle_schema" not in benchmark
+    assert "multimodal_toll_v4_oracle_schema" not in initializer
     assert "history" not in toll.TollTask.__dataclass_fields__
     assert "q_goal" not in toll.TollTask.__dataclass_fields__
-    assert hasattr(oracle, "regenerate_witness_history")
-    assert set(v3.frozen_v3_metadata()["forbidden_public_or_initializer_fields"]) <= set(
+    assert set(v4.frozen_v4_metadata()["forbidden_public_or_initializer_fields"]) <= set(
         toll.FORBIDDEN_INITIALIZER_FIELDS
     )
-    with pytest.raises(ValueError, match="tainted"):
-        toll.validate_initializer_inputs({"dls_intermediate_q": np.zeros((7, 7))})
+    for field in ("box_dls_history", "box_dls_face_table", "box_dls_active_set"):
+        with pytest.raises(ValueError, match="tainted"):
+            toll.validate_initializer_inputs({field: np.zeros(1)})
 
 
 def test_runner_declaration_is_static_and_fail_closed():
-    metadata = runner.describe_v3_runner()
+    metadata = runner.describe_v4_runner()
     assert metadata["authorization_enabled"] is False
     assert metadata["expected_identities"] == [
-        list(row) for row in v3.EXPECTED_TASK_IDENTITIES
+        list(row) for row in v4.EXPECTED_TASK_IDENTITIES
     ]
     assert metadata["expected_model_load_calls"] == 1
     assert metadata["expected_task_construction_calls"] == 12
     assert metadata["expected_history_regeneration_calls"] == 12
-    assert metadata["worker_calls"] == 0
-    assert metadata["cuda_calls"] == 0
-    assert metadata["sqp_calls"] == 0
-    assert metadata["route_oracle_calls"] == 0
+    assert metadata["worker_calls"] == metadata["cuda_calls"] == 0
+    assert metadata["sqp_calls"] == metadata["route_oracle_calls"] == 0
     assert metadata["construction_only"] is True
     assert metadata["benchmark_evidence"] is False
-    assert set(metadata["required_source_paths"]) == set(v3.REQUIRED_SOURCE_PATHS)
-    assert runner.RUNNER_EXECUTION_AUTHORIZATION is None
-    assert oracle.TASK_CONSTRUCTION_AUTHORIZATION is None
+    assert set(metadata["required_source_paths"]) == set(v4.REQUIRED_SOURCE_PATHS)
     with pytest.raises(RuntimeError, match="blocked"):
-        runner.execute_v3_runner(v3.V3_OUTPUT_PATH)
+        runner.execute_v4_runner(v4.V4_OUTPUT_PATH)
 
 
 def _synthetic_ledger():
@@ -385,16 +379,22 @@ def _synthetic_certifiable_task(task_seed=99000):
         [np.cos(draws[7]), np.sin(draws[7]), 0.0], dtype=np.float64
     )
     callback = _linear_callback()
-    history = oracle.exact_eight_dls(
+    lower = np.full(7, -5.0, dtype=np.float64)
+    upper = np.full(7, 5.0, dtype=np.float64)
+    history = oracle.exact_eight_box_dls(
         q0,
         target,
         callback,
+        lower,
+        upper,
         final_position=lambda q: np.asarray(q[:3], dtype=np.float64),
     )
-    regenerated = oracle.exact_eight_dls(
+    regenerated = oracle.independently_reenumerate_eight_box_dls(
         q0,
         target,
         callback,
+        lower,
+        upper,
         final_position=lambda q: np.asarray(q[:3], dtype=np.float64),
     )
     goal = history.tool_position_float64[-1]
@@ -431,7 +431,7 @@ def _synthetic_certifiable_task(task_seed=99000):
         solver_x0_sha256=toll._sha256_array(x0),
         solver_reference_sha256=toll._sha256_array(ref32),
     )
-    witness = oracle.V3ConstructionWitness(
+    witness = oracle.V4ConstructionWitness(
         q0_jitter=tuple(draws[:7]),
         phi=float(draws[7]),
         offset_sign=sign,
@@ -448,8 +448,8 @@ def _synthetic_certifiable_task(task_seed=99000):
     )
 
     class Model:
-        lowerPositionLimit = np.full(7, -5.0, dtype=np.float64)
-        upperPositionLimit = np.full(7, 5.0, dtype=np.float64)
+        lowerPositionLimit = lower
+        upperPositionLimit = upper
 
     return task, witness, regenerated, Model()
 
@@ -503,7 +503,7 @@ def _synthetic_model_factory(output, call_order):
 
 
 def test_transaction_gen0_precedes_model_and_exact_twelve_attempts(tmp_path):
-    output = tmp_path / "v3.json"
+    output = tmp_path / "v4.json"
     ledger = _synthetic_ledger()
     call_order = []
 
@@ -528,14 +528,14 @@ def test_transaction_gen0_precedes_model_and_exact_twelve_attempts(tmp_path):
     )
     assert call_order == ["model", *ledger]
     assert result["incomplete"] is False
-    assert result["all_v3_gates_pass"] is False
+    assert result["all_v4_gates_pass"] is False
     assert result["task_construction_attempt_count"] == 12
     assert result["worker_calls"] == result["cuda_calls"] == 0
     assert result["sqp_calls"] == result["route_oracle_calls"] == 0
     assert result["benchmark_evidence"] is False
     assert result["optimization_evidence"] is False
     assert all(
-        (tmp_path / f"v3.partial.{generation:04d}.json").exists()
+        (tmp_path / f"v4.partial.{generation:04d}.json").exists()
         for generation in range(14)
     )
     assert output.exists() and output.with_suffix(".npz").exists()
@@ -543,7 +543,7 @@ def test_transaction_gen0_precedes_model_and_exact_twelve_attempts(tmp_path):
 
 
 def test_failed_task_is_retained_all_twelve_are_attempted_and_no_final_is_published(tmp_path):
-    output = tmp_path / "v3.json"
+    output = tmp_path / "v4.json"
     ledger = _synthetic_ledger()
     call_order = []
 
@@ -560,7 +560,7 @@ def test_failed_task_is_retained_all_twelve_are_attempted_and_no_final_is_publis
             "replacement_count": 0,
         }, {}
 
-    with pytest.raises(RuntimeError, match="V3 closes"):
+    with pytest.raises(RuntimeError, match="V4 closes"):
         runner._run_pipeline(
             output,
             ledger=ledger,
@@ -570,7 +570,7 @@ def test_failed_task_is_retained_all_twelve_are_attempted_and_no_final_is_publis
             test_override=False,
         )
     assert call_order == list(ledger)
-    pointer = json.loads((tmp_path / "v3.partial.latest.json").read_text())
+    pointer = json.loads((tmp_path / "v4.partial.latest.json").read_text())
     assert pointer["generation"] == 13
     latest = json.loads(Path(pointer["json_path"]).read_text())
     assert latest["incomplete"] is True
@@ -586,7 +586,7 @@ def test_failed_task_is_retained_all_twelve_are_attempted_and_no_final_is_publis
 
 
 def test_interruption_after_second_attempt_retains_generation_and_no_final(tmp_path):
-    output = tmp_path / "v3.json"
+    output = tmp_path / "v4.json"
     ledger = _synthetic_ledger()
 
     def task_factory(identity, model):
@@ -614,7 +614,7 @@ def test_interruption_after_second_attempt_retains_generation_and_no_final(tmp_p
             test_override=True,
             after_attempt=interrupt,
         )
-    pointer = json.loads((tmp_path / "v3.partial.latest.json").read_text())
+    pointer = json.loads((tmp_path / "v4.partial.latest.json").read_text())
     assert pointer["generation"] == 3
     latest = json.loads(Path(pointer["json_path"]).read_text())
     assert latest["task_construction_attempt_count"] == 2
@@ -623,7 +623,7 @@ def test_interruption_after_second_attempt_retains_generation_and_no_final(tmp_p
 
 
 def test_false_aggregate_certificate_never_publishes_final_artifacts(tmp_path):
-    output = tmp_path / "v3.json"
+    output = tmp_path / "v4.json"
     ledger = _synthetic_ledger()
 
     def task_factory(identity, model):
@@ -645,7 +645,7 @@ def test_false_aggregate_certificate_never_publishes_final_artifacts(tmp_path):
             task_factory=task_factory,
             test_override=False,
         )
-    pointer = json.loads((tmp_path / "v3.partial.latest.json").read_text())
+    pointer = json.loads((tmp_path / "v4.partial.latest.json").read_text())
     assert pointer["generation"] == 13
     latest = json.loads(Path(pointer["json_path"]).read_text())
     assert latest["task_construction_attempt_count"] == 12

@@ -41,9 +41,7 @@ from gato_tiago.multimodal_toll_v3 import (
 )
 
 
-# Narrow V3 construction-only capability. It authorizes neither route
-# optimization nor benchmark initialization, CUDA, SQP, or timing.
-TASK_CONSTRUCTION_AUTHORIZATION = object()
+TASK_CONSTRUCTION_AUTHORIZATION = None
 
 
 def _history_hash(array: np.ndarray) -> str:

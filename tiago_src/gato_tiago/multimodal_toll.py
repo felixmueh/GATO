@@ -106,6 +106,9 @@ FORBIDDEN_INITIALIZER_FIELDS = frozenset(
         "dls_intermediate_q",
         "ik_iterates",
         "intermediate_joint_margins",
+        "box_dls_history",
+        "box_dls_face_table",
+        "box_dls_active_set",
         "collision",
         "winding",
     }
