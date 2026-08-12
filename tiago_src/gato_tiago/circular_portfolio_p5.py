@@ -37,7 +37,9 @@ BUILD_COMMAND=("./tools/build.sh","--plant","tiago_right_constructed_route_portf
     "--native-cuda-arch")
 EXTENSION={"module":"bsqp.bsqpN260_tiago_right_constructed_route_portfolio_toll",
     "relative_path":"python/bsqp/bsqpN260_tiago_right_constructed_route_portfolio_toll.cpython-310-x86_64-linux-gnu.so",
-    "sha256":None,"size":None,"build_head":None,"arch":"61-real",
+    "sha256":"8ed0f549d35d99790ee3756c4e9b1c792f8c40f6a2cccd17a2b8432693d04c49",
+    "size":6694576,"build_head":"b5bf3b1d68dd4d1cc91d3634ae5b62b1c9371579",
+    "arch":"61-real",
     "KNOT_POINTS":260,"REFERENCE_SIZE":10,
     "TOOL_POSITION_FRAME":"arm_right_tool_joint_origin","TOOL_POSITION_SIZE":3}
 
@@ -46,6 +48,9 @@ P4_V2_REJECTED_REPORT={
     "classification":"scientific_replay_rejected_and_closed","stage":"replay_failed",
     "completed":0,"pending":12,"error_type":"RuntimeError",
     "error_message":"P4 task replay failed","rejected_p4_v2_artifact_loads":0,
+    "broadcast_defect":"B16 sim_forward lane0 selected with [0] then broadcast to lanes1-15",
+    "lane0_evidence":"independently diagnosed and scientifically failed",
+    "lanes_1_through_15_evidence":False,
     "trigger_elapsed_s":77.53576374595286,"observed_finish_elapsed_s":77.55036743998062,
     "call_counts":{"p3_artifact_loads":1,"p3_disk_recertifications":1,
         "p3_independent_pin_replays":192,"prerequisite_artifact_loads":2,
@@ -68,6 +73,18 @@ P4_V2_REJECTED_REPORT={
 def array_hash(value):
     value=np.ascontiguousarray(value)
     return hashlib.sha256(f"{value.dtype.str}|{value.shape}|".encode()+value.tobytes()).hexdigest()
+
+
+def worker_paths():
+    root=OUTPUT.parent
+    return {"request":root/"p5.worker.request.json",
+        "input":root/"p5.worker.input.npz","npz":root/"p5.worker.npz",
+        "json":root/"p5.worker.json","rejected":root/"p5.worker.rejected.json"}
+
+def route_paths(index):
+    if index not in (0,1):raise ValueError("invalid P5 route index")
+    return {"json":OUTPUT.with_name(f"p5.route.{index}.json"),
+        "npz":OUTPUT.with_name(f"p5.route.{index}.npz")}
 
 
 def endpoint_map():
@@ -250,6 +267,19 @@ def certify_route(pin_state,pin_tool,cuda_state,cuda_tool,controls,goal,pillar,r
             ((pin_base["cost"],cuda_base["cost"]),(pin_full["cost"],cuda_full["cost"]))) }
     return {"route":route,"metrics":metrics,"gates":gates,"passes":bool(all(gates.values()))}
 
+def certify_route_detail(value):
+    metric_keys={"pin_terminal_m","cuda_terminal_m","pin_speed_mps","cuda_speed_mps",
+        "tool_disagreement_rms_m","tool_disagreement_max_m","pin_clearance_m",
+        "cuda_clearance_m","pin_turn_rad","cuda_turn_rad","pin_base_cost",
+        "pin_full_cost","cuda_base_cost","cuda_full_cost"}
+    gate_keys={"finite","q_limits","v_limits","u_limits","terminal","speed",
+        "clearance","agreement","topology","model_cost_agreement"}
+    return bool(isinstance(value,dict) and set(value)=={"route","metrics","gates","passes"}
+        and value["route"] in ("short","long") and set(value["metrics"])==metric_keys
+        and all(isinstance(x,(int,float)) and np.isfinite(x) for x in value["metrics"].values())
+        and set(value["gates"])==gate_keys and all(x is True for x in value["gates"].values())
+        and value["passes"] is True)
+
 
 def certify_pair(short,long):
     if not short.get("passes") or not long.get("passes"):return {"passes":False}
@@ -262,10 +292,16 @@ def certify_pair(short,long):
             and sm["cuda_full_cost"]-lm["cuda_full_cost"]>=max(.01,.05*abs(lm["cuda_full_cost"]))}
     return {"gates":gates,"passes":bool(all(gates.values()))}
 
+def certify_pair_detail(value):
+    return bool(isinstance(value,dict) and set(value)=={"gates","passes"}
+        and set(value["gates"])=={"opposite_topology","pin_reversal","cuda_reversal"}
+        and all(x is True for x in value["gates"].values()) and value["passes"] is True)
+
 
 def static_extension_declaration():
     return bool(EXTENSION=={"module":"bsqp.bsqpN260_tiago_right_constructed_route_portfolio_toll",
         "relative_path":"python/bsqp/bsqpN260_tiago_right_constructed_route_portfolio_toll.cpython-310-x86_64-linux-gnu.so",
-        "sha256":None,"size":None,"build_head":None,"arch":"61-real",
+        "sha256":"8ed0f549d35d99790ee3756c4e9b1c792f8c40f6a2cccd17a2b8432693d04c49",
+        "size":6694576,"build_head":"b5bf3b1d68dd4d1cc91d3634ae5b62b1c9371579","arch":"61-real",
         "KNOT_POINTS":260,"REFERENCE_SIZE":10,
         "TOOL_POSITION_FRAME":"arm_right_tool_joint_origin","TOOL_POSITION_SIZE":3})
