@@ -42,9 +42,7 @@ def test_p5_isolated_n260_build_wiring_and_v1_tokens_closed():
     pattern=re.compile(r"^[A-Z][A-Z0-9_]*AUTHORIZATION\s*=\s*object\(\)$")
     enabled=sorted((path.name,line) for path in (root/"tiago_src/gato_tiago").glob("*.py")
         for line in path.read_text().splitlines() if pattern.fullmatch(line))
-    assert enabled==sorted([
-        ("circular_portfolio_p5_v2_runner.py","RUNNER_EXECUTION_AUTHORIZATION=object()"),
-        ("circular_portfolio_p5_v2_worker.py","WORKER_EXECUTION_AUTHORIZATION=object()")])
+    assert enabled==[]
     assert schema.OUTPUT==Path(
         "/tmp/tiago-tool-center-constructed-route-portfolio-p5-n260-pilot-authorized-once/p5.json")
     assert runner.AUTHORIZED_ORIG_ARGV==("python","-B","-m",

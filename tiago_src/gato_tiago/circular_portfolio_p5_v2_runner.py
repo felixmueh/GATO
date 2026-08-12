@@ -13,7 +13,7 @@ from gato_tiago import circular_portfolio_p5_runner as v1
 from gato_tiago import circular_portfolio_p5_v2 as schema
 
 
-RUNNER_EXECUTION_AUTHORIZATION=object()
+RUNNER_EXECUTION_AUTHORIZATION=None
 AUTHORIZED_CWD="/workspace/GATO"
 AUTHORIZED_ORIG_ARGV=("python","-B","-m","gato_tiago.circular_portfolio_p5_v2_runner",
     "--execute","--output",str(schema.OUTPUT))
