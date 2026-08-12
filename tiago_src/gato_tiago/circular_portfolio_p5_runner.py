@@ -19,7 +19,7 @@ from gato_tiago.circular_portfolio_p5_worker import (certify_output as certify_w
     certify_partial_counts as certify_worker_partial_counts)
 
 
-RUNNER_EXECUTION_AUTHORIZATION=None
+RUNNER_EXECUTION_AUTHORIZATION=object()
 AUTHORIZED_CWD="/workspace/GATO"
 AUTHORIZED_ORIG_ARGV=("python","-B","-m","gato_tiago.circular_portfolio_p5_runner",
     "--execute","--output",str(OUTPUT))

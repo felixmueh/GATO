@@ -21,7 +21,7 @@ def _inputs():
         "b16_seed_xu_float32":seeds}
 
 
-def test_p5_isolated_n260_build_wiring_and_all_tokens_closed():
+def test_p5_isolated_n260_build_wiring_and_exact_pilot_tokens():
     root=Path(__file__).resolve().parents[2]
     cmake=(root/"CMakeLists.txt").read_text();binding=(root/"python/bindings.cu").read_text()
     assert 'plant STREQUAL "tiago_right_constructed_route_portfolio_toll"' in cmake
@@ -37,11 +37,28 @@ def test_p5_isolated_n260_build_wiring_and_all_tokens_closed():
     assert schema.EXTENSION["build_head"]=="b5bf3b1d68dd4d1cc91d3634ae5b62b1c9371579"
     assert p4_runner.RUNNER_EXECUTION_AUTHORIZATION is None
     assert p4_worker.WORKER_EXECUTION_AUTHORIZATION is None
-    assert runner.RUNNER_EXECUTION_AUTHORIZATION is None
-    assert worker.WORKER_EXECUTION_AUTHORIZATION is None
+    assert runner.RUNNER_EXECUTION_AUTHORIZATION is not None
+    assert worker.WORKER_EXECUTION_AUTHORIZATION is not None
     pattern=re.compile(r"^[A-Z][A-Z0-9_]*AUTHORIZATION\s*=\s*object\(\)$")
-    assert not [(path.name,line) for path in (root/"tiago_src/gato_tiago").glob("*.py")
-        for line in path.read_text().splitlines() if pattern.fullmatch(line)]
+    enabled=sorted((path.name,line) for path in (root/"tiago_src/gato_tiago").glob("*.py")
+        for line in path.read_text().splitlines() if pattern.fullmatch(line))
+    assert enabled==sorted([
+        ("circular_portfolio_p5_runner.py","RUNNER_EXECUTION_AUTHORIZATION=object()"),
+        ("circular_portfolio_p5_worker.py","WORKER_EXECUTION_AUTHORIZATION=object()")])
+    assert schema.OUTPUT==Path(
+        "/tmp/tiago-tool-center-constructed-route-portfolio-p5-n260-pilot-authorized-once/p5.json")
+    assert runner.AUTHORIZED_ORIG_ARGV==("python","-B","-m",
+        "gato_tiago.circular_portfolio_p5_runner","--execute","--output",str(schema.OUTPUT))
+    assert not schema.OUTPUT.parent.exists()
+    with pytest.raises(RuntimeError,match="wrong P5 output"):
+        runner.execute(schema.OUTPUT.with_name("wrong.json"),runner.RUNNER_EXECUTION_AUTHORIZATION)
+    with pytest.raises(RuntimeError,match="wrong P5 request path"):
+        worker.execute_worker(Path("/tmp/wrong-p5.request.json"),worker.WORKER_EXECUTION_AUTHORIZATION)
+    source=inspect.getsource(runner.execute)
+    assert source.index("if Path(output).resolve()!=OUTPUT") \
+        <source.index("if OUTPUT.parent.exists()")<source.index("OUTPUT.parent.mkdir")
+    assert "if path.exists() or candidate.exists()" in inspect.getsource(runner.atomic_json)
+    assert "if path.exists() or candidate.exists()" in inspect.getsource(runner.atomic_npz)
 
 
 def test_p4_v2_closure_is_exact_report_only_and_zero_load():
