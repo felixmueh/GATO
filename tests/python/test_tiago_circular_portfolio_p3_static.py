@@ -14,19 +14,17 @@ from gato_tiago import circular_portfolio_p3_constructor as constructor
 from gato_tiago import circular_portfolio_p3_runner as runner
 
 
-def test_only_p3_cpu_capabilities_are_enabled_and_reports_are_exact():
+def test_p3_cpu_capabilities_are_closed_after_accepted_run_and_reports_are_exact():
     assert all(token is None for token in (p1_constructor.RUNNER_EXECUTION_AUTHORIZATION,
         p1_runner.RUNNER_EXECUTION_AUTHORIZATION,p1_worker.WORKER_EXECUTION_AUTHORIZATION,
         p2_constructor.CONSTRUCTOR_EXECUTION_AUTHORIZATION,p2_runner.RUNNER_EXECUTION_AUTHORIZATION))
-    assert constructor.CONSTRUCTOR_EXECUTION_AUTHORIZATION is not None
-    assert runner.RUNNER_EXECUTION_AUTHORIZATION is not None
+    assert constructor.CONSTRUCTOR_EXECUTION_AUTHORIZATION is None
+    assert runner.RUNNER_EXECUTION_AUTHORIZATION is None
     root=Path(__file__).resolve().parents[2]
     pattern=re.compile(r"^[A-Z][A-Z0-9_]*AUTHORIZATION\s*=\s*object\(\)$")
     enabled={(path.name,line.replace(" ","")) for path in (root/"tiago_src/gato_tiago").glob("*.py")
         for line in path.read_text().splitlines() if pattern.fullmatch(line)}
-    assert enabled=={
-        ("circular_portfolio_p3_constructor.py","CONSTRUCTOR_EXECUTION_AUTHORIZATION=object()"),
-        ("circular_portfolio_p3_runner.py","RUNNER_EXECUTION_AUTHORIZATION=object()")}
+    assert enabled==set()
     report=schema.P2_REJECTED_REPORT
     assert report["stage"]=="runtime_watchdog_rejected" and report["completed"]==0
     assert report["elapsed_s"]==30.015096527989954

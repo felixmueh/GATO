@@ -16,7 +16,7 @@ from gato_tiago.circular_portfolio_p3 import (
 )
 
 
-RUNNER_EXECUTION_AUTHORIZATION=object()
+RUNNER_EXECUTION_AUTHORIZATION=None
 OUTPUT=Path("/tmp/tiago-tool-center-circular-portfolio-p3-cpu-screen-authorized-once/p3.json")
 AUTHORIZED_CWD="/workspace/GATO"
 AUTHORIZED_ORIG_ARGV=("python","-B","-m","gato_tiago.circular_portfolio_p3_runner",
