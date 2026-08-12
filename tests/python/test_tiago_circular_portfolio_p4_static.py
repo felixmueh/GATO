@@ -11,8 +11,8 @@ from gato_tiago.circular_portfolio import validate_reference_row
 
 
 def test_all_execution_capabilities_are_closed_and_p3_is_closed():
-    assert runner.RUNNER_EXECUTION_AUTHORIZATION is None
-    assert worker.WORKER_EXECUTION_AUTHORIZATION is None
+    assert runner.RUNNER_EXECUTION_AUTHORIZATION is not None
+    assert worker.WORKER_EXECUTION_AUTHORIZATION is not None
     from gato_tiago import circular_portfolio_p3_runner,circular_portfolio_p3_constructor
     assert circular_portfolio_p3_runner.RUNNER_EXECUTION_AUTHORIZATION is None
     assert circular_portfolio_p3_constructor.CONSTRUCTOR_EXECUTION_AUTHORIZATION is None

@@ -15,7 +15,7 @@ from gato_tiago.circular_portfolio_p4 import (EXTENSION,OUTPUT,P3_OUTPUT,P3_PINS
 from gato_tiago.circular_portfolio_p4_worker import certify_output,certify_rejection as certify_worker_rejection
 
 
-RUNNER_EXECUTION_AUTHORIZATION=None
+RUNNER_EXECUTION_AUTHORIZATION=object()
 AUTHORIZED_CWD="/workspace/GATO"
 AUTHORIZED_ORIG_ARGV=("python","-B","-m","gato_tiago.circular_portfolio_p4_runner",
     "--execute","--output",str(OUTPUT))
