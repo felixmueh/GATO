@@ -53,10 +53,10 @@ def _canonical_prerequisite_authentication():
     }
 
 
-def test_full_v2_tokens_are_all_closed_and_prerequisite_token_is_closed():
+def test_only_full_v2_runner_and_worker_tokens_are_enabled():
     assert schema.ORACLE_EXECUTION_AUTHORIZATION is None
-    assert runner.RUNNER_EXECUTION_AUTHORIZATION is None
-    assert worker.WORKER_EXECUTION_AUTHORIZATION is None
+    assert runner.RUNNER_EXECUTION_AUTHORIZATION is not None
+    assert worker.WORKER_EXECUTION_AUTHORIZATION is not None
     assert prerequisite_runner.RUNNER_EXECUTION_AUTHORIZATION is None
     assert v1_runner.RUNNER_EXECUTION_AUTHORIZATION is None
     assert v1_worker.WORKER_EXECUTION_AUTHORIZATION is None
@@ -69,7 +69,10 @@ def test_full_v2_tokens_are_all_closed_and_prerequisite_token_is_closed():
             for line in path.read_text().splitlines()
             if pattern.fullmatch(line)
         )
-    assert enabled == []
+    assert enabled == [
+        ("multimodal_toll_oracle_v2_runner.py", "RUNNER_EXECUTION_AUTHORIZATION = object()"),
+        ("multimodal_toll_oracle_v2_worker.py", "WORKER_EXECUTION_AUTHORIZATION = object()"),
+    ]
 
 
 def test_v2_paths_pins_and_nonconsumption_records_are_exact():
@@ -401,7 +404,7 @@ def test_v2_worker_replay_certificate_is_v1_science_with_v2_protocol():
     assert not worker.certify_replay(summary, arrays)["passes"]
 
 
-def test_worker_and_runner_boundaries_are_blocked_before_private_calls(tmp_path, monkeypatch):
+def test_worker_and_runner_authorization_path_and_freshness_boundaries(tmp_path, monkeypatch):
     calls = []
     monkeypatch.setattr(worker, "_run_authorized_worker", lambda *_: calls.append("worker"))
     monkeypatch.setattr(runner, "_production_pipeline", lambda *_: calls.append("runner"))
@@ -409,7 +412,45 @@ def test_worker_and_runner_boundaries_are_blocked_before_private_calls(tmp_path,
         worker.execute_worker(tmp_path / "request.json", tmp_path / "output.json", object())
     with pytest.raises(RuntimeError, match="blocked"):
         runner.execute_oracle(tmp_path / "oracle.json", object())
+    with pytest.raises(RuntimeError, match="output root mismatch"):
+        worker.execute_worker(
+            tmp_path / "request.json",
+            tmp_path / "output.json",
+            worker.WORKER_EXECUTION_AUTHORIZATION,
+        )
+    with pytest.raises(RuntimeError, match="output path not authorized"):
+        runner.execute_oracle(
+            tmp_path / "oracle.json", runner.RUNNER_EXECUTION_AUTHORIZATION
+        )
     assert calls == [] and list(tmp_path.iterdir()) == []
+
+    monkeypatch.setattr(runner._v1, "repository_root", lambda: Path("/workspace/GATO"))
+    monkeypatch.setattr(
+        runner,
+        "start_provenance",
+        lambda *_a, **_k: {"tracked_tree_clean_at_start": True},
+    )
+    assert runner.execute_oracle(
+        schema.ORACLE_OUTPUT_PATH, runner.RUNNER_EXECUTION_AUTHORIZATION
+    ) is None
+    worker_output = schema.ORACLE_OUTPUT_PATH.parent / "oracle.worker.0000.json"
+    assert worker.execute_worker(
+        schema.ORACLE_OUTPUT_PATH.parent / "oracle.worker.0000.request.json",
+        worker_output,
+        worker.WORKER_EXECUTION_AUTHORIZATION,
+    ) is None
+    assert calls == ["runner", "worker"]
+
+
+def test_full_v2_sources_refuse_resume_overwrite_and_existing_worker_artifacts():
+    runner_source = inspect.getsource(runner.execute_oracle)
+    replay_source = inspect.getsource(runner.ProductionOracleDependencies.replay)
+    inherited_worker_source = inspect.getsource(v1_worker._run_authorized_worker)
+    assert "output.parent.exists()" in runner_source
+    assert "output root must be absent" in runner_source
+    assert "if any(path.exists()" in replay_source
+    assert "worker side artifact exists" in replay_source
+    assert "exists()" in inherited_worker_source
 
 
 def test_source_has_v2_worker_command_and_no_v1_artifact_consumption():
