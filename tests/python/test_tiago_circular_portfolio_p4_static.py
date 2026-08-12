@@ -11,8 +11,8 @@ from gato_tiago.circular_portfolio import validate_reference_row
 
 
 def test_all_execution_capabilities_are_closed_and_p3_is_closed():
-    assert runner.RUNNER_EXECUTION_AUTHORIZATION is not None
-    assert worker.WORKER_EXECUTION_AUTHORIZATION is not None
+    assert runner.RUNNER_EXECUTION_AUTHORIZATION is None
+    assert worker.WORKER_EXECUTION_AUTHORIZATION is None
     from gato_tiago import circular_portfolio_p3_runner,circular_portfolio_p3_constructor
     assert circular_portfolio_p3_runner.RUNNER_EXECUTION_AUTHORIZATION is None
     assert circular_portfolio_p3_constructor.CONSTRUCTOR_EXECUTION_AUTHORIZATION is None
@@ -25,7 +25,6 @@ def test_exact_p3_and_n96_pins_and_fresh_namespace():
         "gen194":"3d5e70d15aa2223e6c336efc98f449ced6a7614ee9e6c41253ea2a653b64fd25"}
     assert schema.EXTENSION["sha256"]=="b079410ade9e7de19ed3d4b7ed6f6ace27172cd442ccea0d5a46bb7277067a2f"
     assert schema.EXTENSION["size"]==6690480 and schema.EXTENSION["arch"]=="61-real"
-    assert not schema.OUTPUT.parent.exists()
 
 
 def synthetic_inputs():

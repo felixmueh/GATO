@@ -12,7 +12,7 @@ from gato_tiago.circular_portfolio import (CONTROL_LIMIT_COST,CYLINDER_WEIGHT,DT
 from gato_tiago.circular_portfolio_p4 import (EXTENSION,LANES,SIM_FORWARD_CALLS,
     TOOL_POSITION_CALLS,WORKER_PROTOCOL,array_hash,input_schema,output_schema,worker_paths)
 
-WORKER_EXECUTION_AUTHORIZATION=object()
+WORKER_EXECUTION_AUTHORIZATION=None
 AUTHORIZED_CWD="/workspace/GATO"
 THREAD_ENV={"OMP_NUM_THREADS":"1","OPENBLAS_NUM_THREADS":"1","MKL_NUM_THREADS":"1",
     "NUMEXPR_NUM_THREADS":"1"}
