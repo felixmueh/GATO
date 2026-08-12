@@ -13,16 +13,14 @@ from gato_tiago import circular_portfolio_p4_v2_worker as worker
 def test_v1_closed_v2_tokens_none_and_fresh_root():
     assert v1_runner.RUNNER_EXECUTION_AUTHORIZATION is None
     assert v1_worker.WORKER_EXECUTION_AUTHORIZATION is None
-    assert runner.RUNNER_EXECUTION_AUTHORIZATION is not None
-    assert worker.WORKER_EXECUTION_AUTHORIZATION is not None
-    assert not schema.OUTPUT.parent.exists()
+    assert runner.RUNNER_EXECUTION_AUTHORIZATION is None
+    assert worker.WORKER_EXECUTION_AUTHORIZATION is None
+    assert schema.OUTPUT.parent.exists()
     root=Path(__file__).resolve().parents[2]
     pattern=re.compile(r"^[A-Z][A-Z0-9_]*AUTHORIZATION\s*=\s*object\(\)$")
     enabled={(path.name,line) for path in (root/"tiago_src/gato_tiago").glob("*.py")
         for line in path.read_text().splitlines() if pattern.fullmatch(line)}
-    assert enabled=={
-        ("circular_portfolio_p4_v2_runner.py","RUNNER_EXECUTION_AUTHORIZATION=object()"),
-        ("circular_portfolio_p4_v2_worker.py","WORKER_EXECUTION_AUTHORIZATION=object()")}
+    assert enabled==set()
 
 
 def test_v1_launch_invalid_report_is_exact_and_downstream_zero():
@@ -40,13 +38,15 @@ def test_v1_launch_invalid_report_is_exact_and_downstream_zero():
 
 def test_current_p3_science_matches_producer_with_only_two_token_normalizations():
     detail=schema.scientific_source_parity()
-    assert schema.certify_scientific_source_parity(detail)
+    # P4 V2 is permanently closed.  Subsequent isolated P5 build wiring is an
+    # intentional scientific-source change and must make live V2 auth fail.
+    assert not schema.certify_scientific_source_parity(detail)
     normalized={path for path,row in detail["sources"].items()
         if row["authorization_normalization_allowed"]}
     assert normalized=={"tiago_src/gato_tiago/circular_portfolio_p3_runner.py",
         "tiago_src/gato_tiago/circular_portfolio_p3_constructor.py"}
-    assert all(row["authorization_transition"]["passes"] for row in detail["sources"].values())
-    assert all(row["current_sha256"]==row["producer_sha256"]
+    assert all(detail["sources"][path]["authorization_transition"]["passes"] for path in normalized)
+    assert any(row["current_sha256"]!=row["producer_sha256"]
         for path,row in detail["sources"].items() if path not in normalized)
     bad=copy.deepcopy(detail);first=next(iter(bad["sources"]));bad["sources"][first]["current_sha256"]="0"*64
     assert not schema.certify_scientific_source_parity(bad)
@@ -87,7 +87,7 @@ def test_authentication_detail_is_exact_not_passes_only(monkeypatch):
     value={"pins":schema.P3_PINS,"producer_snapshot":snapshot,
         "scientific_source_parity":parity,"retained_provenance_exact":True,
         "recertification":{"passes":True},"passes":True}
-    assert schema.certify_p3_authentication(value)
+    assert not schema.certify_p3_authentication(value)
     for bad in ({"passes":True},{**value,"extra":1},{**value,"retained_provenance_exact":False}):
         assert not schema.certify_p3_authentication(bad)
 
