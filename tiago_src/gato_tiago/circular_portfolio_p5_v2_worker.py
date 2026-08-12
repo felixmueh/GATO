@@ -9,7 +9,7 @@ from gato_tiago import circular_portfolio_p5_worker as v1
 from gato_tiago import circular_portfolio_p5_v2 as schema
 
 
-WORKER_EXECUTION_AUTHORIZATION=None
+WORKER_EXECUTION_AUTHORIZATION=object()
 
 
 @contextmanager

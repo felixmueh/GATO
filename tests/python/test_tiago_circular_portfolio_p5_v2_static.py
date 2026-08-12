@@ -12,7 +12,7 @@ from gato_tiago import circular_portfolio_p5_v2_runner as runner
 from gato_tiago import circular_portfolio_p5_v2_worker as worker
 
 
-def test_v1_closed_exact_report_and_v2_isolated_tokens():
+def test_v1_closed_exact_report_and_exact_v2_pilot_tokens():
     report=schema.P5_V1_REJECTED_REPORT
     assert report["classification"]=="launch_invalid_serialization_failure"
     assert report["hashes"]=={
@@ -25,14 +25,30 @@ def test_v1_closed_exact_report_and_v2_isolated_tokens():
     assert report["rejected_p5_v1_artifact_loads"]==0
     assert v1_runner.RUNNER_EXECUTION_AUTHORIZATION is None
     assert v1_worker.WORKER_EXECUTION_AUTHORIZATION is None
-    assert runner.RUNNER_EXECUTION_AUTHORIZATION is None
-    assert worker.WORKER_EXECUTION_AUTHORIZATION is None
+    assert runner.RUNNER_EXECUTION_AUTHORIZATION is not None
+    assert worker.WORKER_EXECUTION_AUTHORIZATION is not None
     root=Path(__file__).resolve().parents[2]
     pattern=re.compile(r"^[A-Z][A-Z0-9_]*AUTHORIZATION\s*=\s*object\(\)$")
-    assert not [(path.name,line) for path in (root/"tiago_src/gato_tiago").glob("*.py")
-        for line in path.read_text().splitlines() if pattern.fullmatch(line)]
+    enabled=sorted((path.name,line) for path in (root/"tiago_src/gato_tiago").glob("*.py")
+        for line in path.read_text().splitlines() if pattern.fullmatch(line))
+    assert enabled==sorted([
+        ("circular_portfolio_p5_v2_runner.py","RUNNER_EXECUTION_AUTHORIZATION=object()"),
+        ("circular_portfolio_p5_v2_worker.py","WORKER_EXECUTION_AUTHORIZATION=object()")])
     assert schema.PROTOCOL!=v1_schema.PROTOCOL and schema.OUTPUT!=v1_schema.OUTPUT
     assert not schema.OUTPUT.parent.exists()
+    assert runner.AUTHORIZED_ORIG_ARGV==("python","-B","-m",
+        "gato_tiago.circular_portfolio_p5_v2_runner","--execute","--output",str(schema.OUTPUT))
+    with pytest.raises(RuntimeError,match="wrong P5 V2 output"):
+        runner.execute(schema.OUTPUT.with_name("wrong.json"),runner.RUNNER_EXECUTION_AUTHORIZATION)
+    with worker.v2_context():
+        assert v1_worker.expected_argv()==("python","-B","-m",
+            "gato_tiago.circular_portfolio_p5_v2_worker","--execute","--request",
+            str(schema.worker_paths()["request"]),"--output",str(schema.worker_paths()["json"]))
+    source=Path(runner.__file__).read_text()
+    assert source.index("if Path(output).resolve()!=schema.OUTPUT") \
+        <source.index("with v2_context()")
+    assert "if OUTPUT.parent.exists()" in Path(v1_runner.__file__).read_text()
+    assert "if path.exists() or candidate.exists()" in Path(v1_runner.__file__).read_text()
 
 
 def test_recursive_canonicalization_exact_bool_paths_and_nested_types():
@@ -132,8 +148,8 @@ def test_v2_science_constants_and_binary_are_exact_v1_parity():
         assert getattr(schema,name)==getattr(v1_schema,name)
     assert runner.AUTHORIZED_ORIG_ARGV==("python","-B","-m",
         "gato_tiago.circular_portfolio_p5_v2_runner","--execute","--output",str(schema.OUTPUT))
-    with pytest.raises(RuntimeError,match="blocked"):runner.execute(schema.OUTPUT)
-    with pytest.raises(RuntimeError,match="blocked"):worker.execute_worker(schema.worker_paths()["request"])
+    assert runner.RUNNER_EXECUTION_AUTHORIZATION is not None
+    assert worker.WORKER_EXECUTION_AUTHORIZATION is not None
 
 
 def test_public_success_adapter_disk_roundtrip_canonicalizes_fresh_auth(tmp_path,monkeypatch):
