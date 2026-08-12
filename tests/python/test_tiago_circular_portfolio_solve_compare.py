@@ -43,6 +43,15 @@ def _rows(batch):
 
 
 def test_solver_options_unpack_and_exposed_stationarity_contract():
+    assert compare.SOLVER_EXTENSION=={
+        "module":"bsqp.bsqpN260_tiago_right_constructed_route_portfolio_toll_pcg_compact",
+        "relative_path":"python/bsqp/bsqpN260_tiago_right_constructed_route_portfolio_toll_pcg_compact.cpython-310-x86_64-linux-gnu.so",
+        "sha256":"d564e55cebfb6e15945ac1fa0e5fa2606cebded94ada43c0bdfa0140184ec885",
+        "size":6686384,"build_head":"db56584c52f23c8abaa961ef0255e3b7214be739",
+        "arch":"61-real","KNOT_POINTS":260,"REFERENCE_SIZE":10,
+        "TOOL_POSITION_FRAME":"arm_right_tool_joint_origin","TOOL_POSITION_SIZE":3,
+        "pcg_source_sha256":"38631d3716b0ea96c6bade40ecc659c83e51d73d5649ae05549df6a240c1291f"}
+    assert "gato/bsqp/kernels/pcg.cuh" in compare.SOURCE_PATHS
     assert compare.solver_args()==(.05,60,1e-3,500,8e-4,1.,20.,2.,.15,7.5e-5,
         260.,800.,800.,.01,.001,.003,.01)
     seed=_seed(.25)[None];q,qd,u=compare.unpack_xu(seed,1)
@@ -86,7 +95,8 @@ def test_execute_calls_exactly_one_b1_then_one_b16_and_recertifies_disk(tmp_path
         "sources":{},"extension":extension}
     monkeypatch.setattr(compare,"snapshot",lambda:snap)
     monkeypatch.setattr(compare,"certify_module",lambda module:True)
-    monkeypatch.setattr(compare,"worker",SimpleNamespace(frozen_extension=lambda:extension,
+    monkeypatch.setattr(compare,"frozen_extension",lambda:extension)
+    monkeypatch.setattr(compare,"worker",SimpleNamespace(
         cuda_diagnostics=lambda:{"ok":True},certify_cuda_diagnostics=lambda value:value=={"ok":True}))
     prerequisite={};monkeypatch.setattr(compare,"authenticate_cpu_prerequisite",
         lambda:({"passes":True},prerequisite))

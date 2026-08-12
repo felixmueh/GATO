@@ -30,7 +30,16 @@ SOLVER_OPTIONS={"dt":.05,"max_sqp_iters":60,"kkt_tol":1e-3,"max_pcg_iters":500,
     "u_cost":7.5e-5,"n_cost":260.,"cylinder_running":800.,"cylinder_terminal":800.,
     "q_barrier":.01,"v_barrier":.001,"u_barrier":.003,"rho":.01}
 DEFECT_TOLERANCE=1e-4
+SOLVER_EXTENSION={
+    "module":"bsqp.bsqpN260_tiago_right_constructed_route_portfolio_toll_pcg_compact",
+    "relative_path":"python/bsqp/bsqpN260_tiago_right_constructed_route_portfolio_toll_pcg_compact.cpython-310-x86_64-linux-gnu.so",
+    "sha256":"d564e55cebfb6e15945ac1fa0e5fa2606cebded94ada43c0bdfa0140184ec885",
+    "size":6686384,"build_head":"db56584c52f23c8abaa961ef0255e3b7214be739",
+    "arch":"61-real","KNOT_POINTS":260,"REFERENCE_SIZE":10,
+    "TOOL_POSITION_FRAME":"arm_right_tool_joint_origin","TOOL_POSITION_SIZE":3,
+    "pcg_source_sha256":"38631d3716b0ea96c6bade40ecc659c83e51d73d5649ae05549df6a240c1291f"}
 SOURCE_PATHS=tuple(dict.fromkeys((*worker.SOURCE_PATHS,
+    "gato/bsqp/kernels/pcg.cuh",
     "tiago_src/gato_tiago/circular_portfolio_solve_compare.py",
     "tiago_src/gato_tiago/circular_portfolio_cached_replay.py",
     "tiago_src/gato_tiago/circular_portfolio_p8_runner.py",
@@ -74,7 +83,7 @@ def snapshot():
     repo=Path(__file__).resolve().parents[2]
     run=lambda *args:subprocess.run(["git",*args],cwd=repo,check=True,text=True,
         stdout=subprocess.PIPE,stderr=subprocess.PIPE).stdout.strip()
-    extension=worker.frozen_extension();path=Path(extension["path"])
+    extension=frozen_extension();path=Path(extension["path"])
     measured={**extension,"sha256":sha(path),"size":path.stat().st_size}
     return {"head":run("rev-parse","HEAD"),
         "clean":run("status","--porcelain","--untracked-files=no")=="",
@@ -84,7 +93,26 @@ def snapshot():
 
 
 def certify_module(module):
-    return bool(worker.certify_module(module) and worker.module_measurement(module)==worker.frozen_extension())
+    try:return bool(module_measurement(module)==frozen_extension()
+        and hasattr(module,"BSQP_1_float") and hasattr(module,"BSQP_16_float"))
+    except Exception:return False
+
+
+def frozen_extension():
+    root=Path(__file__).resolve().parents[2]
+    return {"path":str((root/SOLVER_EXTENSION["relative_path"]).resolve()),
+        **{key:SOLVER_EXTENSION[key] for key in ("sha256","size","build_head","arch",
+            "pcg_source_sha256")},"attributes":{key:SOLVER_EXTENSION[key] for key in
+            ("KNOT_POINTS","REFERENCE_SIZE","TOOL_POSITION_FRAME","TOOL_POSITION_SIZE")}}
+
+
+def module_measurement(module):
+    root=Path(__file__).resolve().parents[2];path=Path(module.__file__).resolve()
+    return {"path":str(path),"sha256":sha(path),"size":path.stat().st_size,
+        **{key:SOLVER_EXTENSION[key] for key in ("build_head","arch")},
+        "pcg_source_sha256":sha(root/"gato/bsqp/kernels/pcg.cuh"),
+        "attributes":{key:getattr(module,key) for key in
+            ("KNOT_POINTS","REFERENCE_SIZE","TOOL_POSITION_FRAME","TOOL_POSITION_SIZE")}}
 
 
 def certify_source_history(stored,current):
@@ -307,9 +335,9 @@ def execute(root=ROOT,module_loader=importlib.import_module,monotonic=time.monot
         if (provenance_start["clean"] is not True or provenance_start["cwd"]!=AUTHORIZED_CWD
                 or provenance_start["thread_environment"]!=THREAD_ENV
                 or tuple(provenance_start["orig_argv"])!=AUTHORIZED_ORIG_ARGV
-                or provenance_start["extension"]!=worker.frozen_extension()):
+                or provenance_start["extension"]!=frozen_extension()):
             raise RuntimeError("solve comparison provenance invalid")
-        module=module_loader(schema.EXTENSION["module"])
+        module=module_loader(SOLVER_EXTENSION["module"])
         if not certify_module(module):raise RuntimeError("solve comparison module invalid")
         diagnostics=cuda_probe();_auth,prerequisite=prerequisite_loader()
         _model,kinematics,*_=pin_loader()
@@ -355,7 +383,7 @@ def execute(root=ROOT,module_loader=importlib.import_module,monotonic=time.monot
             "lane_mapping":["short"]*8+["long"]*8,"counts":counts,
             "wall_elapsed_s":{"b1":wall1,"b16":wall16,"quality_run_observation_only":True},
             "solver_b1":stat1,"solver_b16":stat16,"b1_lanes":rows1,"b16_lanes":rows16,
-            "comparison":comparison,"cuda_diagnostics":diagnostics,"extension":worker.frozen_extension(),
+            "comparison":comparison,"cuda_diagnostics":diagnostics,"extension":frozen_extension(),
             "provenance":{"start":provenance_start,"end":provenance_end},
             "npz_path":str(root/OUTPUT_NPZ.name),"npz_sha256":sha(root/OUTPUT_NPZ.name),
             "array_names":sorted(arrays),"array_hashes":{key:schema.array_hash(arrays[key]) for key in sorted(arrays)},
@@ -375,7 +403,7 @@ def recertify(root=ROOT,module_loader=importlib.import_module,
         _cached,cached_arrays,construction=load_inputs()
         with np.load(root/OUTPUT_NPZ.name,allow_pickle=False) as archive:arrays={key:archive[key] for key in archive.files}
         _auth,prerequisite=prerequisite_loader();_model,kinematics,*_=pin_loader()
-        module=module_loader(schema.EXTENSION["module"])
+        module=module_loader(SOLVER_EXTENSION["module"])
         if not certify_module(module):return {"passes":False}
         b1=module.BSQP_1_float(*solver_args());b16=module.BSQP_16_float(*solver_args())
         out1={key:(arrays["output_xu_b1_float32"] if key=="XU" else arrays[f"raw_{key}_b1"]) for key in STAT_KEYS}
@@ -432,7 +460,7 @@ def recertify(root=ROOT,module_loader=importlib.import_module,
             and document["solver_b1"]==builtin(stat1) and document["solver_b16"]==builtin(stat16)
             and document["b1_lanes"]==builtin(rows1) and document["b16_lanes"]==builtin(rows16)
             and document["comparison"]==builtin(comparison)
-            and document["extension"]==worker.frozen_extension()
+            and document["extension"]==frozen_extension()
             and worker.certify_cuda_diagnostics(document["cuda_diagnostics"])
             and certify_source_history(document["provenance"],current)
             and document["passes"] is comparison["passes"]
