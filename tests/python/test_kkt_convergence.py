@@ -8,15 +8,16 @@ SOURCE=(Path(__file__).resolve().parents[2]/"gato/bsqp/bsqp.cuh").read_text()
 
 def _converged(q,r,c,tolerance,pcg_iterations):
     del pcg_iterations
-    maxima=[np.max(np.abs(value)) for value in (q,r,c)]
-    return bool(np.isfinite(maxima).all() and all(value<=tolerance for value in maxima))
+    arrays=(q,r,c)
+    return bool(all(np.isfinite(value).all() for value in arrays)
+        and all(np.max(np.abs(value))<tolerance for value in arrays))
 
 
 def test_kkt_convergence_requires_state_control_and_primal_residuals():
     tolerance=1e-3;small=np.array([2e-4,-9e-4]);large=np.array([1.1e-3])
     assert _converged(small,small,small,tolerance,0)
     assert _converged(small,small,small,tolerance,37)
-    assert _converged(np.array([tolerance]),small,small,tolerance,1)
+    assert not _converged(np.array([tolerance]),small,small,tolerance,1)
     assert not _converged(large,small,small,tolerance,0)
     assert not _converged(small,large,small,tolerance,0)
     assert not _converged(small,small,large,tolerance,0)
@@ -35,9 +36,11 @@ def test_async_residual_and_iteration_copies_are_synchronized_before_host_use():
 
 
 def test_pcg_zero_iterations_is_not_used_as_sqp_convergence_evidence():
-    assert "q_max <= kkt_tol_ && r_max <= kkt_tol_ && c_max <= kkt_tol_" in SOURCE
+    for condition in ("q_max < kkt_tol_","r_max < kkt_tol_","c_max < kkt_tol_"):
+        assert condition in SOURCE
     region=SOURCE[SOURCE.index("T q_max ="):SOURCE.index("if (num_solved",SOURCE.index("T q_max ="))]
     assert "num_iterations[b] == 0" not in region
+    assert "std::isfinite(q_ptr[j])" in region and "std::isfinite(r_ptr[j])" in region
 
 
 def test_line_search_copies_are_synchronized_before_stats_are_retained():

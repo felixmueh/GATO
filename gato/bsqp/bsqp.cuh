@@ -175,20 +175,29 @@ class BSQP {
                                 const T* r_ptr = h_r_batch_ + b * CONTROL_P_KNOTS;
                                 const T* c_ptr = h_c_batch_ + b * STATE_P_KNOTS;
 
-                                auto abs_cmp = [](T a, T b) { return std::abs(a) < std::abs(b); };
-
-                                T q_max = std::abs(*std::max_element(q_ptr, q_ptr + STATE_P_KNOTS, abs_cmp));
-                                T r_max = std::abs(*std::max_element(r_ptr, r_ptr + CONTROL_P_KNOTS, abs_cmp));
-                                T c_max = std::abs(*std::max_element(c_ptr, c_ptr + STATE_P_KNOTS, abs_cmp));
+                                T q_max = static_cast<T>(0);
+                                T r_max = static_cast<T>(0);
+                                T c_max = static_cast<T>(0);
+                                bool residuals_finite = true;
+                                for (uint32_t j = 0; j < STATE_P_KNOTS; ++j) {
+                                        residuals_finite = residuals_finite && std::isfinite(q_ptr[j]) && std::isfinite(c_ptr[j]);
+                                        q_max = std::max(q_max, std::abs(q_ptr[j]));
+                                        c_max = std::max(c_max, std::abs(c_ptr[j]));
+                                }
+                                for (uint32_t j = 0; j < CONTROL_P_KNOTS; ++j) {
+                                        residuals_finite = residuals_finite && std::isfinite(r_ptr[j]);
+                                        r_max = std::max(r_max, std::abs(r_ptr[j]));
+                                }
 
                                 // Downstream merit and line-search kernels do not
                                 // implement a per-lane freeze mask, so convergence
                                 // is recomputed for every lane at every outer
                                 // iteration instead of being latched.
                                 h_sqp_iters_B_[b] += 1;
-                                h_kkt_converged_batch_[b] =
-                                    std::isfinite(q_max) && std::isfinite(r_max) && std::isfinite(c_max)
-                                    && q_max <= kkt_tol_ && r_max <= kkt_tol_ && c_max <= kkt_tol_;
+                                h_kkt_converged_batch_[b] = residuals_finite
+                                                            && q_max < kkt_tol_
+                                                            && r_max < kkt_tol_
+                                                            && c_max < kkt_tol_;
                                 if (h_kkt_converged_batch_[b]) { num_solved++; }
                         }
 
