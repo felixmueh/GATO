@@ -25,7 +25,7 @@ from gato_tiago.circular_portfolio_constructor import (
 )
 
 
-RUNNER_EXECUTION_AUTHORIZATION = None
+RUNNER_EXECUTION_AUTHORIZATION = object()
 OUTPUT_PATH = Path(
     "/tmp/tiago-tool-center-circular-portfolio-p1-authorized-once/p1.json"
 )
