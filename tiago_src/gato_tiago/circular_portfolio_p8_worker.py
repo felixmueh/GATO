@@ -317,7 +317,7 @@ def execute(request,authorization=None,monotonic=time.monotonic): # pragma: no c
         module=importlib.import_module(EXTENSION["module"])
         if not certify_module(module):raise RuntimeError("P8 resolved extension invalid")
         resolved_module=module_measurement(module)
-        diagnostics=cuda_diagnostics(module)
+        diagnostics=cuda_diagnostics()
         with np.load(paths["input"],allow_pickle=False) as archive:
             construction={key:archive[key] for key in archive.files}
         from gato_tiago.circular_portfolio_runner import _production_pin_context

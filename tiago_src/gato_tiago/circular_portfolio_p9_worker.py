@@ -10,7 +10,7 @@ from gato_tiago import circular_portfolio_p8_worker as p8
 from gato_tiago import circular_portfolio_p9 as schema
 
 
-WORKER_EXECUTION_AUTHORIZATION=object()
+WORKER_EXECUTION_AUTHORIZATION=None
 SOURCE_PATHS=tuple(dict.fromkeys((*p8.SOURCE_PATHS,
     "tiago_src/gato_tiago/circular_portfolio_p9.py",
     "tiago_src/gato_tiago/circular_portfolio_p9_worker.py")))
