@@ -19,7 +19,9 @@ def test_p6_isolated_closed_boundary_and_exact_rejected_lineage():
     root=Path(__file__).resolve().parents[2]
     pattern=re.compile(r"^[A-Z][A-Z0-9_]*AUTHORIZATION\s*=\s*object\(\)$")
     assert sorted((p.name,line) for p in (root/"tiago_src/gato_tiago").glob("*.py")
-        for line in p.read_text().splitlines() if pattern.fullmatch(line))==[]
+        for line in p.read_text().splitlines() if pattern.fullmatch(line))==[
+            ("circular_portfolio_p9_runner.py","RUNNER_EXECUTION_AUTHORIZATION=object()"),
+            ("circular_portfolio_p9_worker.py","WORKER_EXECUTION_AUTHORIZATION=object()")]
     report=schema.P5_V2_REJECTED_REPORT
     assert report["rejected_p5_v2_artifact_loads"]==0
     assert report["classification"]==["parent_child_worker_provenance_adapter_mismatch",

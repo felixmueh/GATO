@@ -23,7 +23,9 @@ def test_p8_exact_frozen_scope_tokens_and_reports():
     root=Path(__file__).resolve().parents[2]
     pattern=re.compile(r"^[A-Z][A-Z0-9_]*AUTHORIZATION\s*=\s*object\(\)$")
     assert sorted((path.name,line) for path in (root/"tiago_src/gato_tiago").glob("*.py")
-        for line in path.read_text().splitlines() if pattern.fullmatch(line))==[]
+        for line in path.read_text().splitlines() if pattern.fullmatch(line))==[
+            ("circular_portfolio_p9_runner.py","RUNNER_EXECUTION_AUTHORIZATION=object()"),
+            ("circular_portfolio_p9_worker.py","WORKER_EXECUTION_AUTHORIZATION=object()")]
     design=schema.static_design()
     assert (design["ik_iterations"],design["dls_damping"],design["kp"],design["kd"]) \
         ==(8,.03,25.,10.)

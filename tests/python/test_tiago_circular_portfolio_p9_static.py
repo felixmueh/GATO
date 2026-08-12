@@ -17,12 +17,14 @@ def test_p9_isolated_closed_scope_exact_p8_report_and_fresh_root():
     assert p8_worker.WORKER_EXECUTION_AUTHORIZATION is None
     assert schema.RUNNER_EXECUTION_AUTHORIZATION is None
     assert schema.WORKER_EXECUTION_AUTHORIZATION is None
-    assert runner.RUNNER_EXECUTION_AUTHORIZATION is None
-    assert worker.WORKER_EXECUTION_AUTHORIZATION is None
+    assert runner.RUNNER_EXECUTION_AUTHORIZATION is not None
+    assert worker.WORKER_EXECUTION_AUTHORIZATION is not None
     root=Path(__file__).resolve().parents[2]
     pattern=re.compile(r"^[A-Z][A-Z0-9_]*AUTHORIZATION\s*=\s*object\(\)$")
-    assert [(path.name,line) for path in (root/"tiago_src/gato_tiago").glob("*.py")
-        for line in path.read_text().splitlines() if pattern.fullmatch(line)]==[]
+    assert sorted((path.name,line) for path in (root/"tiago_src/gato_tiago").glob("*.py")
+        for line in path.read_text().splitlines() if pattern.fullmatch(line))==[
+            ("circular_portfolio_p9_runner.py","RUNNER_EXECUTION_AUTHORIZATION=object()"),
+            ("circular_portfolio_p9_worker.py","WORKER_EXECUTION_AUTHORIZATION=object()")]
     report=schema.P8_REJECTED_REPORT
     assert report["classification"]=="operational_cpu_preflight_timeout_only"
     assert report["trigger_elapsed_s"]==30.06871920998674
@@ -68,10 +70,13 @@ def test_p9_exact_argv_paths_and_disabled_boundaries():
     paths=schema.worker_paths()
     assert worker.expected_argv()==("python","-B","-m","gato_tiago.circular_portfolio_p9_worker",
         "--execute","--request",str(paths["request"]),"--output",str(paths["json"]))
-    with pytest.raises(RuntimeError,match="P9 runner blocked"):
-        runner.execute(schema.OUTPUT,runner.RUNNER_EXECUTION_AUTHORIZATION)
-    with pytest.raises(RuntimeError,match="P9 worker blocked"):
-        worker.execute(paths["request"],worker.WORKER_EXECUTION_AUTHORIZATION)
+    with pytest.raises(RuntimeError,match="wrong P8 output"):
+        runner.execute(schema.OUTPUT.with_name("wrong.json"),runner.RUNNER_EXECUTION_AUTHORIZATION)
+    with pytest.raises(RuntimeError,match="wrong P8 worker request"):
+        worker.execute(paths["request"].with_name("wrong.request.json"),
+            worker.WORKER_EXECUTION_AUTHORIZATION)
+    assert "if OUTPUT.parent.exists()" in inspect.getsource(p8_runner.execute)
+    assert 'Path(str(path)+".candidate").exists()' in inspect.getsource(p8_worker.execute)
 
 
 def test_p9_fake_clock_cpu_1500_rejection_and_public_recert(tmp_path,monkeypatch):
