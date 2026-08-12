@@ -32,7 +32,7 @@ from gato_tiago.circular_portfolio_p2 import (
 )
 
 
-RUNNER_EXECUTION_AUTHORIZATION = object()
+RUNNER_EXECUTION_AUTHORIZATION = None
 OUTPUT = Path(
     "/tmp/tiago-tool-center-circular-portfolio-p2-preflight-authorized-once/preflight.json"
 )
