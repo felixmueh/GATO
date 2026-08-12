@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 from types import SimpleNamespace
 
 import numpy as np
@@ -43,11 +44,12 @@ def _rows(batch):
 
 
 def test_solver_options_unpack_and_exposed_stationarity_contract():
+    assert compare.ROOT==Path("/tmp/tiago-circular-solve-compare-v2")
     assert compare.SOLVER_EXTENSION=={
         "module":"bsqp.bsqpN260_tiago_right_constructed_route_portfolio_toll_pcg_compact",
         "relative_path":"python/bsqp/bsqpN260_tiago_right_constructed_route_portfolio_toll_pcg_compact.cpython-310-x86_64-linux-gnu.so",
-        "sha256":"d564e55cebfb6e15945ac1fa0e5fa2606cebded94ada43c0bdfa0140184ec885",
-        "size":6686384,"build_head":"db56584c52f23c8abaa961ef0255e3b7214be739",
+        "sha256":"464a72cf57440f948d6b40adf0a61caaa27071657721a8b7a488e55dd3e05432",
+        "size":6686384,"build_head":"3aaf757dd2e0e0534bd1498aa57b3a4c5324a0de",
         "arch":"61-real","KNOT_POINTS":260,"REFERENCE_SIZE":10,
         "TOOL_POSITION_FRAME":"arm_right_tool_joint_origin","TOOL_POSITION_SIZE":3,
         "pcg_source_sha256":"38631d3716b0ea96c6bade40ecc659c83e51d73d5649ae05549df6a240c1291f"}
@@ -68,6 +70,25 @@ def test_solver_options_unpack_and_exposed_stationarity_contract():
                       ("sqp_iters",np.asarray([2],np.int32))):
         bad=_stats(seed,1);bad[key]=value
         assert not compare.solver_certificate(compare.normalize_solve(bad,1))["passes"]
+    sentinel=_stats(seed,1);sentinel["ls_step_size"][:]=-1
+    assert compare.solver_certificate(compare.normalize_solve(sentinel,1))["passes"]
+    bad=_stats(seed,1);bad["ls_step_size"][:]=-1.01
+    assert not compare.solver_certificate(compare.normalize_solve(bad,1))["passes"]
+    bad=_stats(seed,1);bad["ls_step_size"][:]=0
+    assert not compare.solver_certificate(compare.normalize_solve(bad,1))["passes"]
+
+
+def test_nonfinite_science_is_retained_as_json_null_instead_of_crashing():
+    value=compare.builtin({"scalar":float("nan"),"nested":[np.float32("inf")],
+        "array":np.asarray([1.,np.nan],np.float64)})
+    assert value=={"scalar":None,"nested":[None],"array":[1.,None]}
+    assert json.loads(json.dumps(value,allow_nan=False))==value
+    b1,b16=_rows(1)[0],_rows(16)[0]
+    b1[0]["passes"]=False
+    for row in b16:row["passes"]=False
+    failed=compare.comparison_certificate(b1,b16,{"passes":False},{"passes":False})
+    assert failed["passes"] is False and failed["improvement"] is None
+    assert json.loads(json.dumps(compare.builtin(failed),allow_nan=False))["improvement"] is None
 
 
 def test_exact_lane_mapping_and_cost_selection_requires_long_winner():

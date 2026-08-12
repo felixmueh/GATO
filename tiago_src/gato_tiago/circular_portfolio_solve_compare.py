@@ -13,7 +13,7 @@ from gato_tiago import circular_portfolio_p8_worker as worker
 from gato_tiago.circular_portfolio_runner import authenticate_cpu_prerequisite,_production_pin_context
 
 
-ROOT=Path("/tmp/tiago-circular-solve-compare")
+ROOT=Path("/tmp/tiago-circular-solve-compare-v2")
 OUTPUT_JSON=ROOT/"result.json";OUTPUT_NPZ=ROOT/"result.npz";FAILURE_JSON=ROOT/"failure.json"
 CACHED_JSON=Path("/tmp/tiago-circular-cached-replay/result.json")
 CACHED_NPZ=Path("/tmp/tiago-circular-cached-replay/result.npz")
@@ -33,8 +33,8 @@ DEFECT_TOLERANCE=1e-4
 SOLVER_EXTENSION={
     "module":"bsqp.bsqpN260_tiago_right_constructed_route_portfolio_toll_pcg_compact",
     "relative_path":"python/bsqp/bsqpN260_tiago_right_constructed_route_portfolio_toll_pcg_compact.cpython-310-x86_64-linux-gnu.so",
-    "sha256":"d564e55cebfb6e15945ac1fa0e5fa2606cebded94ada43c0bdfa0140184ec885",
-    "size":6686384,"build_head":"db56584c52f23c8abaa961ef0255e3b7214be739",
+    "sha256":"464a72cf57440f948d6b40adf0a61caaa27071657721a8b7a488e55dd3e05432",
+    "size":6686384,"build_head":"3aaf757dd2e0e0534bd1498aa57b3a4c5324a0de",
     "arch":"61-real","KNOT_POINTS":260,"REFERENCE_SIZE":10,
     "TOOL_POSITION_FRAME":"arm_right_tool_joint_origin","TOOL_POSITION_SIZE":3,
     "pcg_source_sha256":"38631d3716b0ea96c6bade40ecc659c83e51d73d5649ae05549df6a240c1291f"}
@@ -72,9 +72,9 @@ def atomic_npz(path,arrays):
 def builtin(value):
     if isinstance(value,dict):return {str(key):builtin(item) for key,item in value.items()}
     if isinstance(value,(list,tuple)):return [builtin(item) for item in value]
-    if isinstance(value,np.ndarray):return value.tolist()
+    if isinstance(value,np.ndarray):return builtin(value.tolist())
     if isinstance(value,np.generic):return builtin(value.item())
-    if isinstance(value,float) and not np.isfinite(value):raise ValueError("nonfinite JSON value")
+    if isinstance(value,float) and not np.isfinite(value):return None
     if value is None or isinstance(value,(str,int,float,bool)):return value
     raise TypeError(f"unsupported JSON value {type(value).__name__}")
 
@@ -259,13 +259,15 @@ def evaluate_lanes(planned,replayed,tool,controls,construction,prerequisite,kine
 
 def solver_certificate(stats):
     batch=len(stats["sqp_iters"]);iterations=int(stats["ls_num_iters"])
+    pcg_rows=int(stats["pcg_iters"].shape[0])
     telemetry={"sqp_time_nonnegative":int(stats["sqp_time_us"])>=0,
         "pcg_counts_in_range":bool(np.all((stats["pcg_iters"]>=0)
             &(stats["pcg_iters"]<=SOLVER_OPTIONS["max_pcg_iters"]))),
         "pcg_times_nonnegative":bool(np.all(stats["pcg_times_us"]>=0)),
-        "step_sizes_in_range":bool(np.all((stats["ls_step_size"]>=0)&(stats["ls_step_size"]<=1))),
+        "step_sizes_in_range":bool(np.all((stats["ls_step_size"]==-1)
+            |((stats["ls_step_size"]>0)&(stats["ls_step_size"]<=1)))),
         "sqp_counts_consistent":bool(np.all((stats["sqp_iters"]>=0)
-            &(stats["sqp_iters"]<=iterations))),
+            &(stats["sqp_iters"]<=pcg_rows))),
         "kkt_binary":bool(np.all((stats["kkt_converged"]==0)|(stats["kkt_converged"]==1)))}
     lane=[]
     for index in range(batch):
@@ -274,7 +276,7 @@ def solver_certificate(stats):
             "sqp_iters":int(stats["sqp_iters"][index]),"kkt_converged":int(stats["kkt_converged"][index]),
             "max_pcg_iters":int(np.max(stats["pcg_iters"][:,index])) if stats["pcg_iters"].size else 0}
         row["passes"]=bool(np.isfinite(initial) and np.isfinite(final) and final<=initial
-            and 0<=row["sqp_iters"]<=iterations and row["kkt_converged"]==1
+            and 0<=row["sqp_iters"]<=pcg_rows and row["kkt_converged"]==1
             and 0<=row["max_pcg_iters"]<=500);lane.append(row)
     return {"lanes":lane,"ls_num_iters":iterations,"sqp_time_us":int(stats["sqp_time_us"]),
         "telemetry_gates":telemetry,
@@ -291,7 +293,7 @@ def comparison_certificate(b1_rows,b16_rows,b1_stats,b16_stats):
     feasible_long=[row for row in b16_rows[8:] if row["passes"]]
     feasible=[*feasible_short,*feasible_long]
     best=min(feasible,key=lambda row:row["metrics"]["full_cost"]) if feasible else None
-    b1=b1_rows[0];improvement=(b1["metrics"]["full_cost"]-best["metrics"]["full_cost"] if best else float("nan"))
+    b1=b1_rows[0];improvement=(b1["metrics"]["full_cost"]-best["metrics"]["full_cost"] if best else None)
     threshold=max(1.,.05*max(1.,abs(b1["metrics"]["full_cost"])))
     gates={"b1_short_feasible":b1["seed_family"]=="short" and b1["passes"],
         "b1_lane_schema":b1_schema,"b16_lane_schema":b16_schema,
