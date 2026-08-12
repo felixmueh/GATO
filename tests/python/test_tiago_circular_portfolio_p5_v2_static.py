@@ -31,7 +31,8 @@ def test_v1_and_v2_pilots_are_closed_for_p6_static_work():
     pattern=re.compile(r"^[A-Z][A-Z0-9_]*AUTHORIZATION\s*=\s*object\(\)$")
     enabled=sorted((path.name,line) for path in (root/"tiago_src/gato_tiago").glob("*.py")
         for line in path.read_text().splitlines() if pattern.fullmatch(line))
-    assert enabled==[]
+    assert enabled==[("circular_portfolio_p8_runner.py","RUNNER_EXECUTION_AUTHORIZATION=object()"),
+        ("circular_portfolio_p8_worker.py","WORKER_EXECUTION_AUTHORIZATION=object()")]
     assert schema.PROTOCOL!=v1_schema.PROTOCOL and schema.OUTPUT!=v1_schema.OUTPUT
     assert schema.OUTPUT.parent.exists() and not schema.OUTPUT.exists()
     assert runner.AUTHORIZED_ORIG_ARGV==("python","-B","-m",

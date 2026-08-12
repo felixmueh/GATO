@@ -22,7 +22,7 @@ from gato_tiago.circular_portfolio_runner import authenticate_cpu_prerequisite,_
 from gato_tiago.multimodal_toll_oracle_v1 import enumerate_box_dls
 from gato_tiago.circular_portfolio_p5_v2_runner import canonical_authentication
 
-RUNNER_EXECUTION_AUTHORIZATION=None
+RUNNER_EXECUTION_AUTHORIZATION=object()
 
 THREAD_ENV={"OMP_NUM_THREADS":"1","OPENBLAS_NUM_THREADS":"1","MKL_NUM_THREADS":"1",
     "NUMEXPR_NUM_THREADS":"1"}

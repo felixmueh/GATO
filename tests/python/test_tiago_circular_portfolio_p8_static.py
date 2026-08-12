@@ -18,12 +18,14 @@ def test_p8_exact_frozen_scope_tokens_and_reports():
     assert p6_worker.WORKER_EXECUTION_AUTHORIZATION is None
     assert schema.RUNNER_EXECUTION_AUTHORIZATION is None
     assert schema.WORKER_EXECUTION_AUTHORIZATION is None
-    assert runner.RUNNER_EXECUTION_AUTHORIZATION is None
-    assert worker.WORKER_EXECUTION_AUTHORIZATION is None
+    assert runner.RUNNER_EXECUTION_AUTHORIZATION is not None
+    assert worker.WORKER_EXECUTION_AUTHORIZATION is not None
     root=Path(__file__).resolve().parents[2]
     pattern=re.compile(r"^[A-Z][A-Z0-9_]*AUTHORIZATION\s*=\s*object\(\)$")
-    assert [(path.name,line) for path in (root/"tiago_src/gato_tiago").glob("*.py")
-        for line in path.read_text().splitlines() if pattern.fullmatch(line)]==[]
+    assert sorted((path.name,line) for path in (root/"tiago_src/gato_tiago").glob("*.py")
+        for line in path.read_text().splitlines() if pattern.fullmatch(line))==[
+            ("circular_portfolio_p8_runner.py","RUNNER_EXECUTION_AUTHORIZATION=object()"),
+            ("circular_portfolio_p8_worker.py","WORKER_EXECUTION_AUTHORIZATION=object()")]
     design=schema.static_design()
     assert (design["ik_iterations"],design["dls_damping"],design["kp"],design["kd"]) \
         ==(8,.03,25.,10.)
@@ -37,6 +39,14 @@ def test_p8_exact_frozen_scope_tokens_and_reports():
     assert schema.P6_REJECTED_REPORT["hashes"]["worker_npz"] \
         =="49f784d37cbff1d124d9eda30c1ea9f90c176027dab17d46686fe7e33a962a51"
     assert not schema.OUTPUT.parent.exists()
+    assert runner.AUTHORIZED_ORIG_ARGV==("python","-B","-m",
+        "gato_tiago.circular_portfolio_p8_runner","--execute","--output",str(schema.OUTPUT))
+    paths=schema.worker_paths()
+    assert worker.expected_argv()==("python","-B","-m","gato_tiago.circular_portfolio_p8_worker",
+        "--execute","--request",str(paths["request"]),"--output",str(paths["json"]))
+    assert runner.refuse_existing()
+    assert "if OUTPUT.parent.exists()" in inspect.getsource(runner.execute)
+    assert 'Path(str(path)+".candidate").exists()' in inspect.getsource(worker.execute)
 
 
 def test_p8_worker_constructor_uses_dt_point05_and_full_lane_blocks():
@@ -46,9 +56,9 @@ def test_p8_worker_constructor_uses_dt_point05_and_full_lane_blocks():
     assert "sim1(state[route,k],u[route,k])" in source
     assert "sim16(state16[:,k],lane_u[:,k])" in source
     assert "AFFINE_SUBSTEPS" in source and "sim_forward" not in source.split("affine=np.empty",1)[1]
-    with pytest.raises(RuntimeError,match="blocked"):
+    with pytest.raises(RuntimeError,match="wrong P8 output"):
         runner.execute(Path("/tmp/wrong.json"),runner.RUNNER_EXECUTION_AUTHORIZATION)
-    with pytest.raises(RuntimeError,match="blocked"):
+    with pytest.raises(RuntimeError,match="wrong P8 worker request"):
         worker.execute(Path("/tmp/wrong.request.json"),worker.WORKER_EXECUTION_AUTHORIZATION)
 
 
