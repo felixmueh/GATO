@@ -530,8 +530,10 @@ def test_canonical_solver_seed_is_interleaved_at_exact_gato_offsets():
 
 
 def test_cuda_worker_is_fail_closed_until_separate_n96_build_and_owns_rollout_counts(tmp_path):
-    assert worker.FROZEN_EXTENSION_SHA256 is None
-    assert worker.FROZEN_EXTENSION_SIZE_BYTES is None
+    assert worker.FROZEN_EXTENSION_SHA256 == "b079410ade9e7de19ed3d4b7ed6f6ace27172cd442ccea0d5a46bb7277067a2f"
+    assert worker.FROZEN_EXTENSION_SIZE_BYTES == 6_690_480
+    assert worker.FROZEN_BUILD_HEAD == "2f1011da2a240fe8eae9ff25b2b3ee991c11c6c2"
+    assert worker.FROZEN_CUDA_ARCH == "61-real"
     assert worker.EXPECTED_SIM_FORWARD_CALLS == 95 * 64
     assert worker.EXPECTED_TOOL_POSITION_CALLS == (schema.DENSE_SAMPLES + 15) // 16
     with pytest.raises(RuntimeError, match="blocked"):
@@ -736,6 +738,7 @@ def _provenance(final=False):
         "model_artifact_pins": dict(schema.MODEL_ARTIFACT_PINS),
         "build_commit": runner.FROZEN_BUILD_COMMIT,
         "cuda_arch": runner.FROZEN_CUDA_ARCH,
+        "extension": runner.FROZEN_EXTENSION,
         "runtime_versions": {name: "1" for name in ("python", "numpy", "scipy", "pinocchio", "cuda")},
     }
 

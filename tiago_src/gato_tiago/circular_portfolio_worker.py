@@ -33,10 +33,11 @@ def expected_worker_paths(index):
 WORKER_PROTOCOL = "tiago_tool_center_circular_portfolio_cuda_worker_p1_1"
 MODULE_NAME = "bsqp.bsqpN96_tiago_right_circular_portfolio_toll"
 MODULE_RELATIVE_PATH = "python/bsqp/bsqpN96_tiago_right_circular_portfolio_toll.cpython-310-x86_64-linux-gnu.so"
-# A separately audited build/import stage must replace both sentinels before
-# worker/full-campaign authorization. None is deliberately fail-closed.
-FROZEN_EXTENSION_SHA256 = None
-FROZEN_EXTENSION_SIZE_BYTES = None
+# Audited import-only N96 build at source HEAD 2f1011d, sm_61 real code.
+FROZEN_EXTENSION_SHA256 = "b079410ade9e7de19ed3d4b7ed6f6ace27172cd442ccea0d5a46bb7277067a2f"
+FROZEN_EXTENSION_SIZE_BYTES = 6_690_480
+FROZEN_BUILD_HEAD = "2f1011da2a240fe8eae9ff25b2b3ee991c11c6c2"
+FROZEN_CUDA_ARCH = "61-real"
 AUTHORIZED_ROOT = Path(
     "/tmp/tiago-tool-center-circular-portfolio-p1-authorized-once"
 )

@@ -43,15 +43,24 @@ PROVENANCE_KEYS = {
     "protocol", "cwd", "orig_argv", "exact_command", "git_head_at_start",
     "git_head_at_end", "tracked_clean_at_start", "tracked_clean_at_end",
     "source_hashes_at_start", "source_hashes_at_end", "task_artifact_pins",
-    "model_artifact_pins", "build_commit", "cuda_arch", "runtime_versions",
+    "model_artifact_pins", "build_commit", "cuda_arch", "extension",
+    "runtime_versions",
 }
 AUTHORIZED_CWD = "/workspace/GATO"
 AUTHORIZED_ORIG_ARGV = (
     "python", "-B", "-m", "gato_tiago.circular_portfolio_runner", "--execute",
     "--output", str(OUTPUT_PATH),
 )
-FROZEN_BUILD_COMMIT = "154556ab7b45a5137a6d9c107c1e6e433b9cc057"
+FROZEN_BUILD_COMMIT = "2f1011da2a240fe8eae9ff25b2b3ee991c11c6c2"
 FROZEN_CUDA_ARCH = "61-real"
+FROZEN_EXTENSION = {
+    "path": "/workspace/GATO/python/bsqp/bsqpN96_tiago_right_circular_portfolio_toll.cpython-310-x86_64-linux-gnu.so",
+    "sha256": "b079410ade9e7de19ed3d4b7ed6f6ace27172cd442ccea0d5a46bb7277067a2f",
+    "size_bytes": 6_690_480,
+    "KNOT_POINTS": 96, "REFERENCE_SIZE": 10,
+    "TOOL_POSITION_FRAME": "arm_right_tool_joint_origin",
+    "TOOL_POSITION_SIZE": 3, "B1": "BSQP_1_float", "B16": "BSQP_16_float",
+}
 COUNTER_KEYS = {
     "task_artifact_loads", "task_pure_recert_calls", "task_array_hashes_checked",
     "model_artifact_loads", "model_pure_recert_calls", "model_array_hashes_checked",
@@ -204,6 +213,7 @@ def certify_provenance(provenance: Mapping, *, final: bool):
         and provenance["model_artifact_pins"] == MODEL_ARTIFACT_PINS
         and provenance["build_commit"] == FROZEN_BUILD_COMMIT
         and provenance["cuda_arch"] == FROZEN_CUDA_ARCH
+        and provenance["extension"] == FROZEN_EXTENSION
         and set(provenance["runtime_versions"]) == {"python", "numpy", "scipy", "pinocchio", "cuda"}
         and all(isinstance(value, str) and value for value in provenance["runtime_versions"].values())
         and ((not final and head_end is None and ends is None
