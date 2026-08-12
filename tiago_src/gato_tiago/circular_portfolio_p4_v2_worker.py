@@ -8,7 +8,7 @@ from pathlib import Path
 from gato_tiago import circular_portfolio_p4_worker as _v1
 from gato_tiago.circular_portfolio_p4_v2 import WORKER_PROTOCOL,worker_paths
 
-WORKER_EXECUTION_AUTHORIZATION=None
+WORKER_EXECUTION_AUTHORIZATION=object()
 SOURCE_PATHS=tuple(path for path in _v1.SOURCE_PATHS
     if path!="tiago_src/gato_tiago/circular_portfolio_p4_worker.py")+(
     "tiago_src/gato_tiago/circular_portfolio_p4_worker.py",

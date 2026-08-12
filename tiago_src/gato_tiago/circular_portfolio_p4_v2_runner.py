@@ -12,7 +12,7 @@ from gato_tiago.circular_portfolio_p4_v2 import (EXTENSION,OUTPUT,P4_V1_REJECTED
 from gato_tiago.circular_portfolio_p4_v2_worker import (certify_output,
     certify_rejection as certify_worker_rejection)
 
-RUNNER_EXECUTION_AUTHORIZATION=None
+RUNNER_EXECUTION_AUTHORIZATION=object()
 AUTHORIZED_ORIG_ARGV=("python","-B","-m","gato_tiago.circular_portfolio_p4_v2_runner",
     "--execute","--output",str(OUTPUT))
 SOURCE_PATHS=tuple(path for path in _v1.SOURCE_PATHS

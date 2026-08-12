@@ -13,14 +13,16 @@ from gato_tiago import circular_portfolio_p4_v2_worker as worker
 def test_v1_closed_v2_tokens_none_and_fresh_root():
     assert v1_runner.RUNNER_EXECUTION_AUTHORIZATION is None
     assert v1_worker.WORKER_EXECUTION_AUTHORIZATION is None
-    assert runner.RUNNER_EXECUTION_AUTHORIZATION is None
-    assert worker.WORKER_EXECUTION_AUTHORIZATION is None
+    assert runner.RUNNER_EXECUTION_AUTHORIZATION is not None
+    assert worker.WORKER_EXECUTION_AUTHORIZATION is not None
     assert not schema.OUTPUT.parent.exists()
     root=Path(__file__).resolve().parents[2]
     pattern=re.compile(r"^[A-Z][A-Z0-9_]*AUTHORIZATION\s*=\s*object\(\)$")
     enabled={(path.name,line) for path in (root/"tiago_src/gato_tiago").glob("*.py")
         for line in path.read_text().splitlines() if pattern.fullmatch(line)}
-    assert enabled==set()
+    assert enabled=={
+        ("circular_portfolio_p4_v2_runner.py","RUNNER_EXECUTION_AUTHORIZATION=object()"),
+        ("circular_portfolio_p4_v2_worker.py","WORKER_EXECUTION_AUTHORIZATION=object()")}
 
 
 def test_v1_launch_invalid_report_is_exact_and_downstream_zero():
