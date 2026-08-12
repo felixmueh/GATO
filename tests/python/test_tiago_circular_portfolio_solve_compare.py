@@ -44,7 +44,7 @@ def _rows(batch):
 
 
 def test_solver_options_unpack_and_exposed_stationarity_contract():
-    assert compare.ROOT==Path("/tmp/tiago-circular-solve-compare-v3")
+    assert compare.ROOT==Path("/tmp/tiago-circular-solve-compare-v4")
     assert compare.SOLVER_EXTENSION=={
         "module":"bsqp.bsqpN260_tiago_right_constructed_route_portfolio_toll_pcg_compact",
         "relative_path":"python/bsqp/bsqpN260_tiago_right_constructed_route_portfolio_toll_pcg_compact.cpython-310-x86_64-linux-gnu.so",
@@ -89,6 +89,10 @@ def test_nonfinite_science_is_retained_as_json_null_instead_of_crashing():
     failed=compare.comparison_certificate(b1,b16,{"passes":False},{"passes":False})
     assert failed["passes"] is False and failed["improvement"] is None
     assert json.loads(json.dumps(compare.builtin(failed),allow_nan=False))["improvement"] is None
+    retained=np.asarray([1.,np.nan],np.float32)
+    assert compare.exact_array(retained,retained.copy())
+    assert not compare.exact_array(retained,np.asarray([1.,2.],np.float32))
+    assert not compare.exact_array(retained,retained.astype(np.float64))
 
 
 def test_exact_lane_mapping_and_cost_selection_requires_long_winner():

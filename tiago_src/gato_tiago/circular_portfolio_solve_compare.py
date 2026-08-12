@@ -13,7 +13,7 @@ from gato_tiago import circular_portfolio_p8_worker as worker
 from gato_tiago.circular_portfolio_runner import authenticate_cpu_prerequisite,_production_pin_context
 
 
-ROOT=Path("/tmp/tiago-circular-solve-compare-v3")
+ROOT=Path("/tmp/tiago-circular-solve-compare-v4")
 OUTPUT_JSON=ROOT/"result.json";OUTPUT_NPZ=ROOT/"result.npz";FAILURE_JSON=ROOT/"failure.json"
 CACHED_JSON=Path("/tmp/tiago-circular-cached-replay/result.json")
 CACHED_NPZ=Path("/tmp/tiago-circular-cached-replay/result.npz")
@@ -47,6 +47,12 @@ SOURCE_PATHS=tuple(dict.fromkeys((*worker.SOURCE_PATHS,
 
 
 def sha(path):return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+
+def exact_array(left,right):
+    left=np.asarray(left);right=np.asarray(right)
+    return bool(left.shape==right.shape and left.dtype==right.dtype
+        and np.array_equal(left,right,equal_nan=left.dtype.kind in "fc"))
 
 
 def atomic_json(path,value):
@@ -434,7 +440,7 @@ def recertify(root=ROOT,module_loader=importlib.import_module,
             "counts","wall_elapsed_s","solver_b1","solver_b16","b1_lanes","b16_lanes",
             "comparison","cuda_diagnostics","extension","provenance","npz_path","npz_sha256",
             "array_names","array_hashes","passes","elapsed_s"}
-        exact=bool(set(arrays)==set(rebuilt) and all(np.array_equal(arrays[k],rebuilt[k]) for k in rebuilt)
+        exact=bool(set(arrays)==set(rebuilt) and all(exact_array(arrays[k],rebuilt[k]) for k in rebuilt)
             and np.array_equal(arrays["input_seed_b1_float32"],cached_arrays["b1_seed_float32"][None])
             and np.array_equal(arrays["input_seed_b16_float32"],cached_arrays["b16_seed_float32"])
             and document["npz_path"]==str(root/OUTPUT_NPZ.name)
