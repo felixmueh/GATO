@@ -32,19 +32,20 @@ __global__ __launch_bounds__(PCG_THREADS) void solvePCGBatchedKernel(uint32_t* _
         }
 
         // ----- Shared Memory -----
-        // 5 vectors + 32 + 4
+        // Three padded vectors: residual, search direction, and reusable work
+        // storage (preconditioned residual / matrix-vector product). The PCG
+        // iterate stays in its existing global-memory buffer. The trailing
+        // WARP_SIZE values are the block::dot warp-reduction scratch.
         extern __shared__ T s_mem[];
-        block::zeroSharedMemory<T, 5 * VEC_SIZE_PADDED>(s_mem);
+        block::zeroSharedMemory<T, 3 * VEC_SIZE_PADDED>(s_mem);
 
         // vectors
-        T* s_A_p_vector = s_mem;
-        T* s_x_vector = s_A_p_vector + VEC_SIZE_PADDED;
-        T* s_r_vector = s_x_vector + VEC_SIZE_PADDED;
-        T* s_z_vector = s_r_vector + VEC_SIZE_PADDED;
-        T* s_p_vector = s_z_vector + VEC_SIZE_PADDED;
+        T* s_r_vector = s_mem;
+        T* s_p_vector = s_r_vector + VEC_SIZE_PADDED;
+        T* s_work_vector = s_p_vector + VEC_SIZE_PADDED;
 
         // scratch for dot product
-        T* s_scratch = s_p_vector + VEC_SIZE_PADDED;
+        T* s_scratch = s_work_vector + VEC_SIZE_PADDED;
 
         // scalars
         __shared__ T   s_rho, s_rho_new, s_alpha, s_beta, s_rho_init;
@@ -62,25 +63,21 @@ __global__ __launch_bounds__(PCG_THREADS) void solvePCGBatchedKernel(uint32_t* _
         const T* d_b_vector = getOffsetStatePadded<T, BatchSize>(d_b_batch, solve_idx, 0) - STATE_SIZE;  // TODO: consider using shared memory for b
         T* d_x_vector = getOffsetStatePadded<T, BatchSize>(d_x_batch, solve_idx, 0) - STATE_SIZE;
 
-        // copy x to shared memory
-        block::copy<T, VEC_SIZE_PADDED>(s_x_vector, d_x_vector);
-        __syncthreads();
-
         // ----- Init PCG -----
 
         // r = b - A * x
-        block::btdMatrixVectorProduct<T, KNOT_POINTS, STATE_SIZE>(s_r_vector, d_A_matrix, s_x_vector);
+        block::btdMatrixVectorProduct<T, KNOT_POINTS, STATE_SIZE>(s_r_vector, d_A_matrix, d_x_vector);
         __syncthreads();
 
         block::vecSub<T, VEC_SIZE_PADDED>(s_r_vector, d_b_vector, s_r_vector);
         __syncthreads();
 
         // z, p = M^-1 * r
-        block::btdMatrixVectorProduct<T, KNOT_POINTS, STATE_SIZE>(s_z_vector, s_p_vector, d_M_inv_matrix, s_r_vector);
+        block::btdMatrixVectorProduct<T, KNOT_POINTS, STATE_SIZE>(s_work_vector, s_p_vector, d_M_inv_matrix, s_r_vector);
         __syncthreads();
 
         // rho = r^T * z
-        block::dot<T>(&s_rho, s_r_vector, s_z_vector, s_scratch, VEC_SIZE_PADDED);
+        block::dot<T>(&s_rho, s_r_vector, s_work_vector, s_scratch, VEC_SIZE_PADDED);
         __syncthreads();
 
         if (abs(s_rho) < abs_tol) {
@@ -98,11 +95,11 @@ __global__ __launch_bounds__(PCG_THREADS) void solvePCGBatchedKernel(uint32_t* _
                 iterations++;
 
                 // A_p = A * p
-                block::btdMatrixVectorProduct<T, KNOT_POINTS, STATE_SIZE>(s_A_p_vector, d_A_matrix, s_p_vector);
+                block::btdMatrixVectorProduct<T, KNOT_POINTS, STATE_SIZE>(s_work_vector, d_A_matrix, s_p_vector);
                 __syncthreads();
 
                 // alpha = rho / (p^T * A_p)
-                block::dot<T>(&s_alpha, s_p_vector, s_A_p_vector, s_scratch, VEC_SIZE_PADDED);
+                block::dot<T>(&s_alpha, s_p_vector, s_work_vector, s_scratch, VEC_SIZE_PADDED);
                 __syncthreads();
                 if (threadIdx.x == 0) { s_alpha = s_rho / s_alpha; }
                 __syncthreads();
@@ -111,17 +108,17 @@ __global__ __launch_bounds__(PCG_THREADS) void solvePCGBatchedKernel(uint32_t* _
                 // r = r - alpha * A_p
 #pragma unroll
                 for (uint32_t j = threadIdx.x; j < VEC_SIZE_PADDED; j += blockDim.x) {
-                        s_x_vector[j] += s_alpha * s_p_vector[j];
-                        s_r_vector[j] -= s_alpha * s_A_p_vector[j];
+                        d_x_vector[j] += s_alpha * s_p_vector[j];
+                        s_r_vector[j] -= s_alpha * s_work_vector[j];
                 }
                 __syncthreads();
 
                 // z = M^-1 * r
-                block::btdMatrixVectorProduct<T, KNOT_POINTS, STATE_SIZE>(s_z_vector, d_M_inv_matrix, s_r_vector);
+                block::btdMatrixVectorProduct<T, KNOT_POINTS, STATE_SIZE>(s_work_vector, d_M_inv_matrix, s_r_vector);
                 __syncthreads();
 
                 // rho_new = r^T * z
-                block::dot<T>(&s_rho_new, s_r_vector, s_z_vector, s_scratch, VEC_SIZE_PADDED);
+                block::dot<T>(&s_rho_new, s_r_vector, s_work_vector, s_scratch, VEC_SIZE_PADDED);
                 __syncthreads();
 
                 // check for convergence using absolute and relative tolerance
@@ -139,7 +136,7 @@ __global__ __launch_bounds__(PCG_THREADS) void solvePCGBatchedKernel(uint32_t* _
 
                 // p = z + beta * p
 #pragma unroll
-                for (uint32_t j = threadIdx.x; j < VEC_SIZE_PADDED; j += blockDim.x) { s_p_vector[j] = s_z_vector[j] + s_beta * s_p_vector[j]; }
+                for (uint32_t j = threadIdx.x; j < VEC_SIZE_PADDED; j += blockDim.x) { s_p_vector[j] = s_work_vector[j] + s_beta * s_p_vector[j]; }
                 __syncthreads();
         }
         // ----- End PCG -----
@@ -147,13 +144,12 @@ __global__ __launch_bounds__(PCG_THREADS) void solvePCGBatchedKernel(uint32_t* _
         // save stats for current batch
         if (threadIdx.x == 0) { d_iterations[solve_idx] = iterations; }
 
-        block::copy<T, VEC_SIZE_PADDED>(d_x_vector, s_x_vector);
 }
 
 template<typename T>
 __host__ size_t getSolvePCGBatchedSMemSize()
 {
-        size_t size = sizeof(T) * (5 * VEC_SIZE_PADDED + 32 + 5 + PCG_THREADS);
+        size_t size = sizeof(T) * (3 * VEC_SIZE_PADDED + block::WARP_SIZE);
         return size;
 }
 
@@ -166,4 +162,5 @@ __host__ void solvePCGBatched(T* d_lambda_batch, SchurSystem<T, BatchSize> schur
 
         solvePCGBatchedKernel<T, BatchSize>
             <<<grid, thread_block, s_mem_size, stream>>>(d_iterations, d_lambda_batch, schur.d_S_batch, schur.d_P_inv_batch, schur.d_gamma_batch, d_epsilon_batch, max_pcg_iters, d_kkt_converged_batch);
+        gpuErrchk(cudaPeekAtLastError());
 }

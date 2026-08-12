@@ -325,6 +325,8 @@ class PyBSQP {
 
 #if defined(IIWA_MULTIMODAL_PILLAR)
 #define PLANT_SUFFIX iiwa14_multimodal
+#elif defined(TIAGO_CONSTRUCTED_ROUTE_PORTFOLIO_TOLL_PCG_COMPACT)
+#define PLANT_SUFFIX tiago_right_constructed_route_portfolio_toll_pcg_compact
 #elif defined(TIAGO_CONSTRUCTED_ROUTE_PORTFOLIO_TOLL)
 #define PLANT_SUFFIX tiago_right_constructed_route_portfolio_toll
 #elif defined(TIAGO_CIRCULAR_PORTFOLIO_TOLL)
