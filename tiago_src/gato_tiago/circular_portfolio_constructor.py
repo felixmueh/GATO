@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import hashlib
+import time
 from typing import Callable, Mapping
 
 import numpy as np
@@ -1155,7 +1156,105 @@ def backend_declaration():
     }
 
 
-def execute_constructor(*_args, authorization=None, **_kwargs):
+def execute_constructor(*args, authorization=None, **kwargs):
     if RUNNER_EXECUTION_AUTHORIZATION is None or authorization is not RUNNER_EXECUTION_AUTHORIZATION:
         raise RuntimeError("circular portfolio P1 execution is blocked")
-    raise RuntimeError("no production constructor is authorized in static P1")
+    return run_production_constructor(
+        *args, authorization=authorization, **kwargs
+    )
+
+
+def run_production_constructor(
+    identity, q0, q_goal, tool_reference, lower, upper, velocity, effort,
+    pillar, kinematics, rnea, rnea_derivatives, aba, *, campaign_deadline,
+    monotonic=time.monotonic, authorization=None,
+):  # pragma: no cover - separately authorized Pin/SciPy boundary
+    """One exact trust-constr attempt; no fallback, retry, or replacement."""
+    if RUNNER_EXECUTION_AUTHORIZATION is None or authorization is not RUNNER_EXECUTION_AUTHORIZATION:
+        raise RuntimeError("circular portfolio P1 execution is blocked")
+    from scipy.optimize import BFGS, NonlinearConstraint, minimize
+    from scipy.sparse import csr_matrix
+    started=monotonic(); deadline=min(float(campaign_deadline),started+PROFILE_WALL_LIMIT_S)
+    def guard():
+        if monotonic() >= deadline:
+            raise TimeoutError("circular portfolio profile wall limit")
+    def guarded_kinematics(q):
+        guard(); value = kinematics(q); guard(); return value
+    def guarded_rnea(q, qd, qdd):
+        guard(); value = rnea(q, qd, qdd); guard(); return value
+    def guarded_rnea_derivatives(q, qd, qdd):
+        guard(); value = rnea_derivatives(q, qd, qdd); guard(); return value
+    def guarded_aba(q, qd, u):
+        guard(); value = aba(q, qd, u); guard(); return value
+    q0=np.asarray(q0,np.float64); q_goal=np.asarray(q_goal,np.float64)
+    tool_reference=np.asarray(tool_reference,np.float64)
+    guard()
+    proxy=proxy_joint_path(q0,q_goal,tool_reference,guarded_kinematics)
+    guard()
+    initial=linear_proxy_initial_acceleration(q0,q_goal,proxy["proxy_q_float64"])
+    guard()
+    endpoint_jac=csr_matrix(shooting_endpoint_jacobian())
+    def evaluate(flat):
+        guard()
+        qdd=unpack_acceleration(flat); q,qd=integrate_acceleration(q0,np.zeros(7),qdd)
+        controls=reconstruct_controls(q,qd,qdd,guarded_rnea)
+        positions,dp,du=position_and_control_sensitivities(
+            q,qd,qdd,guarded_kinematics,guarded_rnea_derivatives
+        )
+        guard()
+        return qdd,q,qd,controls,positions,dp,du
+    def objective(flat):
+        guard()
+        qdd,q,_qd,u,p,_dp,_du=evaluate(flat)
+        value=shooting_objective(q,qdd,u,p,tool_reference,effort); guard(); return value
+    def gradient(flat):
+        guard()
+        qdd,_q,_qd,u,p,dp,du=evaluate(flat)
+        value=shooting_objective_gradient(qdd,u,p,tool_reference,effort,dp,du); guard(); return value
+    def equality(flat):
+        guard()
+        qdd=unpack_acceleration(flat); q,qd=integrate_acceleration(q0,np.zeros(7),qdd)
+        value=shooting_endpoint(q,qd,q_goal); guard(); return value
+    def inequality(flat):
+        guard()
+        _qdd,q,qd,u,p,_dp,_du=evaluate(flat)
+        value=shooting_inequalities(q,qd,u,p,lower,upper,velocity,effort,pillar); guard(); return value
+    def inequality_jac(flat):
+        guard()
+        _qdd,q,qd,u,p,dp,du=evaluate(flat)
+        value=csr_matrix(shooting_inequality_jacobian(q,qd,u,p,pillar,dp,du)); guard(); return value
+    def callback(_x,_state=None):
+        guard()
+        return False
+    guard()
+    result=minimize(
+        objective,initial["initial_acceleration_float64"].ravel(),method="trust-constr",
+        jac=gradient,hess=BFGS(),constraints=(
+            NonlinearConstraint(equality,0.,0.,jac=lambda _z:endpoint_jac),
+            NonlinearConstraint(inequality,0.,np.inf,jac=inequality_jac),
+        ),callback=callback,options=dict(BACKEND_OPTIONS),
+    )
+    guard(); qdd,q,qd,u,p,_dp,_du=evaluate(result.x); guard()
+    endpoint_value=equality(result.x); inequality_value=inequality(result.x)
+    finished=monotonic(); guard()
+    shooting=ShootingResult(tuple(identity),qdd,q,qd,u,p,float(result.fun),endpoint_value,
+                            inequality_value,bool(result.success),int(result.status),
+                            int(result.niter),float(finished-started))
+    certificate=certify_shooting_result(shooting,q0,q_goal,tool_reference,lower,upper,
+                                        velocity,effort,pillar,guarded_kinematics,
+                                        guarded_rnea,guarded_aba)
+    finished=monotonic(); guard()
+    certificate["gates"]["wall_cap"] = 0.0 <= finished-started <= PROFILE_WALL_LIMIT_S
+    certificate["passes"] = bool(all(certificate["gates"].values()))
+    retained={**proxy,**initial,"acceleration_float64":qdd,"q_float64":q,
+              "qd_float64":qd,"controls_float64":u,
+              "applied_controls_float32":u.astype(np.float32),"positions_float64":p,
+              "endpoint_residual_float64":endpoint_value,
+              "inequalities_float64":inequality_value,
+              "shooting_objective_float64":np.asarray(result.fun,np.float64),
+              "optimizer_success_bool":np.asarray(result.success,np.bool_),
+              "optimizer_status_int64":np.asarray(result.status,np.int64),
+              "optimizer_iterations_int64":np.asarray(result.niter,np.int64),
+              "optimizer_wall_float64":np.asarray(finished-started,np.float64)}
+    return {"identity":list(identity),"retained":retained,
+            "certificate":certificate,"passes":certificate["passes"]}

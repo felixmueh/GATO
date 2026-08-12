@@ -37,7 +37,7 @@ AUTHORIZED_ORIG_ARGV = (
     "python", "-B", "-m", "gato_tiago.circular_portfolio_prerequisite_runner",
     "--execute", "--output", str(OUTPUT),
 )
-RUNNER_EXECUTION_AUTHORIZATION = object()
+RUNNER_EXECUTION_AUTHORIZATION = None
 FROZEN_BUILD_HEAD = "2f1011da2a240fe8eae9ff25b2b3ee991c11c6c2"
 FROZEN_CUDA_ARCH = "61-real"
 FROZEN_EXTENSION = {
@@ -529,7 +529,7 @@ def refuse_existing(output):
         raise FileExistsError("prerequisite transaction forbids overwrite/resume")
 
 
-def recertify_retained_prerequisite(output=OUTPUT):  # pragma: no cover - audit boundary
+def recertify_retained_prerequisite(output=OUTPUT, *, return_payload=False):  # pragma: no cover - audit boundary
     output = Path(output).resolve()
     try:
         summary = json.loads(output.read_text())
@@ -574,8 +574,12 @@ def recertify_retained_prerequisite(output=OUTPUT):  # pragma: no cover - audit 
                             "manifest_path": str(manifest_path),
                             "manifest_sha256": _sha256_file(manifest_path)}
         )
-        return {"final": final, "checkpoints": bool(checkpoints), "documents": documents,
-                "passes": bool(final["passes"] and checkpoints and documents)}
+        result = {"final": final, "checkpoints": bool(checkpoints), "documents": documents,
+                  "passes": bool(final["passes"] and checkpoints and documents)}
+        if return_payload:
+            result["_retained_summary"] = summary
+            result["_retained_arrays"] = arrays
+        return result
     except (OSError, ValueError, KeyError, TypeError, RuntimeError, json.JSONDecodeError):
         return {"passes": False}
 

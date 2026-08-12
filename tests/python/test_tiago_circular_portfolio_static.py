@@ -40,12 +40,7 @@ def test_exact_12_task_192_profile_ledger_and_all_tokens_closed():
         for line in path.read_text().splitlines()
         if pattern.fullmatch(line)
     ]
-    assert enabled == [
-        (
-            "tiago_src/gato_tiago/circular_portfolio_prerequisite_runner.py",
-            "RUNNER_EXECUTION_AUTHORIZATION = object()",
-        )
-    ]
+    assert enabled == []
 
 
 def test_exact_c2_profiles_are_distinct_monotone_and_zero_endpoint_derivatives():
@@ -690,43 +685,29 @@ def test_public_handoff_rejects_every_route_constructor_secret():
 
 
 def test_exact_accepted_prerequisite_authentication_is_owned_not_summary_supplied():
-    source = inspect.getsource(runner.authenticate_accepted_prerequisites)
+    source = inspect.getsource(runner.authenticate_cpu_prerequisite)
     for required in (
-        "_load_pinned_artifact(TASK_PINS)", "_load_pinned_artifact(MODEL_PINS)",
-        "authenticate_producer", "_task_pure_recert", "_model_pure_recert",
-        "cross_bind_prerequisites",
+        "PREREQUISITE_ARTIFACT_PINS", "sha256_file(path)",
+        "recertify_retained_prerequisite", "return_payload=True",
     ):
         assert required in source
-    assert "task_summary, task_arrays" in source
-    assert "model_summary, model_arrays" in source
+    assert all(len(row["sha256"]) == 64 for row in runner.PREREQUISITE_ARTIFACT_PINS.values())
     assert not hasattr(schema, "certify_prerequisite_binding")
 
 
 def test_owned_prerequisite_auth_rejects_refreshed_summary_hash_lie(monkeypatch):
-    from gato_tiago import multimodal_toll_oracle_v2_prerequisite_runner as prerequisite
-    task_arrays = {f"t{index:03d}": np.asarray(index, np.int64)
-                   for index in range(schema.TASK_ARRAY_COUNT)}
-    model_arrays = {f"m{index:03d}": np.asarray(index, np.int64)
-                    for index in range(schema.MODEL_ARRAY_COUNT)}
-    def summary(arrays, certificate_key):
-        return {"array_names": sorted(arrays),
-                "array_hashes": {name: prerequisite.producer_array_hash(value)
-                                 for name, value in arrays.items()},
-                "incomplete": False, certificate_key: True,
-                "certificate": {certificate_key: True}, "rows": []}
-    task_summary = summary(task_arrays, "all_v4_gates_pass")
-    model_summary = summary(model_arrays, "all_model_preflight_gates_pass")
-    monkeypatch.setattr(prerequisite, "_load_pinned_artifact",
-                        lambda pins: ((task_summary, task_arrays, {}, {})
-                                      if len(pins) == 4 else (model_summary, model_arrays, {}, {})))
-    monkeypatch.setattr(prerequisite, "_task_pure_recert", lambda *_: True)
-    monkeypatch.setattr(prerequisite, "_model_pure_recert", lambda *_: True)
-    monkeypatch.setattr(prerequisite, "cross_bind_prerequisites",
-                        lambda *_: {"passes": True})
-    detail = runner.authenticate_accepted_prerequisites()[0]
-    assert detail["passes"]
-    task_summary["array_hashes"]["t000"] = "f" * 64
-    assert not runner.authenticate_accepted_prerequisites()[0]["passes"]
+    pins = {key: dict(value) for key, value in runner.PREREQUISITE_ARTIFACT_PINS.items()}
+    monkeypatch.setattr(runner, "PREREQUISITE_ARTIFACT_PINS", pins)
+    monkeypatch.setattr(Path, "is_file", lambda _self: True)
+    monkeypatch.setattr(runner, "sha256_file", lambda path: next(
+        row["sha256"] for row in pins.values() if Path(row["path"]) == Path(path)
+    ))
+    monkeypatch.setattr(
+        "gato_tiago.circular_portfolio_prerequisite_runner.recertify_retained_prerequisite",
+        lambda _path, **_kwargs: {"passes": False},
+    )
+    with pytest.raises(RuntimeError, match="recertification failed"):
+        runner.authenticate_cpu_prerequisite()
 
 
 def _provenance(final=False):
@@ -743,18 +724,20 @@ def _provenance(final=False):
         "source_hashes_at_end": hashes if final else None,
         "task_artifact_pins": dict(schema.TASK_ARTIFACT_PINS),
         "model_artifact_pins": dict(schema.MODEL_ARTIFACT_PINS),
+        "cpu_prerequisite_artifact_pins": runner.PREREQUISITE_ARTIFACT_PINS,
         "build_commit": runner.FROZEN_BUILD_COMMIT,
         "cuda_arch": runner.FROZEN_CUDA_ARCH,
         "extension": runner.FROZEN_EXTENSION,
+        "thread_environment": runner.REQUIRED_THREAD_ENVIRONMENT,
         "runtime_versions": {name: "1" for name in ("python", "numpy", "scipy", "pinocchio", "cuda")},
     }
 
 
 def _checkpoint(generation):
     completed = max(0, min(192, generation - 3))
-    stage = ("gen0" if generation == 0 else "task_authenticated" if generation == 1
-             else "model_authenticated" if generation == 2
-             else "geometry_authenticated" if generation == 3
+    stage = ("gen0" if generation == 0 else "prerequisite_authenticated" if generation == 1
+             else "extension_authenticated" if generation == 2
+             else "production_model_authenticated" if generation == 3
              else "profile_completed" if generation <= 195 else "honest_end_provenance")
     return {
         "protocol": schema.PROTOCOL_VERSION, "generation": generation,
@@ -766,7 +749,8 @@ def _checkpoint(generation):
         "evidence_flags": {"oracle_evidence": False, "benchmark_evidence": False},
         "watchdog": constructor.watchdog(0.0, completed),
         "profile_certificate": ({"identity": list(schema.EXPECTED_LEDGER[generation - 4]),
-                                  "passes": True}
+                                  "gates": {"constructor": True, "worker": True,
+                                            "replay": True}, "passes": True}
                                 if 4 <= generation <= 195 else None),
         "array_names": list(runner._checkpoint_array_names(generation)),
         "array_hashes": {}, "npz_path": "/tmp/checkpoint.npz",
@@ -785,8 +769,8 @@ def _checkpoint_arrays(generation):
             arrays[name] = np.asarray(max(0, min(192, generation - 3)), np.int64)
         elif name == "incomplete_bool": arrays[name] = np.asarray(True, np.bool_)
         elif name == "task_authentication_bool": arrays[name] = np.asarray(generation >= 1, np.bool_)
-        elif name == "model_authentication_bool": arrays[name] = np.asarray(generation >= 2, np.bool_)
-        elif name == "geometry_authentication_bool": arrays[name] = np.asarray(generation >= 3, np.bool_)
+        elif name == "model_authentication_bool": arrays[name] = np.asarray(generation >= 1, np.bool_)
+        elif name == "geometry_authentication_bool": arrays[name] = np.asarray(generation >= 1, np.bool_)
         elif name == "cross_bind_bool": arrays[name] = np.asarray(True, np.bool_)
         elif name.endswith("digest_uint8"): arrays[name] = np.zeros(32, np.uint8)
         else:
@@ -803,7 +787,7 @@ def _bound_checkpoint(generation):
         arrays["task_array_hash_digest_uint8"].tobytes().hex() if generation >= 1 else None
     )
     document["model_array_hash_digest_hex"] = (
-        arrays["model_array_hash_digest_uint8"].tobytes().hex() if generation >= 2 else None
+        arrays["model_array_hash_digest_uint8"].tobytes().hex() if generation >= 1 else None
     )
     return document, arrays
 
@@ -822,10 +806,10 @@ def _owned_checkpoint(generation, geometry_digest="e"*64):
     if generation >= 1:
         arrays["task_array_hash_digest_uint8"] = np.frombuffer(bytes.fromhex(task_digest), np.uint8).copy()
         document["task_array_hash_digest_hex"] = task_digest
-    if generation >= 2:
+    if generation >= 1:
         arrays["model_array_hash_digest_uint8"] = np.frombuffer(bytes.fromhex(model_digest), np.uint8).copy()
         document["model_array_hash_digest_hex"] = model_digest
-    document["geometry_digest_hex"] = geometry_digest if generation >= 3 else None
+    document["geometry_digest_hex"] = geometry_digest if generation >= 1 else None
     document["array_hashes"] = {name: runner.array_hash(value) for name, value in arrays.items()}
     return document, arrays, detail, geometry_digest
 
@@ -877,10 +861,10 @@ def test_checkpoint_auth_bytes_bind_owned_prerequisite_and_geometry_digests():
         if generation >= 1:
             arrays["task_array_hash_digest_uint8"] = np.frombuffer(bytes.fromhex(task_digest), np.uint8).copy()
             document["task_array_hash_digest_hex"] = task_digest
-        if generation >= 2:
+        if generation >= 1:
             arrays["model_array_hash_digest_uint8"] = np.frombuffer(bytes.fromhex(model_digest), np.uint8).copy()
             document["model_array_hash_digest_hex"] = model_digest
-        document["geometry_digest_hex"] = geometry_digest if generation >= 3 else None
+        document["geometry_digest_hex"] = geometry_digest if generation >= 1 else None
         document["array_hashes"] = {name: runner.array_hash(value) for name, value in arrays.items()}
         assert runner.certify_checkpoint_authentication(document, arrays, detail, geometry_digest)
         arrays[next(name for name in arrays if name.endswith("digest_uint8"))][0] ^= 1
@@ -920,14 +904,14 @@ def test_transaction_publishes_immutable_checkpoints_and_never_false_final(tmp_p
 def test_uncompressed_storage_watchdog_rejects_before_candidate_write(tmp_path):
     assert runner.PROJECTED_FINAL_BYTES == 368_330_356
     assert runner.PROJECTED_PROFILE_BYTES == 1_569_841
-    assert runner.PROJECTED_CHECKPOINT_CUMULATIVE_BYTES == 301_426_119
+    assert runner.PROJECTED_CHECKPOINT_CUMULATIVE_BYTES == 301_426_152
     assert runner.PROJECTED_CHECKPOINT_CUMULATIVE_BYTES == sum(
         runner.projected_checkpoint_array_bytes(generation)
         for generation in range(len(schema.EXPECTED_LEDGER) + 5)
     )
-    assert runner.PROJECTED_NAMESPACE_BYTES == 669_756_475
+    assert runner.PROJECTED_NAMESPACE_BYTES == 669_756_508
     assert runner.PROJECTED_WORKER_SIDE_NPZ_ARRAY_BYTES == 80_436_480
-    assert runner.PROJECTED_NAMESPACE_WITH_WORKER_SIDE_BYTES == 750_192_955
+    assert runner.PROJECTED_NAMESPACE_WITH_WORKER_SIDE_BYTES == 750_192_988
     assert runner.PROJECTED_FINAL_BYTES <= runner.FINAL_NPZ_BYTE_CAP
     assert runner.PROJECTED_PROFILE_BYTES <= runner.CHECKPOINT_NPZ_BYTE_CAP
     assert runner.PROJECTED_NAMESPACE_BYTES <= runner.CUMULATIVE_NPZ_BYTE_CAP
@@ -1005,17 +989,139 @@ def test_runner_is_hard_blocked_before_files_or_private_calls(tmp_path):
     assert not transaction["oracle_evidence"] and not transaction["benchmark_evidence"]
 
 
-def test_static_sources_do_not_execute_v4_artifacts_models_cuda_or_optimizers():
-    sources = "\n".join(
-        Path(module.__file__).read_text() for module in (schema, constructor, runner)
+def test_production_gen0_precedes_the_single_cpu_prerequisite_load(monkeypatch, tmp_path):
+    calls = []
+    monkeypatch.setattr(runner, "require_thread_environment", lambda: calls.append(("environment", 0)))
+    monkeypatch.setattr(runner, "_start_provenance", lambda _root: _provenance())
+    monkeypatch.setattr(runner, "publish_checkpoint", lambda _output, document, _arrays, **_kw:
+                        calls.append(("checkpoint", document["generation"])) or (Path("j"), Path("n"), Path("p")))
+    def fail_authentication():
+        calls.append(("prerequisite", 1))
+        raise RuntimeError("synthetic prerequisite failure")
+    monkeypatch.setattr(runner, "authenticate_cpu_prerequisite", fail_authentication)
+    with pytest.raises(RuntimeError, match="synthetic prerequisite failure"):
+        runner._production_pipeline(tmp_path / "p1.json", monotonic=lambda: 0.0)
+    assert calls == [("environment", 0), ("checkpoint", 0), ("prerequisite", 1)]
+
+
+def test_constructor_execution_delegates_exactly_once_when_capability_is_enabled(monkeypatch):
+    token = object(); calls = []
+    monkeypatch.setattr(constructor, "RUNNER_EXECUTION_AUTHORIZATION", token)
+    monkeypatch.setattr(constructor, "run_production_constructor",
+                        lambda *args, **kwargs: calls.append((args, kwargs)) or {"passes": True})
+    assert constructor.execute_constructor("identity", authorization=token, marker=7) == {"passes": True}
+    assert len(calls) == 1 and calls[0][0] == ("identity",)
+    assert calls[0][1] == {"authorization": token, "marker": 7}
+
+
+def test_permanent_failure_and_watchdog_records_are_immutable_non_evidence(tmp_path):
+    provenance = _provenance()
+    failed_output = tmp_path / "failure" / "p1.json"
+    failed_output.parent.mkdir()
+    failure = RuntimeError("synthetic profile failure")
+    json_path, npz_path = runner.publish_permanent_rejection(
+        failed_output, 0, provenance, 1.0, failure, completed=0,
+        stage="profile_failed",
     )
+    document = __import__("json").loads(json_path.read_text())
+    with np.load(npz_path, allow_pickle=False) as archive:
+        arrays = {name: archive[name] for name in archive.files}
+    assert runner.certify_permanent_rejection(document, arrays)
+    assert document["completed_identities"] == []
+    assert len(document["pending_identities"]) == 192
+    assert not document["oracle_evidence"] and not document["benchmark_evidence"]
+    with pytest.raises(FileExistsError):
+        runner.refuse_existing_artifacts(failed_output)
+
+    watchdog_output = tmp_path / "watchdog" / "p1.json"
+    watchdog_output.parent.mkdir()
+    row_arrays = {"raw_status_int64": np.asarray(0, np.int64)}
+    json_path, npz_path = runner.publish_permanent_rejection(
+        watchdog_output, 0, provenance, 113.0,
+        RuntimeError("campaign watchdog permanently rejected P1"), completed=1,
+        arrays=row_arrays, stage="runtime_watchdog_rejected",
+    )
+    document = __import__("json").loads(json_path.read_text())
+    with np.load(npz_path, allow_pickle=False) as archive:
+        arrays = {name: archive[name] for name in archive.files}
+    assert runner.certify_permanent_rejection(document, arrays)
+    assert document["watchdog"]["runtime_watchdog_rejected"] is True
+    assert document["completed_identities"] == [list(schema.EXPECTED_LEDGER[0])]
+    assert len(document["pending_identities"]) == 191
+    assert not watchdog_output.exists() and not watchdog_output.with_suffix(".npz").exists()
+
+
+def test_production_loop_has_one_attempt_no_retry_and_fail_closed_subprocess_chain():
+    source = inspect.getsource(runner._production_pipeline)
+    assert source.count("result = execute_constructor(") == 1
+    assert source.count("_run_cuda_worker(") == 1
+    assert "for index, identity in enumerate(EXPECTED_LEDGER)" in source
+    assert "except Exception as error:" in source
+    assert source.count("publish_permanent_rejection(") == 2
+    assert "completed=index, arrays=retained, stage=\"profile_failed\"" in source
+    assert "completed=index+1, arrays=retained" in source
+    assert "raise error" in source
+
+
+def test_profile_clock_worker_timeout_and_single_thread_environment_are_hard_boundaries(monkeypatch):
+    production = inspect.getsource(constructor.run_production_constructor)
+    assert production.index("started=monotonic()") < production.index("proxy=proxy_joint_path")
+    assert "guarded_kinematics" in production and "guarded_rnea_derivatives" in production
+    for callback in ("objective", "gradient", "equality", "inequality", "inequality_jac"):
+        body = production[production.index(f"def {callback}("):]
+        assert "guard()" in body.split("\n    def ", 1)[0]
+    worker_source = inspect.getsource(runner._run_cuda_worker)
+    assert "remaining = float(campaign_deadline) - monotonic()" in worker_source
+    assert "timeout=remaining" in worker_source
+    assert "certify_worker_output" in worker_source and "certify_lane_binding" in worker_source
+    monkeypatch.setattr(runner.os, "environ", {
+        **runner.os.environ, **runner.REQUIRED_THREAD_ENVIRONMENT,
+    })
+    assert runner.require_thread_environment() == runner.REQUIRED_THREAD_ENVIRONMENT
+    monkeypatch.setitem(runner.os.environ, "OMP_NUM_THREADS", "2")
+    with pytest.raises(RuntimeError, match="single-thread"):
+        runner.require_thread_environment()
+
+
+def test_final_stage_uses_one_semantic_recert_and_has_permanent_failure_boundary(tmp_path):
+    source = inspect.getsource(runner._finalize_production)
+    assert source.count("_production_semantic_recert(") == 1
+    assert "storage_report(" in source
+    assert source.index("_production_semantic_recert(") < source.index("summary[\"watchdog\"]")
+    assert "owned_semantic=owned_semantic" in source
+    assert "stage=\"final_certification_failed\"" in source
+    provenance = _provenance(final=True)
+    output = tmp_path / "final" / "p1.json"; output.parent.mkdir()
+    json_path, npz_path = runner.publish_permanent_rejection(
+        output, 191, provenance, 100.0, RuntimeError("injected final cert failure"),
+        completed=192, stage="final_certification_failed",
+    )
+    document = __import__("json").loads(json_path.read_text())
+    with np.load(npz_path, allow_pickle=False) as archive:
+        arrays = {name: archive[name] for name in archive.files}
+    assert runner.certify_permanent_rejection(document, arrays)
+    assert document["completed_identities"] == [list(row) for row in schema.EXPECTED_LEDGER]
+    assert document["pending_identities"] == [] and document["permanent_rejection"] is True
+    assert not output.exists() and not output.with_suffix(".npz").exists()
+
+
+def test_static_sources_do_not_execute_v4_artifacts_models_cuda_or_optimizers():
+    sources = Path(schema.__file__).read_text()
     for forbidden in (
         "default_rng(", "generate_task(",
         "import importlib", "import subprocess", "import torch", "minimize(", "sim_forward(",
         ".solver.solve(",
     ):
         assert forbidden not in sources
-    assert "trust-constr" in sources and "RUNNER_EXECUTION_AUTHORIZATION = None" in sources
+    assert runner.RUNNER_EXECUTION_AUTHORIZATION is None
+    assert constructor.RUNNER_EXECUTION_AUTHORIZATION is None
+    assert worker.WORKER_EXECUTION_AUTHORIZATION is None
+    assert "return _production_pipeline" in inspect.getsource(runner.execute)
+    production = inspect.getsource(constructor.run_production_constructor)
+    assert "result=minimize(" in production and "hess=BFGS()" in production
+    assert "callback=callback" in production and "PROFILE_WALL_LIMIT_S" in production
+    assert "trust-constr" in sources
+    assert "RUNNER_EXECUTION_AUTHORIZATION = None" in Path(constructor.__file__).read_text()
     assert "import pinocchio as pin" in inspect.getsource(runner._production_pin_context)
     assert runner.RUNNER_EXECUTION_AUTHORIZATION is None
 

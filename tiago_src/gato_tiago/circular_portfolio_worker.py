@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import importlib
 import json
+import argparse
 from pathlib import Path
 from typing import Mapping
 
@@ -284,3 +285,18 @@ def execute_worker(request_path, output_path, *, authorization=None):  # pragma:
         json.dump(summary, stream, sort_keys=True, separators=(",", ":"))
         stream.write("\n")
     return summary
+
+
+def main(argv=None):  # pragma: no cover - isolated authorized worker process
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--execute", action="store_true")
+    parser.add_argument("--request", type=Path, required=True)
+    parser.add_argument("--output", type=Path, required=True)
+    args = parser.parse_args(argv)
+    if not args.execute:
+        raise SystemExit("--execute is required")
+    execute_worker(args.request, args.output, authorization=WORKER_EXECUTION_AUTHORIZATION)
+
+
+if __name__ == "__main__":  # pragma: no cover
+    main()
