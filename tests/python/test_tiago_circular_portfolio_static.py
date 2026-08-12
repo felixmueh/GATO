@@ -34,11 +34,18 @@ def test_exact_12_task_192_profile_ledger_and_all_tokens_closed():
     assert worker.WORKER_EXECUTION_AUTHORIZATION is None
     root = Path(__file__).resolve().parents[2]
     pattern = re.compile(r"^[A-Z][A-Z0-9_]*AUTHORIZATION = object\(\)$")
-    assert not any(
-        pattern.fullmatch(line)
+    enabled = [
+        (path.relative_to(root).as_posix(), line)
         for path in (root / "tiago_src/gato_tiago").glob("*.py")
         for line in path.read_text().splitlines()
-    )
+        if pattern.fullmatch(line)
+    ]
+    assert enabled == [
+        (
+            "tiago_src/gato_tiago/circular_portfolio_prerequisite_runner.py",
+            "RUNNER_EXECUTION_AUTHORIZATION = object()",
+        )
+    ]
 
 
 def test_exact_c2_profiles_are_distinct_monotone_and_zero_endpoint_derivatives():

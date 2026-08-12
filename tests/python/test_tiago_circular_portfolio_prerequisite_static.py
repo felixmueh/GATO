@@ -9,6 +9,23 @@ from gato_tiago import circular_portfolio as schema
 from gato_tiago import circular_portfolio_prerequisite_runner as prerequisite
 
 
+def test_only_cpu_prerequisite_capability_is_enabled_and_path_is_frozen():
+    assert prerequisite.RUNNER_EXECUTION_AUTHORIZATION is not None
+    assert prerequisite.OUTPUT == prerequisite.Path(
+        "/tmp/tiago-tool-center-circular-portfolio-p1-prerequisite-authorized-once/prerequisite.json"
+    )
+    with pytest.raises(RuntimeError, match="blocked"):
+        prerequisite.execute(
+            prerequisite.OUTPUT,
+            authorization=object(),
+        )
+    with pytest.raises(RuntimeError, match="not authorized"):
+        prerequisite.execute(
+            prerequisite.OUTPUT.with_name("wrong.json"),
+            authorization=prerequisite.RUNNER_EXECUTION_AUTHORIZATION,
+        )
+
+
 def _synthetic_bundle():
     task_arrays = {}
     rows = []
@@ -53,8 +70,8 @@ def _provenance(final=False):
     }
 
 
-def test_build_pin_and_cpu_only_boundary_are_exact_and_disabled(tmp_path):
-    assert prerequisite.RUNNER_EXECUTION_AUTHORIZATION is None
+def test_build_pin_and_cpu_only_boundary_are_exact_and_authorized_once(tmp_path):
+    assert prerequisite.RUNNER_EXECUTION_AUTHORIZATION is not None
     assert prerequisite.FROZEN_EXTENSION == {
         "path": "/workspace/GATO/python/bsqp/bsqpN96_tiago_right_circular_portfolio_toll.cpython-310-x86_64-linux-gnu.so",
         "sha256": "b079410ade9e7de19ed3d4b7ed6f6ace27172cd442ccea0d5a46bb7277067a2f",

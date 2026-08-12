@@ -37,7 +37,7 @@ AUTHORIZED_ORIG_ARGV = (
     "python", "-B", "-m", "gato_tiago.circular_portfolio_prerequisite_runner",
     "--execute", "--output", str(OUTPUT),
 )
-RUNNER_EXECUTION_AUTHORIZATION = None
+RUNNER_EXECUTION_AUTHORIZATION = object()
 FROZEN_BUILD_HEAD = "2f1011da2a240fe8eae9ff25b2b3ee991c11c6c2"
 FROZEN_CUDA_ARCH = "61-real"
 FROZEN_EXTENSION = {
