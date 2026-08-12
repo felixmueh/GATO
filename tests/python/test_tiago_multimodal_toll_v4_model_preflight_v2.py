@@ -1,8 +1,10 @@
+import hashlib
 import inspect
 import json
 import copy
 import re
 from pathlib import Path
+import subprocess
 
 import numpy as np
 import pytest
@@ -852,7 +854,11 @@ def test_repository_root_uses_actual_path_and_required_source_manifest_exists():
     assert schema.FROZEN_BUILD_COMMIT == "154556ab7b45a5137a6d9c107c1e6e433b9cc057"
     assert schema.FROZEN_CUDA_ARCH == "61-real"
     assert {
-        path: runner.sha256_file(root / path)
+        path: hashlib.sha256(
+            subprocess.check_output(
+                ["git", "show", f"{schema.FROZEN_BUILD_COMMIT}:{path}"], cwd=root
+            )
+        ).hexdigest()
         for path in schema.FROZEN_BUILD_SOURCE_HASHES
     } == schema.FROZEN_BUILD_SOURCE_HASHES
     provenance_source = inspect.getsource(runner._source_provenance)

@@ -44,7 +44,7 @@ def test_static_contract_tokens_pins_ledger_and_grid_are_exact():
     }
 
 
-def test_v1_tokens_remain_closed_while_only_v2_full_campaign_is_enabled():
+def test_all_oracle_execution_tokens_are_closed_after_v2_rejection():
     root=Path(__file__).resolve().parents[2]; enabled=[]
     pattern=re.compile(r"^[A-Z][A-Z0-9_]*AUTHORIZATION = object\(\)$")
     for path in sorted((root/"tiago_src/gato_tiago").glob("*.py")):
@@ -52,10 +52,7 @@ def test_v1_tokens_remain_closed_while_only_v2_full_campaign_is_enabled():
             if pattern.fullmatch(line): enabled.append((path.name,line))
     assert runner.RUNNER_EXECUTION_AUTHORIZATION is None
     assert worker.WORKER_EXECUTION_AUTHORIZATION is None
-    assert enabled == [
-        ("multimodal_toll_oracle_v2_runner.py", "RUNNER_EXECUTION_AUTHORIZATION = object()"),
-        ("multimodal_toll_oracle_v2_worker.py", "WORKER_EXECUTION_AUTHORIZATION = object()"),
-    ]
+    assert enabled == []
 
 
 def test_template_endpoints_progress_and_opposite_turns():

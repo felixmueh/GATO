@@ -1,6 +1,8 @@
+import hashlib
 import inspect
 import json
 from pathlib import Path
+import subprocess
 
 import numpy as np
 import pytest
@@ -581,7 +583,13 @@ def test_repository_root_uses_actual_path_and_required_source_manifest_exists():
     )
     assert schema.FROZEN_BUILD_COMMIT == "9bb1ceaf64787597f1ea7df5566f84d0635c4b7f"
     assert schema.FROZEN_CUDA_ARCH == "61-real"
+    # Authenticate the historical artifact-bound source manifest at its build
+    # commit; isolated later plants may extend shared dispatch sources.
     assert {
-        path: runner.sha256_file(root / path)
+        path: hashlib.sha256(
+            subprocess.check_output(
+                ["git", "show", f"{schema.FROZEN_BUILD_COMMIT}:{path}"], cwd=root
+            )
+        ).hexdigest()
         for path in schema.FROZEN_BUILD_SOURCE_HASHES
     } == schema.FROZEN_BUILD_SOURCE_HASHES

@@ -10,7 +10,7 @@ from gato_tiago import multimodal_toll_oracle_v1_worker as _v1
 from gato_tiago.multimodal_toll_oracle_v2_full import ORACLE_OUTPUT_PATH
 
 
-WORKER_EXECUTION_AUTHORIZATION = object()
+WORKER_EXECUTION_AUTHORIZATION = None
 WORKER_PROTOCOL_VERSION = "tiago_tool_center_toll_oracle_v2_worker_1"
 AUTHORIZED_ROOT = ORACLE_OUTPUT_PATH.parent
 EXPECTED_REPLAY_ARRAY_NAMES = _v1.EXPECTED_REPLAY_ARRAY_NAMES

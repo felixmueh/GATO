@@ -26,7 +26,7 @@ from gato_tiago.multimodal_toll_oracle_v2_full import *  # noqa: F401,F403
 from gato_tiago import multimodal_toll_oracle_v2_worker as _worker
 
 
-RUNNER_EXECUTION_AUTHORIZATION = object()
+RUNNER_EXECUTION_AUTHORIZATION = None
 RUNNER_PROTOCOL_VERSION = ORACLE_PROTOCOL_VERSION + "_runner_1"
 _PRODUCTION_TOKEN = object()
 WORKER_MODULE = "gato_tiago.multimodal_toll_oracle_v2_worker"
