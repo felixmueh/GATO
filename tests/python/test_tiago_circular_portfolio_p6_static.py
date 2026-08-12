@@ -11,17 +11,15 @@ from gato_tiago import circular_portfolio_p6_runner as runner
 from gato_tiago import circular_portfolio_p6_worker as worker
 
 
-def test_p6_isolated_authorized_boundary_and_exact_rejected_lineage():
+def test_p6_isolated_closed_boundary_and_exact_rejected_lineage():
     assert p5_runner.RUNNER_EXECUTION_AUTHORIZATION is None
     assert p5_worker.WORKER_EXECUTION_AUTHORIZATION is None
-    assert runner.RUNNER_EXECUTION_AUTHORIZATION is not None
-    assert worker.WORKER_EXECUTION_AUTHORIZATION is not None
+    assert runner.RUNNER_EXECUTION_AUTHORIZATION is None
+    assert worker.WORKER_EXECUTION_AUTHORIZATION is None
     root=Path(__file__).resolve().parents[2]
     pattern=re.compile(r"^[A-Z][A-Z0-9_]*AUTHORIZATION\s*=\s*object\(\)$")
     assert sorted((p.name,line) for p in (root/"tiago_src/gato_tiago").glob("*.py")
-        for line in p.read_text().splitlines() if pattern.fullmatch(line))==[
-            ("circular_portfolio_p6_runner.py","RUNNER_EXECUTION_AUTHORIZATION=object()"),
-            ("circular_portfolio_p6_worker.py","WORKER_EXECUTION_AUTHORIZATION=object()")]
+        for line in p.read_text().splitlines() if pattern.fullmatch(line))==[]
     report=schema.P5_V2_REJECTED_REPORT
     assert report["rejected_p5_v2_artifact_loads"]==0
     assert report["classification"]==["parent_child_worker_provenance_adapter_mismatch",
@@ -33,7 +31,7 @@ def test_p6_isolated_authorized_boundary_and_exact_rejected_lineage():
         "b16_tool_position_calls","solve_calls","sqp_calls"}
     assert schema.P5_V1_REJECTED_REPORT["rejected_p5_v1_artifact_loads"]==0
     assert schema.OUTPUT.parent.name=="tiago-tool-center-cuda-authoritative-route-seed-p6-authorized-once"
-    assert not schema.OUTPUT.parent.exists()
+    assert schema.OUTPUT.parent.exists()
     assert runner.AUTHORIZED_ORIG_ARGV==("python","-B","-m",
         "gato_tiago.circular_portfolio_p6_runner","--execute","--output",str(schema.OUTPUT))
     assert worker.expected_argv()==("python","-B","-m",
@@ -138,9 +136,9 @@ def test_worker_source_uses_full_b16_results_and_no_optimizer():
     assert "sim1(states[route,knot],controls[route,knot],DT)" in source
     assert "DT/DENSE_SUBSTEPS" in source
     assert ".solve(" not in source and "minimize(" not in source
-    with pytest.raises(RuntimeError,match="wrong P6 output"):
+    with pytest.raises(RuntimeError,match="blocked"):
         runner.execute(Path("/tmp/not-the-authorized-p6.json"),runner.RUNNER_EXECUTION_AUTHORIZATION)
-    with pytest.raises(RuntimeError,match="wrong P6 worker request"):
+    with pytest.raises(RuntimeError,match="blocked"):
         worker.execute(Path("/tmp/wrong.request.json"),worker.WORKER_EXECUTION_AUTHORIZATION)
 
 

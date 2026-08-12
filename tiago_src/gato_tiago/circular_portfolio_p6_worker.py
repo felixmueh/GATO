@@ -15,7 +15,7 @@ from gato_tiago.circular_portfolio_p6 import (DENSE_SAMPLES,DENSE_SUBSTEPS,DT,EX
     array_hash,exact_arrays,feedback_acceleration,pack_seed,worker_paths)
 
 
-WORKER_EXECUTION_AUTHORIZATION=object()
+WORKER_EXECUTION_AUTHORIZATION=None
 THREAD_ENV={"OMP_NUM_THREADS":"1","OPENBLAS_NUM_THREADS":"1","MKL_NUM_THREADS":"1",
     "NUMEXPR_NUM_THREADS":"1"}
 SOURCE_PATHS=("CMakeLists.txt","tools/build.sh","python/bindings.cu",
