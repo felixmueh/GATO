@@ -40,12 +40,7 @@ def test_exact_12_task_192_profile_ledger_and_p1_campaign_closed():
         for line in path.read_text().splitlines()
         if pattern.fullmatch(line)
     ]
-    assert set(enabled) == {
-        ("tiago_src/gato_tiago/circular_portfolio_p2_constructor.py",
-         "CONSTRUCTOR_EXECUTION_AUTHORIZATION = object()"),
-        ("tiago_src/gato_tiago/circular_portfolio_p2_preflight_runner.py",
-         "RUNNER_EXECUTION_AUTHORIZATION = object()"),
-    }
+    assert enabled == []
 
 
 def test_exact_c2_profiles_are_distinct_monotone_and_zero_endpoint_derivatives():

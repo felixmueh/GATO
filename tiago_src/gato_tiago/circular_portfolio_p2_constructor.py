@@ -21,7 +21,7 @@ from gato_tiago.circular_portfolio_p2 import (
 )
 
 
-CONSTRUCTOR_EXECUTION_AUTHORIZATION = object()
+CONSTRUCTOR_EXECUTION_AUTHORIZATION = None
 
 
 def execute_reduced_constructor(

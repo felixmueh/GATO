@@ -26,8 +26,8 @@ def test_p1_closed_p2_static_tokens_and_exact_report_only_closure():
     assert p1_constructor.RUNNER_EXECUTION_AUTHORIZATION is None
     assert p1_runner.RUNNER_EXECUTION_AUTHORIZATION is None
     assert p1_worker.WORKER_EXECUTION_AUTHORIZATION is None
-    assert constructor.CONSTRUCTOR_EXECUTION_AUTHORIZATION is not None
-    assert runner.RUNNER_EXECUTION_AUTHORIZATION is not None
+    assert constructor.CONSTRUCTOR_EXECUTION_AUTHORIZATION is None
+    assert runner.RUNNER_EXECUTION_AUTHORIZATION is None
     report=schema.P1_REJECTED_REPORT
     assert report["exit_code"]==1 and report["completed"]==0 and report["pending"]==192
     assert report["identity"]==["development",12600,"short",0]
@@ -42,12 +42,7 @@ def test_p1_closed_p2_static_tokens_and_exact_report_only_closure():
     pattern=re.compile(r"^[A-Z][A-Z0-9_]*AUTHORIZATION = object\(\)$")
     enabled = {(path.name, line) for path in (root/"tiago_src/gato_tiago").glob("*.py")
                for line in path.read_text().splitlines() if pattern.fullmatch(line)}
-    assert enabled == {
-        ("circular_portfolio_p2_constructor.py",
-         "CONSTRUCTOR_EXECUTION_AUTHORIZATION = object()"),
-        ("circular_portfolio_p2_preflight_runner.py",
-         "RUNNER_EXECUTION_AUTHORIZATION = object()"),
-    }
+    assert enabled == set()
 
 
 def test_open_uniform_cubic_basis_and_affine_endpoint_map_are_exact():
