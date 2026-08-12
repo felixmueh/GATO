@@ -11,7 +11,7 @@ from gato_tiago.circular_portfolio import DENSE_SAMPLES,DENSE_SUBSTEPS,DT
 from gato_tiago.circular_portfolio_p3 import KD,KP,planned_proxy,certify_planned_proxy
 
 
-CONSTRUCTOR_EXECUTION_AUTHORIZATION=None
+CONSTRUCTOR_EXECUTION_AUTHORIZATION=object()
 
 
 def computed_torque_rollout(proxy:Mapping,q0,rnea,aba,kinematics,*,deadline,
