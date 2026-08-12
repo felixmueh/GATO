@@ -21,7 +21,7 @@ from gato_tiago.circular_portfolio_p5_runner import SOURCE_PATHS as P5_SOURCE_PA
 from gato_tiago.circular_portfolio_p5_v2_runner import canonical_authentication
 
 
-RUNNER_EXECUTION_AUTHORIZATION=None
+RUNNER_EXECUTION_AUTHORIZATION=object()
 AUTHORIZED_CWD="/workspace/GATO"
 AUTHORIZED_ORIG_ARGV=("python","-B","-m","gato_tiago.circular_portfolio_p6_runner",
     "--execute","--output",str(OUTPUT))
