@@ -10,7 +10,7 @@ import numpy as np
 from gato_tiago.circular_portfolio import (LONG_ANGLE_RAD,SHORT_ANGLE_RAD,
     construct_geometry,certify_geometry,quintic_progress,reference_from_geometry)
 from gato_tiago.circular_portfolio_p8 import (AFFINE_SAMPLES,AFFINE_SUBSTEPS,
-    CONSTRUCTION_SPECS,DLS_DAMPING,DT,EXTENSION,IK_ITERATIONS,INTERVALS,KNOTS,KD,KP,
+    CONSTRUCTION_SPECS,CPU_WALL_LIMIT_S,DLS_DAMPING,DT,EXTENSION,IK_ITERATIONS,INTERVALS,KNOTS,KD,KP,
     LANES,OUTPUT,P6_REJECTED_REPORT,P7_EXPLORATORY_GRID,PROTOCOL,WORKER_OUTPUT_SPECS,
     RUNNER_WALL_LIMIT_S,SEED,WORKER_PROTOCOL,array_hash,checkpoint_path,exact_arrays,
     latest_path,manifest_path,open_turn,reconstruct_cost,rejection_path,worker_paths)
@@ -22,7 +22,8 @@ from gato_tiago.circular_portfolio_runner import authenticate_cpu_prerequisite,_
 from gato_tiago.multimodal_toll_oracle_v1 import enumerate_box_dls
 from gato_tiago.circular_portfolio_p5_v2_runner import canonical_authentication
 
-RUNNER_EXECUTION_AUTHORIZATION=object()
+RUNNER_EXECUTION_AUTHORIZATION=None
+ARTIFACT_PREFIX="p8"
 
 THREAD_ENV={"OMP_NUM_THREADS":"1","OPENBLAS_NUM_THREADS":"1","MKL_NUM_THREADS":"1",
     "NUMEXPR_NUM_THREADS":"1"}
@@ -55,6 +56,10 @@ COUNT_KEYS=("prerequisite_loads","parent_pin_contexts","primary_cpu_endpoint_fk_
 
 def sha(path):return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 def zero_counts():return {key:0 for key in COUNT_KEYS}
+
+
+def operational_limits():return {"cpu_wall_limit_s":CPU_WALL_LIMIT_S,
+    "worker_wall_limit_s":300.,"campaign_wall_limit_s":RUNNER_WALL_LIMIT_S}
 
 
 def snapshot():
@@ -126,7 +131,8 @@ def atomic_npz(path,arrays):
 
 def publish_checkpoint(generation,stage,counts,prov,detail):
     doc={"protocol":PROTOCOL,"generation":generation,"stage":stage,"incomplete":True,
-        "counts":counts,"detail":detail,"provenance":prov,"evidence":False}
+        "counts":counts,"detail":detail,"provenance":prov,
+        "operational_limits":operational_limits(),"evidence":False}
     path=checkpoint_path(generation);atomic_json(path,doc)
     atomic_json(latest_path(),{"protocol":PROTOCOL,"generation":generation,"path":str(path),
         "sha256":sha(path),"incomplete":True},True)
@@ -442,7 +448,7 @@ def refuse_existing():
     return not any(path.exists() or Path(str(path)+".candidate").exists() for path in paths)
 
 
-def namespace_paths():return set(OUTPUT.parent.glob("p8*")) if OUTPUT.parent.is_dir() else set()
+def namespace_paths():return set(OUTPUT.parent.glob(f"{ARTIFACT_PREFIX}*")) if OUTPUT.parent.is_dir() else set()
 
 
 def active_artifacts():
@@ -512,9 +518,10 @@ def recertify_retained_p8(output=OUTPUT):
         expected_details=({}, {"authentication":authentication,"construction":construction_cert},
             {"certificate":science},{"certificate":science})
         checkpoint_ok=all(set(doc)=={"protocol","generation","stage","incomplete","counts",
-                "detail","provenance","evidence"} and doc["protocol"]==PROTOCOL
+                "detail","provenance","operational_limits","evidence"} and doc["protocol"]==PROTOCOL
             and doc["generation"]==i and doc["stage"]==stages[i] and doc["incomplete"] is True
             and doc["counts"]==expected_checkpoint_counts[i] and doc["detail"]==expected_details[i]
+            and doc["operational_limits"]==operational_limits()
             and doc["evidence"] is False and certify_provenance(doc["provenance"],i==3)
             for i,doc in enumerate(checkpoints))
         side=[*map(checkpoint_path,range(4)),paths["request"],paths["input"],paths["json"],paths["npz"]]
@@ -527,7 +534,7 @@ def recertify_retained_p8(output=OUTPUT):
                 "publication_finish_elapsed_s"]}
         summary_keys={"protocol","incomplete","completed","pending","counts","authentication",
             "construction_certificate","worker","worker_execution","certificate","provenance",
-            "semantic_finish_elapsed_s","evidence","oracle_evidence","benchmark_evidence",
+            "semantic_finish_elapsed_s","operational_limits","evidence","oracle_evidence","benchmark_evidence",
             "sqp_evidence"}
         summary_ok=bool(set(summary)==summary_keys and summary["protocol"]==PROTOCOL
             and summary["incomplete"] is False and summary["completed"]==2 and summary["pending"]==0
@@ -535,8 +542,9 @@ def recertify_retained_p8(output=OUTPUT):
             and summary["construction_certificate"]==construction_cert and summary["worker"]==worker_summary
             and certify_worker_execution(summary["worker_execution"],summary["counts"])
             and summary["certificate"]==science and summary["provenance"]==checkpoints[3]["provenance"]
+            and summary["operational_limits"]==operational_limits()
             and np.isfinite(summary["semantic_finish_elapsed_s"])
-            and 0<=summary["semantic_finish_elapsed_s"]<=pointer["publication_finish_elapsed_s"]<=600.
+            and 0<=summary["semantic_finish_elapsed_s"]<=pointer["publication_finish_elapsed_s"]<=RUNNER_WALL_LIMIT_S
             and summary["evidence"] is True and summary["oracle_evidence"] is False
             and summary["benchmark_evidence"] is False and summary["sqp_evidence"] is False)
         gates={"request":json.loads(paths["request"].read_text())==expected_request,
@@ -544,8 +552,9 @@ def recertify_retained_p8(output=OUTPUT):
             "construction":construction_cert["passes"],"science":science["passes"],
             "summary":summary_ok,
             "checkpoints":checkpoint_ok,"manifest":manifest==expected_manifest,
-            "pointer":pointer==expected_pointer and 0<=pointer["publication_finish_elapsed_s"]<=600.,
-            "namespace":set(OUTPUT.parent.glob("p8*"))==set((*side,output,manifest_path(),latest_path()))}
+            "pointer":pointer==expected_pointer and 0<=pointer["publication_finish_elapsed_s"]<=RUNNER_WALL_LIMIT_S,
+            "namespace":set(OUTPUT.parent.glob(f"{ARTIFACT_PREFIX}*"))==set(
+                (*side,output,manifest_path(),latest_path()))}
         return {"gates":gates,"passes":bool(all(gates.values()))}
     except Exception:return {"passes":False}
 
@@ -557,13 +566,16 @@ def recertify_retained_failure(output=OUTPUT):
         boundary=bool(set(rejected)=={"protocol","stage","error_type","error_message",
                 "incomplete","completed","pending","counts","trigger_elapsed_s",
                 "cleanup_finish_elapsed_s","wall_limit_s","active_artifacts",
-                "artifact_classifications","diagnostic_certificate","worker_execution","evidence"}
+                "artifact_classifications","diagnostic_certificate","worker_execution",
+                "operational_limits","evidence"}
             and rejected["protocol"]==PROTOCOL and rejected["incomplete"] is True
             and rejected["evidence"] is False and certify_counts(rejected["counts"])
             and certify_worker_execution(rejected["worker_execution"],rejected["counts"])
             and rejected["stage"] in ("pilot_failed","runtime_watchdog_rejected")
             and rejected["pending"]==2-rejected["completed"]
             and rejected["active_artifacts"]==active_artifacts()
+            and rejected["wall_limit_s"]==RUNNER_WALL_LIMIT_S
+            and rejected["operational_limits"]==operational_limits()
             and 0<=rejected["trigger_elapsed_s"]<=rejected["cleanup_finish_elapsed_s"])
         stages=("generation_zero","cpu_authenticated","cuda_certified","honest_end")
         authentication=prerequisite=construction=construction_cert=science=None
@@ -615,10 +627,11 @@ def recertify_retained_failure(output=OUTPUT):
         for generation in existing:
             doc=json.loads(checkpoint_path(generation).read_text())
             if (set(doc)!={"protocol","generation","stage","incomplete","counts","detail",
-                    "provenance","evidence"} or doc["protocol"]!=PROTOCOL
+                    "provenance","operational_limits","evidence"} or doc["protocol"]!=PROTOCOL
                     or doc["generation"]!=generation or doc["stage"]!=stages[generation]
                     or doc["incomplete"] is not True or doc["counts"]!=expected_counts[generation]
                     or doc["detail"]!=expected_details[generation] or doc["evidence"] is not False
+                    or doc["operational_limits"]!=operational_limits()
                     or not certify_provenance(doc["provenance"],generation==3)):
                 chain=False
         if paths["rejected"].is_file() and not certify_worker_rejection(json.loads(
@@ -626,7 +639,8 @@ def recertify_retained_failure(output=OUTPUT):
         # A late publication may leave complete non-authoritative final documents.
         final_keys={"protocol","incomplete","completed","pending","counts","authentication",
             "construction_certificate","worker","worker_execution","certificate","provenance",
-            "semantic_finish_elapsed_s","evidence","oracle_evidence","benchmark_evidence","sqp_evidence"}
+            "semantic_finish_elapsed_s","operational_limits","evidence","oracle_evidence",
+            "benchmark_evidence","sqp_evidence"}
         for candidate in (OUTPUT,Path(str(OUTPUT)+".candidate")):
             if not candidate.is_file():continue
             orphan=json.loads(candidate.read_text())
@@ -639,7 +653,8 @@ def recertify_retained_failure(output=OUTPUT):
                     or not certify_worker_execution(orphan.get("worker_execution"),orphan["counts"])
                     or not certify_provenance(orphan.get("provenance"),True)
                     or not np.isfinite(orphan.get("semantic_finish_elapsed_s",np.nan))
-                    or not 0<=orphan["semantic_finish_elapsed_s"]<=600.
+                    or not 0<=orphan["semantic_finish_elapsed_s"]<=RUNNER_WALL_LIMIT_S
+                    or orphan.get("operational_limits")!=operational_limits()
                     or orphan.get("evidence") is not True
                     or orphan.get("oracle_evidence") is not False
                     or orphan.get("benchmark_evidence") is not False
@@ -679,7 +694,8 @@ def execute(output=OUTPUT,authorization=None,monotonic=time.monotonic): # pragma
     initial=snapshot()
     if not initial["clean"] or initial["extension"]!=frozen_extension():
         raise RuntimeError("P8 provenance invalid")
-    start=monotonic();deadline=start+600.;cpu_deadline=start+30.;counts=zero_counts();science=None
+    start=monotonic();deadline=start+RUNNER_WALL_LIMIT_S
+    cpu_deadline=start+CPU_WALL_LIMIT_S;counts=zero_counts();science=None
     worker_execution={"status":"not_started","returncode":None,
         "internal_counts_known":False,"counts":None}
     OUTPUT.parent.mkdir();prov=provenance(initial);publish_checkpoint(0,"generation_zero",counts,prov,{})
@@ -738,11 +754,11 @@ def execute(output=OUTPUT,authorization=None,monotonic=time.monotonic): # pragma
         end=snapshot();prov=provenance(initial,end)
         publish_checkpoint(3,"honest_end",counts,prov,{"certificate":science})
         semantic_elapsed=float(monotonic()-start)
-        if semantic_elapsed>600.:raise TimeoutError("P8 campaign wall limit")
+        if semantic_elapsed>RUNNER_WALL_LIMIT_S:raise TimeoutError("P8 campaign wall limit")
         final={"protocol":PROTOCOL,"incomplete":False,"completed":2,"pending":0,
             "counts":counts,"authentication":authentication,"construction_certificate":construction_cert,
             "worker":worker_summary,"worker_execution":worker_execution,"certificate":science,"provenance":prov,
-            "semantic_finish_elapsed_s":semantic_elapsed,"evidence":True,
+            "semantic_finish_elapsed_s":semantic_elapsed,"operational_limits":operational_limits(),"evidence":True,
             "oracle_evidence":False,"benchmark_evidence":False,"sqp_evidence":False}
         atomic_json(OUTPUT,final)
         side=[*map(checkpoint_path,range(4)),paths["request"],paths["input"],paths["json"],paths["npz"]]
@@ -753,7 +769,7 @@ def execute(output=OUTPUT,authorization=None,monotonic=time.monotonic): # pragma
             "json_sha256":sha(OUTPUT),"manifest_path":str(manifest_path()),
             "manifest_sha256":sha(manifest_path()),"publication_finish_elapsed_s":None}
         finish=float(monotonic()-start)
-        if finish>600.:raise TimeoutError("P8 publication wall limit")
+        if finish>RUNNER_WALL_LIMIT_S:raise TimeoutError("P8 publication wall limit")
         pointer["publication_finish_elapsed_s"]=finish;atomic_json(latest_path(),pointer,True)
     except Exception as error:
         trigger=float(monotonic()-start);stage="runtime_watchdog_rejected" if isinstance(error,
@@ -763,10 +779,10 @@ def execute(output=OUTPUT,authorization=None,monotonic=time.monotonic): # pragma
         rejection={"protocol":PROTOCOL,"stage":stage,"error_type":type(error).__name__,
             "error_message":str(error),"incomplete":True,"completed":counts["completed"],
             "pending":2-counts["completed"],"counts":counts,"trigger_elapsed_s":trigger,
-            "cleanup_finish_elapsed_s":cleanup,"wall_limit_s":600.,
+            "cleanup_finish_elapsed_s":cleanup,"wall_limit_s":RUNNER_WALL_LIMIT_S,
             "active_artifacts":artifacts,"diagnostic_certificate":science,
             "artifact_classifications":classifications,
-            "worker_execution":worker_execution,"evidence":False}
+            "worker_execution":worker_execution,"operational_limits":operational_limits(),"evidence":False}
         if not rejection_path().exists():atomic_json(rejection_path(),rejection)
         raise
 

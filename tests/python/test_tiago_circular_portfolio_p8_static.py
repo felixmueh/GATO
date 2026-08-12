@@ -18,14 +18,12 @@ def test_p8_exact_frozen_scope_tokens_and_reports():
     assert p6_worker.WORKER_EXECUTION_AUTHORIZATION is None
     assert schema.RUNNER_EXECUTION_AUTHORIZATION is None
     assert schema.WORKER_EXECUTION_AUTHORIZATION is None
-    assert runner.RUNNER_EXECUTION_AUTHORIZATION is not None
-    assert worker.WORKER_EXECUTION_AUTHORIZATION is not None
+    assert runner.RUNNER_EXECUTION_AUTHORIZATION is None
+    assert worker.WORKER_EXECUTION_AUTHORIZATION is None
     root=Path(__file__).resolve().parents[2]
     pattern=re.compile(r"^[A-Z][A-Z0-9_]*AUTHORIZATION\s*=\s*object\(\)$")
     assert sorted((path.name,line) for path in (root/"tiago_src/gato_tiago").glob("*.py")
-        for line in path.read_text().splitlines() if pattern.fullmatch(line))==[
-            ("circular_portfolio_p8_runner.py","RUNNER_EXECUTION_AUTHORIZATION=object()"),
-            ("circular_portfolio_p8_worker.py","WORKER_EXECUTION_AUTHORIZATION=object()")]
+        for line in path.read_text().splitlines() if pattern.fullmatch(line))==[]
     design=schema.static_design()
     assert (design["ik_iterations"],design["dls_damping"],design["kp"],design["kd"]) \
         ==(8,.03,25.,10.)
@@ -38,13 +36,13 @@ def test_p8_exact_frozen_scope_tokens_and_reports():
     assert schema.P6_REJECTED_REPORT["rejected_p6_artifact_loads"]==0
     assert schema.P6_REJECTED_REPORT["hashes"]["worker_npz"] \
         =="49f784d37cbff1d124d9eda30c1ea9f90c176027dab17d46686fe7e33a962a51"
-    assert not schema.OUTPUT.parent.exists()
+    assert schema.P6_REJECTED_REPORT["classification"]=="scientific_full_dt_and_dense_infeasible"
     assert runner.AUTHORIZED_ORIG_ARGV==("python","-B","-m",
         "gato_tiago.circular_portfolio_p8_runner","--execute","--output",str(schema.OUTPUT))
     paths=schema.worker_paths()
     assert worker.expected_argv()==("python","-B","-m","gato_tiago.circular_portfolio_p8_worker",
         "--execute","--request",str(paths["request"]),"--output",str(paths["json"]))
-    assert runner.refuse_existing()
+    assert not runner.refuse_existing()
     assert "if OUTPUT.parent.exists()" in inspect.getsource(runner.execute)
     assert 'Path(str(path)+".candidate").exists()' in inspect.getsource(worker.execute)
 
@@ -56,9 +54,9 @@ def test_p8_worker_constructor_uses_dt_point05_and_full_lane_blocks():
     assert "sim1(state[route,k],u[route,k])" in source
     assert "sim16(state16[:,k],lane_u[:,k])" in source
     assert "AFFINE_SUBSTEPS" in source and "sim_forward" not in source.split("affine=np.empty",1)[1]
-    with pytest.raises(RuntimeError,match="wrong P8 output"):
+    with pytest.raises(RuntimeError,match="blocked"):
         runner.execute(Path("/tmp/wrong.json"),runner.RUNNER_EXECUTION_AUTHORIZATION)
-    with pytest.raises(RuntimeError,match="wrong P8 worker request"):
+    with pytest.raises(RuntimeError,match="blocked"):
         worker.execute(Path("/tmp/wrong.request.json"),worker.WORKER_EXECUTION_AUTHORIZATION)
 
 
@@ -220,7 +218,8 @@ def test_atomic_boundaries_and_failure_checkpoint_roundtrip(tmp_path,monkeypatch
     rejected={"protocol":schema.PROTOCOL,"stage":"pilot_failed","error_type":"RuntimeError",
         "error_message":"injected","incomplete":True,"completed":0,"pending":2,
         "counts":counts,"trigger_elapsed_s":.1,"cleanup_finish_elapsed_s":.2,
-        "wall_limit_s":600.,"active_artifacts":runner.active_artifacts(),
+        "wall_limit_s":schema.RUNNER_WALL_LIMIT_S,"active_artifacts":runner.active_artifacts(),
+        "operational_limits":runner.operational_limits(),
         "artifact_classifications":runner.classify_artifacts(),
         "diagnostic_certificate":None,"worker_execution":{"status":"not_started",
             "returncode":None,"internal_counts_known":False,"counts":None},"evidence":False}
@@ -323,7 +322,8 @@ def test_real_synthetic_success_disk_roundtrip_and_refreshed_science_lie(tmp_pat
         "construction_certificate":construction_cert,"worker":worker_summary,
         "worker_execution":execution,"certificate":science,"provenance":prov1,
         "semantic_finish_elapsed_s":2.,"evidence":True,"oracle_evidence":False,
-        "benchmark_evidence":False,"sqp_evidence":False}
+        "benchmark_evidence":False,"sqp_evidence":False,
+        "operational_limits":runner.operational_limits()}
     runner.atomic_json(output,final)
     side=[*(schema.checkpoint_path(i) for i in range(4)),paths["request"],paths["input"],
         paths["json"],paths["npz"]]
@@ -344,7 +344,8 @@ def test_real_synthetic_success_disk_roundtrip_and_refreshed_science_lie(tmp_pat
     late={"protocol":schema.PROTOCOL,"stage":"pilot_failed","error_type":"RuntimeError",
         "error_message":"injected pointer publication failure","incomplete":True,
         "completed":2,"pending":0,"counts":runner.success_counts(),"trigger_elapsed_s":3.,
-        "cleanup_finish_elapsed_s":4.,"wall_limit_s":600.,
+        "cleanup_finish_elapsed_s":4.,"wall_limit_s":schema.RUNNER_WALL_LIMIT_S,
+        "operational_limits":runner.operational_limits(),
         "active_artifacts":runner.active_artifacts(),
         "artifact_classifications":runner.classify_artifacts(construction),
         "diagnostic_certificate":science,"worker_execution":execution,"evidence":False}
@@ -359,7 +360,8 @@ def test_real_synthetic_success_disk_roundtrip_and_refreshed_science_lie(tmp_pat
     rejection={"protocol":schema.PROTOCOL,"stage":"pilot_failed","error_type":"RuntimeError",
         "error_message":"injected post-worker failure","incomplete":True,"completed":2,"pending":0,
         "counts":runner.success_counts(),"trigger_elapsed_s":4.,"cleanup_finish_elapsed_s":5.,
-        "wall_limit_s":600.,"active_artifacts":runner.active_artifacts(),
+        "wall_limit_s":schema.RUNNER_WALL_LIMIT_S,"active_artifacts":runner.active_artifacts(),
+        "operational_limits":runner.operational_limits(),
         "artifact_classifications":runner.classify_artifacts(construction),
         "diagnostic_certificate":science,"worker_execution":execution,"evidence":False}
     runner.atomic_json(schema.rejection_path(),rejection)
