@@ -18,7 +18,7 @@ def _geometry():
     return schema.construct_geometry(start, goal, 1)
 
 
-def test_exact_12_task_192_profile_ledger_and_only_campaign_tokens_enabled():
+def test_exact_12_task_192_profile_ledger_and_p1_campaign_closed():
     assert schema.TASK_IDENTITIES == tuple(
         [("development", seed) for seed in range(12600, 12604)]
         + [("heldout", seed) for seed in range(12700, 12708)]
@@ -29,9 +29,9 @@ def test_exact_12_task_192_profile_ledger_and_only_campaign_tokens_enabled():
     assert schema.EXPECTED_LEDGER[-1] == ("heldout", 12707, "long", 7)
     assert schema.CONSTRUCTOR_EXECUTION_AUTHORIZATION is None
     assert schema.OPTIMIZER_EXECUTION_AUTHORIZATION is None
-    assert constructor.RUNNER_EXECUTION_AUTHORIZATION is not None
-    assert runner.RUNNER_EXECUTION_AUTHORIZATION is not None
-    assert worker.WORKER_EXECUTION_AUTHORIZATION is not None
+    assert constructor.RUNNER_EXECUTION_AUTHORIZATION is None
+    assert runner.RUNNER_EXECUTION_AUTHORIZATION is None
+    assert worker.WORKER_EXECUTION_AUTHORIZATION is None
     root = Path(__file__).resolve().parents[2]
     pattern = re.compile(r"^[A-Z][A-Z0-9_]*AUTHORIZATION = object\(\)$")
     enabled = [
@@ -40,14 +40,7 @@ def test_exact_12_task_192_profile_ledger_and_only_campaign_tokens_enabled():
         for line in path.read_text().splitlines()
         if pattern.fullmatch(line)
     ]
-    assert set(enabled) == {
-        ("tiago_src/gato_tiago/circular_portfolio_constructor.py",
-         "RUNNER_EXECUTION_AUTHORIZATION = object()"),
-        ("tiago_src/gato_tiago/circular_portfolio_runner.py",
-         "RUNNER_EXECUTION_AUTHORIZATION = object()"),
-        ("tiago_src/gato_tiago/circular_portfolio_worker.py",
-         "WORKER_EXECUTION_AUTHORIZATION = object()"),
-    }
+    assert enabled == []
 
 
 def test_exact_c2_profiles_are_distinct_monotone_and_zero_endpoint_derivatives():
@@ -1120,17 +1113,17 @@ def test_static_sources_do_not_execute_v4_artifacts_models_cuda_or_optimizers():
         ".solver.solve(",
     ):
         assert forbidden not in sources
-    assert runner.RUNNER_EXECUTION_AUTHORIZATION is not None
-    assert constructor.RUNNER_EXECUTION_AUTHORIZATION is not None
-    assert worker.WORKER_EXECUTION_AUTHORIZATION is not None
+    assert runner.RUNNER_EXECUTION_AUTHORIZATION is None
+    assert constructor.RUNNER_EXECUTION_AUTHORIZATION is None
+    assert worker.WORKER_EXECUTION_AUTHORIZATION is None
     assert "return _production_pipeline" in inspect.getsource(runner.execute)
     production = inspect.getsource(constructor.run_production_constructor)
     assert "result=minimize(" in production and "hess=BFGS()" in production
     assert "callback=callback" in production and "PROFILE_WALL_LIMIT_S" in production
     assert "trust-constr" in sources
-    assert "RUNNER_EXECUTION_AUTHORIZATION = object()" in Path(constructor.__file__).read_text()
+    assert "RUNNER_EXECUTION_AUTHORIZATION = None" in Path(constructor.__file__).read_text()
     assert "import pinocchio as pin" in inspect.getsource(runner._production_pin_context)
-    assert runner.RUNNER_EXECUTION_AUTHORIZATION is not None
+    assert runner.RUNNER_EXECUTION_AUTHORIZATION is None
 
 
 def test_static_paths_never_open_frozen_seed_rng(monkeypatch):

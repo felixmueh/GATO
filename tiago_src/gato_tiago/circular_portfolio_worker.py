@@ -18,7 +18,7 @@ from gato_tiago.circular_portfolio import (
 )
 
 
-WORKER_EXECUTION_AUTHORIZATION = object()
+WORKER_EXECUTION_AUTHORIZATION = None
 
 
 def expected_worker_paths(index):

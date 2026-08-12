@@ -64,7 +64,7 @@ from gato_tiago.circular_portfolio import (
 )
 
 
-RUNNER_EXECUTION_AUTHORIZATION = object()
+RUNNER_EXECUTION_AUTHORIZATION = None
 
 PROFILE_ARRAY_SPECS = {
     "proxy_q_before_float64": ((94, DLS_STEPS, 7), np.dtype(np.float64)),
