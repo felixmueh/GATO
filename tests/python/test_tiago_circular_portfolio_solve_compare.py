@@ -44,12 +44,12 @@ def _rows(batch):
 
 
 def test_solver_options_unpack_and_exposed_stationarity_contract():
-    assert compare.ROOT==Path("/tmp/tiago-circular-solve-compare-v2")
+    assert compare.ROOT==Path("/tmp/tiago-circular-solve-compare-v3")
     assert compare.SOLVER_EXTENSION=={
         "module":"bsqp.bsqpN260_tiago_right_constructed_route_portfolio_toll_pcg_compact",
         "relative_path":"python/bsqp/bsqpN260_tiago_right_constructed_route_portfolio_toll_pcg_compact.cpython-310-x86_64-linux-gnu.so",
         "sha256":"464a72cf57440f948d6b40adf0a61caaa27071657721a8b7a488e55dd3e05432",
-        "size":6686384,"build_head":"3aaf757dd2e0e0534bd1498aa57b3a4c5324a0de",
+        "size":6678192,"build_head":"3aaf757dd2e0e0534bd1498aa57b3a4c5324a0de",
         "arch":"61-real","KNOT_POINTS":260,"REFERENCE_SIZE":10,
         "TOOL_POSITION_FRAME":"arm_right_tool_joint_origin","TOOL_POSITION_SIZE":3,
         "pcg_source_sha256":"38631d3716b0ea96c6bade40ecc659c83e51d73d5649ae05549df6a240c1291f"}

@@ -13,7 +13,7 @@ from gato_tiago import circular_portfolio_p8_worker as worker
 from gato_tiago.circular_portfolio_runner import authenticate_cpu_prerequisite,_production_pin_context
 
 
-ROOT=Path("/tmp/tiago-circular-solve-compare-v2")
+ROOT=Path("/tmp/tiago-circular-solve-compare-v3")
 OUTPUT_JSON=ROOT/"result.json";OUTPUT_NPZ=ROOT/"result.npz";FAILURE_JSON=ROOT/"failure.json"
 CACHED_JSON=Path("/tmp/tiago-circular-cached-replay/result.json")
 CACHED_NPZ=Path("/tmp/tiago-circular-cached-replay/result.npz")
@@ -34,7 +34,7 @@ SOLVER_EXTENSION={
     "module":"bsqp.bsqpN260_tiago_right_constructed_route_portfolio_toll_pcg_compact",
     "relative_path":"python/bsqp/bsqpN260_tiago_right_constructed_route_portfolio_toll_pcg_compact.cpython-310-x86_64-linux-gnu.so",
     "sha256":"464a72cf57440f948d6b40adf0a61caaa27071657721a8b7a488e55dd3e05432",
-    "size":6686384,"build_head":"3aaf757dd2e0e0534bd1498aa57b3a4c5324a0de",
+    "size":6678192,"build_head":"3aaf757dd2e0e0534bd1498aa57b3a4c5324a0de",
     "arch":"61-real","KNOT_POINTS":260,"REFERENCE_SIZE":10,
     "TOOL_POSITION_FRAME":"arm_right_tool_joint_origin","TOOL_POSITION_SIZE":3,
     "pcg_source_sha256":"38631d3716b0ea96c6bade40ecc659c83e51d73d5649ae05549df6a240c1291f"}
