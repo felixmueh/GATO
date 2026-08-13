@@ -6,28 +6,31 @@ import numpy as np
 SOURCE=(Path(__file__).resolve().parents[2]/"gato/bsqp/kernels/pcg.cuh").read_text()
 
 
-def _reference_pcg(matrix,preconditioner,rhs,x,iterations,abs_tol=1e-6):
+def _reference_pcg(matrix,preconditioner,rhs,x,iterations,tolerance=8e-4,abs_tol=1e-6):
     r=rhs-matrix@x;z=preconditioner@r;p=z.copy();rho=r@z
-    if abs(rho)<abs_tol:return x.copy(),0
-    rho_initial=abs(rho);completed=0
+    residual_initial=r@r
+    if residual_initial<=abs_tol**2:return x.copy(),0
+    completed=0
     for _ in range(iterations):
         work=matrix@p;alpha=rho/(p@work);x=x+alpha*p;r=r-alpha*work
-        z=preconditioner@r;rho_new=r@z;completed+=1
-        if abs(rho_new)<abs_tol+8e-4*rho_initial:break
+        completed+=1
+        if r@r<=abs_tol**2+tolerance**2*residual_initial:break
+        z=preconditioner@r;rho_new=r@z
         p=z+(rho_new/rho)*p;rho=rho_new
     return x,completed
 
 
-def _reused_work_pcg(matrix,preconditioner,rhs,x,iterations,abs_tol=1e-6):
+def _reused_work_pcg(matrix,preconditioner,rhs,x,iterations,tolerance=8e-4,abs_tol=1e-6):
     # CPU transcription of the CUDA storage schedule: x is updated in its
     # external buffer and one work vector alternates between z and A*p.
-    x=x.copy();r=rhs-matrix@x;work=preconditioner@r;p=work.copy();rho=r@work
-    if abs(rho)<abs_tol:return x,0
-    rho_initial=abs(rho);completed=0
+    x=x.copy();r=rhs-matrix@x;residual_initial=r@r
+    if residual_initial<=abs_tol**2:return x,0
+    work=preconditioner@r;p=work.copy();rho=r@work;completed=0
     for _ in range(iterations):
         work=matrix@p;alpha=rho/(p@work);x+=alpha*p;r-=alpha*work
-        work=preconditioner@r;rho_new=r@work;completed+=1
-        if abs(rho_new)<abs_tol+8e-4*rho_initial:break
+        completed+=1
+        if r@r<=abs_tol**2+tolerance**2*residual_initial:break
+        work=preconditioner@r;rho_new=r@work
         p[:]=work+(rho_new/rho)*p;rho=rho_new
     return x,completed
 
@@ -53,6 +56,54 @@ def test_one_step_exact_solution_and_nontrivial_path_cover_global_updates():
     matrix=np.eye(23)*3.;preconditioner=np.eye(23)/3.;rhs=np.linspace(-2.,2.,23)
     actual,iterations=_reused_work_pcg(matrix,preconditioner,rhs,np.zeros(23),500)
     assert iterations==1 and np.allclose(actual,rhs/3.,rtol=0,atol=2e-15)
+
+
+def test_convergence_uses_true_residual_not_preconditioned_energy():
+    # The second mode is heavily attenuated by the preconditioner.  Its
+    # preconditioned energy is tiny even though the linear-system residual is
+    # still O(1), reproducing the solver's false-convergence mode without
+    # depending on a particular horizon length.
+    matrix=np.diag([1.,2.]);preconditioner=np.diag([1.,1e-12]);rhs=np.array([0.,1.])
+    residual=rhs.copy();energy=abs(residual@preconditioner@residual)
+    assert energy<1e-6+8e-4
+    assert np.linalg.norm(residual)>8e-4*np.linalg.norm(rhs)
+    assert "epsilon * epsilon * s_residual_norm_sq_init" in SOURCE
+    assert "epsilon * s_rho_init" not in SOURCE
+
+
+def test_recursive_residual_is_explicitly_verified_and_periodically_replaced():
+    assert "PCG_RESIDUAL_REPLACEMENT_PERIOD = 32" in SOURCE
+    assert "s_r_vector, d_A_matrix, d_x_vector" in SOURCE
+    assert "s_work_vector, d_A_matrix, d_x_vector" in SOURCE
+    assert "s_replace_residual = s_converged" in SOURCE
+    verify=SOURCE.index("Verify/reseed from the explicit residual")
+    convergence=SOURCE.index("if (s_converged) { break; }",verify)
+    assert verify<convergence
+
+
+def test_pcg_exit_status_is_explicit_and_only_true_residual_convergence_succeeds():
+    for name,value in (("PCG_MAX_ITERS",0),("PCG_CONVERGED",1),
+                       ("PCG_BREAKDOWN",2),("PCG_INVALID_TOLERANCE",3),
+                       ("PCG_SKIPPED",4)):
+        assert f"{name} = {value}" in SOURCE
+    final=SOURCE.index("A recursive residual is never authoritative on exit")
+    explicit=SOURCE.index("explicit_convergence",final)
+    status=SOURCE.index("d_status_batch[solve_idx] = explicit_convergence",explicit)
+    assert final<explicit<status
+    assert "gpuErrchk(cudaPeekAtLastError());" in SOURCE
+    assert "if (d_status_batch[solve_idx] == PCG_CONVERGED) return;" in SOURCE
+    assert "d_lambda[index] = static_cast<T>(0);" in SOURCE
+    assert "s_rho_new >= static_cast<T>(0)" in SOURCE
+
+
+def test_nonfinite_initial_true_residual_is_breakdown_not_convergence():
+    initial=SOURCE.index("s_residual_norm_sq_init = s_residual_norm_sq")
+    finite=SOURCE.index("!isfinite(s_residual_norm_sq_init)",initial)
+    status=SOURCE.index("d_status_batch[solve_idx] = PCG_BREAKDOWN",finite)
+    early_return=SOURCE.index("if (s_breakdown) { return; }",status)
+    final=SOURCE.index("const bool explicit_convergence",early_return)
+    assert initial < finite < status < early_return < final
+    assert "isfinite(s_residual_norm_sq_init)" in SOURCE[final:]
 
 
 def test_pcg_uses_three_vectors_exact_reduction_scratch_and_immediate_launch_check():

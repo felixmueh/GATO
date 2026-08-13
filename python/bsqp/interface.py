@@ -117,6 +117,7 @@ class BSQP:
             "sqp_iters": np.array([]),
             "kkt_converged": np.array([]),
             "pcg_iters": np.array([]),
+            "pcg_status": np.array([]),
             "pcg_times_us": np.array([]),
             "min_merit": np.array([]),
             "step_size": np.array([]),
@@ -186,7 +187,10 @@ class BSQP:
         min_merit = _to_np(result.get("ls_min_merit", np.array([])), dtype=np.float32)
         step_size = _to_np(result.get("ls_step_size", np.array([])), dtype=np.float32)
         pcg_iters = _to_np(result.get("pcg_iters", np.array([])), dtype=np.int32)
+        pcg_status = _to_np(result.get("pcg_status", np.array([])), dtype=np.int32)
         pcg_times = _to_np(result.get("pcg_times_us", np.array([])), dtype=np.float32)
+        pcg_rows = pcg_iters.shape[0] if pcg_iters.ndim == 2 else (
+            pcg_iters.shape[0] if pcg_iters.ndim == 1 and self.batch_size == 1 else 0)
 
         # Ensure shapes: (iters, B) for min_merit/step_size/pcg_iters; (iters,) for pcg_times
         if min_merit.size:
@@ -199,13 +203,15 @@ class BSQP:
                 step_size = step_size.reshape(num_iters, 1)
             elif step_size.ndim == 2 and step_size.shape[0] != num_iters and step_size.size == num_iters * self.batch_size:
                 step_size = step_size.reshape(num_iters, self.batch_size)
-        if pcg_iters.size:
-            if pcg_iters.ndim == 1 and self.batch_size == 1 and num_iters == pcg_iters.shape[0]:
-                pcg_iters = pcg_iters.reshape(num_iters, 1)
-            elif pcg_iters.ndim == 2 and pcg_iters.shape[0] != num_iters and pcg_iters.size == num_iters * self.batch_size:
-                pcg_iters = pcg_iters.reshape(num_iters, self.batch_size)
+        if pcg_iters.size and pcg_iters.ndim == 1 and self.batch_size == 1:
+            pcg_iters = pcg_iters.reshape(pcg_rows, 1)
+        if pcg_status.size and pcg_status.ndim == 1 and self.batch_size == 1:
+            pcg_status = pcg_status.reshape(pcg_rows, 1)
+        if pcg_status.size and pcg_status.shape != pcg_iters.shape:
+            raise ValueError("pcg_status shape must match pcg_iters")
 
         self.stats["pcg_iters"] = pcg_iters
+        self.stats["pcg_status"] = pcg_status
         self.stats["pcg_times_us"] = pcg_times
         self.stats["min_merit"] = min_merit
         self.stats["step_size"] = step_size

@@ -132,6 +132,7 @@ class BSQP {
                 // set d_dz_batch_ to zero
                 gpuErrchk(cudaMemsetAsync(d_dz_batch_, 0, TRAJ_SIZE * BatchSize * sizeof(T), stream_));
                 gpuErrchk(cudaMemsetAsync(d_pcg_iterations_, 0, sizeof(uint32_t) * BatchSize, stream_));
+                gpuErrchk(cudaMemsetAsync(d_pcg_status_batch_, 0, sizeof(int32_t) * BatchSize, stream_));
                 gpuErrchk(cudaMemsetAsync(d_kkt_converged_batch_, 0, sizeof(int32_t) * BatchSize, stream_));
 
                 computeMeritBatched<T, BatchSize, 1>(
@@ -144,7 +145,7 @@ class BSQP {
                         formSchurSystemBatched<T, BatchSize>(schur_system_batch_, kkt_system_batch_, d_rho_penalty_batch_, stream_);
 
                         // gpuErrchk(cudaEventRecord(pcg_start_event_));
-                        solvePCGBatched<T, BatchSize>(d_lambda_batch_, schur_system_batch_, d_pcg_tol_batch_, max_pcg_iters_, d_kkt_converged_batch_, d_pcg_iterations_, stream_);
+                        solvePCGBatched<T, BatchSize>(d_lambda_batch_, schur_system_batch_, d_pcg_tol_batch_, max_pcg_iters_, d_kkt_converged_batch_, d_pcg_iterations_, d_pcg_status_batch_, stream_);
                         // gpuErrchk(cudaEventRecord(pcg_stop_event_));
                         // gpuErrchk(cudaEventSynchronize(pcg_stop_event_));
 
@@ -156,12 +157,16 @@ class BSQP {
                         gpuErrchk(cudaMemcpyAsync(h_c_batch_, kkt_system_batch_.d_c_batch, STATE_P_KNOTS * BatchSize * sizeof(T), cudaMemcpyDeviceToHost, stream_));
 
                         gpuErrchk(cudaMemcpyAsync(pcg_stats.num_iterations.data(), d_pcg_iterations_, sizeof(uint32_t) * BatchSize, cudaMemcpyDeviceToHost, stream_));
+                        gpuErrchk(cudaMemcpyAsync(pcg_stats.status.data(), d_pcg_status_batch_, sizeof(int32_t) * BatchSize, cudaMemcpyDeviceToHost, stream_));
                         pcg_stats.solve_time_us = 0;
                         // q/r/c and the PCG telemetry are consumed immediately
                         // on the host below.  The copies target pinned memory,
                         // so their asynchronous enqueue does not make those
                         // host buffers safe to read without synchronizing.
                         gpuErrchk(cudaStreamSynchronize(stream_));
+                        for (uint32_t b = 0; b < BatchSize; ++b) {
+                                pcg_stats.converged[b] = pcg_stats.status[b] == PCG_CONVERGED;
+                        }
                         sqp_stats.pcg_stats.push_back(pcg_stats);
 
                         // q/r contain the state/control stationarity residuals
@@ -194,7 +199,8 @@ class BSQP {
                                 // is recomputed for every lane at every outer
                                 // iteration instead of being latched.
                                 h_sqp_iters_B_[b] += 1;
-                                h_kkt_converged_batch_[b] = residuals_finite
+                                h_kkt_converged_batch_[b] = pcg_stats.status[b] == PCG_CONVERGED
+                                                            && residuals_finite
                                                             && q_max < kkt_tol_
                                                             && r_max < kkt_tol_
                                                             && c_max < kkt_tol_;
@@ -203,10 +209,25 @@ class BSQP {
 
                         if (num_solved >= BatchSize * solve_ratio_) break;
 
+                        // A max-iteration or breakdown exit may have modified
+                        // the global PCG iterate.  It is not a valid dual warm
+                        // start for the newly damped system on the next SQP
+                        // iteration, so clear only failed lanes.
+                        resetFailedPCGIterates<T, BatchSize>(
+                            d_lambda_batch_, d_pcg_status_batch_, stream_);
+
                         computeMeritBatched<T, BatchSize, NUM_ALPHAS>(
-                            d_merit_batch_, d_dz_batch_, d_xu_traj_batch, d_f_ext_batch_, inputs, d_mu_batch_, d_GRiD_mem_, q_cost_, qd_cost_, u_cost_, N_cost_, ee_orient_cost_, ee_orient_N_cost_, q_lim_cost_, vel_lim_cost_, ctrl_lim_cost_, stream_);
+                            d_merit_batch_, d_dz_batch_, d_xu_traj_batch,
+                            d_f_ext_batch_, inputs, d_mu_batch_, d_GRiD_mem_,
+                            q_cost_, qd_cost_, u_cost_, N_cost_, ee_orient_cost_,
+                            ee_orient_N_cost_, q_lim_cost_, vel_lim_cost_,
+                            ctrl_lim_cost_, stream_);
                         lineSearchAndUpdateBatched<T, BatchSize, NUM_ALPHAS>(
-                            d_xu_traj_batch, d_dz_batch_, d_merit_batch_, d_merit_initial_batch_, d_step_size_batch_, d_rho_penalty_batch_, d_drho_batch_, adapt_rho_ ? 1 : 0, stream_);
+                            d_xu_traj_batch, d_dz_batch_,
+                            d_merit_batch_, d_merit_initial_batch_,
+                            d_step_size_batch_, d_rho_penalty_batch_,
+                            d_drho_batch_, d_pcg_status_batch_,
+                            adapt_rho_ ? 1 : 0, stream_);
 
                         gpuErrchk(cudaMemcpyAsync(ls_stats.min_merit.data(), d_merit_initial_batch_, BatchSize * sizeof(T), cudaMemcpyDeviceToHost, stream_));
                         gpuErrchk(cudaMemcpyAsync(ls_stats.step_size.data(), d_step_size_batch_, BatchSize * sizeof(T), cudaMemcpyDeviceToHost, stream_));
@@ -273,6 +294,7 @@ class BSQP {
 
                 gpuErrchk(cudaMalloc(&d_sqp_iters_B_, BI));
                 gpuErrchk(cudaMalloc(&d_pcg_iterations_, BI));
+                gpuErrchk(cudaMalloc(&d_pcg_status_batch_, BI));
                 gpuErrchk(cudaMalloc(&d_step_size_batch_, BT));
                 gpuErrchk(cudaMalloc(&d_all_kkt_converged_, sizeof(int32_t)));
                 gpuErrchk(cudaMalloc(&d_kkt_converged_batch_, BI));
@@ -324,6 +346,7 @@ class BSQP {
                 gpuErrchk(cudaFree(d_merit_batch_));
                 gpuErrchk(cudaFree(d_sqp_iters_B_));
                 gpuErrchk(cudaFree(d_pcg_iterations_));
+                gpuErrchk(cudaFree(d_pcg_status_batch_));
                 gpuErrchk(cudaFree(d_step_size_batch_));
                 gpuErrchk(cudaFree(d_all_kkt_converged_));
                 gpuErrchk(cudaFree(d_f_ext_batch_));
@@ -346,6 +369,7 @@ class BSQP {
         T*                        d_dz_batch_;
         // PCG
         uint32_t* d_pcg_iterations_;
+        int32_t*  d_pcg_status_batch_;
         // Merit
         T* d_merit_initial_batch_;
         T* d_merit_initial0_batch_;

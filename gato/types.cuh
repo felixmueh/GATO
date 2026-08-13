@@ -26,8 +26,9 @@ struct PCGStats {
 
         std::vector<int> num_iterations;
         std::vector<int> converged;  // 1 if converged (pcg exit tol), 0 if not
+        std::vector<int> status;     // PCGStatus from kernels/pcg.cuh
 
-        PCGStats() : num_iterations(BatchSize, 0), converged(BatchSize, 0) {}
+        PCGStats() : num_iterations(BatchSize, 0), converged(BatchSize, 0), status(BatchSize, 0) {}
 };
 
 // --------------------------------------------------

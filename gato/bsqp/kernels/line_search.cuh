@@ -4,13 +4,14 @@
 #include "settings.h"
 #include "constants.h"
 #include "utils/linalg.cuh"
+#include "pcg.cuh"
 
 using namespace sqp;
 using namespace gato;
 using namespace gato::constants;
 
 template<typename T, uint32_t BatchSize, uint32_t NumAlphas>
-__global__ void lineSearchAndUpdateBatchedKernel(T* d_xu_traj_batch, T* d_dz_batch, T* d_merit_batch, T* d_merit_initial_batch, T* d_step_size_batch, T* d_rho_penalty_batch, T* d_drho_batch, int adapt_rho)
+__global__ void lineSearchAndUpdateBatchedKernel(T* d_xu_traj_batch, T* d_dz_batch, T* d_merit_batch, T* d_merit_initial_batch, T* d_step_size_batch, T* d_rho_penalty_batch, T* d_drho_batch, const int32_t* d_pcg_status_batch, int adapt_rho)
 {
         // launched with batch_size blocks
         const uint32_t solve_idx = blockIdx.x;
@@ -20,7 +21,7 @@ __global__ void lineSearchAndUpdateBatchedKernel(T* d_xu_traj_batch, T* d_dz_bat
         __shared__ uint32_t s_step_idx[NumAlphas];
 
         // Initialize for parallel min reduction
-        T        local_min_merit = static_cast<T>(1e38);  // max float
+        T        local_min_merit = static_cast<T>(INFINITY);
         uint32_t local_step_idx = 0;
 
         // Each thread handles multiple alphas if needed
@@ -56,7 +57,14 @@ __global__ void lineSearchAndUpdateBatchedKernel(T* d_xu_traj_batch, T* d_dz_bat
 
         T min_merit = s_merit[0];
 
-        bool line_search_success = (min_merit < d_merit_initial_batch[solve_idx]);
+        const T incumbent_merit = d_merit_initial_batch[solve_idx];
+        const int32_t pcg_status = d_pcg_status_batch[solve_idx];
+        const bool usable_direction = pcg_status == PCG_CONVERGED
+                                      || pcg_status == PCG_MAX_ITERS;
+        bool line_search_success = usable_direction
+                                   && isfinite(min_merit)
+                                   && isfinite(incumbent_merit)
+                                   && min_merit < incumbent_merit;
         __syncthreads();
 
         // Thread 0 handles step size computation and rho update
@@ -64,10 +72,10 @@ __global__ void lineSearchAndUpdateBatchedKernel(T* d_xu_traj_batch, T* d_dz_bat
 
                 // Update rho (only if adaptation is enabled)
                 if (adapt_rho) {
-                        T rho_multiplier = line_search_success ?  // 1 / RHO_FACTOR : RHO_FACTOR;
+                        T rho_multiplier = line_search_success ?
                                                min(d_drho_batch[solve_idx] / RHO_FACTOR, 1 / RHO_FACTOR)
-                                                               :                                       // decrease on success
-                                               max(d_drho_batch[solve_idx] * RHO_FACTOR, RHO_FACTOR);  // increase on failure
+                                                               :
+                                               max(d_drho_batch[solve_idx] * RHO_FACTOR, RHO_FACTOR);
 
                         d_drho_batch[solve_idx] = rho_multiplier;
                         d_rho_penalty_batch[solve_idx] = max(d_rho_penalty_batch[solve_idx] * rho_multiplier, RHO_MIN);
@@ -76,7 +84,7 @@ __global__ void lineSearchAndUpdateBatchedKernel(T* d_xu_traj_batch, T* d_dz_bat
 
                 if (!line_search_success) {
                         if (d_rho_penalty_batch[solve_idx] > RHO_MAX) {
-                                d_rho_penalty_batch[solve_idx] = RHO_INIT;  // reset rho for next sqp solve
+                                d_rho_penalty_batch[solve_idx] = RHO_INIT;
                         }
                         d_step_size_batch[solve_idx] = -1;
                 } else {
@@ -94,17 +102,24 @@ __global__ void lineSearchAndUpdateBatchedKernel(T* d_xu_traj_batch, T* d_dz_bat
                 T*      d_xu_traj = getOffsetTraj<T, BatchSize>(d_xu_traj_batch, solve_idx, 0);
                 T*      d_dz = getOffsetTraj<T, BatchSize>(d_dz_batch, solve_idx, 0);
 #pragma unroll
-                for (uint32_t i = threadIdx.x; i < TRAJ_SIZE; i += blockDim.x) { d_xu_traj[i] += step_size * d_dz[i]; }
+                for (uint32_t i = threadIdx.x; i < TRAJ_SIZE; i += blockDim.x) {
+                        d_xu_traj[i] += step_size * d_dz[i];
+                }
         }
 }
 
 template<typename T, uint32_t BatchSize, uint32_t NumAlphas>
-__host__ void lineSearchAndUpdateBatched(T* d_xu_traj_batch, T* d_dz_batch, T* d_merit_batch, T* d_merit_initial_batch, T* d_step_size_batch, T* d_rho_penalty_batch, T* d_drho_batch, int adapt_rho, cudaStream_t stream)
+__host__ void lineSearchAndUpdateBatched(T* d_xu_traj_batch, T* d_dz_batch, T* d_merit_batch, T* d_merit_initial_batch, T* d_step_size_batch, T* d_rho_penalty_batch, T* d_drho_batch, const int32_t* d_pcg_status_batch, int adapt_rho, cudaStream_t stream)
 {
+        static_assert(NumAlphas > 0 && NumAlphas <= LINE_SEARCH_THREADS,
+                      "line-search candidates must fit in one block");
+        static_assert((NumAlphas & (NumAlphas - 1)) == 0,
+                      "line-search reduction requires a power of two");
         dim3   grid(BatchSize);
         dim3   thread_block(LINE_SEARCH_THREADS);
         size_t s_mem_size = sizeof(T) * NumAlphas + sizeof(uint32_t) * NumAlphas;
 
         lineSearchAndUpdateBatchedKernel<T, BatchSize, NumAlphas>
-            <<<grid, thread_block, s_mem_size, stream>>>(d_xu_traj_batch, d_dz_batch, d_merit_batch, d_merit_initial_batch, d_step_size_batch, d_rho_penalty_batch, d_drho_batch, adapt_rho);
+            <<<grid, thread_block, s_mem_size, stream>>>(d_xu_traj_batch, d_dz_batch, d_merit_batch, d_merit_initial_batch, d_step_size_batch, d_rho_penalty_batch, d_drho_batch, d_pcg_status_batch, adapt_rho);
+        gpuErrchk(cudaPeekAtLastError());
 }

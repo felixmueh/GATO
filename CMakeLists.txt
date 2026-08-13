@@ -83,6 +83,14 @@ if(BUILD_TESTING)
   add_test(NAME cuda_access_smoke COMMAND cuda_access_smoke)
   set_tests_properties(cuda_access_smoke PROPERTIES LABELS "cuda;smoke")
 
+  add_executable(pcg_status_test tests/cpp/pcg_status_test.cu)
+  target_compile_definitions(pcg_status_test PRIVATE KNOT_POINTS=8 PLANT_INDY7=1)
+  target_include_directories(pcg_status_test PRIVATE ${CMAKE_SOURCE_DIR}/gato
+                                                     ${CUDA_INCLUDE_DIRS})
+  target_link_libraries(pcg_status_test PRIVATE ${CUDA_LIBRARIES})
+  add_test(NAME pcg_status_test COMMAND pcg_status_test)
+  set_tests_properties(pcg_status_test PROPERTIES LABELS "cuda;solver")
+
   add_test(
     NAME python_behavior
     COMMAND ${Python3_EXECUTABLE} -m pytest -m "not cuda and not tracking and not performance" tests/python)
@@ -211,7 +219,7 @@ if(BUILD_TESTING)
   add_custom_target(
     check
     COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
-    DEPENDS cuda_access_smoke bsqpN8_indy7
+    DEPENDS cuda_access_smoke pcg_status_test bsqpN8_indy7
     USES_TERMINAL
     COMMENT "Building test dependencies and running the default test suite")
 
