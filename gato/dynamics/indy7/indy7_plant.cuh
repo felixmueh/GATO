@@ -4,7 +4,6 @@
 #include "indy7_grid.cuh"
 #include "indy7_fext.cuh"
 #include "settings.h"
-#include "utils/linalg.cuh"
 // #include <random>
 // #define RANDOM_MEAN 0
 // #define RANDOM_STDEV 0.001
@@ -18,6 +17,8 @@ namespace grid {
     // Existing plants retain the historical six-scalar reference contract.
     constexpr int REFERENCE_SIZE = EE_POS_SIZE;
 }
+
+#include "utils/linalg.cuh"
 
 namespace gato {
 namespace plant {
@@ -361,7 +362,14 @@ namespace plant {
 
         __host__ unsigned trackingcost_TempMemCt_Shared(uint32_t state_size, uint32_t control_size, uint32_t knot_points)
         {
-                return grid::NQ / 2 + grid::NU + 2 * grid::NEE + grid::EE_POS_DYNAMIC_SHARED_MEM_COUNT;
+                (void)state_size;
+                (void)control_size;
+                (void)knot_points;
+                // Worst-case running-knot orientation tracking:
+                // q/qd + u scalar terms, six pose terms, six pose outputs,
+                // and the generated end-effector workspace.
+                return grid::NQ + grid::NU + 2 * grid::EE_POS_SIZE
+                       + grid::EE_POS_DYNAMIC_SHARED_MEM_COUNT;
         }
 
         template<typename T, bool computeR = true>

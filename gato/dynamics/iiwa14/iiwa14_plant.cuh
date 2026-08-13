@@ -4,7 +4,6 @@
 #include "iiwa14_grid.cuh"
 #include "iiwa14_fext.cuh"
 #include "settings.h"
-#include "utils/linalg.cuh"
 // #include <random>
 // #define RANDOM_MEAN 0
 // #define RANDOM_STDEV 0.001
@@ -18,6 +17,8 @@ namespace grid {
     // Existing plants retain the historical six-scalar reference contract.
     constexpr int REFERENCE_SIZE = EE_POS_SIZE;
 }
+
+#include "utils/linalg.cuh"
 
 namespace gato {
 namespace plant {
