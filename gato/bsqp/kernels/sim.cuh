@@ -35,6 +35,7 @@ void simForwardBatchedKernel(
 
     block::copy<T, STATE_SIZE>(s_xk, d_xk_solve);
     block::copy<T, CONTROL_SIZE>(s_uk, d_uk_solve);
+    __syncthreads();
 
     sim_step<T, INTEGRATOR_TYPE, ANGLE_WRAP>(
         s_xkp1,
@@ -87,4 +88,3 @@ void simForwardBatched(
         dt
     );
 }
-
