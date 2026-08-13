@@ -116,6 +116,25 @@ def test_pcg_uses_three_vectors_exact_reduction_scratch_and_immediate_launch_che
     assert check>launch
 
 
+def test_schur_regularization_covers_state_positions_and_all_controls():
+    root=Path(__file__).resolve().parents[2]
+    schur=(root/"gato/bsqp/kernels/schur_linsys.cuh").read_text()
+    q=schur.index("block::addScaledIdentity<T, STATE_SIZE>(s_Q_k, rho_penalty);")
+    q_next=schur.index(
+        "block::addScaledIdentity<T, STATE_SIZE>(s_Q_kp1, rho_penalty);",q
+    )
+    control=schur.index(
+        "block::addScaledIdentityFull<T, CONTROL_SIZE>(s_R_k, rho_penalty);",q_next
+    )
+    inversion=schur.index("block::invertMatrix<T>",control)
+    assert q<q_next<control<inversion
+    linalg=(root/"gato/utils/linalg.cuh").read_text()
+    helper=linalg.split("void addScaledIdentityFull",1)[1].split("// C = A * B",1)[0]
+    assert "diagonal < dim" in helper
+    assert "A[diagonal * dim + diagonal] += alpha;" in helper
+    assert "dim/2" not in helper
+
+
 def test_n260_float_shared_memory_fits_pascal_default_block_limit():
     state_size=14;knots=260;vec_size_padded=(knots+2)*state_size
     old_bytes=4*(5*vec_size_padded+32+5+1024)

@@ -95,6 +95,16 @@ __device__ __forceinline__ void addScaledIdentity(T* A, T alpha)
         }
 }
 
+// add a scaled identity to every diagonal entry in column-major storage
+template<typename T, uint32_t dim>
+__device__ __forceinline__ void addScaledIdentityFull(T* A, T alpha)
+{
+#pragma unroll
+        for (uint32_t diagonal = threadIdx.x; diagonal < dim; diagonal += blockDim.x) {
+                A[diagonal * dim + diagonal] += alpha;
+        }
+}
+
 // C = A * B
 // A is (m x n), B is (n x k), C is (m x k)
 // A, B, C are assumed to be in column-major order

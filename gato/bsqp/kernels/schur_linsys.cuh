@@ -93,6 +93,10 @@ __global__ __launch_bounds__(SCHUR_THREADS) void formSchurSystemBatchedKernel1(T
                 T rho_penalty = d_rho_penalty_batch[solve_idx];
                 block::addScaledIdentity<T, STATE_SIZE>(s_Q_k, rho_penalty);
                 block::addScaledIdentity<T, STATE_SIZE>(s_Q_kp1, rho_penalty);
+                // R participates in the same regularized primal Hessian as Q.
+                // Leaving it undamped makes small physical control weights
+                // dominate R^-1 and severely degrades the Schur solve.
+                block::addScaledIdentityFull<T, CONTROL_SIZE>(s_R_k, rho_penalty);
                 __syncthreads();
 
                 block::invertMatrix<T>(STATE_SIZE, STATE_SIZE, CONTROL_SIZE, STATE_SIZE, s_Q_k, s_Q_kp1, s_R_k, s_scratch);

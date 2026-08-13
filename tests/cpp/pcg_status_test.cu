@@ -19,6 +19,22 @@ struct Result {
         std::vector<float> solution;
 };
 
+__global__ void regularizationKernel(float* q_out, float* r_out,
+                                     const float* q_in, const float* r_in,
+                                     float rho)
+{
+        __shared__ float q[14 * 14];
+        __shared__ float r[7 * 7];
+        for (uint32_t i = threadIdx.x; i < 14 * 14; i += blockDim.x) q[i] = q_in[i];
+        for (uint32_t i = threadIdx.x; i < 7 * 7; i += blockDim.x) r[i] = r_in[i];
+        __syncthreads();
+        block::addScaledIdentity<float, 14>(q, rho);
+        block::addScaledIdentityFull<float, 7>(r, rho);
+        __syncthreads();
+        for (uint32_t i = threadIdx.x; i < 14 * 14; i += blockDim.x) q_out[i] = q[i];
+        for (uint32_t i = threadIdx.x; i < 7 * 7; i += blockDim.x) r_out[i] = r[i];
+}
+
 Result run_case(float matrix_sign, float preconditioner_sign,
                 float tolerance, uint32_t max_iterations,
                 float rhs_value)
@@ -93,6 +109,51 @@ bool require(bool condition, const char* message)
 int main()
 {
         bool ok = true;
+
+        {
+                constexpr float rho = 0.25f;
+                std::vector<float> q_in(14 * 14), r_in(7 * 7);
+                for (uint32_t i = 0; i < q_in.size(); ++i) q_in[i] = 0.01f * i;
+                for (uint32_t i = 0; i < r_in.size(); ++i) r_in[i] = -0.02f * i;
+                std::vector<float> q_out(q_in.size()), r_out(r_in.size());
+                float *d_q_in, *d_r_in, *d_q_out, *d_r_out;
+                gpuErrchk(cudaMalloc(&d_q_in, q_in.size() * sizeof(float)));
+                gpuErrchk(cudaMalloc(&d_r_in, r_in.size() * sizeof(float)));
+                gpuErrchk(cudaMalloc(&d_q_out, q_out.size() * sizeof(float)));
+                gpuErrchk(cudaMalloc(&d_r_out, r_out.size() * sizeof(float)));
+                gpuErrchk(cudaMemcpy(d_q_in, q_in.data(), q_in.size() * sizeof(float), cudaMemcpyHostToDevice));
+                gpuErrchk(cudaMemcpy(d_r_in, r_in.data(), r_in.size() * sizeof(float), cudaMemcpyHostToDevice));
+                regularizationKernel<<<1, 128>>>(d_q_out, d_r_out, d_q_in, d_r_in, rho);
+                gpuErrchk(cudaPeekAtLastError());
+                gpuErrchk(cudaDeviceSynchronize());
+                gpuErrchk(cudaMemcpy(q_out.data(), d_q_out, q_out.size() * sizeof(float), cudaMemcpyDeviceToHost));
+                gpuErrchk(cudaMemcpy(r_out.data(), d_r_out, r_out.size() * sizeof(float), cudaMemcpyDeviceToHost));
+                std::vector<float> q_source(q_in.size()), r_source(r_in.size());
+                gpuErrchk(cudaMemcpy(q_source.data(), d_q_in, q_source.size() * sizeof(float), cudaMemcpyDeviceToHost));
+                gpuErrchk(cudaMemcpy(r_source.data(), d_r_in, r_source.size() * sizeof(float), cudaMemcpyDeviceToHost));
+                ok &= require(q_source == q_in && r_source == r_in,
+                              "regularization modified source Hessians");
+                for (uint32_t row = 0; row < 14; ++row) {
+                        for (uint32_t col = 0; col < 14; ++col) {
+                                const uint32_t i = col * 14 + row;
+                                const float expected = q_in[i] + ((row == col && row < 7) ? rho : 0.0f);
+                                ok &= require(q_out[i] == expected,
+                                              "state regularization changed the wrong entry");
+                        }
+                }
+                for (uint32_t row = 0; row < 7; ++row) {
+                        for (uint32_t col = 0; col < 7; ++col) {
+                                const uint32_t i = col * 7 + row;
+                                const float expected = r_in[i] + (row == col ? rho : 0.0f);
+                                ok &= require(r_out[i] == expected,
+                                              "control regularization did not cover the full diagonal");
+                        }
+                }
+                gpuErrchk(cudaFree(d_q_in));
+                gpuErrchk(cudaFree(d_r_in));
+                gpuErrchk(cudaFree(d_q_out));
+                gpuErrchk(cudaFree(d_r_out));
+        }
 
         const Result zero = run_case(-1.0f, -1.0f, 1e-4f, 20, 0.0f);
         ok &= require(zero.status == PCG_CONVERGED && zero.iterations == 0,
