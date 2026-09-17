@@ -25,7 +25,9 @@ dependencies = [
     "meshcat>=0.3.2",
     "ninja>=1.11.1.4",
     "pybind11>=2.13.6",
-    "pyqt5>=5.15.11",
+    # PyQt5's bundled Qt wheels are unavailable on Linux ARM64; plots use Agg
+    # or Jupyter's inline backend there.
+    "pyqt5>=5.15.11; sys_platform != 'linux' or platform_machine != 'aarch64'",
     "tdqm>=0.0.1",
     "seaborn>=0.13.2",
 ]
@@ -36,15 +38,37 @@ dev = [
     "pytest>=8.3.5",
 ]
 
+[tool.uv]
+required-environments = [
+    "sys_platform == 'linux' and platform_machine == 'x86_64'",
+    "sys_platform == 'linux' and platform_machine == 'aarch64'",
+]
+
 [[tool.uv.index]]
 name = "pytorch-cu124"
 url = "https://download.pytorch.org/whl/cu124"
 explicit = true
 
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+# CUDA 12.4 PyTorch wheels are unavailable on Linux ARM64. GATO runs its
+# solver through native CUDA bindings, so CPU PyTorch suffices there.
 [tool.uv.sources]
-torch = { index = "pytorch-cu124" }
-torchvision = { index = "pytorch-cu124" }
-torchaudio = { index = "pytorch-cu124" }
+torch = [
+    { index = "pytorch-cpu", marker = "sys_platform == 'linux' and platform_machine == 'aarch64'" },
+    { index = "pytorch-cu124", marker = "sys_platform != 'linux' or platform_machine != 'aarch64'" },
+]
+torchvision = [
+    { index = "pytorch-cpu", marker = "sys_platform == 'linux' and platform_machine == 'aarch64'" },
+    { index = "pytorch-cu124", marker = "sys_platform != 'linux' or platform_machine != 'aarch64'" },
+]
+torchaudio = [
+    { index = "pytorch-cpu", marker = "sys_platform == 'linux' and platform_machine == 'aarch64'" },
+    { index = "pytorch-cu124", marker = "sys_platform != 'linux' or platform_machine != 'aarch64'" },
+]
 
 [tool.setuptools]
 package-dir = {"" = "python"}
