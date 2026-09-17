@@ -1,0 +1,9 @@
+numpy==2.2.6
+matplotlib==3.10.1
+pin==3.4.0
+cmeel-urdfdom==4.0.1
+cmeel-tinyxml2==10.0.0
+pybind11==2.13.6
+# The controller imports torch; GPU execution uses the native CUDA extension.
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.6.0+cpu
