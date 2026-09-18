@@ -1,29 +1,33 @@
-"""Reproduce plots/fig8_benchmark_heatmap.ipynb with fresh, isolated modules.
+"""Run the Indy7 solve-time matrix with one SQP step or native stopping.
 
-See --help for the sweep and plot-only commands. Each cell runs in a separate
-process so CUDA errors cannot contaminate subsequent measurements.
+The default uses fixed 10 ms simulation updates and a wall-time budget per cell.
+Use --protocol reference to reproduce the original capped simulation clock.
 """
 import argparse
-import csv
 import hashlib
 import importlib.util
 import json
+import math
 import os
 from pathlib import Path
 import random
+import shutil
 import subprocess
 import sys
 import time
 
 ROOT = Path(__file__).resolve().parents[2]
+HERE = Path(__file__).resolve().parent
+KNOTS = (8, 16, 32, 64, 128, 256)
+BATCHES = (1, 2, 4, 8, 16, 32, 64, 128, 256, 512)
 
 
 def save_json(path, value):
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
-    temp = path.with_suffix('.tmp')
-    temp.write_text(json.dumps(value, indent=2, allow_nan=False) + '\n')
-    temp.replace(path)
+    temporary = path.with_suffix('.tmp')
+    temporary.write_text(json.dumps(value, indent=2, allow_nan=False) + '\n')
+    temporary.replace(path)
 
 
 def digest(path):
@@ -38,243 +42,243 @@ def gpu_snapshot():
 
 
 def match_torch_libraries():
-    """Avoid a container's global Torch .so files overriding the active venv."""
+    """Use the active environment's Torch libraries when loading the binding."""
     spec = importlib.util.find_spec('torch')
     if spec is None:
-        return  # Normal dependency validation will report the missing package.
+        return
     directory = str(Path(spec.origin).parent / 'lib')
     paths = os.environ.get('LD_LIBRARY_PATH', '').split(':')
     if Path(directory).is_dir() and paths[0] != directory:
-        env = dict(os.environ, LD_LIBRARY_PATH=':'.join([directory] + [p for p in paths if p and p != directory]))
-        os.execvpe(sys.executable, [sys.executable, str(Path(__file__).resolve()), *sys.argv[1:]], env)
+        env = dict(os.environ, LD_LIBRARY_PATH=':'.join(
+            [directory] + [p for p in paths if p and p != directory]))
+        os.execvpe(sys.executable, [sys.executable, str(HERE / 'run.py'), *sys.argv[1:]], env)
 
 
-def worker(args):
-    import numpy as np
-    import pinocchio as pin
-
-    sys.path.insert(0, str(ROOT / 'python'))
-    sys.path.insert(0, str(ROOT / 'examples'))
-    import bsqp
-    bsqp.__path__ = [str(args.build_dir / 'modules'), str(ROOT / 'python/bsqp')]
-    from bsqp.mpc_controller import MPC_GATO
-    from bsqp.common import figure8
-    from bsqp.config import DEFAULT_SOLVER_PARAMS, FIG8_DEFAULT_PARAMS, INDY7_START_CONFIGS
-
-    class BenchmarkMPC(MPC_GATO):
-        def setup_force_estimator(self):
-            # The original estimator requires >3 samples. Use the zero-force
-            # problem at B=2, as at B=1, while retaining the original B>=4 path.
-            if self.batch_size == 2:
-                self.force_estimator = None
-            else:
-                super().setup_force_estimator()
-
-    n, batch, repeat = args.cell
-    np.random.seed(args.seed + repeat)
-    urdf = str(ROOT / 'examples/indy7_description/indy7.urdf')
-    model = pin.buildModelFromUrdf(urdf)
-    controller = BenchmarkMPC(model=model, model_path=urdf, N=n, dt=.01,
-                             batch_size=batch, track_full_stats=True)
-    module_path = Path(controller.solver.lib.__file__).resolve()
-    if module_path.parent != (args.build_dir / 'modules').resolve():
-        raise RuntimeError(f'Unexpected module: {module_path}')
-    traj = figure8(.01, **FIG8_DEFAULT_PARAMS)
-    start = np.r_[INDY7_START_CONFIGS['ready'], np.zeros(6)]
-    before = gpu_snapshot()
-    t0 = time.monotonic()
-    # The original routine performs one warm-up solve before collecting stats.
-    _, stats = controller.run_mpc_fig8(start, traj, sim_dt=.001, sim_time=args.sim_time,
-                                     offline_timing='solve_time')
-    elapsed = time.monotonic() - t0
-    samples = np.asarray(stats['solve_times'])
-    if not samples.size or not np.all(np.isfinite(samples)) or np.any(samples <= 0):
-        raise RuntimeError('Missing/nonfinite/nonpositive solve-time samples')
-    for key in ['goal_distances', 'joint_positions', 'joint_velocities']:
-        if not np.all(np.isfinite(stats[key])):
-            raise RuntimeError(f'Nonfinite {key}; reject invalid simulation timings')
-    stem = f'N{n}_B{batch}_R{repeat}'
-    np.savez_compressed(args.output / f'{stem}.npz', **stats)
-    result = dict(N=n, batch_size=batch, repeat=repeat, status='ok',
-                  samples=int(samples.size), avg_gpu_time_ms=float(samples.mean()),
-                  std_gpu_time_ms=float(samples.std()), median_gpu_time_ms=float(np.median(samples)),
-                  p95_gpu_time_ms=float(np.percentile(samples, 95)),
-                  avg_goal_distance=float(np.mean(stats['goal_distances'])),
-                  max_goal_distance=float(np.max(stats['goal_distances'])),
-                  avg_sqp_iters=float(np.mean(stats['sqp_iters'])),
-                  simulation_end_s=float(stats['timestamps'][-1]), wall_time_s=elapsed,
-                  gpu_before=before, gpu_after=gpu_snapshot(), solver_params=DEFAULT_SOLVER_PARAMS,
-                  module=str(module_path), module_sha256=digest(module_path),
-                  seed=args.seed + repeat, raw_samples=f'{stem}.npz')
-    save_json(args.output / f'{stem}.json', result)
-
-
-def plot(output):
-    import numpy as np
-    import matplotlib
-    matplotlib.use('Agg')
-    import matplotlib.pyplot as plt
-    from matplotlib.colors import LogNorm
-    from matplotlib.patches import Rectangle
-
-    data = json.loads((output / 'results.json').read_text())
-    ns, batches = data['config']['knots'], data['config']['batches']
-    z = np.full((len(ns), len(batches)), np.nan)
-    labels = {}
-    summary = []
-    for i, n in enumerate(ns):
-        for j, b in enumerate(batches):
-            cells = [r for r in data['results'] if r['N'] == n and r['batch_size'] == b]
-            good = [r for r in cells if r['status'] == 'ok']
-            if good:
-                # Match the reference notebook: equally weight repeat means.
-                z[i, j] = np.mean([r['avg_gpu_time_ms'] for r in good])
-                if len(good) < data['config']['repeats']:
-                    labels[i, j] = '*'
-            else:
-                labels[i, j] = ('SMEM' if cells and all(r['status'] == 'unsupported_shared_memory'
-                                                      for r in cells) else 'FAIL' if cells else '—')
-            summary.append(dict(N=n, batch_size=b, successful_repeats=len(good),
-                                status='ok' if good else labels[i, j],
-                                mean_ms=float(z[i, j]) if good else '',
-                                samples=sum(r['samples'] for r in good),
-                                tracking_mean_m=float(np.mean([r['avg_goal_distance'] for r in good])) if good else ''))
-    with (output / 'summary.csv').open('w', newline='') as stream:
-        writer = csv.DictWriter(stream, fieldnames=list(summary[0]))
-        writer.writeheader()
-        writer.writerows(summary)
-    plt.rcParams.update({'font.family': 'serif', 'font.size': 12})
-    fig, ax = plt.subplots(figsize=(12, 9))
-    cmap = plt.get_cmap('RdYlGn_r').copy()
-    cmap.set_bad('#dedede')
-    finite = z[np.isfinite(z)]
-    vmax = max(20., float(finite.max())) if finite.size else 20.
-    im = ax.imshow(np.ma.masked_invalid(z), origin='lower', aspect='auto',
-                   cmap=cmap, norm=LogNorm(.09, vmax), interpolation='nearest')
-    for i in range(len(ns)):
-        for j in range(len(batches)):
-            if np.isfinite(z[i, j]):
-                rgba = cmap(im.norm(z[i, j]))
-                luminance = .2126*rgba[0] + .7152*rgba[1] + .0722*rgba[2]
-                ax.text(j, i, f'{z[i,j]:.2f}{labels.get((i,j), "")}', ha='center', va='center',
-                        fontsize=12, weight='bold', color='black' if luminance > .55 else 'white')
-            else:
-                ax.add_patch(Rectangle((j-.5, i-.5), 1, 1, fill=False, hatch='///',
-                                       edgecolor='#aaaaaa', linewidth=0))
-                ax.text(j, i, labels[i, j], ha='center', va='center', fontsize=10,
-                        bbox=dict(facecolor='#dedede', edgecolor='none', pad=1))
-    if finite.size and min(z.shape) >= 2:
-        levels = [v for v in [.1, .2, 1., 4., 10., 20.] if finite.min() < v < finite.max()]
-        if levels:
-            cs = ax.contour(np.ma.masked_invalid(z), levels=levels, colors='blue', linewidths=2)
-            ax.clabel(cs, fmt=lambda ms: f'{1/ms:g}kHz' if ms <= 1 else f'{1000/ms:g}Hz', fontsize=13)
-    ax.set_xticks(range(len(batches)), labels=batches)
-    ax.set_yticks(range(len(ns)), labels=ns)
-    ax.set_xlabel('Batch Size', fontsize=19)
-    ax.set_ylabel('Trajectory Length (N)', fontsize=19)
-    ax.set_title('GATO / Indy7 — GeForce GTX 1070', fontsize=19, pad=16)
-    fig.colorbar(im, ax=ax, fraction=.046, pad=.04).set_label('GPU Solve Time (ms)', fontsize=16)
-    fig.text(.5, .025, f'felix-devel @ {data["git_head"][:7]} · Mean synchronized solver time; 1 SQP iteration; warm-up excluded\n'
-             f'{data["config"]["sim_time"]:g} s figure-eight simulation × {data["config"]["repeats"]} repeats'
-             ' · SMEM: per-block shared-memory limit · *: incomplete repeats', ha='center', fontsize=10)
-    fig.tight_layout(rect=(0, .065, 1, 1))
-    for ext in ['png', 'pdf', 'svg']:
-        fig.savefig(output / f'gato_solve_time_heatmap_gtx1070.{ext}', dpi=180)
-    plt.close(fig)
-
-
-def main():
+def parser():
     p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument('--gpu-name', help='Required plot label for new runs; saved for plot-only')
     p.add_argument('--build-dir', type=Path, default=ROOT / 'build/solve-time-heatmap-felix-devel')
-    p.add_argument('--output', type=Path, default=ROOT / 'test-artifacts/solve-time-heatmap-gtx1070-felix-devel')
-    p.add_argument('--knots', type=int, nargs='+', default=[8, 16, 32, 64, 128, 256])
-    p.add_argument('--batches', type=int, nargs='+', default=[1, 2, 4, 8, 16, 32, 64, 128, 256, 512])
-    p.add_argument('--sim-time', type=float, default=10.)
+    p.add_argument('--output', type=Path, default=ROOT / 'test-artifacts/solve-time-heatmap')
+    p.add_argument('--protocol', choices=['wall-time', 'reference'], default='wall-time')
+    p.add_argument('--max-sqp-iters', type=int, default=1000,
+                   help='Use 1 for one SQP step; otherwise native stopping up to this cap (default: 1000)')
+    p.add_argument('--wall-time', type=float, default=10.,
+                   help='Measured wall-time budget per cell, excluding warm-up (wall-time protocol)')
+    p.add_argument('--sim-time', type=float, default=10.,
+                   help='Simulated duration per cell (reference protocol)')
+    p.add_argument('--max-solve-ms', type=float, default=1000.,
+                   help='Stop after a measured solve exceeds this duration; 0 disables (default: 1000)')
+    p.add_argument('--knots', type=int, nargs='+', choices=KNOTS, default=list(KNOTS))
+    p.add_argument('--batches', type=int, nargs='+', choices=BATCHES, default=list(BATCHES))
     p.add_argument('--repeats', type=int, default=1)
     p.add_argument('--seed', type=int, default=17092026)
-    p.add_argument('--timeout', type=float, default=300.)
-    p.add_argument('--plot-only', action='store_true')
+    p.add_argument('--save-plans', action='store_true', help='Also retain full batch-0 plans in raw samples')
+    p.add_argument('--timeout', type=float,
+                   help='Optional hard worker timeout including setup and warm-up (seconds)')
+    p.add_argument('--resume', action='store_true', help='Resume an interrupted manifest with matching settings/sources')
+    p.add_argument('--plot-only', action='store_true', help='Render saved results; no CUDA or solver run')
     p.add_argument('--cell', type=int, nargs=3, metavar=('N', 'BATCH', 'REPEAT'), help=argparse.SUPPRESS)
-    args = p.parse_args()
-    args.output = args.output.resolve()
-    args.build_dir = args.build_dir.resolve()
-    args.output.mkdir(parents=True, exist_ok=True)
-    if args.plot_only:
-        plot(args.output)
-        return
-    match_torch_libraries()
-    if args.cell:
-        worker(args)
-        return
-    if args.repeats < 1 or args.sim_time <= 0:
-        p.error('repeats and simulation time must be positive')
-    if len(set(args.knots)) != len(args.knots) or len(set(args.batches)) != len(args.batches):
-        p.error('horizons and batches must be unique')
-    # Fail before launching any cells if required experiment packages are absent.
+    return p
+
+
+def configuration(args):
+    return dict(gpu_name=args.gpu_name, protocol=args.protocol, knots=args.knots,
+                batches=args.batches, repeats=args.repeats, max_sqp_iters=args.max_sqp_iters,
+                wall_time=args.wall_time, sim_time=args.sim_time, max_solve_ms=args.max_solve_ms,
+                seed=args.seed, save_plans=args.save_plans, timeout=args.timeout,
+                dt=.01, sim_dt=.001, sim_step=.01, warmup_solves=1,
+                timing='Full-batch synchronized native host solve time; initial warm-up and Python work excluded',
+                frequency='1000 / mean native milliseconds; not batch throughput or end-to-end control rate',
+                stopping='Unchanged native stopping rule up to the selected SQP cap',
+                clock=('Fixed 10 ms updates, wall budget after warm-up; active solves finish'
+                       if args.protocol == 'wall-time' else
+                       'Original min(previous native solve time, 10 ms), fixed simulated duration'))
+
+
+def source_paths():
+    paths = list((ROOT / 'gato').rglob('*.cuh')) + list((ROOT / 'gato').rglob('*.h'))
+    paths += list((ROOT / 'python').rglob('*.py')) + [ROOT / 'python/bindings.cu']
+    paths += list(HERE.glob('*.py'))
+    paths += [HERE / 'resources.cu', HERE / 'CMakeLists.txt', HERE / 'requirements.txt',
+              ROOT / 'examples/indy7_description/indy7.urdf']
+    return sorted(set(paths))
+
+
+def prepare_manifest(args):
+    manifest_path = args.output / 'results.json'
+    config = configuration(args)
+    hashes = {str(p.relative_to(ROOT)): digest(p) for p in source_paths()}
+    if manifest_path.exists():
+        if not args.resume:
+            raise ValueError('Output contains results; use a fresh --output, --resume or --plot-only')
+        manifest = json.loads(manifest_path.read_text())
+        if manifest.get('schema_version') != 2:
+            raise ValueError('Legacy results can be plotted, but cannot be resumed by this runner')
+        if manifest['config'] != config or manifest['source_sha256'] != hashes:
+            raise ValueError('Resume settings or sources differ from the saved experiment')
+        if manifest['build_dir'] != str(args.build_dir):
+            raise ValueError('Resume build directory differs from the saved experiment')
+        for filename, expected in manifest['module_sha256'].items():
+            if digest(filename) != expected:
+                raise ValueError(f'Resume module changed: {filename}')
+        return manifest
+    if args.resume:
+        raise ValueError('--resume requires an existing results.json')
+    if args.output.exists() and any(args.output.iterdir()):
+        raise ValueError('New experiment output must be empty; choose a fresh --output')
     import numpy
     import pinocchio
     import matplotlib
     import torch
-    subprocess.run(['git', 'diff', '--exit-code', 'HEAD', '--', 'gato', 'python'],
-                   cwd=ROOT, check=True, capture_output=True)
-    # Do not silently mix runs with different settings or overwrite raw receipts.
-    if (args.output / 'results.json').exists():
-        p.error('output already contains results; choose a fresh --output or use --plot-only')
-    config = dict(knots=args.knots, batches=args.batches, repeats=args.repeats,
-                  sim_time=args.sim_time, seed=args.seed, timeout=args.timeout,
-                  dt=.01, sim_dt=.001, warmup_solves=1, precision='float32',
-                  offline_timing='solve_time',
-                  timing='BSQP synchronized host wall time in microseconds / 1000',
-                  batch2='zero force; source force estimator requires batch > 3')
-    source_paths = list((ROOT / 'gato').rglob('*.cuh')) + list((ROOT / 'gato').rglob('*.h'))
-    source_paths += list((ROOT / 'python').rglob('*.py'))
-    source_paths += [ROOT / 'python/bindings.cu', Path(__file__), Path(__file__).with_name('resources.cu'),
-                     Path(__file__).with_name('CMakeLists.txt'), Path(__file__).with_name('requirements.txt')]
-    manifest = dict(config=config, git_head=subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip(),
-                    python=sys.version, executable=sys.executable, gpu_before=gpu_snapshot(),
-                    library_path=os.environ.get('LD_LIBRARY_PATH', ''),
-                    packages=dict(numpy=numpy.__version__, pinocchio=pinocchio.__version__, matplotlib=matplotlib.__version__, torch=torch.__version__),
-                    nvcc=subprocess.check_output(['nvcc', '--version'], text=True),
+    manifest = dict(schema_version=2, config=config, status='running', results=[], resources={},
+                    git_head=subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip(),
+                    started_at=time.time(), executable=sys.executable, python=sys.version,
+                    build_dir=str(args.build_dir), gpu_before=gpu_snapshot(), source_sha256=hashes,
+                    module_sha256={}, library_path=os.environ.get('LD_LIBRARY_PATH', ''),
+                    packages=dict(numpy=numpy.__version__, pinocchio=pinocchio.__version__,
+                                  matplotlib=matplotlib.__version__, torch=torch.__version__),
                     build_cache=(args.build_dir / 'CMakeCache.txt').read_text(),
-                    source_sha256={str(f.relative_to(ROOT)): digest(f) for f in source_paths},
-                    resources={}, results=[])
-    (args.output / 'source.diff').write_text(subprocess.check_output(['git', 'diff'], cwd=ROOT, text=True))
+                    nvcc=subprocess.check_output(['nvcc', '--version'], text=True))
     for n in args.knots:
-        proc = subprocess.run([str(args.build_dir / f'resources_N{n}')], capture_output=True, text=True, check=True)
-        manifest['resources'][str(n)] = json.loads(proc.stdout)
-    save_json(args.output / 'results.json', manifest)
+        probe = subprocess.run([str(args.build_dir / f'resources_N{n}')],
+                               check=True, capture_output=True, text=True)
+        resource = manifest['resources'][str(n)] = json.loads(probe.stdout)
+        if all(k['fits'] for k in resource['kernels']):
+            modules = list((args.build_dir / 'modules').glob(f'bsqpN{n}_indy7*.so'))
+            if len(modules) != 1:
+                raise ValueError(f'Build exactly one bsqpN{n}_indy7 module in {args.build_dir / "modules"}')
+            manifest['module_sha256'][str(modules[0].resolve())] = digest(modules[0])
+    args.output.mkdir(parents=True, exist_ok=True)
+    for path in source_paths():
+        destination = args.output / 'source_snapshot' / path.relative_to(ROOT)
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(path, destination)
+    (args.output / 'source.diff').write_text(subprocess.check_output(
+        ['git', 'diff', 'HEAD', '--', 'gato', 'python', 'examples/solve_time_heatmap'], cwd=ROOT, text=True))
+    save_json(manifest_path, manifest)
+    return manifest
+
+
+def cell_command(args, n, batch, repeat):
+    command = [sys.executable, str(HERE / 'run.py'), '--cell', str(n), str(batch), str(repeat),
+               '--gpu-name', args.gpu_name, '--build-dir', str(args.build_dir),
+               '--output', str(args.output), '--protocol', args.protocol,
+               '--max-sqp-iters', str(args.max_sqp_iters), '--wall-time', str(args.wall_time),
+               '--sim-time', str(args.sim_time), '--max-solve-ms', str(args.max_solve_ms),
+               '--seed', str(args.seed)]
+    if args.save_plans:
+        command.append('--save-plans')
+    return command
+
+
+def run_cell_process(args, n, batch, repeat):
+    folder = args.output / f'N{n}_B{batch}_R{repeat}'
+    receipt = folder / 'results.json'
+    if receipt.exists():
+        previous = json.loads(receipt.read_text())
+        if previous['status'] not in ('running', 'interrupted'):
+            return previous  # Worker finished before an interrupted parent saved its manifest.
+    if folder.exists():
+        archive = args.output / 'interrupted' / f'{folder.name}_{time.time_ns()}'
+        archive.parent.mkdir(exist_ok=True)
+        folder.rename(archive)
+    env = dict(os.environ, OMP_NUM_THREADS='1', OPENBLAS_NUM_THREADS='1', MKL_NUM_THREADS='1')
+    log_path = args.output / f'{folder.name}.log'
+    with log_path.open('a') as log:
+        try:
+            result = subprocess.run(cell_command(args, n, batch, repeat), cwd=ROOT, env=env,
+                                    stdout=log, stderr=subprocess.STDOUT, timeout=args.timeout)
+            failure = f'Worker exited {result.returncode}; see {log_path.name}' if result.returncode else None
+        except subprocess.TimeoutExpired:
+            failure = f'Worker exceeded --timeout {args.timeout:g}s; see {log_path.name}'
+    row = json.loads(receipt.read_text()) if receipt.exists() else dict(N=n, batch_size=batch, repeat=repeat, samples=0)
+    if failure or row.get('status') in (None, 'running'):
+        row.update(status='error', error=failure or 'Worker did not finish its result receipt')
+    return row
+
+
+def sweep(args):
+    if os.environ.get('CUDA_LAUNCH_BLOCKING', '0') != '0':
+        raise ValueError('Unset CUDA_LAUNCH_BLOCKING before benchmarking')
+    dirty = subprocess.run(['git', 'diff', '--exit-code', 'HEAD', '--', 'gato', 'python'],
+                           cwd=ROOT, capture_output=True)
+    if dirty.returncode:
+        raise ValueError('Solver/Python sources differ from HEAD; use matched clean sources and rebuilt modules')
+    manifest = prepare_manifest(args)
     cells = [(n, b, r) for r in range(args.repeats) for n in args.knots for b in args.batches]
     random.Random(args.seed).shuffle(cells)
-    for index, (n, b, r) in enumerate(cells):
-        print(f'[{index+1}/{len(cells)}] N={n} B={b} repeat={r}', flush=True)
-        bad = [k for k in manifest['resources'][str(n)]['kernels'] if not k['fits']]
-        stem = f'N{n}_B{b}_R{r}'
-        if bad:
-            result = dict(N=n, batch_size=b, repeat=r, status='unsupported_shared_memory', kernels=bad)
-        else:
-            command = [sys.executable, str(Path(__file__).resolve()), '--cell', str(n), str(b), str(r),
-                       '--build-dir', str(args.build_dir), '--output', str(args.output),
-                       '--sim-time', str(args.sim_time), '--seed', str(args.seed)]
-            env = dict(os.environ, OMP_NUM_THREADS='1', OPENBLAS_NUM_THREADS='1', MKL_NUM_THREADS='1')
-            # An inherited debug launch mode would invalidate timings.
-            if env.get('CUDA_LAUNCH_BLOCKING', '0') != '0':
-                raise RuntimeError('Unset CUDA_LAUNCH_BLOCKING before benchmarking')
-            with (args.output / f'{stem}.log').open('w') as log:
-                try:
-                    proc = subprocess.run(command, cwd=ROOT, env=env, stdout=log, stderr=subprocess.STDOUT,
-                                          timeout=args.timeout)
-                    if proc.returncode:
-                        raise RuntimeError(f'Worker exit {proc.returncode}; see {stem}.log')
-                    result = json.loads((args.output / f'{stem}.json').read_text())
-                except (RuntimeError, subprocess.TimeoutExpired) as exc:
-                    result = dict(N=n, batch_size=b, repeat=r, status='failed', error=str(exc))
-        manifest['results'].append(result)
+    done = {(r['N'], r['batch_size'], r.get('repeat', 0)) for r in manifest['results']}
+    for index, (n, batch, repeat) in enumerate(cells, 1):
+        if (n, batch, repeat) in done:
+            continue
+        manifest.update(status='running', active_cell=dict(N=n, batch_size=batch, repeat=repeat, index=index))
         save_json(args.output / 'results.json', manifest)
-        print(f'  {result["status"]} {result.get("avg_gpu_time_ms", "")} ms', flush=True)
-    manifest['gpu_after'] = gpu_snapshot()
+        print(f'[{index}/{len(cells)}] N={n} B={batch} repeat={repeat}', flush=True)
+        bad = [k for k in manifest['resources'][str(n)]['kernels'] if not k['fits']]
+        if bad:
+            row = dict(N=n, batch_size=batch, repeat=repeat,
+                       status='unsupported_shared_memory', samples=0, kernels=bad)
+        else:
+            row = run_cell_process(args, n, batch, repeat)
+        manifest['results'].append(row)
+        manifest.pop('active_cell', None)
+        save_json(args.output / 'results.json', manifest)
+        print(f'  {row["status"]}: {row.get("avg_native_ms", "—")} ms, {row.get("samples", 0)} samples', flush=True)
+    manifest.update(status='completed', finished_at=time.time(), gpu_after=gpu_snapshot())
     save_json(args.output / 'results.json', manifest)
+    from plotting import plot
     plot(args.output)
 
 
+def main(argv=None):
+    p = parser()
+    args = p.parse_args(argv)
+    args.output, args.build_dir = args.output.resolve(), args.build_dir.resolve()
+    if args.gpu_name is not None:
+        args.gpu_name = args.gpu_name.strip()
+        if not args.gpu_name:
+            p.error('--gpu-name must not be empty')
+    if args.plot_only:
+        path = args.output / 'results.json'
+        if not path.exists():
+            p.error('--plot-only requires results.json in --output')
+        data = json.loads(path.read_text())
+        name = args.gpu_name or data['config'].get('gpu_name')
+        if not name:
+            p.error('Saved results need a GPU label; provide --gpu-name')
+        if name != data['config'].get('gpu_name'):
+            data['config']['gpu_name'] = name
+            save_json(path, data)
+        from plotting import plot
+        plot(args.output)
+        return 0
+    if args.gpu_name is None:
+        p.error('--gpu-name is required for a new or resumed run')
+    values = [args.wall_time, args.sim_time, args.max_solve_ms]
+    if args.timeout is not None:
+        values.append(args.timeout)
+    if not all(math.isfinite(value) for value in values):
+        p.error('Durations and cutoff must be finite')
+    if min(args.wall_time, args.sim_time, args.max_sqp_iters, args.repeats) <= 0 or args.max_solve_ms < 0:
+        p.error('Durations, SQP cap and repeats must be positive; cutoff must be nonnegative')
+    if args.timeout is not None and args.timeout <= 0:
+        p.error('--timeout must be positive')
+    if len(set(args.knots)) != len(args.knots) or len(set(args.batches)) != len(args.batches):
+        p.error('Horizons and batch sizes must be unique')
+    if args.seed < 0 or args.seed + args.repeats > 2**32:
+        p.error('Seed plus repeat index must fit an unsigned 32-bit integer')
+    if args.cell and (args.cell[0] not in KNOTS or args.cell[1] not in BATCHES or args.cell[2] < 0):
+        p.error('Invalid worker cell')
+    match_torch_libraries()
+    if args.cell:
+        from experiment import run_cell
+        return run_cell(args)
+    try:
+        sweep(args)
+    except (ValueError, FileNotFoundError) as exc:
+        p.error(str(exc))
+    return 0
+
+
 if __name__ == '__main__':
-    main()
+    raise SystemExit(main())
