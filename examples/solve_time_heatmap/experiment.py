@@ -11,6 +11,9 @@ import sys
 import time
 import traceback
 
+from settings import (CONTROL_DT, DEFAULT_INIT_SOLVES, INTEGRATION_DT,
+                      REFERENCE_DT, cost_rule, prediction_step)
+
 ROOT = Path(__file__).resolve().parents[2]
 
 
@@ -40,25 +43,36 @@ class NumericInstability(RuntimeError):
 
 def run_instrumented(solver, model, x_start, reference, record, *,
                      protocol='wall-time', wall_time=10., sim_time=10.,
-                     max_solve_ms=1000.):
-    """Execute MPC with an excluded initial solve and shared measurement path.
+                     max_solve_ms=1000., initialization='single', max_init_solves=DEFAULT_INIT_SOLVES,
+                     horizon_time=None):
+    """Execute MPC with an excluded initialization phase and shared measurement path.
 
     Wall-time mode advances simulation by 10 ms per update, repeats one reference
     cycle, and checks a soft wall budget between complete updates. Reference mode
     preserves the historical capped clock and finite reference stopping rule.
     Zero disables the measured-solve cutoff. A slow sample is always retained.
+    Initialization either performs one historical solve, or repeats the unchanged
+    initial problem until every batch member stops natively within a solve limit.
     """
     import numpy as np
     import pinocchio as pin
-    from protocol import rk4
+    from protocol import rk4, periodic_reference, advance_plan
 
     if protocol not in ('wall-time', 'reference'):
         raise ValueError(f'Unknown protocol: {protocol}')
+    if initialization not in ('single', 'native-stop'):
+        raise ValueError(f'Unknown initialization: {initialization}')
+    if not isinstance(max_init_solves, int) or max_init_solves < 1:
+        raise ValueError('Initialization solve limit must be a positive integer')
     if (not np.isfinite([wall_time, sim_time, max_solve_ms]).all()
             or wall_time <= 0 or sim_time <= 0 or max_solve_ms < 0):
         raise ValueError('Budgets must be positive and solve cutoff nonnegative')
-    dt, sim_dt = .01, .001
+    dt, sim_dt = CONTROL_DT, INTEGRATION_DT
     n, batch = solver.N, solver.batch_size
+    prediction_dt = prediction_step(n, horizon_time)
+    if horizon_time is not None and (protocol != 'wall-time' or
+                                    not np.isfinite(horizon_time) or horizon_time < dt):
+        raise ValueError('Fixed prediction duration requires wall-time mode and at least 10 ms')
     nq, nv = model.nq, model.nv
     nx, nu = nq + nv, nv
     reference = np.asarray(reference).reshape(-1, 6)
@@ -66,6 +80,8 @@ def run_instrumented(solver, model, x_start, reference, record, *,
         raise ValueError('Reference is too short')
 
     def reference_at(offset):
+        if horizon_time is not None:
+            return periodic_reference(reference, offset * dt + np.arange(n) * prediction_dt).reshape(-1)
         knots = ((offset + np.arange(n)) % len(reference) if protocol == 'wall-time'
                  else np.arange(offset, offset + n))
         return reference[knots].reshape(-1)
@@ -83,13 +99,29 @@ def run_instrumented(solver, model, x_start, reference, record, *,
     xu_batch = np.tile(xu, (batch, 1))
     solver.set_f_ext_B(np.zeros((batch, 6), dtype=np.float32))
     solver.reset_dual()
-    solver.reset_rho()
-    xu_batch, warmup_us = solver.solve(x_curr_batch, ee_g_batch, xu_batch)
-    xu_best = xu_batch[0, :]
-    record(solver, xu_best, x_curr, ee_g, warmup_us, 0., 0, None, None, True,
-           finite_batch=np.isfinite(xu_batch).all(axis=1))
-    if not np.isfinite(xu_batch).all():
-        raise NumericInstability('Nonfinite warm-up plan')
+    record.begin_initialization(initialization, max_init_solves)
+    initialization_status = 'incomplete'
+    try:
+        for _ in range(1 if initialization == 'single' else max_init_solves):
+            solver.reset_rho()
+            xu_batch, warmup_us = solver.solve(x_curr_batch, ee_g_batch, xu_batch)
+            xu_best = xu_batch[0, :]
+            record(solver, xu_best, x_curr, ee_g, warmup_us, 0., 0, None, None, True,
+                   finite_batch=np.isfinite(xu_batch).all(axis=1))
+            if not np.isfinite(xu_batch).all():
+                raise NumericInstability('Nonfinite warm-up plan')
+            if not np.isfinite(warmup_us) or warmup_us <= 0:
+                raise RuntimeError('Invalid native initialization timing')
+            if initialization == 'single':
+                initialization_status = 'single_solve'
+                break
+            if record.warmup['all_native_stop']:
+                initialization_status = 'ready'
+                break
+    finally:
+        record.finish_initialization(initialization_status)
+    if initialization_status == 'incomplete':
+        return 0., 'initialization_incomplete'
 
     update_index = 0
     total_sim_time = accumulated_time = 0.
@@ -98,22 +130,30 @@ def run_instrumented(solver, model, x_start, reference, record, *,
     try:
         while (record.measured_elapsed() < wall_time if protocol == 'wall-time'
                else total_sim_time < sim_time):
-            timestep = dt if protocol == 'wall-time' else min(previous_solve_seconds, dt)
-            nsteps = int(timestep / sim_dt)
-            if protocol == 'reference' and timestep % sim_dt > 1e-5:
-                accumulated_time += timestep % sim_dt
-            extra_step = accumulated_time >= sim_dt
-            if extra_step:
-                accumulated_time -= sim_dt
-            for step_index in range(nsteps + int(extra_step)):
-                offset = int(step_index / (dt / sim_dt))
-                u_idx = nx + (nx + nu) * min(offset, n - 1)
-                q, dq = rk4(model, data, q, dq, xu_best[u_idx:u_idx + nu], sim_dt)
-                total_sim_time += sim_dt
+            if horizon_time is not None:
+                q, dq = advance_plan(model, data, q, dq, xu_best, n, prediction_dt, dt, sim_dt)
                 if not np.isfinite(q).all() or not np.isfinite(dq).all():
-                    record.failure_state = dict(timestamp=total_sim_time,
+                    record.failure_state = dict(timestamp=total_sim_time + dt,
                                                 state=np.concatenate([q, dq]))
                     raise NumericInstability('Nonfinite simulated state')
+            else:
+                # Preserve the historical integer substeps and residual clock.
+                timestep = dt if protocol == 'wall-time' else min(previous_solve_seconds, dt)
+                nsteps = int(timestep / sim_dt)
+                if protocol == 'reference' and timestep % sim_dt > 1e-5:
+                    accumulated_time += timestep % sim_dt
+                extra_step = accumulated_time >= sim_dt
+                if extra_step:
+                    accumulated_time -= sim_dt
+                for step_index in range(nsteps + int(extra_step)):
+                    offset = int(step_index / (dt / sim_dt))
+                    u_idx = nx + (nx + nu) * min(offset, n - 1)
+                    q, dq = rk4(model, data, q, dq, xu_best[u_idx:u_idx + nu], sim_dt)
+                    total_sim_time += sim_dt
+                    if not np.isfinite(q).all() or not np.isfinite(dq).all():
+                        record.failure_state = dict(timestamp=total_sim_time,
+                                                    state=np.concatenate([q, dq]))
+                        raise NumericInstability('Nonfinite simulated state')
             update_index += 1
             if protocol == 'wall-time':
                 total_sim_time = update_index * dt
@@ -135,7 +175,7 @@ def run_instrumented(solver, model, x_start, reference, record, *,
             xu_batch[:, :] = xu_best
             pin.forwardKinematics(model, data, q)
             ee_pos = data.oMi[6].translation.copy()
-            distance = np.linalg.norm(ee_pos - ee_g[6:9])
+            distance = np.linalg.norm(ee_pos - (ee_g[:3] if horizon_time is not None else ee_g[6:9]))
             record(solver, xu_best, x_curr, ee_g, solve_time_us, total_sim_time,
                    reference_offset, ee_pos, distance, False, finite_batch=finite_batch)
             if not finite_batch.all() or not np.isfinite(distance):
@@ -151,7 +191,7 @@ def run_instrumented(solver, model, x_start, reference, record, *,
 
 
 class Recorder:
-    """Record per-update outcomes, with warm-up kept outside every aggregate."""
+    """Record initialization separately from measured per-update outcomes."""
 
     def __init__(self, output, *, batch_size, max_sqp_iters, max_solve_ms,
                  wall_time, protocol, meta, save_plans=False):
@@ -161,9 +201,40 @@ class Recorder:
         self.save_plans = save_plans
         self.rows, self.plans, self.states, self.ee = [], [], [], []
         self.warmup = self.failure_state = None
+        self.initialization_rows = []
+        self.initialization_mode = self.initialization_status = None
+        self.max_init_solves = None
+        self.initialization_started = self.initialization_finished = None
         self.measurement_started = self.measurement_finished = None
         self.started = self.last_checkpoint = self.last_progress = time.monotonic()
         self.stream = (output / 'solves.jsonl').open('w', buffering=1)
+
+    def begin_initialization(self, mode, max_solves):
+        self.initialization_mode = mode
+        self.max_init_solves = max_solves
+        self.initialization_status = 'running'
+        self.initialization_started = time.monotonic()
+        self.initialization_finished = None
+
+    def finish_initialization(self, status):
+        self.initialization_finished = time.monotonic()
+        self.initialization_status = status
+        self.save_initialization()
+
+    def initialization_summary(self):
+        end = (self.initialization_finished if self.initialization_finished is not None
+               else time.monotonic())
+        return dict(mode=self.initialization_mode, status=self.initialization_status,
+            call_count=len(self.initialization_rows), max_solves=self.max_init_solves,
+            total_native_ms=sum(row['native_ms'] for row in self.initialization_rows),
+            wall_time_s=(end - self.initialization_started
+                         if self.initialization_started is not None else 0.),
+            all_native_stop=(self.initialization_rows[-1]['all_native_stop']
+                             if self.initialization_rows else False))
+
+    def save_initialization(self):
+        save_json(self.output / 'initialization.json',
+                  self.initialization_summary() | dict(calls=self.initialization_rows))
 
     def begin_measurement(self):
         self.measurement_started = time.monotonic()
@@ -202,6 +273,8 @@ class Recorder:
             final_merit=float(np.asarray(stats.get('final_merit', [np.nan])).reshape(-1)[0]))
         if warmup:
             self.warmup = row
+            self.initialization_rows.append(row)
+            self.save_initialization()
             save_json(self.output / 'warmup.json', row)
             if self.save_plans:
                 np.savez_compressed(self.output / 'warmup.npz', plan=plan, x0=x0, reference=reference)
@@ -234,6 +307,7 @@ class Recorder:
                 self.failure_state['timestamp'] if self.failure_state is not None else
                 rows[-1]['timestamp_s'] if rows else 0.),
             wall_time_s=time.monotonic() - self.started, warmup=self.warmup,
+            initialization=self.initialization_summary(),
             measured_wall_elapsed_s=self.measured_elapsed(),
             wall_time_budget_s=self.wall_time if self.protocol == 'wall-time' else None,
             budget_overrun_s=max(0., self.measured_elapsed() - self.wall_time) if self.protocol == 'wall-time' else None,
@@ -290,19 +364,26 @@ def run_cell(args):
     if (output / 'results.json').exists():
         raise RuntimeError(f'Cell already contains results: {output}')
     np.random.seed(args.seed + repeat)
-    params = solver_parameters(n) | {'max_sqp_iters': args.max_sqp_iters}
+    prediction_dt = prediction_step(n, args.horizon_time)
+    params = solver_parameters(n, args.horizon_time) | {'max_sqp_iters': args.max_sqp_iters}
     urdf = ROOT / 'examples/indy7_description/indy7.urdf'
     meta = dict(N=n, batch_size=batch, repeat=repeat, gpu_name=args.gpu_name,
-        protocol=args.protocol, sim_step_s=.01, sim_time_s=args.sim_time,
+        protocol=args.protocol, sim_step_s=CONTROL_DT, sim_time_s=args.sim_time,
+        horizon_time=args.horizon_time, prediction_dt_s=prediction_dt,
+        prediction_duration_s=prediction_dt * (n - 1),
+        initialization_mode=args.initialization, max_init_solves=args.max_init_solves,
         max_solve_ms=args.max_solve_ms, max_sqp_iters=args.max_sqp_iters,
         solver_params=params, reference_commit=REFERENCE_COMMIT,
         native_criterion='Native kkt_converged flag: zero PCG iterations; not a nonlinear KKT tolerance check',
-        timing='Full-batch synchronized native host time; initial warm-up excluded from all measured aggregates',
+        timing='Full-batch synchronized native host time; initialization excluded from all measured aggregates',
         frequency='1000 / mean native milliseconds; solve-only frequency, not end-to-end control frequency',
-        tracking='Per-solve joint-6 origin position error vs next reference knot; startup included; not time-weighted',
+        tracking=('Per-solve joint-6 origin position error vs current-time reference; motion startup included; not time-weighted'
+                  if args.horizon_time is not None else
+                  'Per-solve joint-6 origin position error vs next reference knot; motion startup included; not time-weighted'),
+        cost_rule=cost_rule(args.horizon_time),
         batch_policy='Batch 0 controls simulation; its unshifted plan is broadcast after every measured solve',
-        cutoff_semantics='Stop after first measured native solve strictly above cutoff; zero disables; warm-up excluded; slow sample retained',
-        budget_semantics=('Soft wall budget starts after warm-up and recording; checked between complete updates; final output excluded'
+        cutoff_semantics='Stop after first measured native solve strictly above cutoff; zero disables; initialization excluded; slow sample retained',
+        budget_semantics=('Soft wall budget starts after initialization and recording; checked between complete updates; final output excluded'
                           if args.protocol == 'wall-time' else 'Finite simulation-time budget with historical capped clock'))
     recorder = Recorder(output, batch_size=batch, max_sqp_iters=args.max_sqp_iters,
         max_solve_ms=args.max_solve_ms, wall_time=args.wall_time, protocol=args.protocol,
@@ -312,18 +393,20 @@ def run_cell(args):
     previous_handler = signal.signal(signal.SIGTERM, interrupt)
     status, end_time, error = 'running', None, None
     try:
-        solver = BSQP(str(urdf), batch, n, .01, **params)
+        solver = BSQP(str(urdf), batch, n, prediction_dt, **params)
         module = Path(solver.lib.__file__).resolve()
         if module.parent != (args.build_dir / 'modules').resolve():
             raise RuntimeError(f'Unexpected solver module: {module}')
         meta.update(module=str(module), module_sha256=hashlib.sha256(module.read_bytes()).hexdigest())
         start = np.r_[INDY7_START_CONFIGS['ready'], np.zeros(6)]
         reference_params = FIG8_DEFAULT_PARAMS | ({'cycles': 1} if args.protocol == 'wall-time' else {})
-        reference = figure8(.01, **reference_params)
+        reference = figure8(REFERENCE_DT, **reference_params)
         np.savez_compressed(output / 'inputs.npz', x_start=start, reference=reference)
         end_time, status = run_instrumented(solver, pin.buildModelFromUrdf(str(urdf)),
             start, reference, recorder, protocol=args.protocol, wall_time=args.wall_time,
-            sim_time=args.sim_time, max_solve_ms=args.max_solve_ms)
+            sim_time=args.sim_time, max_solve_ms=args.max_solve_ms,
+            horizon_time=args.horizon_time, initialization=args.initialization,
+            max_init_solves=args.max_init_solves)
     except NumericInstability as exc:
         status, error = 'unstable_nonfinite', str(exc)
     except KeyboardInterrupt as exc:

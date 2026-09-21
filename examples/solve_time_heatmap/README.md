@@ -10,8 +10,11 @@ Defaults are float32, horizons 8/16/32/64/128/256, batches
 1/2/4/8/16/32/64/128/256/512, a 10-second measured wall-time budget per cell,
 and a maximum of 1,000 SQP iterations per solve. Each measured update advances
 the simulation by exactly 10 ms. A cell stops after a measured solve exceeds
-one second. One initial warm-up solve is excluded from timing, the measured
-wall-time budget, and the slow-solve cutoff.
+one second. Initialization is recorded separately and excluded from timing,
+the measured wall-time budget, and the slow-solve cutoff. By default, the
+multi-SQP wall-time experiment finishes initialization using up to five
+native solver calls before measuring operation. One-SQP and historical
+reference runs retain a single warm-up solve.
 
 ## Build
 
@@ -37,6 +40,7 @@ The standalone build writes extensions into its own `modules/` directory,
 without overwriting extensions under `python/bsqp`. Modules use matching
 `-O3 --use_fast_math` flags with CUDA error checks enabled. Select another
 standalone build with `--build-dir`.
+Changing prediction duration or initialization mode requires no rebuild.
 
 Resource probes check kernel shared memory and launch thread limits before
 running a horizon. On the GTX 1070, N128 PCG needs 35,476 bytes per block and
@@ -48,29 +52,63 @@ size for these kernels.
 
 ## Run either SQP budget
 
-The current experiment, allowing native stopping up to the safety cap:
+To compare resolutions over the same **0.31-second prediction duration**,
+allowing native stopping up to the safety cap:
 
 ```sh
 python examples/solve_time_heatmap/run.py \
-  --gpu-name 'GeForce GTX 1070' \
-  --output test-artifacts/heatmap-native-stop
+  --gpu-name 'GeForce GTX 1070' --horizon-time .31 \
+  --output test-artifacts/heatmap-fixed-horizon-native-stop
 ```
 
 The same experiment with at most one SQP iteration per update:
 
 ```sh
 python examples/solve_time_heatmap/run.py \
-  --gpu-name 'GeForce GTX 1070' --max-sqp-iters 1 \
-  --output test-artifacts/heatmap-one-sqp
+  --gpu-name 'GeForce GTX 1070' --horizon-time .31 --max-sqp-iters 1 \
+  --output test-artifacts/heatmap-fixed-horizon-one-sqp
 ```
 
 A short pilot:
 
 ```sh
 python examples/solve_time_heatmap/run.py \
-  --gpu-name 'GeForce GTX 1070' --knots 8 16 --batches 1 2 \
-  --wall-time 1 --output test-artifacts/heatmap-pilot
+  --gpu-name 'GeForce GTX 1070' --horizon-time .31 --knots 8 16 --batches 1 2 \
+  --wall-time 1 --output test-artifacts/heatmap-fixed-horizon-pilot
 ```
+
+`--horizon-time SECONDS` sets prediction knot spacing to `SECONDS / (N - 1)`.
+Without it, the experiment retains the historical 10 ms prediction spacing,
+so duration grows as `(N - 1) * 10 ms`. Fixed duration is available in wall-time
+mode and must be at least 10 ms. The 0.31-second setting matches the historical
+N32 duration. Control updates remain 10 ms apart at every resolution. During
+each update, simulation follows the plan's piecewise-constant controls and
+splits integration at prediction knot boundaries. All resolutions sample a
+common periodic reference by interpolation at their physical prediction times.
+
+To compare the same running objective across resolutions, fixed-duration mode
+scales position, velocity and control weights by `prediction_dt / .01`, using
+the historical N32 control weight `3.2e-7` as the common control-cost anchor.
+Terminal position weight stays 20. The native solver also applies the velocity
+weight at the terminal knot, retaining an endpoint quadrature contribution.
+Changing resolution therefore remains a discretization comparison, not a
+guarantee of identical solutions or iteration counts.
+
+`--initialization auto` is the default: it selects `native-stop` for multi-SQP
+wall-time runs and `single` for one-SQP or reference runs. Native-stop mode
+repeatedly solves the fixed initial state and reference, retaining the previous
+plan, until all batch members report native stopping. `--max-init-solves 5`
+limits initialization to five calls by default. If it exhausts that budget,
+the cell is `INIT CAP` and has no measured samples. These flags are the native
+stopping rule, not a nonlinear KKT certificate. `--initialization single`
+always performs exactly one excluded warm-up solve without requiring native
+stopping. Explicit native-stop initialization is also available with one-SQP
+operation; consider the call budget, since each initialization call then
+performs at most one SQP iteration.
+
+To reproduce the previous multi-SQP setup, omit `--horizon-time` and pass
+`--initialization single`. The historical one-SQP reference command below
+remains unchanged.
 
 Every new run requires `--gpu-name`; this is the configurable plot title,
 recorded separately from the detected device information. The default output
@@ -84,10 +122,10 @@ marks measured cap hits in the native-stopping mode.
 `--max-solve-ms` controls the single-solve cutoff: the default is 1000 ms,
 strictly greater than the threshold triggers it, and `0` disables it. Both
 limits are checked between updates. An in-flight solve finishes and its full
-sample is retained, so either limit can be exceeded substantially. Warm-up is
-always excluded and can itself take longer than these limits. Optional
+sample is retained, so either limit can be exceeded substantially. Initialization
+is always excluded and can itself take longer than these limits. Optional
 `--timeout SECONDS` is a separate hard timeout for the entire worker process,
-including warm-up. It is disabled by default and may interrupt an in-flight
+including initialization. It is disabled by default and may interrupt an in-flight
 solve without a completed sample.
 
 Resume an interrupted matrix with `--resume` and the same experiment arguments
@@ -99,7 +137,7 @@ To redraw a saved matrix without GPU execution:
 
 ```sh
 python examples/solve_time_heatmap/run.py --plot-only \
-  --output test-artifacts/heatmap-native-stop
+  --output test-artifacts/heatmap-fixed-horizon-native-stop
 ```
 
 Plot-only mode reuses the saved GPU name. An explicit `--gpu-name` replaces the
@@ -129,14 +167,15 @@ branch's solver and bindings, not its historical binary.
 ## Reading the results
 
 - Solve time is synchronized host timing inside the native solver for one
-  **complete batch**. It excludes initial warm-up, Python simulation and
+  **complete batch**. It excludes initialization, Python simulation and
   recording, and binding input/output transfers. Frequency is
   `1000 / mean_native_ms`, not batch-member throughput or achieved end-to-end
   control frequency.
 - Fixed-step wall-time mode gives fast cells more simulated time and more
   figure-eight phases within their budget. A periodic extension of the sampled
   reference supports this. Timing and tracking means across cells therefore
-  cover different simulated trajectories. The simulation clock does not model
+  cover different simulated trajectories. Equal prediction duration does not
+  equalize phase coverage within a wall-time budget. The simulation clock does not model
   a real-time controller's delays.
 - GATO's native convergence flag means the inner PCG solver used zero
   iterations. It is not a verified nonlinear KKT tolerance. Native flags,
@@ -144,23 +183,29 @@ branch's solver and bindings, not its historical binary.
   Reaching the wall-time or simulation-time budget means the experiment
   completed, not that every solve converged. A cap hit is retained as an
   outcome; it does not by itself stop a cell.
-- Slow solves, nonfinite trajectories and unsupported resource requirements
+- Incomplete initialization (`INIT CAP`), slow solves, nonfinite trajectories and unsupported resource requirements
   are distinct outcomes. Slow/partial samples remain available for inspection;
   they do not become ordinary completed-cell heatmap values.
 - Tracking is the world-coordinate distance from the simulated joint-6 origin
-  to the next reference knot. It is neither an offset tool-center-point error
+  to the current-time reference in fixed-duration mode, or to the next reference
+  knot with historical spacing. It is neither an offset tool-center-point error
   nor an orientation error. Means are per measured update, not time-weighted,
-  and exclude warm-up.
+  and exclude initialization.
 - Both protocols retain the original ready pose, figure-eight geometry, zero
   external forces and unshifted warm starts. Batch 0 controls the robot and its
   plan is broadcast into the next warm start. Rho resets before every solve;
-  duals reset once. The remaining original parameters include PCG cap 100,
+  duals reset once. The original parameters for historical prediction spacing include PCG cap 100,
   PCG tolerance 1e-6, KKT tolerance .001, solve ratio 1, mu 10, position cost 2,
   velocity cost .001, control cost `1e-8*N`, terminal cost 20, zero limit
-  penalties and rho .1. Changing the SQP cap does not change these parameters.
+  penalties and rho .1. Fixed-duration mode adjusts running weights as described
+  above. Changing the SQP cap alone does not change these parameters.
 
 Outputs include the matrix `results.json`, per-cell summaries, raw NPZ
 samples, worker logs, source snapshots and hashes, and PNG/PDF/SVG figures.
+Each cell's `initialization.json` records initialization calls, stopping outcome,
+native timing and wall time separately. CSV summaries and the report include
+initialization costs, prediction duration and knot spacing; initialization
+costs never enter the numeric heatmap values.
 `--save-plans` additionally saves complete batch-0 plans; it is off by default
 to keep output size manageable.
 The solve-time and frequency figures are named `gato_solve_time_heatmap` and
@@ -180,8 +225,9 @@ the solver on the GPU.
 
 All maintained experiment code lives in this directory: `run.py` handles the
 CLI and matrix, `experiment.py` shares simulation and recording across modes,
-`protocol.py` holds model integration and solver parameters, and `plotting.py`
-produces plots, CSVs and the report. There are no runtime imports from local
+`protocol.py` holds model integration and solver parameters, `settings.py`
+shares timestep and cost conventions without loading simulation dependencies,
+and `plotting.py` produces plots, CSVs and the report. There are no runtime imports from local
 exploratory scripts under `build/`.
 
 CPU regression checks require the experiment Python packages but no CUDA run:
@@ -190,7 +236,8 @@ CPU regression checks require the experiment Python packages but no CUDA run:
 python -m unittest discover -s examples/solve_time_heatmap -p 'test_*.py'
 ```
 
-They cover warm-up exclusion, clock behavior, cutoff and partial outcomes,
+They cover initialization exclusion, fixed-duration sampling and controls,
+clock behavior, cutoff and partial outcomes,
 historical protocol parity, repeat aggregation, and output preservation. The
 short pilot above exercises the compiled solver; repeat it with
 `--max-sqp-iters 1` and a different output directory to check both SQP modes.

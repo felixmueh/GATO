@@ -1,21 +1,58 @@
-"""Simulation protocol accompanying the unchanged reference PNG at 4173824.
+"""Solver parameters, reference sampling, and integration for both protocols.
 
-Adapted from benchmark_fig8.py in that commit. Keep its capped clock, integer
-reference offsets, residual integration and unshifted warm starts: changing
-those choices changes the workload whose solve times are being measured.
-The solver implementation and URDF are supplied by the current checkout.
+Historical behavior comes from benchmark_fig8.py at 4173824. Fixed-duration
+experiments share its reference and dynamics while varying prediction spacing
+and normalizing running costs. The solver and URDF come from this checkout.
 """
 import numpy as np
 import pinocchio as pin
 
+from settings import (CONTROL_DT, COST_ANCHOR_KNOTS, INTEGRATION_DT,
+                      REFERENCE_DT, prediction_step)
+
 REFERENCE_COMMIT = "4173824"
 
 
-def solver_parameters(n):
-    return dict(max_sqp_iters=1, kkt_tol=.001, max_pcg_iters=100,
+def solver_parameters(n, horizon_time=None):
+    params = dict(max_sqp_iters=1, kkt_tol=.001, max_pcg_iters=100,
                 pcg_tol=1e-6, solve_ratio=1., mu=10., q_cost=2.,
                 qd_cost=1e-3, u_cost=1e-8 * n, N_cost=20.,
                 q_lim_cost=0., vel_lim_cost=0., ctrl_lim_cost=0., rho=.1)
+    if horizon_time is not None:
+        # One physical running objective at every resolution. Anchor to the
+        # historical N32 weights at 10 ms; terminal position cost is unchanged.
+        scale = prediction_step(n, horizon_time) / REFERENCE_DT
+        params.update(q_cost=2. * scale, qd_cost=1e-3 * scale,
+                      u_cost=(1e-8 * COST_ANCHOR_KNOTS) * scale)
+    return params
+
+
+def periodic_reference(reference, times, sample_dt=REFERENCE_DT):
+    """Interpolate a shared periodic reference without regenerating its phase."""
+    reference = np.asarray(reference).reshape(-1, 6)
+    samples = np.remainder(np.asarray(times) / sample_dt, len(reference))
+    lower = np.floor(samples).astype(int)
+    alpha = (samples - lower)[..., None]
+    return (1. - alpha) * reference[lower] + alpha * reference[(lower + 1) % len(reference)]
+
+
+def advance_plan(model, data, q, dq, plan, n, prediction_dt, duration=CONTROL_DT,
+                 max_step=INTEGRATION_DT):
+    """Apply piecewise-constant controls, splitting integration at knot boundaries."""
+    nx, nu = model.nq + model.nv, model.nv
+    elapsed = 0.
+    while elapsed < duration - 1e-14:
+        control = min(int(np.floor((elapsed + 1e-13) / prediction_dt)), n - 2)
+        boundary = (control + 1) * prediction_dt
+        step = min(max_step, duration - elapsed, boundary - elapsed)
+        if step <= 0:
+            raise ValueError('Prediction horizon must cover the control update')
+        start = control * (nx + nu) + nx
+        q, dq = rk4(model, data, q, dq, plan[start:start + nu], step)
+        elapsed += step
+        if not np.isfinite(q).all() or not np.isfinite(dq).all():
+            break
+    return q, dq
 
 
 def rk4(model, data, q, dq, u, dt):

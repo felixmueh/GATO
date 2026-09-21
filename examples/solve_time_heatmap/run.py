@@ -16,6 +16,9 @@ import subprocess
 import sys
 import time
 
+from settings import (CONTROL_DT, DEFAULT_INIT_SOLVES, INTEGRATION_DT,
+                      REFERENCE_DT, cost_rule, prediction_step)
+
 ROOT = Path(__file__).resolve().parents[2]
 HERE = Path(__file__).resolve().parent
 KNOTS = (8, 16, 32, 64, 128, 256)
@@ -62,8 +65,14 @@ def parser():
     p.add_argument('--protocol', choices=['wall-time', 'reference'], default='wall-time')
     p.add_argument('--max-sqp-iters', type=int, default=1000,
                    help='Use 1 for one SQP step; otherwise native stopping up to this cap (default: 1000)')
+    p.add_argument('--horizon-time', type=float,
+                   help='Fixed prediction duration in seconds (wall-time mode); knot spacing is duration/(N-1). Omit for historical 10 ms spacing')
+    p.add_argument('--initialization', choices=['auto', 'single', 'native-stop'], default='auto',
+                   help='Excluded startup: auto uses native-stop for multi-SQP wall-time runs, single otherwise')
+    p.add_argument('--max-init-solves', type=int, default=DEFAULT_INIT_SOLVES,
+                   help=f'Maximum excluded initial solves in native-stop mode (default: {DEFAULT_INIT_SOLVES}); incomplete cells are not measured')
     p.add_argument('--wall-time', type=float, default=10.,
-                   help='Measured wall-time budget per cell, excluding warm-up (wall-time protocol)')
+                   help='Measured wall-time budget per cell, excluding initialization (wall-time protocol)')
     p.add_argument('--sim-time', type=float, default=10.,
                    help='Simulated duration per cell (reference protocol)')
     p.add_argument('--max-solve-ms', type=float, default=1000.,
@@ -74,7 +83,7 @@ def parser():
     p.add_argument('--seed', type=int, default=17092026)
     p.add_argument('--save-plans', action='store_true', help='Also retain full batch-0 plans in raw samples')
     p.add_argument('--timeout', type=float,
-                   help='Optional hard worker timeout including setup and warm-up (seconds)')
+                   help='Optional hard worker timeout including setup and initialization (seconds)')
     p.add_argument('--resume', action='store_true', help='Resume an interrupted manifest with matching settings/sources')
     p.add_argument('--plot-only', action='store_true', help='Render saved results; no CUDA or solver run')
     p.add_argument('--cell', type=int, nargs=3, metavar=('N', 'BATCH', 'REPEAT'), help=argparse.SUPPRESS)
@@ -86,11 +95,17 @@ def configuration(args):
                 batches=args.batches, repeats=args.repeats, max_sqp_iters=args.max_sqp_iters,
                 wall_time=args.wall_time, sim_time=args.sim_time, max_solve_ms=args.max_solve_ms,
                 seed=args.seed, save_plans=args.save_plans, timeout=args.timeout,
-                dt=.01, sim_dt=.001, sim_step=.01, warmup_solves=1,
-                timing='Full-batch synchronized native host solve time; initial warm-up and Python work excluded',
+                horizon_time=args.horizon_time, initialization=args.initialization,
+                max_init_solves=args.max_init_solves,
+                dt=REFERENCE_DT if args.horizon_time is None else None,
+                prediction_dt_by_n={str(n): prediction_step(n, args.horizon_time) for n in args.knots},
+                sim_dt=INTEGRATION_DT, sim_step=CONTROL_DT,
+                warmup_solves=1 if args.initialization == 'single' else None,
+                cost_rule=cost_rule(args.horizon_time),
+                timing='Full-batch synchronized native host solve time; initialization and Python work excluded',
                 frequency='1000 / mean native milliseconds; not batch throughput or end-to-end control rate',
                 stopping='Unchanged native stopping rule up to the selected SQP cap',
-                clock=('Fixed 10 ms updates, wall budget after warm-up; active solves finish'
+                clock=('Fixed 10 ms updates, wall budget after initialization; active solves finish'
                        if args.protocol == 'wall-time' else
                        'Original min(previous native solve time, 10 ms), fixed simulated duration'))
 
@@ -165,7 +180,10 @@ def cell_command(args, n, batch, repeat):
                '--output', str(args.output), '--protocol', args.protocol,
                '--max-sqp-iters', str(args.max_sqp_iters), '--wall-time', str(args.wall_time),
                '--sim-time', str(args.sim_time), '--max-solve-ms', str(args.max_solve_ms),
+               '--initialization', args.initialization, '--max-init-solves', str(args.max_init_solves),
                '--seed', str(args.seed)]
+    if args.horizon_time is not None:
+        command += ['--horizon-time', str(args.horizon_time)]
     if args.save_plans:
         command.append('--save-plans')
     return command
@@ -255,6 +273,8 @@ def main(argv=None):
     if args.gpu_name is None:
         p.error('--gpu-name is required for a new or resumed run')
     values = [args.wall_time, args.sim_time, args.max_solve_ms]
+    if args.horizon_time is not None:
+        values.append(args.horizon_time)
     if args.timeout is not None:
         values.append(args.timeout)
     if not all(math.isfinite(value) for value in values):
@@ -263,6 +283,13 @@ def main(argv=None):
         p.error('Durations, SQP cap and repeats must be positive; cutoff must be nonnegative')
     if args.timeout is not None and args.timeout <= 0:
         p.error('--timeout must be positive')
+    if args.horizon_time is not None and (args.protocol != 'wall-time' or args.horizon_time < CONTROL_DT):
+        p.error('--horizon-time requires --protocol wall-time and a duration of at least 0.01 seconds')
+    if args.max_init_solves <= 0:
+        p.error('--max-init-solves must be positive')
+    if args.initialization == 'auto':
+        args.initialization = ('native-stop' if args.protocol == 'wall-time' and args.max_sqp_iters > 1
+                               else 'single')
     if len(set(args.knots)) != len(args.knots) or len(set(args.batches)) != len(args.batches):
         p.error('Horizons and batch sizes must be unique')
     if args.seed < 0 or args.seed + args.repeats > 2**32:
