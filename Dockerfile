@@ -1,4 +1,5 @@
-FROM nvidia/cuda:12.9.1-devel-ubuntu22.04
+ARG BASE_IMAGE=nvidia/cuda:12.9.1-devel-ubuntu22.04
+FROM ${BASE_IMAGE}
 
 # environment variables
 ENV DEBIAN_FRONTEND=noninteractive
@@ -40,8 +41,7 @@ RUN ln -sf /usr/bin/python${PYTHON_VERSION} /usr/bin/python \
 
 RUN pip3 install --no-cache-dir cmake==3.24.0
 
-RUN curl -LsSf https://astral.sh/uv/install.sh | sh \
-        && ln -sf /root/.local/bin/uv /usr/local/bin/uv
+RUN curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/usr/local/bin sh
 
 ENV PATH="${UV_PROJECT_ENVIRONMENT}/bin:/root/.local/bin:${PATH}"
 
