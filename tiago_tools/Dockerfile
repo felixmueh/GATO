@@ -1,4 +1,9 @@
-FROM gato
+ARG BASE_IMAGE=gato
+FROM ${BASE_IMAGE}
+
+ARG LOCAL_UID=1000
+ARG LOCAL_GID=1000
+ARG LOCAL_USER=felix
 
 ENV LANG=C.UTF-8
 ENV LC_ALL=C.UTF-8
@@ -38,7 +43,16 @@ RUN apt-get update \
 
 COPY tiago_tools/cyclone_pal_loopback.xml /etc/cyclonedds/pal_loopback.xml
 
-RUN echo 'export PYTHONPATH=/workspace/tiago_src:/workspace/python${PYTHONPATH:+:$PYTHONPATH}' >> ~/.bashrc
-RUN echo '# Source ROS manually only in shells that run ROS tools: source /opt/ros/humble/setup.bash' >> ~/.bashrc
+# Create the development user after installing system packages.
+RUN groupadd --gid "${LOCAL_GID}" "${LOCAL_USER}" \
+        && useradd --uid "${LOCAL_UID}" --gid "${LOCAL_GID}" --create-home --shell /bin/bash "${LOCAL_USER}" \
+        && echo '[ -f /opt/gato-venv/bin/activate ] && source /opt/gato-venv/bin/activate' >> "/home/${LOCAL_USER}/.bashrc" \
+        && echo '# Source ROS manually: source /opt/ros/humble/setup.bash' >> "/home/${LOCAL_USER}/.bashrc" \
+        && chown -R "${LOCAL_UID}:${LOCAL_GID}" "/home/${LOCAL_USER}"
+
+ENV HOME=/home/${LOCAL_USER}
+ENV USER=${LOCAL_USER}
+ENV PYTHONPATH=/workspace/tiago_src:/workspace/python
+USER ${LOCAL_USER}
 
 CMD ["/bin/bash"]
