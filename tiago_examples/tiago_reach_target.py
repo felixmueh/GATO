@@ -1839,7 +1839,11 @@ def create_plots(args):
 
 
 def add_run_args(parser):
-    from gato_tiago.config import TIAGO_RIGHT_DEFAULT_START_CONFIG, TIAGO_RIGHT_START_CONFIGS
+    from gato_tiago.config import (
+        TIAGO_DEFAULT_MAX_ABS_TORQUE,
+        TIAGO_RIGHT_DEFAULT_START_CONFIG,
+        TIAGO_RIGHT_START_CONFIGS,
+    )
 
     parser.add_argument("--N", type=int, default=16)
     parser.add_argument("--dt", type=float, default=0.03)
@@ -1877,7 +1881,7 @@ def add_run_args(parser):
     parser.add_argument("--ros-target-hz", type=float, default=100.0)
     parser.add_argument("--ros-reset-duration", type=float, default=2.0)
     parser.add_argument("--ros-stale-timeout", type=float, default=0.1)
-    parser.add_argument("--ros-max-abs-torque", type=float, default=30.0)
+    parser.add_argument("--ros-max-abs-torque", type=float, default=TIAGO_DEFAULT_MAX_ABS_TORQUE)
     parser.add_argument("--ros-clamp-torque", action="store_true")
     parser.add_argument("--ros-disable-collision-safety", action="store_true")
     parser.add_argument("--ros-collision-min-distance", type=float, default=0.04)

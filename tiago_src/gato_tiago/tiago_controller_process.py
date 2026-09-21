@@ -20,6 +20,7 @@ import warnings
 import numpy as np
 
 from gato_tiago.config import (
+    TIAGO_DEFAULT_MAX_ABS_TORQUE,
     TIAGO_RIGHT_DEFAULT_START_CONFIG,
     TIAGO_RIGHT_START_CONFIGS,
 )
@@ -257,6 +258,13 @@ def _validate_trajectory(
     max_abs_torque: float,
     clamp_torque: bool,
 ) -> np.ndarray:
+    # This is an immediate streaming interface, not a future-command scheduler.
+    # Otherwise the sampler applies row zero while a future start postpones expiry.
+    if traj.start_monotonic_sec is not None:
+        if not np.isfinite(traj.start_monotonic_sec):
+            raise ValueError("trajectory start time must be finite")
+        if traj.start_monotonic_sec > time.perf_counter():
+            raise ValueError("trajectory start time must not be in the future")
     torques = np.asarray(traj.torques, dtype=np.float64)
     if torques.ndim != 2 or torques.shape[1] != n_joints:
         raise ValueError(
@@ -349,7 +357,7 @@ class TiagoControllerOrchestrator:
         reset_duration_sec: float = 2.0,
         stale_timeout_sec: float = 0.1,
         # TODO: read from urdf
-        max_abs_torque: float = 30.0,
+        max_abs_torque: float = TIAGO_DEFAULT_MAX_ABS_TORQUE,
         clamp_torque: bool = False,
         disable_collision_safety_for_sim_debug: bool = False,
         collision_min_distance_m: float = 0.04,
@@ -483,6 +491,12 @@ class TiagoControllerOrchestrator:
         *,
         start_monotonic_sec: float | None = None,
     ) -> None:
+        """Queue an immediate horizon; explicit starts use this host's perf_counter.
+
+        Omitted starts use consumption time. Explicit starts may be in the past
+        to account for elapsed samples, but future scheduling is unsupported.
+        The execution process validates the start before publishing this horizon.
+        """
         self._raise_if_failed()
         if self._process is None or not self._process.is_alive():
             raise RuntimeError("controller process is not running")

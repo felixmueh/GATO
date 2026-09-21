@@ -311,6 +311,11 @@ class TiagoRightArmClient:
 
     def configure_runtime_effort_controller(self, timeout_sec: float = 5.0) -> None:
         """Load and configure a forward effort controller through public ROS APIs."""
+        # TODO: Does the installed PAL effort-command receiver expire commands
+        # when the external publisher stops, and what fallback does it perform?
+        # Verify the installed implementation/configuration with PAL; the upstream
+        # Humble forward controller has no command-age check. The service timeout
+        # below only bounds our wait for a response, not the lifetime of an effort.
         if self._topic_has_subscription(self.effort_command_topic):
             return
 

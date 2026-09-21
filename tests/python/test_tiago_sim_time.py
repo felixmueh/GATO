@@ -86,6 +86,16 @@ def test_orchestrator_uses_default_collision_blacklist_when_unspecified():
     assert controller.collision_safety.blacklist_path == DEFAULT_COLLISION_BLACKLIST_PATH
 
 
+def test_default_torque_cap_clamps_to_smallest_modeled_effort_limit():
+    from gato_tiago.tiago_controller_process import TorqueTrajectory, _validate_trajectory
+
+    controller = TiagoControllerOrchestrator()
+    trajectory = TorqueTrajectory(np.array([[30, -30, 26, -26, 0, 1, -1]]), 0.008)
+    with pytest.warns(RuntimeWarning, match="clamping"):
+        torques = _validate_trajectory(trajectory, 7, controller.max_abs_torque, True)
+    np.testing.assert_array_equal(torques, [[26, -26, 26, -26, 0, 1, -1]])
+
+
 def test_orchestrator_validates_joint_limit_settings():
     with pytest.raises(ValueError, match="collision_check_timeout_sec"):
         TiagoControllerOrchestrator(collision_check_timeout_sec=0.0)

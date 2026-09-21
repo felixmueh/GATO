@@ -3,6 +3,11 @@
 import numpy as np
 
 
+# Common software cap: the smallest effort limit in the right-arm model.
+# Keep the generated per-joint hardware/model limits unchanged.
+TIAGO_DEFAULT_MAX_ABS_TORQUE = 26.0
+
+
 TIAGO_RIGHT_START_CONFIGS = {
     "zero": np.zeros(7),
     # Default start configuration from simulation environment.
