@@ -89,6 +89,43 @@ Run the C++ example with:
 ./build/bsqp
 ```
 
+### TIAGo ROS 2 connection profiles
+
+From the repository root on the host:
+
+```bash
+./tiago_tools/docker.sh --target desktop --ros-profile simulation
+./tiago_tools/docker.sh --target jetson --ros-profile tiago
+```
+
+| Profile | Domain | DDS interfaces | Peers |
+| --- | --- | --- | --- |
+| `simulation` (default) | 1 | `lo` | `localhost` |
+| `tiago` | 2 | `enP4p1s0`, `lo` | `10.68.0.1`, `localhost` |
+
+Both use Cyclone DDS with multicast disabled. The robot profile's interface and
+address are hard-coded for the university Jetson/TIAGo setup in
+[cyclone_tiago_ethernet.xml](tiago_tools/cyclone_tiago_ethernet.xml).
+
+Inside a running container, switch the current Bash terminal without restarting:
+
+```bash
+source tiago_tools/ros_tiago.sh
+# Or:
+source tiago_tools/ros_simulation.sh
+```
+
+Source ROS separately when using ROS tools:
+
+```bash
+source /opt/ros/humble/setup.bash
+```
+
+Profiles override inherited ROS/DDS settings; `tiago` unsets
+`ROS_LOCALHOST_ONLY`. They affect new launcher shells or the terminal where
+sourced, leaving existing nodes and other terminals unchanged. No image rebuild
+is needed. Plain `docker exec ... bash` requires sourcing a profile manually.
+
 ## Related
 
 - The open-source [MPCGPU solver](https://github.com/A2R-Lab/MPCGPU)

@@ -38,7 +38,7 @@ build_images() {
 }
 
 docker_main() {
-    local target=desktop
+    local target=desktop ros_profile=simulation
     REBUILD_IMAGE=0
     local recreate_container=0 restart_container=0 attach_shell=1
     while [[ $# -gt 0 ]]; do
@@ -46,15 +46,20 @@ docker_main() {
             --target)
                 if [[ $# -lt 2 ]]; then echo '--target requires desktop or jetson' >&2; return 1; fi
                 target="$2"; shift 2 ;;
+            --ros-profile)
+                if [[ $# -lt 2 ]]; then echo '--ros-profile requires simulation or tiago' >&2; return 1; fi
+                ros_profile="$2"; shift 2 ;;
             --rebuild-image) REBUILD_IMAGE=1; shift ;;
             --recreate-container) recreate_container=1; shift ;;
             --restart) restart_container=1; shift ;;
             --no-attach) attach_shell=0; shift ;;
             -h|--help)
                 cat <<HELP
-Usage: $0 [--target desktop|jetson] [--rebuild-image] [--recreate-container] [--restart] [--no-attach]
+Usage: $0 [--target desktop|jetson] [--ros-profile simulation|tiago] [--rebuild-image] [--recreate-container] [--restart] [--no-attach]
 
   --target              Hardware target (default: desktop; Jetson uses L4T r36.4.0).
+  --ros-profile         ROS connection for new shells (default: simulation).
+                        tiago uses domain 2, enP4p1s0 and peer 10.68.0.1.
   --rebuild-image       Rebuild the image chain, then recreate this container.
   --recreate-container  Recreate this container without rebuilding existing images.
   --restart             Stop and start this container.
@@ -62,11 +67,18 @@ Usage: $0 [--target desktop|jetson] [--rebuild-image] [--recreate-container] [--
 
 Run on the target machine. Images are built with your host UID/GID;
 rebuild and recreate existing containers to adopt a different user.
+ROS profiles override inherited ROS/DDS settings, but do not source ROS itself.
+Changing a profile does not reconfigure existing shells or running nodes.
 HELP
                 return 0 ;;
             *) printf 'Unknown option: %s\n' "$1" >&2; return 1 ;;
         esac
     done
+
+    case "${ros_profile}" in
+        simulation|tiago) ;;
+        *) printf 'Unknown ROS profile: %s\n' "${ros_profile}" >&2; return 1 ;;
+    esac
 
     BASE_IMAGE_NAME=gato
     TIAGO_IMAGE_NAME=gato-tiago
@@ -95,13 +107,13 @@ HELP
     local shell_args=(
         --user "${LOCAL_UID}:${LOCAL_GID}"
         -e "HOME=/home/${LOCAL_USER}" -e "USER=${LOCAL_USER}"
-        -e "ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-1}"
-        -e "ROS_LOCALHOST_ONLY=${ROS_LOCALHOST_ONLY:-0}"
-        -e "RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION:-rmw_cyclonedds_cpp}"
-        -e "CYCLONEDDS_URI=${CYCLONEDDS_URI:-${CONTAINER_REPO_ROOT}/tiago_tools/cyclone_pal_loopback.xml}"
+        -e "GATO_ROS_PROFILE=${ros_profile}"
         -e "PYTHONPATH=${CONTAINER_REPO_ROOT}/tiago_src:${CONTAINER_REPO_ROOT}/python"
         -w "${CONTAINER_REPO_ROOT}"
     )
+    # The same rcfile applies profiles to the initial shell and later exec
+    # shells, including containers created before profile support was added.
+    local shell_command=(/bin/bash --rcfile "${CONTAINER_REPO_ROOT}/tiago_tools/lib/ros_shell.bash")
     local container_exists
     container_exists="$(docker ps -aq -f "name=^/${CONTAINER_NAME}$")"
     if [[ -n "${container_exists}" && ( "${REBUILD_IMAGE}" -eq 1 || "${recreate_container}" -eq 1 ) ]]; then
@@ -114,14 +126,15 @@ HELP
             -e "DISPLAY=${DISPLAY}" "${shell_args[@]}" \
             -v "${WORKSPACE_HOST}:/workspace:Z" \
             -v /tmp/.X11-unix:/tmp/.X11-unix \
-            "${EXTRA_RUN_ARGS[@]}" --name "${CONTAINER_NAME}" "${IMAGE_NAME}" /bin/bash >/dev/null
+            "${EXTRA_RUN_ARGS[@]}" --name "${CONTAINER_NAME}" "${IMAGE_NAME}" "${shell_command[@]}" >/dev/null
     elif [[ "${restart_container}" -eq 1 ]]; then
         docker stop "${CONTAINER_NAME}" >/dev/null
     fi
     docker start "${CONTAINER_NAME}" >/dev/null
     if [[ "${attach_shell}" -eq 1 ]]; then
-        docker exec -it "${shell_args[@]}" "${CONTAINER_NAME}" /bin/bash
+        docker exec -it "${shell_args[@]}" "${CONTAINER_NAME}" "${shell_command[@]}"
     else
         printf "Container '%s' is ready.\n" "${CONTAINER_NAME}"
+        printf 'Existing shells keep their settings; open a new shell with --ros-profile %s to select that profile.\n' "${ros_profile}"
     fi
 }
