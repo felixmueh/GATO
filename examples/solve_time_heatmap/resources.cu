@@ -1,11 +1,19 @@
 #include "bsqp/bsqp.cuh"
 
+#if defined(PLANT_TIAGO_RIGHT)
+constexpr const char* RESOURCE_PLANT = "tiago_right";
+#elif defined(PLANT_INDY7)
+constexpr const char* RESOURCE_PLANT = "indy7";
+#else
+#error "Unsupported matrix resource plant"
+#endif
+
 int main() {
     int device;
     gpuErrchk(cudaGetDevice(&device));
     cudaDeviceProp p;
     gpuErrchk(cudaGetDeviceProperties(&p, device));
-    std::cout << "{\"N\":" << KNOT_POINTS
+    std::cout << "{\"plant\":\"" << RESOURCE_PLANT << "\",\"N\":" << KNOT_POINTS
               << ",\"device\":\"" << p.name << "\",\"compute_capability\":\""
               << p.major << "." << p.minor << "\",\"shared_limit_bytes\":"
               << p.sharedMemPerBlock << ",\"global_memory_bytes\":" << p.totalGlobalMem

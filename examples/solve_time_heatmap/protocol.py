@@ -1,8 +1,8 @@
 """Solver parameters, reference sampling, and integration for both protocols.
 
-Historical behavior comes from benchmark_fig8.py at 4173824. Fixed-duration
-experiments share its reference and dynamics while varying prediction spacing
-and normalizing running costs. The solver and URDF come from this checkout.
+TIAGo uses the tracking configuration; explicit Indy7 runs retain parameters
+from benchmark_fig8.py at 4173824. Fixed-duration experiments normalize running
+weights while varying prediction spacing. Models come from this checkout.
 """
 import numpy as np
 import pinocchio as pin
@@ -13,7 +13,19 @@ from settings import (CONTROL_DT, COST_ANCHOR_KNOTS, INTEGRATION_DT,
 REFERENCE_COMMIT = "4173824"
 
 
-def solver_parameters(n, horizon_time=None):
+def solver_parameters(n, horizon_time=None, plant="indy7"):
+    if plant == "tiago_right":
+        import plants  # Make the repository TIAGo package available.
+        from gato_tiago.config import TIAGO_TRACKING_SOLVER_PARAMS
+        params = dict(TIAGO_TRACKING_SOLVER_PARAMS)
+        if horizon_time is not None:
+            # Match live TIAGo tuning at its 8 ms prediction interval.
+            scale = prediction_step(n, horizon_time) / .008
+            for key in ("q_cost", "qd_cost", "u_cost", "q_lim_cost", "vel_lim_cost", "ctrl_lim_cost"):
+                params[key] *= scale
+        return params
+    if plant != "indy7":
+        raise ValueError(f"Unknown plant: {plant}")
     params = dict(max_sqp_iters=1, kkt_tol=.001, max_pcg_iters=100,
                 pcg_tol=1e-6, solve_ratio=1., mu=10., q_cost=2.,
                 qd_cost=1e-3, u_cost=1e-8 * n, N_cost=20.,

@@ -11,6 +11,8 @@ import sys
 import time
 import traceback
 
+from plants import plant_inputs, plant_metadata, end_effector_position
+
 from settings import (CONTROL_DT, DEFAULT_INIT_SOLVES, INTEGRATION_DT,
                       REFERENCE_DT, cost_rule, prediction_step)
 
@@ -44,7 +46,7 @@ class NumericInstability(RuntimeError):
 def run_instrumented(solver, model, x_start, reference, record, *,
                      protocol='wall-time', wall_time=10., sim_time=10.,
                      max_solve_ms=1000., initialization='single', max_init_solves=DEFAULT_INIT_SOLVES,
-                     horizon_time=None):
+                     horizon_time=None, plant="indy7"):
     """Execute MPC with an excluded initialization phase and shared measurement path.
 
     Wall-time mode advances simulation by 10 ms per update, repeats one reference
@@ -173,9 +175,8 @@ def run_instrumented(solver, model, x_start, reference, record, *,
             finite_batch = np.isfinite(xu_batch_new).all(axis=1)
             xu_best = xu_batch_new[0, :]
             xu_batch[:, :] = xu_best
-            pin.forwardKinematics(model, data, q)
-            ee_pos = data.oMi[6].translation.copy()
-            distance = np.linalg.norm(ee_pos - (ee_g[:3] if horizon_time is not None else ee_g[6:9]))
+            ee_pos = end_effector_position(plant, model, data, q)
+            distance = np.linalg.norm(ee_pos - (ee_g[:3] if horizon_time is not None or plant == "tiago_right" else ee_g[6:9]))
             record(solver, xu_best, x_curr, ee_g, solve_time_us, total_sim_time,
                    reference_offset, ee_pos, distance, False, finite_batch=finite_batch)
             if not finite_batch.all() or not np.isfinite(distance):
@@ -354,8 +355,6 @@ def run_cell(args):
     import bsqp
     bsqp.__path__ = [str(args.build_dir.resolve() / 'modules'), *bsqp.__path__]
     from bsqp.interface import BSQP
-    from bsqp.common import figure8
-    from bsqp.config import FIG8_DEFAULT_PARAMS, INDY7_START_CONFIGS
     from protocol import solver_parameters, REFERENCE_COMMIT
 
     n, batch, repeat = args.cell
@@ -365,22 +364,22 @@ def run_cell(args):
         raise RuntimeError(f'Cell already contains results: {output}')
     np.random.seed(args.seed + repeat)
     prediction_dt = prediction_step(n, args.horizon_time)
-    params = solver_parameters(n, args.horizon_time) | {'max_sqp_iters': args.max_sqp_iters}
-    urdf = ROOT / 'examples/indy7_description/indy7.urdf'
-    meta = dict(N=n, batch_size=batch, repeat=repeat, gpu_name=args.gpu_name,
+    params = solver_parameters(n, args.horizon_time, args.plant) | {'max_sqp_iters': args.max_sqp_iters}
+    urdf, start, reference = plant_inputs(args.plant, args.protocol)
+    meta = dict(**plant_metadata(args.plant), N=n, batch_size=batch, repeat=repeat, gpu_name=args.gpu_name,
         protocol=args.protocol, sim_step_s=CONTROL_DT, sim_time_s=args.sim_time,
         horizon_time=args.horizon_time, prediction_dt_s=prediction_dt,
         prediction_duration_s=prediction_dt * (n - 1),
         initialization_mode=args.initialization, max_init_solves=args.max_init_solves,
         max_solve_ms=args.max_solve_ms, max_sqp_iters=args.max_sqp_iters,
-        solver_params=params, reference_commit=REFERENCE_COMMIT,
+        solver_params=params, reference_commit=REFERENCE_COMMIT if args.plant == "indy7" else None,
         native_criterion='Native kkt_converged flag: zero PCG iterations; not a nonlinear KKT tolerance check',
         timing='Full-batch synchronized native host time; initialization excluded from all measured aggregates',
         frequency='1000 / mean native milliseconds; solve-only frequency, not end-to-end control frequency',
-        tracking=('Per-solve joint-6 origin position error vs current-time reference; motion startup included; not time-weighted'
-                  if args.horizon_time is not None else
-                  'Per-solve joint-6 origin position error vs next reference knot; motion startup included; not time-weighted'),
-        cost_rule=cost_rule(args.horizon_time),
+        tracking=(plant_metadata(args.plant)['tracking_frame'] +
+                  (' vs current-time reference' if args.horizon_time is not None or args.plant == 'tiago_right'
+                   else ' vs next reference knot') + '; per solve, motion startup included'),
+        cost_rule=cost_rule(args.horizon_time, args.plant),
         batch_policy='Batch 0 controls simulation; its unshifted plan is broadcast after every measured solve',
         cutoff_semantics='Stop after first measured native solve strictly above cutoff; zero disables; initialization excluded; slow sample retained',
         budget_semantics=('Soft wall budget starts after initialization and recording; checked between complete updates; final output excluded'
@@ -393,20 +392,17 @@ def run_cell(args):
     previous_handler = signal.signal(signal.SIGTERM, interrupt)
     status, end_time, error = 'running', None, None
     try:
-        solver = BSQP(str(urdf), batch, n, prediction_dt, **params)
+        solver = BSQP(str(urdf), batch, n, prediction_dt, plant_type=args.plant, **params)
         module = Path(solver.lib.__file__).resolve()
         if module.parent != (args.build_dir / 'modules').resolve():
             raise RuntimeError(f'Unexpected solver module: {module}')
         meta.update(module=str(module), module_sha256=hashlib.sha256(module.read_bytes()).hexdigest())
-        start = np.r_[INDY7_START_CONFIGS['ready'], np.zeros(6)]
-        reference_params = FIG8_DEFAULT_PARAMS | ({'cycles': 1} if args.protocol == 'wall-time' else {})
-        reference = figure8(REFERENCE_DT, **reference_params)
         np.savez_compressed(output / 'inputs.npz', x_start=start, reference=reference)
         end_time, status = run_instrumented(solver, pin.buildModelFromUrdf(str(urdf)),
             start, reference, recorder, protocol=args.protocol, wall_time=args.wall_time,
             sim_time=args.sim_time, max_solve_ms=args.max_solve_ms,
             horizon_time=args.horizon_time, initialization=args.initialization,
-            max_init_solves=args.max_init_solves)
+            max_init_solves=args.max_init_solves, plant=args.plant)
     except NumericInstability as exc:
         status, error = 'unstable_nonfinite', str(exc)
     except KeyboardInterrupt as exc:

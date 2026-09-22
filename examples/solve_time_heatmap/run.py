@@ -1,4 +1,4 @@
-"""Run the Indy7 solve-time matrix with one SQP step or native stopping.
+"""Run the TIAGo (or historical Indy7) solve-time matrix with one SQP step or native stopping.
 
 The default uses fixed 10 ms simulation updates and a wall-time budget per cell.
 Use --protocol reference to reproduce the original capped simulation clock.
@@ -15,6 +15,8 @@ import shutil
 import subprocess
 import sys
 import time
+
+from plants import DEFAULT_PLANT, PLANTS, plant_metadata
 
 from settings import (CONTROL_DT, DEFAULT_INIT_SOLVES, INTEGRATION_DT,
                       REFERENCE_DT, cost_rule, prediction_step)
@@ -60,7 +62,8 @@ def match_torch_libraries():
 def parser():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--gpu-name', help='Required plot label for new runs; saved for plot-only')
-    p.add_argument('--build-dir', type=Path, default=ROOT / 'build/solve-time-heatmap-felix-devel')
+    p.add_argument('--plant', choices=PLANTS, default=DEFAULT_PLANT)
+    p.add_argument('--build-dir', type=Path, help='Default: build/solve-time-heatmap-<plant>')
     p.add_argument('--output', type=Path, default=ROOT / 'test-artifacts/solve-time-heatmap')
     p.add_argument('--protocol', choices=['wall-time', 'reference'], default='wall-time')
     p.add_argument('--max-sqp-iters', type=int, default=1000,
@@ -91,7 +94,7 @@ def parser():
 
 
 def configuration(args):
-    return dict(gpu_name=args.gpu_name, protocol=args.protocol, knots=args.knots,
+    return dict(**plant_metadata(args.plant), gpu_name=args.gpu_name, protocol=args.protocol, knots=args.knots,
                 batches=args.batches, repeats=args.repeats, max_sqp_iters=args.max_sqp_iters,
                 wall_time=args.wall_time, sim_time=args.sim_time, max_solve_ms=args.max_solve_ms,
                 seed=args.seed, save_plans=args.save_plans, timeout=args.timeout,
@@ -101,7 +104,7 @@ def configuration(args):
                 prediction_dt_by_n={str(n): prediction_step(n, args.horizon_time) for n in args.knots},
                 sim_dt=INTEGRATION_DT, sim_step=CONTROL_DT,
                 warmup_solves=1 if args.initialization == 'single' else None,
-                cost_rule=cost_rule(args.horizon_time),
+                cost_rule=cost_rule(args.horizon_time, args.plant),
                 timing='Full-batch synchronized native host solve time; initialization and Python work excluded',
                 frequency='1000 / mean native milliseconds; not batch throughput or end-to-end control rate',
                 stopping='Unchanged native stopping rule up to the selected SQP cap',
@@ -115,8 +118,16 @@ def source_paths():
     paths += list((ROOT / 'python').rglob('*.py')) + [ROOT / 'python/bindings.cu']
     paths += list(HERE.glob('*.py'))
     paths += [HERE / 'resources.cu', HERE / 'CMakeLists.txt', HERE / 'requirements.txt',
-              ROOT / 'examples/indy7_description/indy7.urdf']
+              ROOT / 'examples/indy7_description/indy7.urdf',
+              ROOT / 'gato/dynamics/tiago_right/tiago_right_arm.urdf',
+              ROOT / 'tiago_src/gato_tiago/config.py',
+              ROOT / 'tiago_src/gato_tiago/references.py']
     return sorted(set(paths))
+
+
+def validate_resource_plant(resource, plant):
+    if resource.get("plant") != plant:
+        raise ValueError(f"Resource probe plant {resource.get('plant')!r} does not match {plant}; rebuild in a matching build directory")
 
 
 def prepare_manifest(args):
@@ -127,7 +138,7 @@ def prepare_manifest(args):
         if not args.resume:
             raise ValueError('Output contains results; use a fresh --output, --resume or --plot-only')
         manifest = json.loads(manifest_path.read_text())
-        if manifest.get('schema_version') != 2:
+        if manifest.get('schema_version') != 3:
             raise ValueError('Legacy results can be plotted, but cannot be resumed by this runner')
         if manifest['config'] != config or manifest['source_sha256'] != hashes:
             raise ValueError('Resume settings or sources differ from the saved experiment')
@@ -145,7 +156,7 @@ def prepare_manifest(args):
     import pinocchio
     import matplotlib
     import torch
-    manifest = dict(schema_version=2, config=config, status='running', results=[], resources={},
+    manifest = dict(schema_version=3, config=config, status='running', results=[], resources={},
                     git_head=subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip(),
                     started_at=time.time(), executable=sys.executable, python=sys.version,
                     build_dir=str(args.build_dir), gpu_before=gpu_snapshot(), source_sha256=hashes,
@@ -158,10 +169,11 @@ def prepare_manifest(args):
         probe = subprocess.run([str(args.build_dir / f'resources_N{n}')],
                                check=True, capture_output=True, text=True)
         resource = manifest['resources'][str(n)] = json.loads(probe.stdout)
+        validate_resource_plant(resource, args.plant)
         if all(k['fits'] for k in resource['kernels']):
-            modules = list((args.build_dir / 'modules').glob(f'bsqpN{n}_indy7*.so'))
+            modules = list((args.build_dir / 'modules').glob(f'bsqpN{n}_{args.plant}*.so'))
             if len(modules) != 1:
-                raise ValueError(f'Build exactly one bsqpN{n}_indy7 module in {args.build_dir / "modules"}')
+                raise ValueError(f'Build exactly one bsqpN{n}_{args.plant} module in {args.build_dir / "modules"}')
             manifest['module_sha256'][str(modules[0].resolve())] = digest(modules[0])
     args.output.mkdir(parents=True, exist_ok=True)
     for path in source_paths():
@@ -169,14 +181,15 @@ def prepare_manifest(args):
         destination.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(path, destination)
     (args.output / 'source.diff').write_text(subprocess.check_output(
-        ['git', 'diff', 'HEAD', '--', 'gato', 'python', 'examples/solve_time_heatmap'], cwd=ROOT, text=True))
+        ['git', 'diff', 'HEAD', '--', 'gato', 'python', 'examples/solve_time_heatmap', 'tiago_src/gato_tiago'], cwd=ROOT, text=True))
     save_json(manifest_path, manifest)
     return manifest
 
 
 def cell_command(args, n, batch, repeat):
     command = [sys.executable, str(HERE / 'run.py'), '--cell', str(n), str(batch), str(repeat),
-               '--gpu-name', args.gpu_name, '--build-dir', str(args.build_dir),
+               '--plant', args.plant, '--gpu-name', args.gpu_name, '--build-dir',
+               str(args.build_dir or ROOT / f'build/solve-time-heatmap-{args.plant}'),
                '--output', str(args.output), '--protocol', args.protocol,
                '--max-sqp-iters', str(args.max_sqp_iters), '--wall-time', str(args.wall_time),
                '--sim-time', str(args.sim_time), '--max-solve-ms', str(args.max_solve_ms),
@@ -251,7 +264,8 @@ def sweep(args):
 def main(argv=None):
     p = parser()
     args = p.parse_args(argv)
-    args.output, args.build_dir = args.output.resolve(), args.build_dir.resolve()
+    args.output = args.output.resolve()
+    args.build_dir = (args.build_dir or ROOT / f'build/solve-time-heatmap-{args.plant}').resolve()
     if args.gpu_name is not None:
         args.gpu_name = args.gpu_name.strip()
         if not args.gpu_name:
@@ -270,6 +284,8 @@ def main(argv=None):
         from plotting import plot
         plot(args.output)
         return 0
+    if args.protocol == 'reference' and args.plant != 'indy7':
+        p.error('Historical reference protocol requires --plant indy7')
     if args.gpu_name is None:
         p.error('--gpu-name is required for a new or resumed run')
     values = [args.wall_time, args.sim_time, args.max_solve_ms]

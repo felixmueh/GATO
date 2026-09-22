@@ -181,7 +181,7 @@ def draw(config, rows, output, *, frequency=False):
         expected = len(rows) * config['repeats']
         if recorded < expected:
             mode += f' · Partial: {recorded}/{expected} repeat outcomes'
-        ax.set_title(f'GATO / Indy7 — {config["gpu_name"]}\n{mode}\n{horizon_label(config)}', fontsize=16, pad=16)
+        ax.set_title(f'GATO / {config.get("plant_label", "Indy7")} — {config["gpu_name"]}\n{mode}\n{horizon_label(config)}', fontsize=16, pad=16)
         units = 'Solver frequency (Hz): 1000 / mean solve time (ms)' if frequency else 'Mean synchronized native solve time (ms)'
         fig.colorbar(im, ax=ax, fraction=.046, pad=.03).set_label(units, fontsize=13)
         if config['protocol'] == 'wall-time':
@@ -215,7 +215,7 @@ def extent(values):
 def report(config, results, rows):
     completed = [r for r in rows if r['included_in_heatmap']]
     total = len(rows) * config['repeats']
-    lines = [f'# GATO / Indy7 — {config["gpu_name"]}', '',
+    lines = [f'# GATO / {config.get("plant_label", "Indy7")} — {config["gpu_name"]}', '',
              f'{len(results)}/{total} repeat outcomes recorded: {outcome_counts(results) or "none"}.', '',
              '“Completed” means the requested experiment budget was reached; it does not certify nonlinear convergence.', '',
              f'Completed-repeat cell means span **{extent([r["mean_native_ms"] for r in completed])} ms** and '
@@ -243,11 +243,7 @@ def report(config, results, rows):
         dt = prediction_dt(config, n)
         lines.append(f'| {n} | {dt*(n-1):.6g} | {1000*dt:.6g} |')
     if config.get('horizon_time') is not None:
-        lines += ['', 'All resolutions sample the same periodic reference at physical prediction times. '
-                  'Running costs scale with knot spacing relative to 10 ms; the control-cost coefficient '
-                  'uses the historical N=32 value as its common anchor. Terminal position cost remains fixed. '
-                  'The native solver also applies the velocity weight at the endpoint, so the objective '
-                  'retains an endpoint quadrature contribution.']
+        lines += ['', config.get('cost_rule', 'Historical Indy7 running weights scaled relative to 10 ms, anchored at N32.')]
     lines += ['', '## Initialization', '']
     if config.get('initialization') == 'native-stop':
         limit = config.get('max_init_solves')
@@ -274,14 +270,14 @@ def report(config, results, rows):
                          f'{row["initialization_status"]} | ' + ' | '.join(costs) + ' |')
         lines.append('')
     cutoff = config['max_solve_ms']
-    tracking_reference = ('the current-time reference' if config.get('horizon_time') is not None
+    tracking_reference = ('the current-time reference' if config.get('horizon_time') is not None or config.get('plant') == 'tiago_right'
                           else 'the next reference knot')
     lines += [(f'A repeat stops after its first measured solve strictly exceeding **{cutoff:g} ms**. '
                'Initialization never triggers this cutoff. The slow sample is retained; the cutoff is not a hard cancellation deadline. '
                'A slow repeat can have a mean below the cutoff.' if cutoff else 'The slow-solve cutoff is disabled.'), '',
               'Batch 0 controls the simulation; its unshifted plan supplies the next warm start. Timing and tracking '
               'summaries can cover unequal numbers of updates and unequal trajectory durations. Tracking is the '
-              f'per-solve joint-6 origin error against {tracking_reference}, with measured startup transients included.', '',
+              f'per-solve {config.get("tracking_frame", "joint-6 origin")} error against {tracking_reference}, with measured startup transients included.', '',
               '## SQP stopping', '']
     if config['max_sqp_iters'] == 1:
         lines += ['The solver performs at most **one SQP iteration per update**. Reaching that cap is intentional, '
