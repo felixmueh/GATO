@@ -126,6 +126,21 @@ Profiles override inherited ROS/DDS settings; `tiago` unsets
 sourced, leaving existing nodes and other terminals unchanged. No image rebuild
 is needed. Plain `docker exec ... bash` requires sourcing a profile manually.
 
+### TIAGo experiment sessions
+
+Inside the container, from the repository root:
+
+```bash
+source tiago_tools/start_session.sh
+set -o pipefail
+python tiago_examples/validate_ros_assumptions.py 2>&1 | tee "$TIAGO_SESSION/preflight.log"
+```
+
+Each source call creates a fresh directory under `example_artifacts/real_tiago/`
+and exports its absolute path as `TIAGO_SESSION` in the current shell. It saves
+the commit, branch, worktree status and a patch of tracked changes. Untracked
+files are listed but not copied. Use `$TIAGO_SESSION` for experiment output.
+
 ## Related
 
 - The open-source [MPCGPU solver](https://github.com/A2R-Lab/MPCGPU)
