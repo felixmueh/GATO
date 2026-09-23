@@ -68,9 +68,15 @@ class TorqueTrajectory:
 
 
 @dataclass(frozen=True)
+class FinishControl:
+    request_id: int
+
+
+@dataclass(frozen=True)
 class ControllerStatus:
     mode: str
     error: str | None = None
+    finished_request_id: int | None = None
 
 
 @dataclass(frozen=True)
@@ -432,6 +438,7 @@ class TiagoControllerOrchestrator:
         self._state_history: list[StateHistorySample] = []
         self._closed = False
         self._cleanup_registered = False
+        self._finish_request_id = 0
 
     def initialize(self, timeout_sec: float = 10.0) -> None:
         if self._process is not None and self._process.is_alive():
@@ -476,9 +483,7 @@ class TiagoControllerOrchestrator:
     def _latest_status(self) -> ControllerStatus | None:
         return _get_latest(self._status_q)
 
-    def _raise_if_failed(self, status: ControllerStatus | None = None) -> None:
-        if status is None:
-            status = self._latest_status()
+    def _raise_if_failed(self, status: ControllerStatus | None) -> None:
         if status is not None and status.mode.startswith("ERROR"):
             raise RuntimeError(status.error or status.mode)
         if self._process is not None and self._process.exitcode is not None:
@@ -497,7 +502,7 @@ class TiagoControllerOrchestrator:
         to account for elapsed samples, but future scheduling is unsupported.
         The execution process validates the start before publishing this horizon.
         """
-        self._raise_if_failed()
+        self._raise_if_failed(self._latest_status())
         if self._process is None or not self._process.is_alive():
             raise RuntimeError("controller process is not running")
         traj = TorqueTrajectory(
@@ -507,10 +512,30 @@ class TiagoControllerOrchestrator:
         )
         _put_latest(self._trajectory_q, traj)
 
+    def finish_control(self, timeout_sec: float = 5.0) -> None:
+        """Restore default control before processing results; keep the worker reusable."""
+        self._raise_if_failed(self._latest_status())
+        if self._process is None or not self._process.is_alive():
+            raise RuntimeError("controller process is not running")
+        self._finish_request_id += 1
+        request_id = self._finish_request_id
+        # Share the horizon queue so an older queued plan cannot reactivate effort
+        # control after restoration. Each batch must receive its own acknowledgement.
+        _put_latest(self._trajectory_q, FinishControl(request_id))
+        deadline = time.monotonic() + timeout_sec
+        while time.monotonic() < deadline:
+            status = self._latest_status()
+            self._raise_if_failed(status)
+            if (status is not None and status.mode == "RESTORED"
+                    and status.finished_request_id == request_id):
+                return
+            time.sleep(0.01)
+        raise TimeoutError("controller did not confirm default-control restoration")
+
     def read_state(self, timeout_sec: float = 0.0) -> RobotState | None:
         deadline = time.monotonic() + timeout_sec
         while True:
-            self._raise_if_failed()
+            self._raise_if_failed(self._latest_status())
             latest = _read_state(self._state)
             if latest is not None:
                 self._latest_state = latest
@@ -574,12 +599,22 @@ class TiagoControllerOrchestrator:
             return
         self._closed = True
         self._stop_event.set()
-        if self._process is not None:
-            self._process.join(timeout=timeout_sec)
-            if self._process.is_alive():
-                self._process.terminate()
-                self._process.join(timeout=1.0)
-        self._state_history = _load_state_history(self._history_path)
+        try:
+            if self._process is not None:
+                self._process.join(timeout=timeout_sec)
+                if self._process.is_alive():
+                    self._process.terminate()
+                    self._process.join(timeout=1.0)
+                    raise TimeoutError("controller shutdown timed out; restoration unconfirmed")
+                status = self._latest_status()
+                if status is not None and status.mode.startswith("ERROR"):
+                    raise RuntimeError(status.error or status.mode)
+                if self._process.exitcode != 0:
+                    raise RuntimeError(f"controller process exited: {self._process.exitcode}")
+                if status is None or status.mode != "RESTORED":
+                    raise RuntimeError("controller shutdown did not confirm restoration")
+        finally:
+            self._state_history = _load_state_history(self._history_path)
 
     def __enter__(self) -> "TiagoControllerOrchestrator":
         self.initialize()
@@ -622,10 +657,14 @@ def _controller_main(
     safety_monitor: AsyncSafetyMonitor | None = None
     history_buffer = TiagoHistoryBuffer(history_max_records)
 
-    def set_status(new_mode: str, error: str | None = None) -> None:
+    def set_status(
+        new_mode: str, error: str | None = None, *, finished_request_id: int | None = None,
+    ) -> None:
         nonlocal mode
         mode = new_mode
-        _put_latest(status_q, ControllerStatus(mode=new_mode, error=error))
+        _put_latest(status_q, ControllerStatus(
+            mode=new_mode, error=error, finished_request_id=finished_request_id,
+        ))
 
     def write_history_state(
         state: Any,
@@ -733,6 +772,12 @@ def _controller_main(
                     write_history_state(state, mode, safety_monitor=safety_monitor)
 
                 traj = _get_latest(trajectory_q)
+                if isinstance(traj, FinishControl):
+                    stop_motion_and_restore_default()
+                    current_torques = None
+                    active_trajectory_id = None
+                    set_status("RESTORED", finished_request_id=traj.request_id)
+                    traj = None
                 if traj is not None:
                     trajectory_start = (
                         traj.start_monotonic_sec

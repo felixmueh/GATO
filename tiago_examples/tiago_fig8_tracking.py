@@ -619,13 +619,16 @@ def run(args):
             }
     finally:
         if ros_controller is not None:
-            ros_controller.close(timeout_sec=args.ros_controller_timeout)
-            controller_state_summary = ros_controller.write_state_history_csv(
-                output_dir / "controller_state_history.csv"
-            )
-            ros_controller.write_full_state_history_jsonl(
-                output_dir / "full_joint_state_history.jsonl"
-            )
+            try:
+                ros_controller.close(timeout_sec=args.ros_controller_timeout)
+            finally:
+                # Preserve failure evidence even when restoration fails.
+                controller_state_summary = ros_controller.write_state_history_csv(
+                    output_dir / "controller_state_history.csv"
+                )
+                ros_controller.write_full_state_history_jsonl(
+                    output_dir / "full_joint_state_history.jsonl"
+                )
 
     orientation_tracking_enabled = (
         float(solver_params.get("ee_orient_cost", 0.0)) > 0.0

@@ -370,6 +370,10 @@ class MPC_GATO:
                 else:
                     stats['kkt_converged'].append(int(kkt_converged) if kkt_converged != [] else 0)
                 
+        # Result conversion and output can outlast the final torque horizon.
+        if use_controller:
+            controller.finish_control(timeout_sec=controller_timeout)
+
         # Convert to numpy arrays
         for key in stats:
             if stats[key]:
@@ -789,6 +793,10 @@ class MPC_GATO:
                 else:
                     stats['pcg_iters'].append(0)
         
+        # Stop torque execution before statistics or caller-side result writing.
+        if use_controller:
+            controller.finish_control(timeout_sec=controller_timeout)
+
         # Convert to numpy arrays
         for key in stats:
             if isinstance(stats[key], list) and len(stats[key]) > 0:
