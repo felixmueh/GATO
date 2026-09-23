@@ -1,4 +1,4 @@
-"""Small ROS 2 helpers for controlling a TIAGo right arm in simulation.
+"""Small ROS 2 helpers for controlling a TIAGo right arm.
 
 The module avoids importing ROS at import time so non-ROS tests and experiments
 can still import :mod:`gato_tiago.ros_tiago`. ROS packages are loaded lazily when a
@@ -141,6 +141,7 @@ def _ros_imports(setup_path: str | None = None) -> dict[str, Any]:
         from controller_manager_msgs.srv import (
             ConfigureController,
             LoadController,
+            ListControllers,
             SwitchController,
         )
         from rcl_interfaces.msg import Parameter as RosParameter
@@ -346,7 +347,9 @@ class TiagoRightArmClient:
         # Verify the installed implementation/configuration with PAL; the upstream
         # Humble forward controller has no command-age check. The service timeout
         # below only bounds our wait for a response, not the lifetime of an effort.
-        if self._topic_has_subscription(self.effort_command_topic):
+        controllers = self._list_controllers(timeout_sec)
+        controller = controllers.get(self.effort_controller)
+        if controller is not None and controller.state in {"inactive", "active"}:
             return
 
         self._set_controller_manager_type(
@@ -354,7 +357,10 @@ class TiagoRightArmClient:
             "forward_command_controller/ForwardCommandController",
             timeout_sec,
         )
-        self._load_controller(self.effort_controller, timeout_sec)
+        if controller is None:
+            self._load_controller(self.effort_controller, timeout_sec)
+        elif controller.state != "unconfigured":
+            raise RuntimeError(f"unexpected effort controller state: {controller.state}")
         self._set_remote_parameters(
             f"/{self.effort_controller}",
             {
@@ -366,41 +372,79 @@ class TiagoRightArmClient:
         self._configure_controller(self.effort_controller, timeout_sec)
 
     def switch_to_effort_control(self, timeout_sec: float = 5.0) -> None:
-        self._switch_controllers(
-            activate=[self.effort_controller],
-            deactivate=[
-                "arm_right_controller",
-                "arm_right_gravity_compensation_controller",
-            ],
-            strictness=2,
-            timeout_sec=timeout_sec,
-        )
+        self._switch_arm_mode(self.effort_controller, timeout_sec)
         self._wait_for_topic_subscription(self.effort_command_topic, timeout_sec)
 
     def switch_to_default_control(self, timeout_sec: float = 5.0) -> None:
-        effort_active = self._topic_has_subscription(self.effort_command_topic)
-        if self._topic_has_subscription(self.trajectory_topic) and not effort_active:
-            return
-        # Start the reactivated position controller from the measured joint
-        # state, not from a stale command-interface value left by a previous
-        # trajectory/controller mode.
-        self._set_remote_parameters(
-            "/arm_right_controller",
-            {"set_last_command_interface_value_as_state_on_activation": False},
+        self._switch_arm_mode("arm_right_controller", timeout_sec)
+
+    def _list_controllers(self, timeout_sec: float) -> dict[str, Any]:
+        response = self._service_call(
+            f"{self.controller_manager}/list_controllers",
+            self.ros["ListControllers"], self.ros["ListControllers"].Request(),
             timeout_sec,
         )
+        controllers = {c.name: c for c in response.controller}
+        if "" in controllers or len(controllers) != len(response.controller):
+            raise RuntimeError("invalid controller inventory: blank or duplicate names")
+        return controllers
+
+    def _active_arm_controller(self, controllers: dict[str, Any]) -> str | None:
+        """Reject mixed modes before any mutation, including during cleanup.
+
+        Position and effort are distinct ROS resources but must not be treated
+        as independent physical arm modes. Topic discovery cannot establish this.
+        """
+        known = {"arm_right_controller", "arm_right_gravity_compensation_controller",
+                 self.effort_controller}
+        active = []
+        for name, controller in controllers.items():
+            owns_arm = any(interface.split("/")[0] in self.joint_names
+                           for interface in controller.claimed_interfaces)
+            if name not in known and owns_arm:
+                raise RuntimeError(f"unexpected right-arm interface owner: {name}")
+            if name in known and controller.state == "active":
+                active.append(name)
+        if len(active) > 1:
+            raise RuntimeError(
+                f"multiple right-arm controllers active: {active}; "
+                "restore a known working PAL control mode before running GATO; "
+                "automatic mixed-mode recovery is disabled"
+            )
+        if active:
+            name = active[0]
+            interface = "position" if name == "arm_right_controller" else "effort"
+            expected = {f"{joint}/{interface}" for joint in self.joint_names}
+            if set(controllers[name].claimed_interfaces) != expected:
+                raise RuntimeError(f"unexpected claimed interfaces for {name}")
+            return name
+        return None
+
+    def _switch_arm_mode(self, destination: str, timeout_sec: float) -> None:
+        controllers = self._list_controllers(timeout_sec)
+        source = self._active_arm_controller(controllers)
+        if destination not in controllers:
+            raise RuntimeError(f"required controller is not loaded: {destination}")
+        if source == destination:
+            return
+        if controllers[destination].state != "inactive":
+            raise RuntimeError(f"controller is not ready to activate: {destination}")
+        if destination == "arm_right_controller":
+            # Reactivation must hold measured position, not an old trajectory.
+            self._set_remote_parameters(
+                "/arm_right_controller",
+                {"set_last_command_interface_value_as_state_on_activation": False},
+                timeout_sec,
+            )
+        # One request performs the handover; never enable gravity compensation
+        # as an additional step after enabling position control.
         self._switch_controllers(
-            activate=["arm_right_controller"],
-            deactivate=[self.effort_controller] if effort_active else [],
-            strictness=1,
-            timeout_sec=timeout_sec,
+            activate=[destination], deactivate=[source] if source else [],
+            strictness=2, timeout_sec=timeout_sec,
         )
-        self._switch_controllers(
-            activate=["arm_right_gravity_compensation_controller"],
-            deactivate=[],
-            strictness=1,
-            timeout_sec=timeout_sec,
-        )
+        actual = self._active_arm_controller(self._list_controllers(timeout_sec))
+        if actual != destination:
+            raise RuntimeError(f"controller switch not established: wanted {destination}, got {actual}")
 
     def _service_call(
         self,
