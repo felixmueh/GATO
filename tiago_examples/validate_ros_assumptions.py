@@ -22,6 +22,7 @@ from gato_tiago.ros_tiago import (  # noqa: E402
     RIGHT_ARM_JOINTS,
     TiagoRightArmClient,
     ensure_ros_environment,
+    validate_controller_manager_interfaces,
 )
 
 
@@ -64,6 +65,7 @@ def parse_args() -> argparse.Namespace:
 def _load_ros() -> SimpleNamespace:
     ensure_ros_environment(allow_reexec=False)
     try:
+        validate_controller_manager_interfaces()
         from controller_manager_msgs.srv import (
             ListControllers,
             ListControllerTypes,

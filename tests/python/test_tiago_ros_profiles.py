@@ -14,12 +14,15 @@ ROOT = Path(__file__).resolve().parents[2]
 TOOLS = ROOT / "tiago_tools"
 ENV_KEYS = (
     "GATO_ROS_PROFILE", "ROS_DOMAIN_ID", "RMW_IMPLEMENTATION",
-    "CYCLONEDDS_URI", "ROS_LOCALHOST_ONLY", "USER_RC_LOADED",
+    "CYCLONEDDS_URI", "ROS_LOCALHOST_ONLY", "USER_RC_LOADED", "PAL_OVERLAY_LOADED",
 )
 
 
-def shell_environment(tmp_path, commands, *, interactive=False, profile="tiago"):
+def shell_environment(tmp_path, commands, *, interactive=False, profile="tiago", setup=None):
     env = os.environ.copy()
+    env.pop("GATO_ROS_SETUP", None)
+    if setup is not None:
+        env["GATO_ROS_SETUP"] = str(setup)
     env.update(
         HOME=str(tmp_path), GATO_ROS_PROFILE=profile, ROS_DOMAIN_ID="99",
         RMW_IMPLEMENTATION="rmw_fastrtps_cpp", CYCLONEDDS_URI="/stale.xml",
@@ -71,6 +74,25 @@ def test_launcher_shell_preserves_bashrc_but_profile_wins(tmp_path):
     assert env["ROS_LOCALHOST_ONLY"] is None
     assert env["RMW_IMPLEMENTATION"] == "rmw_cyclonedds_cpp"
     assert env["CYCLONEDDS_URI"] == str(TOOLS / "cyclone_tiago_ethernet.xml")
+
+
+@pytest.mark.parametrize("profile,domain", [("simulation", "1"), ("tiago", "2")])
+def test_profiles_load_selected_overlay_before_network_settings(tmp_path, profile, domain):
+    setup = tmp_path / "pal setup.bash"
+    setup.write_text("export PAL_OVERLAY_LOADED=yes ROS_DOMAIN_ID=99\n")
+    env = shell_environment(tmp_path, f"source {TOOLS / ('ros_' + profile + '.sh')}",
+                            profile=profile, setup=setup)
+    assert env["PAL_OVERLAY_LOADED"] == "yes"
+    assert env["ROS_DOMAIN_ID"] == domain
+
+
+def test_missing_selected_overlay_fails_instead_of_using_stock_ros(tmp_path):
+    env = os.environ.copy()
+    env["GATO_ROS_SETUP"] = str(tmp_path / "missing.bash")
+    result = subprocess.run(["bash", "-c", f"source {TOOLS / 'ros_tiago.sh'}"],
+                            env=env, capture_output=True, text=True)
+    assert result.returncode != 0
+    assert "rebuild" in result.stderr
 
 
 @pytest.mark.parametrize("profile", ["simulation", "tiago"])

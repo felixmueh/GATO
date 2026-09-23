@@ -103,6 +103,35 @@ def ensure_ros_environment(
             os.execvpe(sys.executable, [sys.executable, *sys.argv], os.environ)
 
 
+def validate_controller_manager_interfaces() -> None:
+    """Reject the known incompatible Humble layout before sending any RPCs.
+
+    Discovery can succeed with these mismatched types while service results are
+    malformed. This local check targets the PAL 4.32.2 API used by both peers;
+    it does not establish compatibility with an arbitrary remote ROS system.
+    """
+    from controller_manager_msgs.msg import HardwareInterface, ControllerState
+    from controller_manager_msgs.srv import SwitchController
+
+    expected = (
+        (HardwareInterface, ("name", "data_type", "is_available", "is_claimed")),
+        (ControllerState, ("name", "state", "type", "is_async", "update_rate",
+                           "claimed_interfaces", "required_command_interfaces",
+                           "required_state_interfaces", "is_chainable", "is_chained",
+                           "exported_state_interfaces", "reference_interfaces", "chain_connections")),
+        (SwitchController.Request, ("activate_controllers", "deactivate_controllers",
+                                    "strictness", "activate_asap", "timeout")),
+        (SwitchController.Response, ("ok", "message")),
+    )
+    for message_type, fields in expected:
+        if tuple(message_type.get_fields_and_field_types()) != fields:
+            raise RuntimeError(
+                "Incompatible controller_manager_msgs: PAL 4.32.2 interfaces required; "
+                "rebuild the TIAGo image and source tiago_tools/ros_tiago.sh "
+                "or tiago_tools/ros_simulation.sh in a fresh shell."
+            )
+
+
 def _ros_imports(setup_path: str | None = None) -> dict[str, Any]:
     # TODO: if this runs in its own container with ROS already sourced import directly.
     ensure_ros_environment(setup_path)
@@ -120,6 +149,7 @@ def _ros_imports(setup_path: str | None = None) -> dict[str, Any]:
         from sensor_msgs.msg import JointState
         from std_msgs.msg import Float64MultiArray
         from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
+        validate_controller_manager_interfaces()
     except ImportError as exc:
         raise RuntimeError(
             "ROS 2 Python packages are not importable. Source ROS first, or set "
@@ -480,7 +510,7 @@ class TiagoRightArmClient:
         request.activate_controllers = list(activate)
         request.deactivate_controllers = list(deactivate)
         request.strictness = strictness
-        request.start_asap = True
+        request.activate_asap = True
         request.timeout = _duration_msg(self.ros, timeout_sec)
         response = self._service_call(
             f"{self.controller_manager}/switch_controller",
@@ -491,7 +521,8 @@ class TiagoRightArmClient:
         if not response.ok:
             raise RuntimeError(
                 "failed to switch controllers: "
-                f"activate={list(activate)} deactivate={list(deactivate)}"
+                f"activate={list(activate)} deactivate={list(deactivate)}; "
+                f"reason={response.message}"
             )
 
     def _node_exists(self, full_name: str) -> bool:

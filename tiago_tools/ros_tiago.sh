@@ -5,6 +5,16 @@ if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
     exit 1
 fi
 
+# The image selects the PAL interface overlay; load it before applying DDS
+# settings so both new shells and interactive profile changes use its types.
+if [[ -n "${GATO_ROS_SETUP:-}" ]]; then
+    if [[ ! -r "${GATO_ROS_SETUP}" ]]; then
+        echo "Missing ROS setup: ${GATO_ROS_SETUP}; rebuild the TIAGo image." >&2
+        return 1
+    fi
+    source "${GATO_ROS_SETUP}" || return 1
+fi
+
 _gato_ros_config_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)" || return 1
 if [[ ! -r "${_gato_ros_config_dir}/cyclone_tiago_ethernet.xml" ]]; then
     echo 'Cannot read the TIAGo Ethernet Cyclone DDS configuration.' >&2

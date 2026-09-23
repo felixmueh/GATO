@@ -67,7 +67,7 @@ Usage: $0 [--target desktop|jetson] [--ros-profile simulation|tiago] [--rebuild-
 
 Run on the target machine. Images are built with your host UID/GID;
 rebuild and recreate existing containers to adopt a different user.
-ROS profiles override inherited ROS/DDS settings, but do not source ROS itself.
+ROS profiles load the image's PAL interface overlay and apply ROS/DDS settings.
 Changing a profile does not reconfigure existing shells or running nodes.
 HELP
                 return 0 ;;

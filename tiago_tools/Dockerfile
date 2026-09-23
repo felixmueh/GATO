@@ -19,8 +19,7 @@ ENV ROS_LOCALHOST_ONLY=0
 ENV RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
 ENV CYCLONEDDS_URI=/etc/cyclonedds/pal_loopback.xml
 
-# ROS 2 client/runtime dependencies for lightweight command adapters. Keep ROS
-# sourcing opt-in so the ROS Python path does not contaminate the GATO venv.
+# ROS 2 client/runtime dependencies plus native interface generation tools.
 RUN apt-get update \
         && apt-get install -y ca-certificates curl gnupg locales \
         && locale-gen en_US en_US.UTF-8 \
@@ -39,7 +38,25 @@ RUN apt-get update \
             "ros-${ROS_DISTRO}-geometry-msgs" \
             "ros-${ROS_DISTRO}-rmw-cyclonedds-cpp" \
             "ros-${ROS_DISTRO}-ros2controlcli" \
+            "ros-${ROS_DISTRO}-rosidl-default-generators" \
+            "ros-${ROS_DISTRO}-lifecycle-msgs" \
+            python3-colcon-common-extensions build-essential cmake \
         && rm -rf /var/lib/apt/lists/*
+
+# The robot and PAL simulator use different wire layouts from standard Humble.
+# Build only their message package, natively on either amd64 or arm64.
+# Humble's generators use PYTHON_EXECUTABLE as well as Python3_EXECUTABLE;
+# keep both on system Python, which has the apt-installed generator modules.
+COPY tiago_tools/pal_interfaces /tmp/gato-pal-interfaces
+RUN /bin/bash -c 'set -e; cd /tmp/gato-pal-interfaces; \
+        sha256sum -c SHA256SUMS; \
+        source /opt/ros/${ROS_DISTRO}/setup.bash; \
+        colcon build --merge-install --install-base /opt/gato-pal-interfaces \
+            --allow-overriding controller_manager_msgs \
+            --cmake-args -DBUILD_TESTING=OFF \
+                -DPYTHON_EXECUTABLE=/usr/bin/python3 -DPython3_EXECUTABLE=/usr/bin/python3' \
+        && rm -rf /tmp/gato-pal-interfaces
+ENV GATO_ROS_SETUP=/opt/gato-pal-interfaces/setup.bash
 
 COPY tiago_tools/cyclone_pal_loopback.xml /etc/cyclonedds/pal_loopback.xml
 
@@ -47,7 +64,7 @@ COPY tiago_tools/cyclone_pal_loopback.xml /etc/cyclonedds/pal_loopback.xml
 RUN groupadd --gid "${LOCAL_GID}" "${LOCAL_USER}" \
         && useradd --uid "${LOCAL_UID}" --gid "${LOCAL_GID}" --create-home --shell /bin/bash "${LOCAL_USER}" \
         && echo '[ -f /opt/gato-venv/bin/activate ] && source /opt/gato-venv/bin/activate' >> "/home/${LOCAL_USER}/.bashrc" \
-        && echo '# Source ROS manually: source /opt/ros/humble/setup.bash' >> "/home/${LOCAL_USER}/.bashrc" \
+        && echo '# ROS is loaded by tiago_tools/ros_simulation.sh or ros_tiago.sh.' >> "/home/${LOCAL_USER}/.bashrc" \
         && chown -R "${LOCAL_UID}:${LOCAL_GID}" "/home/${LOCAL_USER}"
 
 ENV HOME=/home/${LOCAL_USER}

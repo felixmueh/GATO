@@ -115,16 +115,11 @@ source tiago_tools/ros_tiago.sh
 source tiago_tools/ros_simulation.sh
 ```
 
-Source ROS separately when using ROS tools:
-
 ```bash
-source /opt/ros/humble/setup.bash
+# One-time rebuild on each host:
+./tiago_tools/docker.sh --target desktop --ros-profile simulation --rebuild-image
+./tiago_tools/docker.sh --target jetson --ros-profile tiago --rebuild-image
 ```
-
-Profiles override inherited ROS/DDS settings; `tiago` unsets
-`ROS_LOCALHOST_ONLY`. They affect new launcher shells or the terminal where
-sourced, leaving existing nodes and other terminals unchanged. No image rebuild
-is needed. Plain `docker exec ... bash` requires sourcing a profile manually.
 
 ### TIAGo experiment sessions
 
