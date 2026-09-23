@@ -8,12 +8,15 @@ from __future__ import annotations
 
 import atexit
 from dataclasses import dataclass
+from datetime import datetime, timezone
 import json
 import multiprocessing as mp
+import os
 from pathlib import Path
 import queue
 import tempfile
 import time
+import sys
 from typing import Any, Sequence
 import warnings
 
@@ -77,6 +80,18 @@ class ControllerStatus:
     mode: str
     error: str | None = None
     finished_request_id: int | None = None
+    startup_stage: str | None = None
+    startup_stage_started: float | None = None
+
+
+def _log_startup(started: float, stage: str, detail: str = "") -> None:
+    """Flush setup diagnostics even when stdout/stderr are piped through tee."""
+    stamp = datetime.now(timezone.utc).isoformat(timespec="milliseconds")
+    print(
+        f"[{stamp} tiago setup pid={os.getpid()} +{time.monotonic() - started:.3f}s] "
+        f"{stage}{': ' + detail if detail else ''}",
+        file=sys.stderr, flush=True,
+    )
 
 
 @dataclass(frozen=True)
@@ -446,7 +461,11 @@ class TiagoControllerOrchestrator:
         self._closed = False
         from gato_tiago.ros_tiago import ensure_ros_environment
 
+        startup_started = time.monotonic()
+        _log_startup(startup_started, "loading ROS environment")
         ensure_ros_environment(allow_reexec=False)
+        _log_startup(startup_started, "spawning controller worker",
+                     f"ready timeout={timeout_sec:.1f}s, reset duration={self.reset_duration_sec:.1f}s")
         self._process = self._ctx.Process(
             target=_controller_main,
             kwargs={
@@ -472,13 +491,24 @@ class TiagoControllerOrchestrator:
             self._cleanup_registered = True
 
         deadline = time.monotonic() + timeout_sec
+        last_stage = "worker spawn/imports (no startup status received)"
+        stage_started = time.monotonic()
         while time.monotonic() < deadline:
             status = self._latest_status()
+            if status is not None and status.startup_stage is not None:
+                last_stage = status.startup_stage
+                if status.startup_stage_started is not None:
+                    stage_started = status.startup_stage_started
             if status is not None and status.mode == "READY":
+                _log_startup(startup_started, "controller ready")
                 return
             self._raise_if_failed(status)
             time.sleep(0.05)
-        raise TimeoutError("controller process did not become ready")
+        detail = (f"controller process did not become ready within {timeout_sec:.1f}s; "
+                  f"last observed setup stage: {last_stage} "
+                  f"({time.monotonic() - stage_started:.1f}s since stage began)")
+        _log_startup(startup_started, "TIMEOUT", detail)
+        raise TimeoutError(detail)
 
     def _latest_status(self) -> ControllerStatus | None:
         return _get_latest(self._status_q)
@@ -656,6 +686,9 @@ def _controller_main(
     last_history_source_seq = 0
     safety_monitor: AsyncSafetyMonitor | None = None
     history_buffer = TiagoHistoryBuffer(history_max_records)
+    startup_started = time.monotonic()
+    startup_stage: str | None = None
+    startup_stage_started: float | None = None
 
     def set_status(
         new_mode: str, error: str | None = None, *, finished_request_id: int | None = None,
@@ -664,7 +697,17 @@ def _controller_main(
         mode = new_mode
         _put_latest(status_q, ControllerStatus(
             mode=new_mode, error=error, finished_request_id=finished_request_id,
+            startup_stage=startup_stage, startup_stage_started=startup_stage_started,
         ))
+
+    def setup_stage(stage: str) -> None:
+        nonlocal startup_stage, startup_stage_started
+        now = time.monotonic()
+        previous = (f"previous stage took {now - startup_stage_started:.3f}s"
+                    if startup_stage_started is not None else "")
+        startup_stage, startup_stage_started = stage, now
+        _log_startup(startup_started, stage, previous)
+        set_status(mode)
 
     def write_history_state(
         state: Any,
@@ -703,6 +746,7 @@ def _controller_main(
         )
         last_history_source_seq = int(state.seq)
 
+    setup_stage("creating ROS client (imports, interface validation, node and topics)")
     with TiagoRightArmClient(node_name="gato_tiago_controller_process") as arm:
         def stop_motion_and_restore_default() -> None:
             nonlocal effort_active, current_applied_tau
@@ -720,22 +764,35 @@ def _controller_main(
 
         try:
             set_status("RESETTING")
+            setup_stage("switching to position control")
             arm.switch_to_default_control(timeout_sec=5.0)
+            setup_stage("publishing reset trajectory")
             arm.publish_position_trajectory(reset_q, duration_sec=reset_duration_sec)
+            setup_stage(f"waiting for reset duration ({reset_duration_sec:.1f}s; no arrival check)")
             reset_deadline = time.monotonic() + reset_duration_sec
             while time.monotonic() < reset_deadline and not stop_event.is_set():
                 arm.spin_once(timeout_sec=0.05)
+            setup_stage("reading initial joint state")
             initial_state = arm.read_state(timeout_sec=8.0)
+            _log_startup(startup_started, "initial joint state received",
+                         f"age={initial_state.age_sec:.3f}s, "
+                         f"max reset error={np.max(np.abs(initial_state.q - reset_q)):.4f}rad")
             if collision_safety.enabled:
+                setup_stage("starting collision safety worker")
                 initial_safety_state = _safety_check_state(initial_state)
                 safety_monitor = AsyncSafetyMonitor(
                     settings=collision_safety,
                     initial_state=initial_safety_state,
                 )
+                setup_stage("waiting for initial collision safety check")
                 safety_monitor.wait_until_checked(initial_safety_state)
             write_history_state(initial_state, "RESETTING", safety_monitor=safety_monitor)
+            setup_stage("configuring GATO effort controller")
             arm.configure_runtime_effort_controller(timeout_sec=5.0)
+            setup_stage("setup complete")
             set_status("READY")
+            startup_stage = None
+            startup_stage_started = None
 
             next_time = time.perf_counter()
             while not stop_event.is_set():

@@ -101,7 +101,7 @@ def test_close_reports_forced_termination(tmp_path):
 
 @pytest.mark.parametrize("finish,restore_fails", [(True, False), (False, False), (True, True)])
 def test_worker_finish_restores_before_idle_and_supports_next_batch(
-        monkeypatch, tmp_path, finish, restore_fails):
+        monkeypatch, tmp_path, capsys, finish, restore_fails):
     from gato_tiago import ros_tiago as ros
     from gato_tiago.safety_monitor import CollisionSafetySettings
 
@@ -180,6 +180,15 @@ def test_worker_finish_restores_before_idle_and_supports_next_batch(
         assert calls.count("restore") == 4  # Startup, both finishes, final cleanup.
         assert not arm_state.active
         assert execution._get_latest(statuses).mode == "RESTORED"
+
+    output = capsys.readouterr().err
+    stages = ["creating ROS client", "switching to position control",
+              "publishing reset trajectory", "waiting for reset duration",
+              "reading initial joint state", "configuring GATO effort controller",
+              "setup complete"]
+    offsets = [output.index(stage) for stage in stages]
+    assert offsets == sorted(offsets)
+    assert "previous stage took" in output and "max reset error=" in output
 
 
 @pytest.mark.parametrize("reply", ["current", "old", "error"])
