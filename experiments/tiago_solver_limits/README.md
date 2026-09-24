@@ -54,6 +54,55 @@ cross-GPU comparisons, use the saved-input workflow below instead of regeneratin
 inputs; the historical raw archive has its own pilot layout and is not directly
 a full-suite `--inputs-root` directory.
 
+## Jetson / TIAGo onboard computer
+
+The WIP branch includes the ARM dependency configuration and Docker target from
+`felix-devel` (original commits `6963443` and `948755f`). The Jetson target uses
+`nvcr.io/nvidia/l4t-jetpack:r36.4.0`, a separate image/container name, and the
+NVIDIA container runtime. Run it on a Jetson with a compatible host JetPack/L4T
+installation; this target is not a generic image for every Jetson generation.
+The launcher has been checked locally, but a native Jetson image build and
+experiment run have not yet been validated.
+
+After pulling this WIP branch, on the Jetson host:
+
+```sh
+./tiago_tools/docker.sh --target jetson --rebuild-image
+```
+
+This builds the image chain and opens the container shell. On later visits,
+use `./tiago_tools/docker.sh --target jetson` without rebuilding. Inside that
+container, from `/workspace`, start with resource and batching checks:
+
+```sh
+python examples/randomized_multimodal/validation_suite.py \
+  --architecture native --jobs 1 \
+  --build-dir build/solver-validation-jetson \
+  --output example_artifacts/solver_limits/jetson_gates \
+  --only resources batch
+```
+
+Then collect numerical and timing data using the same compiled modules:
+
+```sh
+python examples/randomized_multimodal/validation_suite.py \
+  --architecture native --jobs 1 --skip-build \
+  --build-dir build/solver-validation-jetson \
+  --output example_artifacts/solver_limits/jetson_numerical \
+  --only discretization horizon mpc-interval effort latency
+```
+
+These are offline simulations running on the onboard GPU; they do not command
+the robot and do not need ROS to be sourced. ARM uses CPU PyTorch packages;
+GATO's own compiled bindings still execute the solver on CUDA.
+
+Use distinct build/output directories for host versus container, and for each
+machine. CMake caches contain absolute checkout paths. Append `--resume` only
+when repeating the same command in the same environment with unchanged source,
+protocol and binaries; use fresh output directories after pulling changes.
+One build job reduces compilation memory pressure on the Jetson. Inspect the
+recorded resource and batching results before interpreting larger-grid outcomes.
+
 ## Completed pilot records
 
 - [Numerical pilot](results/numerical_pilot.txt): 36 selected open-loop outputs,
