@@ -10,6 +10,50 @@ Branch: `experiment/tiago-solver-limits`. The earlier multimodal experiment is
 preserved on `experiment/randomized-multimodal-mpc`. Configuration fuzzing and
 staggered-cylinder experiments are deferred until a horizon/grid is selected.
 
+## c3po WIP quickstart
+
+Transfer branch: `wip/tiago-solver-limits-c3po`. It contains the complete
+experiment source, protocol, build targets and compact GTX 1070 results.
+No local `felixnotes/` or `felixtools/` files are required to run the study.
+The older raw trajectory archive is optional when collecting new data.
+
+After pushing this branch, on c3po:
+
+```sh
+git fetch origin
+git switch --track origin/wip/tiago-solver-limits-c3po
+```
+
+Inside the existing GPU-enabled GATO environment, from the checkout root, use
+its Python interpreter (for the Felix container, `/opt/gato-venv/bin/python`):
+
+```sh
+python examples/randomized_multimodal/validation_suite.py \
+  --architecture native --jobs 2 \
+  --output example_artifacts/solver_limits/c3po_full
+```
+
+This builds all seven knot counts for c3po's GPU and runs all seven studies.
+It can take a substantial amount of time. Solver latency does not advance the
+simulated plant clock. Keep the GPU free of other workloads for useful latency
+measurements. The environment/toolkit requirements and staged commands below
+also apply to this one-command run.
+
+After interruption, repeat the exact command with `--resume` appended. Keep the
+source and protocol unchanged for that run. Child logs, failures, trajectories,
+hashes and machine metadata are saved under the chosen output directory; a
+nonzero suite exit can mean recorded failed cases and does not discard results.
+To send all collected data back, including failures and partial runs:
+
+```sh
+tar -czf c3po_solver_limits.tar.gz -C example_artifacts/solver_limits c3po_full
+```
+
+Use a new output directory after code or protocol changes. For exact paired
+cross-GPU comparisons, use the saved-input workflow below instead of regenerating
+inputs; the historical raw archive has its own pilot layout and is not directly
+a full-suite `--inputs-root` directory.
+
 ## Completed pilot records
 
 - [Numerical pilot](results/numerical_pilot.txt): 36 selected open-loop outputs,
