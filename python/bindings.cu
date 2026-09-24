@@ -342,6 +342,8 @@ class PyBSQP {
 #define PLANT_SUFFIX tiago_right_multimodal_toll
 #elif defined(TIAGO_MULTIMODAL_PILLAR)
 #define PLANT_SUFFIX tiago_right_multimodal
+#elif defined(PLANT_POINTMASS2D)
+#define PLANT_SUFFIX pointmass2d
 #elif defined(PLANT_INDY7)
 #define PLANT_SUFFIX indy7
 #elif defined(PLANT_IIWA14)

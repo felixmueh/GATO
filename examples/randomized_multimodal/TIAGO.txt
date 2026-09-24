@@ -1,0 +1,208 @@
+TIAGo randomized multistart transfer: reproduction and scope
+=========================================================
+
+Run commands from the repository root. TIAGO.txt is used because this checkout
+ignores Markdown files by default. This experiment is separate from the planar
+point-mass example documented in README.md.
+
+Environment and build
+---------------------
+The recorded local environment used Python 3.10.12 in /opt/gato-venv, NumPy 2.2.6,
+SciPy 1.15.3, Pinocchio 3.9.0, Matplotlib 3.10.8, and a GTX 1070 (CUDA SM 61).
+These paths and the GPU architecture are local environment choices. Required
+packages include pybind11 and the Python packages above. Configure another
+interpreter/architecture explicitly when reproducing elsewhere.
+
+  cmake -S . -B build-tiago-probe \
+    -DPython3_EXECUTABLE=/opt/gato-venv/bin/python \
+    -DCMAKE_BUILD_TYPE=Release -DCMAKE_CUDA_ARCHITECTURES=61-real \
+    -DPLANT=tiago_right_multimodal -DKNOTS=16
+  cmake --build build-tiago-probe --target bsqpN16_tiago_right_multimodal -j2
+
+The resulting module is python/bsqp/bsqpN16_tiago_right_multimodal*.so. The
+recorded build used -O3, -DNDEBUG and -use_fast_math; it also built N32 for earlier
+development sweeps, but the frozen experiment uses only N16. summary.json records
+binary, URDF and source hashes. Generated grid.cuh files are not edited.
+
+Frozen configuration and experiment
+-----------------------------------
+N=16, dt=.03 s: physical prediction duration is .45 s. Every MPC replan executes
+two controls, .06 simulated seconds, independently of measured solver latency.
+B1 retains shifted controls from its previous solution. B16 has exactly the
+same inherited lane zero plus 15 fresh obstacle-blind joint proposals. Proposal
+amplitude is .1 rad. Endpoint IK uses the goal only. Random smooth acceleration
+perturbations preserve endpoint conditions; inverse dynamics supplies torques.
+No cylinder data, route label, collision feedback or CPU reference enters these
+fresh proposals.
+
+A B1 nominal solve first acquires a route in the original scene. After a fixed
+.06 s prefix, the cylinder's signed offset from the original start-goal chord is
+reflected. Both comparisons start at the same executed state. The reflection
+is specified from scene geometry and does not depend on the selected route.
+
+Every solve uses two passes of up to 200 SQP iterations. Fixed rho=.01, mu=10,
+KKT tolerance=.001, PCG tolerance=.0001, maximum PCG iterations=1000. Objective
+weights are position=2, velocity=.01, effort=.0001, terminal position=200,
+cylinder residual=1 at every knot. Costs are summed without an extra dt factor.
+The cylinder has an .008 m SOFT optimization buffer. Joint/velocity/effort cost
+barriers are zero; their physical bounds are checked independently in replay.
+
+Selection ranks executable physical feasibility first, then the identical
+objective evaluated on CUDA control replay. Physical feasibility requires goal
+error <.02 m, positive physical cylinder clearance, joint violation <1e-5,
+velocity and effort ratios <=1. Clearance uses 17 samples per constant-
+acceleration coarse interval. MPC completion additionally requires terminal
+tool speed <.05 m/s. The soft .008 m buffer is not a guaranteed hard clearance.
+
+Held-out common-state campaign (12 scenes x 3 proposal seeds):
+
+  /opt/gato-venv/bin/python examples/randomized_multimodal/tiago_experiment.py \
+    --knots 16 --dt .03 --batch 16 --scenes 12 --seeds 801 802 803 \
+    --steps 1 --advance 2 --amplitude .1 --margin .008 \
+    --iters 200 --passes 2 --rho .01 --mu 10 --qd .01 --u .0001 \
+    --terminal 200 --obstacle 1 --pcg .0001 --kkt .001 --heldout \
+    --output example_artifacts/randomized_multimodal/tiago_heldout
+
+Held-out scene RNG is fixed at 80319+scene_index. Configurations perturb all
+seven nominal joints by uniform +/-.07 rad; travel is .10-.15 m, planar direction
+is +/-.45 rad, radius is .022-.029 m, and signed normal offset is .006-.012 m.
+The IK starting guess is clipped to its artificial interior bounds; the actual
+physical starting configuration is unchanged. No held-out geometry is filtered.
+
+Three separate DEVELOPMENT full-MPC illustrations, same solver configuration:
+
+  /opt/gato-venv/bin/python examples/randomized_multimodal/tiago_experiment.py \
+    --knots 16 --dt .03 --batch 16 --scenes 3 --seeds 100 \
+    --steps 20 --advance 2 --amplitude .1 --margin .008 \
+    --iters 200 --passes 2 --rho .01 --mu 10 --qd .01 --u .0001 \
+    --terminal 200 --obstacle 1 --pcg .0001 --kkt .001 \
+    --output example_artifacts/randomized_multimodal/tiago_rho001_mpc
+
+These execute 1.2 s after the common .06 s prefix. --resume can continue saved
+whole trials to a larger step budget; it does not retune the objective. The
+older tiago_mpc_pilot directory contains rho=1 development results, not the
+frozen configuration.
+
+Independent CPU references and figures
+--------------------------------------
+The CPU comparator optimizes exactly the same objective in joint-acceleration
+coordinates. Joint position/velocity integration is linear, and Pinocchio RNEA
+and its derivatives produce torques and gradients. It starts from the selected
+GATO controls AFTER the decision. Its controls never feed back into GATO.
+References are best-known feasible local results, not global lower bounds.
+
+  /opt/gato-venv/bin/python examples/randomized_multimodal/tiago_reference.py \
+    --input example_artifacts/randomized_multimodal/tiago_heldout
+  /opt/gato-venv/bin/python examples/randomized_multimodal/tiago_reference.py \
+    --input example_artifacts/randomized_multimodal/tiago_heldout \
+    --summarize-only --refine-curvature
+  /opt/gato-venv/bin/python examples/randomized_multimodal/tiago_reference.py \
+    --input example_artifacts/randomized_multimodal/tiago_rho001_mpc
+  /opt/gato-venv/bin/python examples/randomized_multimodal/plot_tiago.py \
+    example_artifacts/randomized_multimodal/tiago_heldout
+  /opt/gato-venv/bin/python examples/randomized_multimodal/plot_tiago.py \
+    example_artifacts/randomized_multimodal/tiago_rho001_mpc
+
+Reference defaults: L-BFGS-B maxiter=3000, gtol=1e-8, ftol=1e-13. CPU outputs
+include directional derivative errors, final gradient infinity norm and finite-
+difference Hessian diagnostics. One repeated coarse stencil crossed a nearly
+active residual hinge. --refine-curvature preserves that negative diagnostic
+and checks two smaller scales; it does not modify the optimized trajectory.
+
+Summary pooling asserts identical state, goal, obstacle geometry and shared
+configuration across proposal seeds. Each scene's reference is the best feasible
+CPU result across both methods and all three seeds. Statistics require every
+predefined trial and selected-output CPU reference. The 95% bootstrap interval
+resamples 12 scene clusters (20,000 resamples, RNG seed 20260924); proposal seeds
+within a scene are not independent scene samples.
+
+Outputs and recorded results
+----------------------------
+Each experiment directory contains summary.json and per-stage NPZ files:
+  scene{index}_seed{seed}_prefix.npz
+  scene{index}_seed{seed}_b{1,16}_stage{stage}.npz
+  scene{index}_seed{seed}_b{1,16}_executed.npz
+Stage arrays include xyz[B,N,3], seed_xyz, controls, replay and planned states.
+Executed xyz has shape [executed_knots,3]. CPU files end in _lane{lane}_cpu.npz.
+cpu_reference.json holds the comparator diagnostics; statistics.json holds the
+complete common-state comparison. figures/ contains PNG and PDF route plots.
+The recorded full-MPC directory also has execution_statistics.json, derived
+from each branch's summary.json executed objective and feasibility fields.
+
+Held-out results: both methods physically feasible 36/36. B16 improved the
+common-state objective 36/36, mean 6.79%, scene-cluster 95% interval [4.74%,8.87%].
+It changed winding in 34/36 cases. All 36 selected fresh proposals initially
+intersected the cylinder. B16's mean gap to the pooled CPU reference was 3.95%,
+with 27/36 within 5%; B1's mean gap was 11.70%, with 3/36 within 5%.
+
+Full DEVELOPMENT MPC: both methods completed all three examples. Equal-duration
+post-switch execution objective reductions were 4.54%, .55% and 2.08%. These
+are not 12 held-out full episodes, and this realized objective is not directly
+comparable to the fixed-horizon common-state objective.
+
+Post hoc fresh nominal B1 reset control
+---------------------------------------
+A separately tagged diagnostic addresses the cheaper alternative of discarding
+the inherited seed and using the ordinary goal-only minimum-energy nominal.
+One B1 solve per held-out scene reused the stored common state, original goal,
+original solver configuration and two-pass budget. No CPU reference was rerun.
+It completed in 18.8 s locally and is saved under:
+  tiago_heldout/posthoc_nominal_reset/{summary.json,scene{index}.npz}
+
+All 12 fresh nominal solves were physically feasible. Relative to this stronger
+control, frozen B16's mean-over-seeds improvement was 4.48%, exploratory scene-
+bootstrap 95% interval [2.36%,6.72%]. It improved 10/12 scene means and 31/36
+trial comparisons. Fresh nominal was better on scenes 7 and 9. Therefore the
+benefit is not uniform, and the original 6.79% figure is specifically relative
+to inherited single-start optimization. This diagnostic was chosen after seeing
+the frozen campaign and should not be presented as a preregistered comparison.
+
+Against the SAME pooled feasible CPU references, fresh nominal's mean gap was
+9.03%; 2/12, 3/12 and 7/12 scenes were within 3%, 5% and 10%, respectively.
+An additional offline best-of-two control takes the lower executable objective
+of the recorded inherited and fresh nominal outputs for each matched trial.
+Fresh nominal won all 36 such comparisons, so this two-start control has the
+same 9.03% mean gap and 6/36, 9/36, 21/36 near-reference counts. B16 still reduced
+its objective in 31/36 pairs, with the same 4.48% mean benefit. These two-start
+numbers are derived from existing outputs, not a new B2 GPU run or timing test.
+They are saved as posthoc_best_of_inherited_and_nominal in the diagnostic JSON.
+
+Exact diagnostic solver calls can be reproduced without changing any source:
+
+PYTHONPATH=examples/randomized_multimodal /opt/gato-venv/bin/python - <<'PY'
+import json
+from types import SimpleNamespace
+import numpy as np
+import pinocchio as pin
+from tiago_experiment import ROOT, scene, solve, json_safe
+base = ROOT/'example_artifacts/randomized_multimodal/tiago_heldout'
+raw = json.loads((base/'summary.json').read_text())
+args = SimpleNamespace(**raw['config'])
+model = pin.buildModelFromUrdf(str(ROOT/'gato/dynamics/tiago_right/tiago_right_arm.urdf'))
+out = base/'posthoc_nominal_reset_reproduction'
+out.mkdir(exist_ok=True)
+rows = []
+for index in range(raw['config']['scenes']):
+    trial = next(t for t in raw['trials'] if t['scene'] == index)
+    _, qgoal, goal, _, _, _ = scene(model, index, trial['seed'], True)
+    assert np.max(np.abs(goal-trial['goal'])) < 1e-12
+    record, arrays = solve(args, model, np.array(trial['common_state']), qgoal,
+        np.array(trial['goal']), np.array(trial['center_after']),
+        trial['radius'], 1, trial['seed'], inherited=None)
+    rows.append(dict(scene=index, result=record))
+    np.savez_compressed(out/f'scene{index}.npz', **arrays)
+(out/'summary.json').write_text(json.dumps(json_safe(rows), indent=2, allow_nan=False))
+PY
+
+Claim boundaries
+----------------
+This tests the seven-joint arm's tool center against a vertical cylinder, under
+coarse discrete dynamics and interpolated sampling. It is not a whole-body or
+continuous nonlinear collision certificate and sends no robot commands. GATO
+remains iteration limited; low cost is not a GATO KKT certificate. Near-reference
+means the best-known feasible CPU local result, not a proven global optimum.
+
+Stored solve_ms telemetry includes shared-GPU interference and deliberate
+SIGSTOP pauses used to serialize concurrent campaigns. It is unsuitable for
+uncontended latency claims. Fixed simulated timing and trajectory-quality
+comparisons are separate from compute performance.

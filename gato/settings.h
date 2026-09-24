@@ -32,7 +32,9 @@ constexpr uint32_t SIM_FORWARD_THREADS = 128;
 
 // ----- Plant Selection -----
 // Plant type is defined at compile time via CMake
-#if defined(PLANT_INDY7)
+#if defined(PLANT_POINTMASS2D)
+    #include "dynamics/pointmass2d/pointmass2d_plant.cuh"
+#elif defined(PLANT_INDY7)
     #include "dynamics/indy7/indy7_plant.cuh"
 #elif defined(PLANT_IIWA14)
     #include "dynamics/iiwa14/iiwa14_plant.cuh"

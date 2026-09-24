@@ -76,6 +76,13 @@ add_executable(bsqp examples/bsqp.cu)
 target_compile_definitions(bsqp PRIVATE KNOT_POINTS=16 PLANT_INDY7=1)
 
 if(BUILD_TESTING)
+  add_executable(pointmass2d_derivatives tests/cpp/pointmass2d_derivatives.cu)
+  target_compile_definitions(pointmass2d_derivatives PRIVATE KNOT_POINTS=32 PLANT_POINTMASS2D=1)
+  target_include_directories(pointmass2d_derivatives PRIVATE ${CMAKE_SOURCE_DIR}/gato ${CUDA_INCLUDE_DIRS})
+  target_link_libraries(pointmass2d_derivatives PRIVATE ${CUDA_LIBRARIES})
+  add_test(NAME pointmass2d_derivatives COMMAND pointmass2d_derivatives)
+  set_tests_properties(pointmass2d_derivatives PROPERTIES LABELS "cuda;solver")
+
   add_executable(cuda_access_smoke tests/cpp/cuda_access_smoke.cu)
   target_include_directories(cuda_access_smoke PRIVATE ${CMAKE_SOURCE_DIR}/gato
                                                        ${CUDA_INCLUDE_DIRS})
@@ -151,6 +158,8 @@ function(add_gato_python_module plant knot)
   # Define plant type at compile time
   if(plant STREQUAL "indy7")
     target_compile_definitions(${MODULE_NAME} PRIVATE KNOT_POINTS=${knot} PLANT_INDY7=1)
+  elseif(plant STREQUAL "pointmass2d")
+    target_compile_definitions(${MODULE_NAME} PRIVATE KNOT_POINTS=${knot} PLANT_POINTMASS2D=1)
   elseif(plant STREQUAL "iiwa14")
     target_compile_definitions(${MODULE_NAME} PRIVATE KNOT_POINTS=${knot} PLANT_IIWA14=1)
   elseif(plant STREQUAL "iiwa14_multimodal")
@@ -219,7 +228,7 @@ if(BUILD_TESTING)
   add_custom_target(
     check
     COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
-    DEPENDS cuda_access_smoke pcg_status_test bsqpN8_indy7
+    DEPENDS cuda_access_smoke pcg_status_test pointmass2d_derivatives bsqpN8_indy7
     USES_TERMINAL
     COMMENT "Building test dependencies and running the default test suite")
 
