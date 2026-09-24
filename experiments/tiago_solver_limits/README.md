@@ -10,6 +10,21 @@ Branch: `experiment/tiago-solver-limits`. The earlier multimodal experiment is
 preserved on `experiment/randomized-multimodal-mpc`. Configuration fuzzing and
 staggered-cylinder experiments are deferred until a horizon/grid is selected.
 
+## Completed pilot records
+
+- [Numerical pilot](results/numerical_pilot.txt): 36 selected open-loop outputs,
+  three exact-dt probes, two effort rescues, and six equal-duration feedback runs.
+- [Batch equivalence](results/batch_equivalence_gtx1070.json): full N16 and
+  preliminary N32 corresponding-lane checks; larger grids remain unqualified.
+- [Resource probe](results/resources_gtx1070.json): actual B1/B16 launches at
+  N8 through N512, with explicit N512 opt-in diagnostics. All seven Python
+  modules also [import successfully](results/extension_imports_gtx1070.json).
+- [Latency smoke](results/latency_smoke_gtx1070.json): matched-input execution
+  plumbing only, not a publishable timing benchmark.
+- [Raw archive inventory](results/artifact_archive.json): location and checksum
+  of the locally preserved numerical/batching archive. Copy that archive
+  separately for exact-input transfer; it is not included in Git.
+
 ## Questions and controlled variables
 
 | Study | Vary | Hold fixed | What the result can establish |

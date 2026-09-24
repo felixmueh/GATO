@@ -1,0 +1,43 @@
+{
+  "scope": "All seven knot modules successfully import in separate subprocesses, with this worktree python/ directory prepended exactly as experiment scripts do. Import does not imply launch support or numerical convergence. N8/N256/N512 compiled in final check; N16/N32/N64/N128 were already compiled and used in numerical runs. Resource probe separately establishes N512 launch failure.",
+  "python": "/opt/gato-venv/bin/python",
+  "cmake_cache_sha256": "697a9714969b0cc6b5979e93fb4adedfb49490db2d5f8b7822b989591eecff67",
+  "new_build_command": "cmake --build build/solver-validation --target bsqpN8_tiago_right_multimodal bsqpN256_tiago_right_multimodal bsqpN512_tiago_right_multimodal -j2",
+  "results": [
+    {
+      "module": "bsqp.bsqpN8_tiago_right_multimodal",
+      "path": "/workspace/GATO-randomized-mpc/python/bsqp/bsqpN8_tiago_right_multimodal.cpython-310-x86_64-linux-gnu.so",
+      "sha256": "4548687534027a083e8769c260cd04f875e4e65d0eb6de9a97cb6220b6b0e231"
+    },
+    {
+      "module": "bsqp.bsqpN16_tiago_right_multimodal",
+      "path": "/workspace/GATO-randomized-mpc/python/bsqp/bsqpN16_tiago_right_multimodal.cpython-310-x86_64-linux-gnu.so",
+      "sha256": "a1a4ed1ff039c8eda002c48a94f6e36a2a7af6f8def076c087cc4a4d5d458890"
+    },
+    {
+      "module": "bsqp.bsqpN32_tiago_right_multimodal",
+      "path": "/workspace/GATO-randomized-mpc/python/bsqp/bsqpN32_tiago_right_multimodal.cpython-310-x86_64-linux-gnu.so",
+      "sha256": "0ce2bcae14f7878d9883bffba8b2557f57abdd83fee5d5602ca671fbeb8b9800"
+    },
+    {
+      "module": "bsqp.bsqpN64_tiago_right_multimodal",
+      "path": "/workspace/GATO-randomized-mpc/python/bsqp/bsqpN64_tiago_right_multimodal.cpython-310-x86_64-linux-gnu.so",
+      "sha256": "d29c5300b67e1fb7a96b20e4dd6e34f292650f737657bc34311d6bdfbe3767f0"
+    },
+    {
+      "module": "bsqp.bsqpN128_tiago_right_multimodal",
+      "path": "/workspace/GATO-randomized-mpc/python/bsqp/bsqpN128_tiago_right_multimodal.cpython-310-x86_64-linux-gnu.so",
+      "sha256": "d7e6011a18b92c269988bd3e20e770086a2df3cff70909e582d99f0b8376592d"
+    },
+    {
+      "module": "bsqp.bsqpN256_tiago_right_multimodal",
+      "path": "/workspace/GATO-randomized-mpc/python/bsqp/bsqpN256_tiago_right_multimodal.cpython-310-x86_64-linux-gnu.so",
+      "sha256": "b16f16e92bd72842bbbf68a229983597c3977b4fabf59ca286e1e74536788d55"
+    },
+    {
+      "module": "bsqp.bsqpN512_tiago_right_multimodal",
+      "path": "/workspace/GATO-randomized-mpc/python/bsqp/bsqpN512_tiago_right_multimodal.cpython-310-x86_64-linux-gnu.so",
+      "sha256": "23507a9707b51f829fd34deea6987fb34b040ec0cfedbaf580a4fd7cc511bd5e"
+    }
+  ]
+}
