@@ -113,6 +113,8 @@ def mpc(args):
     cfg.reference=False;cfg.inputs_root=None
     if args.rho is not None:cfg.rho=args.rho
     if args.passes is not None:cfg.passes=args.passes
+    if args.iters is not None:cfg.iters=args.iters
+    if args.pcg_iters is not None:cfg.pcg_iters=args.pcg_iters
     model=pin.buildModelFromUrdf(str(ROOT/'gato/dynamics/tiago_right/tiago_right_arm.urdf'))
     scene={k:np.asarray(v) if isinstance(v,list) else v for k,v in raw['scene'].items()}
     args.output.mkdir(parents=True,exist_ok=True)
@@ -175,6 +177,7 @@ if __name__=='__main__':
     p.add_argument('--knots',type=int,default=64);p.add_argument('--duration',type=float,default=.9);p.add_argument('--task',type=int,default=1)
     p.add_argument('--batches',type=int,nargs='+',default=[1,16]);p.add_argument('--steps',type=int,default=20)
     p.add_argument('--rho',type=float);p.add_argument('--passes',type=int)
+    p.add_argument('--iters',type=int);p.add_argument('--pcg-iters',type=int)
     p.add_argument('--initialization',choices=['warm','cold'],default='warm')
     p.add_argument('--warm-state-source',choices=['planned','replay'],default='planned')
     p.add_argument('--output',type=Path,default=ROOT/'example_artifacts/randomized_multimodal/tiago_horizon_mpc')

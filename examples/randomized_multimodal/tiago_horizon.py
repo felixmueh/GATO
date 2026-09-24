@@ -47,7 +47,7 @@ def weights(args):
 def make_solver(args,batch):
     module=importlib.import_module(f'bsqp.bsqpN{args.knots}_tiago_right_multimodal')
     w=weights(args)
-    solver=getattr(module,f'BSQP_{batch}_float')(args.dt,args.iters,args.kkt,1000,args.pcg,
+    solver=getattr(module,f'BSQP_{batch}_float')(args.dt,args.iters,args.kkt,getattr(args,'pcg_iters',1000),args.pcg,
         1.,10.,w['position'],w['velocity'],w['effort'],w['terminal'],w['obstacle'],
         w['terminal_obstacle'],0.,0.,0.,args.rho)
     solver.set_f_ext_batch(np.zeros((batch,6),np.float32));solver.set_rho_adaptation(False)
@@ -262,6 +262,36 @@ def scene_json(scene):
     return {k:v.tolist() if isinstance(v,np.ndarray) else v for k,v in scene.items()}
 
 
+def export_inputs(root):
+    """Export exact inputs, reconstructing older artifacts only with checks."""
+    model=pin.buildModelFromUrdf(str(ROOT/'gato/dynamics/tiago_right/tiago_right_arm.urdf'))
+    manifest=[]
+    for path in sorted(root.glob('*/summary.json')):
+        record=json.loads(path.read_text())
+        if 'branches' not in record:continue
+        cfg=SimpleNamespace(**record['config'])
+        scene={k:np.asarray(v) if isinstance(v,list) else v for k,v in record['scene'].items()}
+        item=dict(cell=record['cell'],scene=record['scene'],batches={})
+        for batch,branch in record['branches'].items():
+            target=path.parent/f'b{batch}.npz';arrays=dict(np.load(target))
+            reconstructed='initial_xu' not in arrays
+            if reconstructed:
+                x,u=joint_seeds(model,scene['x0'],scene['qgoal'],cfg.knots,cfg.dt,int(batch),branch['seed'],cfg.amplitude)
+                if not np.array_equal(u.astype(np.float32),arrays['seed_controls']):
+                    raise ValueError(f'Cannot exactly reconstruct original controls: {target}')
+                arrays['initial_xu']=pack(x,u)
+                arrays['initial_state']=np.asarray(scene['x0'],np.float32)
+                arrays['reference']=np.tile(np.r_[scene['goal'],scene['center'],scene['radius']+cfg.margin],(int(batch),cfg.knots)).astype(np.float32)
+                np.savez_compressed(target,**arrays)
+            item['batches'][batch]=dict(reconstructed=reconstructed,
+                initial_xu_sha256=hashlib.sha256(np.ascontiguousarray(arrays['initial_xu']).tobytes()).hexdigest(),
+                reference_sha256=hashlib.sha256(np.ascontiguousarray(arrays['reference']).tobytes()).hexdigest(),
+                shape=list(arrays['initial_xu'].shape),dtype=str(arrays['initial_xu'].dtype))
+        manifest.append(item)
+    (root/'input_manifest.json').write_text(json.dumps(dict(cells=manifest,machine=machine_metadata()),indent=2))
+    print(root/'input_manifest.json')
+
+
 def machine_metadata():
     def output(command):
         try:return subprocess.check_output(command,text=True,stderr=subprocess.STDOUT).strip()
@@ -288,7 +318,7 @@ def run(args):
             command=[sys.executable,str(Path(__file__).resolve()),'--worker','--cells',f'{n}:{duration}',
                 '--tasks',*[str(v) for v in args.tasks],'--batches',*[str(v) for v in args.batches],
                 '--output',str(args.output.resolve())]
-            for key in ('seed','iters','passes','rho','pcg','kkt','margin','amplitude','fine_step','reference_iters'):
+            for key in ('seed','iters','passes','rho','pcg','kkt','margin','amplitude','fine_step','reference_iters','pcg_iters'):
                 command.extend(['--'+key.replace('_','-'),str(getattr(args,key))])
             if args.reference:command.append('--reference')
             if args.resume:command.append('--resume')
@@ -311,8 +341,8 @@ def run(args):
             dest=args.output/name;dest.mkdir(exist_ok=True)
             if args.resume and (dest/'summary.json').exists():
                 saved=json.loads((dest/'summary.json').read_text())
-                ignored={'output','resume','worker','inputs_root','cells','tasks','batches'}
-                if any(saved['config'].get(k)!=v for k,v in config_json(cell).items() if k not in ignored):
+                ignored={'output','resume','worker','inputs_root','cells','tasks','batches','export_inputs_only'}
+                if any(saved['config'].get(k,1000 if k=='pcg_iters' else None)!=v for k,v in config_json(cell).items() if k not in ignored):
                     raise ValueError(f'Resume configuration mismatch for {name}')
                 if 'failure' not in saved and set(saved.get('branches',{}))>=set(map(str,args.batches)):
                     records.append(saved);continue
@@ -349,10 +379,13 @@ if __name__=='__main__':
     p.add_argument('--cells',nargs='+',help='N:duration pairs; default six-cell duration/grid matrix')
     p.add_argument('--tasks',type=int,nargs='+',default=[0,1,2]);p.add_argument('--batches',type=int,nargs='+',default=[1,16])
     p.add_argument('--seed',type=int,default=1401);p.add_argument('--iters',type=int,default=200);p.add_argument('--passes',type=int,default=2)
+    p.add_argument('--pcg-iters',type=int,default=1000)
     p.add_argument('--rho',type=float,default=.01);p.add_argument('--pcg',type=float,default=1e-4);p.add_argument('--kkt',type=float,default=1e-3)
     p.add_argument('--margin',type=float,default=.008);p.add_argument('--amplitude',type=float,default=.1)
     p.add_argument('--fine-step',type=float,default=.001);p.add_argument('--reference',action='store_true');p.add_argument('--reference-iters',type=int,default=1500)
+    p.add_argument('--export-inputs-only',action='store_true',help='Export/verify exact task and initial-XU arrays in --output without GPU solves')
     p.add_argument('--inputs-root',type=Path,help='Load exact saved task and initial_xu arrays from a prior output root')
     p.add_argument('--worker',action='store_true',help=argparse.SUPPRESS)
     p.add_argument('--resume',action='store_true');p.add_argument('--output',type=Path,default=ROOT/'example_artifacts/randomized_multimodal/tiago_horizon')
-    run(p.parse_args())
+    options=p.parse_args()
+    export_inputs(options.output) if options.export_inputs_only else run(options)
