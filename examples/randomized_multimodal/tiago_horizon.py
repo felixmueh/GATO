@@ -9,6 +9,8 @@ import argparse
 import hashlib
 import importlib
 import json
+import platform
+import scipy
 import subprocess
 import sys
 import time
@@ -134,7 +136,7 @@ def differences(a,b):
     return dict(q=float(np.max(np.abs(a[:,:7]-b[:,:7]))),v=float(np.max(np.abs(a[:,7:]-b[:,7:]))),all=float(np.max(np.abs(a-b))))
 
 
-def solve(args,model,scene,batch,seed,inherited=None):
+def solve(args,model,scene,batch,seed,inherited=None,inherited_states=None):
     solver,module=make_solver(args,batch)
     x,u=joint_seeds(model,scene['x0'],scene['qgoal'],args.knots,args.dt,batch,seed,args.amplitude)
     if inherited is not None:
@@ -143,8 +145,16 @@ def solve(args,model,scene,batch,seed,inherited=None):
         if batch>1:
             nx,nu=joint_seeds(model,scene['x0'],scene['qgoal'],args.knots,args.dt,1,seed,args.amplitude)
             x[1],u[1]=nx[0],nu[0]
-        x[0]=replay_cuda(solver,scene['x0'],u.astype(np.float32),args.dt)[0]
+        x[0]=inherited_states if inherited_states is not None else replay_cuda(solver,scene['x0'],u.astype(np.float32),args.dt)[0]
     u=u.astype(np.float32);initial=pack(x,u)
+    inputs_root=getattr(args,'inputs_root',None)
+    if inputs_root and inherited is None:
+        name=f'N{args.knots}_T{args.duration:g}_task{scene["index"]}'
+        source=np.load(Path(inputs_root)/name/f'b{batch}.npz')
+        initial=np.asarray(source['initial_xu'],np.float32).copy()
+        x,u=unpack(initial,args.knots)
+        if initial.shape != (batch,(args.knots-1)*21+14) or not np.array_equal(x[:,0],np.tile(scene['x0'],(batch,1)).astype(np.float32)):
+            raise ValueError('Stored initialization has incompatible dimensions or initial state')
     ref=np.tile(np.r_[scene['goal'],scene['center'],scene['radius']+args.margin],(batch,args.knots)).astype(np.float32)
     z=initial.copy();telemetry=[];outputs=[]
     wall=time.monotonic()
@@ -184,7 +194,8 @@ def solve(args,model,scene,batch,seed,inherited=None):
         telemetry=telemetry,solve_wall_seconds=solve_wall,solve_ms=sum(t['solve_ms'] for t in telemetry),
         fine_refinement=checks,one_step_parity=pinocchio_one_step_parity(model,replay,controls,args.dt),
         module=str(module.__file__))
-    arrays=dict(planned=planned,replay=replay,controls=controls,xyz=np.asarray(xyz),
+    arrays=dict(initial_xu=initial,reference=ref,initial_state=np.asarray(scene['x0'],np.float32),
+        planned=planned,replay=replay,controls=controls,xyz=np.asarray(xyz),
         fine=np.asarray(fine_nodes),fine_xyz=np.asarray(fine_xyz),seed_controls=u,seed_replay=seed_replay,
         solve_outputs=np.asarray(outputs))
     return record,arrays
@@ -251,6 +262,20 @@ def scene_json(scene):
     return {k:v.tolist() if isinstance(v,np.ndarray) else v for k,v in scene.items()}
 
 
+def machine_metadata():
+    def output(command):
+        try:return subprocess.check_output(command,text=True,stderr=subprocess.STDOUT).strip()
+        except (OSError,subprocess.CalledProcessError) as exc:return str(exc)
+    return dict(platform=platform.platform(),python=sys.version,executable=sys.executable,
+        numpy=np.__version__,scipy=scipy.__version__,pinocchio=pin.__version__,
+        gpu=output(['nvidia-smi','--query-gpu=name,uuid,driver_version,memory.total','--format=csv,noheader']),
+        cuda_compiler=output(['nvcc','--version']))
+
+
+def config_json(args):
+    return {k:str(v) if isinstance(v,Path) else v for k,v in vars(args).items()}
+
+
 def run(args):
     args.output.mkdir(parents=True,exist_ok=True)
     model=pin.buildModelFromUrdf(str(ROOT/'gato/dynamics/tiago_right/tiago_right_arm.urdf'))
@@ -267,6 +292,7 @@ def run(args):
                 command.extend(['--'+key.replace('_','-'),str(getattr(args,key))])
             if args.reference:command.append('--reference')
             if args.resume:command.append('--resume')
+            if args.inputs_root:command.extend(['--inputs-root',str(Path(args.inputs_root).resolve())])
             result=subprocess.run(command,cwd=ROOT)
             for tid in args.tasks:
                 name=f'N{n}_T{duration:g}_task{tid}'
@@ -277,15 +303,24 @@ def run(args):
     for n,duration in cells:
         for tid in args.tasks:
             cell=SimpleNamespace(**vars(args));cell.knots=n;cell.duration=duration;cell.dt=duration/(n-1)
-            scene=task(model,tid);name=f'N{n}_T{duration:g}_task{tid}'
+            name=f'N{n}_T{duration:g}_task{tid}'
+            if args.inputs_root:
+                saved=json.loads((Path(args.inputs_root)/name/'summary.json').read_text())['scene']
+                scene={k:np.asarray(v) if isinstance(v,list) else v for k,v in saved.items()}
+            else:scene=task(model,tid)
             dest=args.output/name;dest.mkdir(exist_ok=True)
             if args.resume and (dest/'summary.json').exists():
-                records.append(json.loads((dest/'summary.json').read_text()));continue
+                saved=json.loads((dest/'summary.json').read_text())
+                ignored={'output','resume','worker','inputs_root','cells','tasks','batches'}
+                if any(saved['config'].get(k)!=v for k,v in config_json(cell).items() if k not in ignored):
+                    raise ValueError(f'Resume configuration mismatch for {name}')
+                if 'failure' not in saved and set(saved.get('branches',{}))>=set(map(str,args.batches)):
+                    records.append(saved);continue
             started=time.monotonic();print('START',name,flush=True)
             try:
                 probe=integration_probe(cell,model,scene)
-                out=dict(cell=name,config={**vars(cell),'output':str(args.output)},weights=weights(cell),
-                    scene=scene_json(scene),integration=probe,branches={})
+                out=dict(cell=name,config=config_json(cell),weights=weights(cell),
+                    scene=scene_json(scene),integration=probe,branches={},machine=machine_metadata())
                 for batch in args.batches:
                     result,arrays=solve(cell,model,scene,batch,args.seed)
                     out['branches'][str(batch)]=result;np.savez_compressed(dest/f'b{batch}.npz',**arrays)
@@ -301,7 +336,7 @@ def run(args):
                 out['provenance']=dict(git_head=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),
                     sha256={str(p.relative_to(ROOT)):hashlib.sha256(p.read_bytes()).hexdigest() for p in paths})
             except Exception as exc:
-                out=dict(cell=name,config={**vars(cell),'output':str(args.output)},scene=scene_json(scene),failure=repr(exc))
+                out=dict(cell=name,config=config_json(cell),scene=scene_json(scene),failure=repr(exc))
                 print('FAIL',name,repr(exc),flush=True)
             out['wall_seconds']=time.monotonic()-started
             (dest/'summary.json').write_text(json.dumps(json_safe(out),indent=2,allow_nan=False));records.append(out)
@@ -317,6 +352,7 @@ if __name__=='__main__':
     p.add_argument('--rho',type=float,default=.01);p.add_argument('--pcg',type=float,default=1e-4);p.add_argument('--kkt',type=float,default=1e-3)
     p.add_argument('--margin',type=float,default=.008);p.add_argument('--amplitude',type=float,default=.1)
     p.add_argument('--fine-step',type=float,default=.001);p.add_argument('--reference',action='store_true');p.add_argument('--reference-iters',type=int,default=1500)
+    p.add_argument('--inputs-root',type=Path,help='Load exact saved task and initial_xu arrays from a prior output root')
     p.add_argument('--worker',action='store_true',help=argparse.SUPPRESS)
     p.add_argument('--resume',action='store_true');p.add_argument('--output',type=Path,default=ROOT/'example_artifacts/randomized_multimodal/tiago_horizon')
     run(p.parse_args())
