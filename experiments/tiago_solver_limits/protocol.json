@@ -1,0 +1,170 @@
+{
+  "schema_version": 1,
+  "name": "TIAGo GATO limits: separate resource, discretization, duration, feedback and batching axes",
+  "seed": 1401,
+  "build": {
+    "knots": [
+      8,
+      16,
+      32,
+      64,
+      128,
+      256,
+      512
+    ],
+    "architecture": "native",
+    "jobs": 2
+  },
+  "solver": {
+    "iterations": 200,
+    "passes": 2,
+    "rho": 0.01
+  },
+  "tasks": [
+    0,
+    1,
+    2
+  ],
+  "batches": [
+    1,
+    16
+  ],
+  "studies": {
+    "resources": {
+      "knots": [
+        8,
+        16,
+        32,
+        64,
+        128,
+        256,
+        512
+      ],
+      "batches": [
+        1,
+        16
+      ],
+      "optin_knots": [
+        512
+      ]
+    },
+    "batch": {
+      "cells": [
+        [
+          16,
+          0.45
+        ],
+        [
+          32,
+          0.9
+        ],
+        [
+          64,
+          0.9
+        ],
+        [
+          128,
+          1.8
+        ]
+      ],
+      "batches": [
+        2,
+        4,
+        8,
+        16
+      ],
+      "repeats": 3
+    },
+    "discretization": {
+      "durations": [
+        0.9
+      ],
+      "knots": [
+        16,
+        32,
+        64,
+        128,
+        256
+      ]
+    },
+    "horizon": {
+      "dt": 0.015,
+      "knots": [
+        32,
+        64,
+        128,
+        256
+      ]
+    },
+    "mpc-interval": {
+      "cell": [
+        64,
+        0.9
+      ],
+      "tasks": [
+        0,
+        1
+      ],
+      "clocks": [
+        0.03,
+        0.06,
+        0.12,
+        0.24
+      ],
+      "execution_duration": 1.2,
+      "initializations": [
+        "warm",
+        "cold"
+      ],
+      "batches": [
+        1
+      ]
+    },
+    "effort": {
+      "cells": [
+        [
+          64,
+          1.8
+        ],
+        [
+          128,
+          1.8
+        ]
+      ],
+      "tasks": [
+        0
+      ],
+      "passes": [
+        1,
+        2,
+        4
+      ]
+    },
+    "latency": {
+      "cells": [
+        [
+          16,
+          0.45
+        ],
+        [
+          64,
+          0.9
+        ],
+        [
+          128,
+          1.8
+        ]
+      ],
+      "batches": [
+        1,
+        2,
+        4,
+        8,
+        16
+      ],
+      "iterations": 20,
+      "repeats": 3
+    }
+  },
+  "scope": "Development and diagnosis, not a held-out success claim. Failed cases are retained. Physical execution time is independent of measured solve latency. All multimodal-family work awaits the horizon and batching gates."
+}

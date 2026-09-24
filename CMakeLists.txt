@@ -211,6 +211,19 @@ function(add_gato_python_module plant knot)
     ${MODULE_NAME} PROPERTIES LIBRARY_OUTPUT_DIRECTORY
                               ${CMAKE_SOURCE_DIR}/python/bsqp)
   target_link_libraries(${MODULE_NAME} PRIVATE ${CUDA_LIBRARIES})
+
+  if(plant STREQUAL "tiago_right_multimodal")
+    set(RESOURCE_PROBE "tiago_resources_N${knot}")
+    add_executable(${RESOURCE_PROBE} EXCLUDE_FROM_ALL
+                   examples/randomized_multimodal/tiago_resources.cu)
+    get_target_property(RESOURCE_DEFINITIONS ${MODULE_NAME} COMPILE_DEFINITIONS)
+    target_compile_definitions(${RESOURCE_PROBE} PRIVATE ${RESOURCE_DEFINITIONS})
+    target_include_directories(${RESOURCE_PROBE} PRIVATE ${CMAKE_SOURCE_DIR}/gato
+                                                        ${CUDA_INCLUDE_DIRS})
+    target_link_libraries(${RESOURCE_PROBE} PRIVATE ${CUDA_LIBRARIES})
+    set_target_properties(${RESOURCE_PROBE} PROPERTIES
+                          RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+  endif()
 endfunction()
 
 foreach(plant ${PLANT})
