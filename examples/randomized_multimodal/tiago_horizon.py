@@ -136,6 +136,16 @@ def differences(a,b):
     return dict(q=float(np.max(np.abs(a[:,:7]-b[:,:7]))),v=float(np.max(np.abs(a[:,7:]-b[:,7:]))),all=float(np.max(np.abs(a-b))))
 
 
+def local_defects(solver,states,controls,dt):
+    residual=[]
+    for k in range(controls.shape[1]):
+        predicted=solver.sim_forward(states[:,k].astype(np.float32),controls[:,k].astype(np.float32),dt)
+        residual.append(predicted-states[:,k+1])
+    residual=np.asarray(residual)
+    return [dict(q=float(np.max(np.abs(residual[:,b,:7]))),v=float(np.max(np.abs(residual[:,b,7:]))),
+                 l1=float(np.sum(np.abs(residual[:,b])))) for b in range(len(states))]
+
+
 def solve(args,model,scene,batch,seed,inherited=None,inherited_states=None):
     solver,module=make_solver(args,batch)
     x,u=joint_seeds(model,scene['x0'],scene['qgoal'],args.knots,args.dt,batch,seed,args.amplitude)
@@ -170,6 +180,9 @@ def solve(args,model,scene,batch,seed,inherited=None,inherited_states=None):
             final_merit=np.asarray(result['final_merit']).tolist()))
     solve_wall=time.monotonic()-wall
     planned,controls=unpack(z,args.knots)
+    initial_states,initial_controls=unpack(initial,args.knots)
+    initial_local=local_defects(solver,initial_states,initial_controls,args.dt)
+    planned_local=local_defects(solver,planned,controls,args.dt)
     replay=replay_cuda(solver,scene['x0'],controls.copy(),args.dt)
     seed_replay=replay_cuda(solver,scene['x0'],u.copy(),args.dt)
     rows=[];xyz=[];fine_nodes=[];fine_xyz=[]
@@ -178,7 +191,8 @@ def solve(args,model,scene,batch,seed,inherited=None,inherited_states=None):
         before,_=evaluate(model,seed_replay[b],u[b],scene,args)
         fn,dense,times,failure=fine_rollout(model,scene['x0'],controls[b],args.dt,args.fine_step)
         fm,ftool=evaluate(model,fn,controls[b],scene,args,dense=dense) if not failure else (dict(finite=False,feasible=False,settled=False,objective=dict(total=float('inf')),failure=failure),np.full((args.knots,3),np.nan))
-        row=dict(coarse=row,fine=fm,before=before,planned_replay=differences(planned[b],replay[b]),
+        row=dict(coarse=row,fine=fm,before=before,initial_local_defect=initial_local[b],
+                 planned_local_defect=planned_local[b],planned_replay=differences(planned[b],replay[b]),
                  coarse_fine=differences(replay[b],fn))
         rows.append(row);xyz.append(tool);fine_nodes.append(fn);fine_xyz.append(ftool)
     def rank(i,domain):
@@ -190,7 +204,9 @@ def solve(args,model,scene,batch,seed,inherited=None,inherited_states=None):
     for b in sorted({winner,fine_winner}):
         half,hd,ht,hfail=fine_rollout(model,scene['x0'],controls[b],args.dt,args.fine_step/2)
         checks[str(b)]=dict(step_halving=differences(fine_nodes[b],half),failure=hfail)
-    record=dict(batch=batch,seed=seed,winner=winner,fine_winner=fine_winner,lanes=rows,
+    record=dict(batch=batch,seed=seed,initial_xu_sha256=hashlib.sha256(initial.tobytes()).hexdigest(),
+        initialization_source=str(inputs_root) if inputs_root and inherited is None else ('retained_winner' if inherited is not None else 'goal_only_generator'),
+        winner=winner,fine_winner=fine_winner,lanes=rows,
         telemetry=telemetry,solve_wall_seconds=solve_wall,solve_ms=sum(t['solve_ms'] for t in telemetry),
         fine_refinement=checks,one_step_parity=pinocchio_one_step_parity(model,replay,controls,args.dt),
         module=str(module.__file__))

@@ -152,11 +152,14 @@ def mpc(args):
                 horizon_fine=record['lanes'][winner]['fine']['feasible']))),flush=True)
             if not physical['physical']:
                 failure='physical bound or collision violated during applied prefix';break
+            last_q=np.asarray(arrays['planned'][winner,-1,:7],float)
+            tail=pin.rnea(model,data,last_q,np.zeros(7),np.zeros(7)).copy()
             warm=shifted_controls(controls,cfg.dt,args.clock,tail)
             if args.warm_state_source=='planned':
                 old_times=np.arange(cfg.knots)*cfg.dt
                 new_times=args.clock+old_times
                 warm_states=np.column_stack([np.interp(new_times,old_times,arrays['planned'][winner,:,j]) for j in range(14)])
+                warm_states[new_times>=old_times[-1],7:]=0.
                 warm_states[0]=current
             else:warm_states=None
         xx,uu,tt=np.asarray(all_x),np.asarray(all_u),np.asarray(all_t)
