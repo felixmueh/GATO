@@ -1,0 +1,241 @@
+{
+  "scope": "Bounded per-lane batch-equivalence gate; no statement about untested horizons, seeds, precision or architectures.",
+  "device": "NVIDIA GeForce GTX 1070, 580.126.18, 6.1",
+  "analysis_helper_sha256": "6415e2a1fe962f0a0d8c76137e0c901da661e09611f95a173b9ce8734e11700a",
+  "tolerances": {
+    "packed_atol": 0.0001,
+    "packed_rtol": 2e-05,
+    "objective_atol": 1e-06,
+    "objective_rtol": 0.0001,
+    "material_objective_rtol": 0.001,
+    "material_q_atol": 0.001,
+    "material_v_atol": 0.01,
+    "material_control_atol": 0.05,
+    "material_terminal_atol": 0.0005
+  },
+  "runs": [
+    {
+      "name": "full_N16_T0.45",
+      "knots": 16,
+      "duration": 0.45,
+      "quick": false,
+      "iterations": 200,
+      "passes": 2,
+      "serial_repeats": 3,
+      "profiles": {
+        "prefix1": {
+          "comparisons": 94,
+          "strict_pass": 94,
+          "material_pass": 94,
+          "input_identity": true,
+          "differing_stopping": 0,
+          "max_XU": 0.0,
+          "max_objective_relative": 0,
+          "serial_repeat_max_XU": 0.0,
+          "serial_repeat_max_objective_relative": 0,
+          "verdict": "PASS",
+          "by_batch": {
+            "2": {
+              "comparisons": 2,
+              "strict_pass": 2
+            },
+            "4": {
+              "comparisons": 4,
+              "strict_pass": 4
+            },
+            "8": {
+              "comparisons": 8,
+              "strict_pass": 8
+            },
+            "16": {
+              "comparisons": 80,
+              "strict_pass": 80
+            }
+          },
+          "discrete_telemetry_equal": true
+        },
+        "fixed": {
+          "comparisons": 94,
+          "strict_pass": 94,
+          "material_pass": 94,
+          "input_identity": true,
+          "differing_stopping": 0,
+          "max_XU": 0.0,
+          "max_objective_relative": 0,
+          "serial_repeat_max_XU": 0.0,
+          "serial_repeat_max_objective_relative": 0,
+          "verdict": "PASS",
+          "by_batch": {
+            "2": {
+              "comparisons": 2,
+              "strict_pass": 2
+            },
+            "4": {
+              "comparisons": 4,
+              "strict_pass": 4
+            },
+            "8": {
+              "comparisons": 8,
+              "strict_pass": 8
+            },
+            "16": {
+              "comparisons": 80,
+              "strict_pass": 80
+            }
+          },
+          "discrete_telemetry_equal": true
+        },
+        "production": {
+          "comparisons": 94,
+          "strict_pass": 94,
+          "material_pass": 94,
+          "input_identity": true,
+          "differing_stopping": 0,
+          "max_XU": 0.0,
+          "max_objective_relative": 0,
+          "serial_repeat_max_XU": 0.0,
+          "serial_repeat_max_objective_relative": 0,
+          "verdict": "PASS",
+          "by_batch": {
+            "2": {
+              "comparisons": 2,
+              "strict_pass": 2
+            },
+            "4": {
+              "comparisons": 4,
+              "strict_pass": 4
+            },
+            "8": {
+              "comparisons": 8,
+              "strict_pass": 8
+            },
+            "16": {
+              "comparisons": 80,
+              "strict_pass": 80
+            }
+          },
+          "discrete_telemetry_equal": true
+        }
+      },
+      "input_content_sha256": "7fb44881ca78cfd77d797ca0735f0cd8f116a9273c497b5bacaccd1972eab61e",
+      "sha256": {
+        "examples/randomized_multimodal/batch_equivalence.py": "402bc2c1218d45a08096a6dd5f532dc5f0ce826015b8a180832ee61f8eb03bea",
+        "examples/randomized_multimodal/tiago_horizon.py": "17882ca6ea2df7f0cd678c943db4e85e9edb8f0d024945f428e7d5918c32e5ad",
+        "examples/randomized_multimodal/tiago_probe.py": "4d02b63cae1b9c809595fde54ea2d973118e06283dcb3720e8c35b00cf0748f9",
+        "python/bindings.cu": "3c29b818233f1fa525ee92a1cef2752627586683d4300b6aa449231301986911",
+        "gato/bsqp/bsqp.cuh": "3c60eddd3350385e9651b0b0b2476f6ffbd801ac47c68e63aacd6b2f1f57214d",
+        "gato/bsqp/kernels/pcg.cuh": "896eb65f84db3fbe9000a05b855fb5f2a50aa739e4e84edbe3b502d70d3fe73b",
+        "gato/dynamics/tiago_right/tiago_right_plant.cuh": "cf4d4175bd9fae7a85a366d20c0d03410a3da1d4cfde81f285cdd5a5d85579eb",
+        "python/bsqp/bsqpN16_tiago_right_multimodal.cpython-310-x86_64-linux-gnu.so": "a1a4ed1ff039c8eda002c48a94f6e36a2a7af6f8def076c087cc4a4d5d458890"
+      },
+      "manifest_sha256": "27c3eba1dc42d65ef479eea8a71fd28ff268ec3d75298fc051de9dd1394c07e9",
+      "summary_sha256": "654c19aa1f5c425ca48854a8dc36c71ae2ba2dd7bf5f8aaeda4adf7ac2372c2e",
+      "local_artifacts": "example_artifacts/randomized_multimodal/batch_equivalence/full_N16_T0.45",
+      "stronger_offline_recheck_pass": true,
+      "stronger_offline_recheck_comparisons": 282,
+      "merit_scalar_max_absolute_difference": 3.5762786865234375e-07
+    },
+    {
+      "name": "quick_N32_T0.45",
+      "knots": 32,
+      "duration": 0.45,
+      "quick": true,
+      "iterations": 20,
+      "passes": 1,
+      "serial_repeats": 2,
+      "profiles": {
+        "prefix1": {
+          "comparisons": 94,
+          "strict_pass": 94,
+          "material_pass": 94,
+          "input_identity": true,
+          "differing_stopping": 0,
+          "max_XU": 0.0,
+          "max_objective_relative": 0,
+          "serial_repeat_max_XU": 0.0,
+          "serial_repeat_max_objective_relative": 0,
+          "by_batch": {
+            "2": {
+              "comparisons": 2,
+              "strict_pass": 2
+            },
+            "4": {
+              "comparisons": 4,
+              "strict_pass": 4
+            },
+            "8": {
+              "comparisons": 8,
+              "strict_pass": 8
+            },
+            "16": {
+              "comparisons": 80,
+              "strict_pass": 80
+            }
+          },
+          "verdict": "PASS",
+          "discrete_telemetry_equal": true
+        },
+        "fixed": {
+          "comparisons": 94,
+          "strict_pass": 94,
+          "material_pass": 94,
+          "input_identity": true,
+          "differing_stopping": 0,
+          "max_XU": 0.0,
+          "max_objective_relative": 0,
+          "serial_repeat_max_XU": 0.0,
+          "serial_repeat_max_objective_relative": 0,
+          "by_batch": {
+            "2": {
+              "comparisons": 2,
+              "strict_pass": 2
+            },
+            "4": {
+              "comparisons": 4,
+              "strict_pass": 4
+            },
+            "8": {
+              "comparisons": 8,
+              "strict_pass": 8
+            },
+            "16": {
+              "comparisons": 80,
+              "strict_pass": 80
+            }
+          },
+          "verdict": "PASS",
+          "discrete_telemetry_equal": true
+        }
+      },
+      "input_content_sha256": "7ef54a20f6c82ac357b4e708f109d6b0e2f612c599b2d591a8236ecf9cee8cf5",
+      "sha256": {
+        "examples/randomized_multimodal/batch_equivalence.py": "6415e2a1fe962f0a0d8c76137e0c901da661e09611f95a173b9ce8734e11700a",
+        "examples/randomized_multimodal/tiago_horizon.py": "d1e116b89e113f4cfb10a80479ac11f3010547f4168ca97bd86530b6e9f53b0e",
+        "examples/randomized_multimodal/tiago_probe.py": "4d02b63cae1b9c809595fde54ea2d973118e06283dcb3720e8c35b00cf0748f9",
+        "python/bindings.cu": "3c29b818233f1fa525ee92a1cef2752627586683d4300b6aa449231301986911",
+        "gato/bsqp/bsqp.cuh": "3c60eddd3350385e9651b0b0b2476f6ffbd801ac47c68e63aacd6b2f1f57214d",
+        "gato/bsqp/kernels/pcg.cuh": "896eb65f84db3fbe9000a05b855fb5f2a50aa739e4e84edbe3b502d70d3fe73b",
+        "gato/dynamics/tiago_right/tiago_right_plant.cuh": "cf4d4175bd9fae7a85a366d20c0d03410a3da1d4cfde81f285cdd5a5d85579eb",
+        "python/bsqp/bsqpN32_tiago_right_multimodal.cpython-310-x86_64-linux-gnu.so": "0ce2bcae14f7878d9883bffba8b2557f57abdd83fee5d5602ca671fbeb8b9800"
+      },
+      "manifest_sha256": "76b4cd6e95e197fab67373cc20ef06150ecdcc3f445516785ffb807ce6862302",
+      "summary_sha256": "090404f8172b62cc815977a10fa003a2d97ad5cf706913f7878d4bf69e8eacf8",
+      "local_artifacts": "example_artifacts/randomized_multimodal/batch_equivalence/quick_N32_T0.45",
+      "stronger_offline_recheck_pass": true,
+      "stronger_offline_recheck_comparisons": 188,
+      "merit_scalar_max_absolute_difference": 4.76837158203125e-07
+    }
+  ],
+  "not_yet_tested": [
+    "N32 full200x2",
+    "N64",
+    "N128",
+    "RTX5060"
+  ],
+  "notes": [
+    "Every recorded XU exactly matches its matching B1 lane in these audited cases. Merit values have small floating-point differences without changed PCG/line-search decisions.",
+    "The diagnostic hard lane is finite; its failure is not itself a batch failure. Other lanes are compared individually.",
+    "A production stopping-policy difference would be separated from fixed-work arithmetic. None occurred in these cases.",
+    "Large original artifacts remain local; manifest and input hashes support precise transfer and comparison."
+  ]
+}
