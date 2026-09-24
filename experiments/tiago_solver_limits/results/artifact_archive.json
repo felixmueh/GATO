@@ -1,0 +1,33 @@
+{
+  "schema": 1,
+  "scope": "Local-only archive; no upload or remote backup has been performed.",
+  "archive_path": "example_artifacts/archives/tiago_solver_limits_numerical_batch_20260924.tar.gz",
+  "archive_size_bytes": 24427665,
+  "archive_sha256": "66942471a31e31cac6e3934cb654936ef3d016d2b3b60bc6b2374eb5ca48e685",
+  "source_git_head": "54715196f0fe9ed7a228fcb47fe706dd50151364",
+  "included_roots": [
+    "example_artifacts/randomized_multimodal/tiago_horizon",
+    "example_artifacts/randomized_multimodal/tiago_horizon_fixed_dt_pilot",
+    "example_artifacts/randomized_multimodal/tiago_horizon_rescue_sqp800",
+    "example_artifacts/randomized_multimodal/tiago_horizon_rescue_pcg4000",
+    "example_artifacts/randomized_multimodal/tiago_horizon_mpc",
+    "example_artifacts/randomized_multimodal/batch_equivalence"
+  ],
+  "raw_file_count": 958,
+  "raw_size_bytes": 40901328,
+  "inventory_member": "MANIFEST.json",
+  "inventory_sha256": "8897b7e78133946c8241bf5eb45436a5f18687b1abb1058176bda0a44c8fad9d",
+  "sha256sum_member": "SHA256SUMS",
+  "sha256sum_sha256": "941c44086a90e3f8cfbffcd363e523d13710b9bfa580a01cb8e5f5f8d701ad1b",
+  "verification": "Every archived raw member was read back and checked against its saved size and SHA-256 inventory.",
+  "exclusions": "Earlier multimodal campaigns, import-failure preliminary horizon folder, resource logs, binaries and source checkout are excluded.",
+  "reconstruction": "Archive stores repository-relative paths. Read MANIFEST.json or verify SHA256SUMS after extraction at the repository root. Source is preserved separately in git; build provenance is in raw summaries.",
+  "tar_metadata": {
+    "sorted_raw_paths": true,
+    "mtime": 0,
+    "uid": 0,
+    "gid": 0,
+    "mode": "0644",
+    "gzip_mtime": 0
+  }
+}
