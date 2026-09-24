@@ -43,3 +43,27 @@ def test_setup_logging_flushes_to_stderr(monkeypatch):
     execution._log_startup(execution.time.monotonic(), "test stage")
     assert writes[0][1] == {"file": execution.sys.stderr, "flush": True}
     assert "test stage" in writes[0][0][0]
+
+
+def test_default_allows_jetson_length_startup(monkeypatch):
+    controller = execution.TiagoControllerOrchestrator()
+    controller._status_q = queue.Queue()
+    clock = NS(now=0.)
+    def advance(dt):
+        clock.now += dt
+        if clock.now >= 16.:
+            controller._status_q.put(execution.ControllerStatus("READY"))
+    monkeypatch.setattr(execution, "time", NS(monotonic=lambda: clock.now, sleep=advance))
+    monkeypatch.setattr(ros_tiago, "ensure_ros_environment", lambda **kwargs: None)
+    monkeypatch.setattr(execution.atexit, "register", lambda *args: None)
+    controller._ctx = NS(Process=lambda **kwargs: NS(start=lambda: None, exitcode=None))
+    controller.initialize()
+    assert 16. <= clock.now < 30.
+
+
+@pytest.mark.parametrize("timeout", [0., -1., float("nan"), float("inf")])
+def test_invalid_startup_timeout_rejected_before_spawn(timeout):
+    controller = execution.TiagoControllerOrchestrator()
+    with pytest.raises(ValueError, match="finite and positive"):
+        controller.initialize(timeout_sec=timeout)
+    assert controller._process is None

@@ -6,6 +6,8 @@ import numpy as np
 # Common software cap: the smallest effort limit in the right-arm model.
 # Keep the generated per-joint hardware/model limits unchanged.
 TIAGO_DEFAULT_MAX_ABS_TORQUE = 26.0
+# Includes worker imports, reset wait and collision-worker initialization.
+TIAGO_DEFAULT_STARTUP_TIMEOUT_SEC = 30.0
 
 
 TIAGO_RIGHT_START_CONFIGS = {

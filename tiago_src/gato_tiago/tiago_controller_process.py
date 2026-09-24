@@ -24,6 +24,7 @@ import numpy as np
 
 from gato_tiago.config import (
     TIAGO_DEFAULT_MAX_ABS_TORQUE,
+    TIAGO_DEFAULT_STARTUP_TIMEOUT_SEC,
     TIAGO_RIGHT_DEFAULT_START_CONFIG,
     TIAGO_RIGHT_START_CONFIGS,
 )
@@ -455,7 +456,9 @@ class TiagoControllerOrchestrator:
         self._cleanup_registered = False
         self._finish_request_id = 0
 
-    def initialize(self, timeout_sec: float = 10.0) -> None:
+    def initialize(self, timeout_sec: float = TIAGO_DEFAULT_STARTUP_TIMEOUT_SEC) -> None:
+        if not np.isfinite(timeout_sec) or timeout_sec <= 0.0:
+            raise ValueError("startup timeout must be finite and positive")
         if self._process is not None and self._process.is_alive():
             return
         self._closed = False

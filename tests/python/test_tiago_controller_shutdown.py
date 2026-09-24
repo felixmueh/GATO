@@ -13,7 +13,8 @@ from gato_tiago import tiago_controller_process as execution
 
 
 @pytest.mark.parametrize("experiment", ["fig8", "goals"])
-def test_tracking_restores_control_before_slow_result_saving(monkeypatch, experiment):
+@pytest.mark.parametrize("startup_timeout", [None, 45.0])
+def test_tracking_restores_control_before_slow_result_saving(monkeypatch, experiment, startup_timeout):
     # Load the real MPC loop without its unused GPU constructor dependency.
     path = Path(execution.__file__).with_name("tiago_mpc_controller.py")
     spec = importlib.util.spec_from_file_location("shutdown_test_mpc", path)
@@ -34,10 +35,10 @@ def test_tracking_restores_control_before_slow_result_saving(monkeypatch, experi
         ee_pos=lambda q: np.zeros(3),
         ee_tool_axis_error=lambda q, goal: 0.,
     )
-    clock = SimpleNamespace(now=0., restored=False)
+    clock = SimpleNamespace(now=0., restored=False, startup_timeout=None)
     class Controller:
         target_hz = 10.
-        def initialize(self): pass
+        def initialize(self, timeout_sec): clock.startup_timeout = timeout_sec
         def read_state(self, **kwargs):
             clock.now += .1
             return SimpleNamespace(q=np.zeros(1), qd=np.zeros(1), stamp_sec=clock.now,
@@ -45,12 +46,14 @@ def test_tracking_restores_control_before_slow_result_saving(monkeypatch, experi
         def send_trajectory(self, *args): pass
         def finish_control(self, **kwargs): clock.restored = True
 
+    startup_kwargs = {} if startup_timeout is None else {"controller_startup_timeout": startup_timeout}
     if experiment == "fig8":
         _, stats = mpc.run_mpc_fig8(np.zeros(2), np.zeros(600), sim_time=.2,
-                                   controller=Controller())
+                                   controller=Controller(), **startup_kwargs)
     else:
         _, stats = mpc.run_mpc_goals(np.zeros(2), [[1., 0., 0.]], goal_timeout=.2,
-                                    controller=Controller())
+                                    controller=Controller(), **startup_kwargs)
+    assert clock.startup_timeout == (30.0 if startup_timeout is None else startup_timeout)
     # Model result writing taking longer than a horizon plus watchdog grace.
     clock.now += 1.
     assert clock.restored, "controller still executing expired torques during result saving"

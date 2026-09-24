@@ -11,6 +11,7 @@ from bsqp.interface import BSQP
 from bsqp.common import rk4, sample_reference_horizon, shift_packed_trajectory_warm_start
 from bsqp.config import DEFAULT_SOLVER_PARAMS
 from gato_tiago.tiago_controller_process import elapsed_sim_time_from_stamp
+from gato_tiago.config import TIAGO_DEFAULT_STARTUP_TIMEOUT_SEC
 
 # Import force estimator if available
 sys.path.append('./examples')
@@ -157,6 +158,7 @@ class MPC_GATO:
         controller=None,
         controller_timeout=2.0,
         offline_timing="controller_dt",
+        controller_startup_timeout=TIAGO_DEFAULT_STARTUP_TIMEOUT_SEC,
     ):
         """
         Run MPC controller tracking figure-8 trajectory.
@@ -168,7 +170,7 @@ class MPC_GATO:
             raise ValueError("offline_timing must be 'controller_dt' or 'solve_time'")
         sim_stamp_origin_sec = None
         if use_controller:
-            controller.initialize()
+            controller.initialize(timeout_sec=controller_startup_timeout)
             controller_period = 1.0 / controller.target_hz
             if self.dt < controller_period:
                 print(
@@ -491,6 +493,7 @@ class MPC_GATO:
         goal_dwell_time=0.0,
         controller=None,
         controller_timeout=2.0,
+        controller_startup_timeout=TIAGO_DEFAULT_STARTUP_TIMEOUT_SEC,
     ):
         """
         Run MPC controller tracking discrete goal positions.
@@ -528,7 +531,7 @@ class MPC_GATO:
         if use_controller:
             if self.has_pendulum:
                 raise ValueError("live controller mode does not support pendulum simulation")
-            controller.initialize()
+            controller.initialize(timeout_sec=controller_startup_timeout)
             controller_period = 1.0 / controller.target_hz
             if self.dt < controller_period:
                 print(

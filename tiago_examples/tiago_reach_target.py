@@ -1476,6 +1476,7 @@ def run_experiment(args):
             goal_dwell_time=args.goal_dwell_time,
             controller=ros_controller,
             controller_timeout=args.ros_controller_timeout,
+            controller_startup_timeout=args.ros_startup_timeout,
         )
     finally:
         if ros_controller is not None:
@@ -1844,6 +1845,7 @@ def create_plots(args):
 def add_run_args(parser):
     from gato_tiago.config import (
         TIAGO_DEFAULT_MAX_ABS_TORQUE,
+        TIAGO_DEFAULT_STARTUP_TIMEOUT_SEC,
         TIAGO_RIGHT_DEFAULT_START_CONFIG,
         TIAGO_RIGHT_START_CONFIGS,
     )
@@ -1894,6 +1896,10 @@ def add_run_args(parser):
     parser.add_argument("--ros-joint-position-margin-rad", type=float, default=0.0)
     parser.add_argument("--ros-joint-velocity-scale", type=float, default=1.0)
     parser.add_argument("--ros-controller-timeout", type=float, default=8.0)
+    parser.add_argument(
+        "--ros-startup-timeout", type=float, default=TIAGO_DEFAULT_STARTUP_TIMEOUT_SEC,
+        help="Seconds to wait for controller startup, including reset and safety setup (default: 30).",
+    )
 
 
 def add_sample_goal_args(parser):
@@ -1942,6 +1948,10 @@ def parse_args():
     if args.command is None:
         add_run_args(parser)
         args = parser.parse_args(["run", *sys.argv[1:]])
+    if args.command == "run" and (
+        not np.isfinite(args.ros_startup_timeout) or args.ros_startup_timeout <= 0
+    ):
+        parser.error("--ros-startup-timeout must be finite and positive")
     return args
 
 

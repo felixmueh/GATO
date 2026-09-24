@@ -23,6 +23,7 @@ from bsqp.config import (
 )
 from gato_tiago.config import (
     TIAGO_DEFAULT_MAX_ABS_TORQUE,
+    TIAGO_DEFAULT_STARTUP_TIMEOUT_SEC,
     TIAGO_RIGHT_DEFAULT_START_CONFIG,
     TIAGO_RIGHT_START_CONFIGS,
     TIAGO_TRACKING_SOLVER_PARAMS,
@@ -607,6 +608,7 @@ def run(args):
                 sim_time=args.sim_time,
                 controller=ros_controller,
                 controller_timeout=args.ros_controller_timeout,
+                controller_startup_timeout=args.ros_startup_timeout,
             )
             timestamps = np.asarray(stats["timestamps"], dtype=np.float64)
             ref_points, ref_indices = reference_at_timestamps(reference, timestamps, args.dt)
@@ -727,7 +729,14 @@ def parse_args():
     parser.add_argument("--ros-joint-position-margin-rad", type=float, default=0.0)
     parser.add_argument("--ros-joint-velocity-scale", type=float, default=1.0)
     parser.add_argument("--ros-controller-timeout", type=float, default=8.0)
-    return parser.parse_args()
+    parser.add_argument(
+        "--ros-startup-timeout", type=float, default=TIAGO_DEFAULT_STARTUP_TIMEOUT_SEC,
+        help="Seconds to wait for controller startup, including reset and safety setup (default: 30).",
+    )
+    args = parser.parse_args()
+    if not np.isfinite(args.ros_startup_timeout) or args.ros_startup_timeout <= 0:
+        parser.error("--ros-startup-timeout must be finite and positive")
+    return args
 
 
 if __name__ == "__main__":
