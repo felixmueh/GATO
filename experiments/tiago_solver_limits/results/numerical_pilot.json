@@ -1,0 +1,3902 @@
+{
+  "schema": 1,
+  "scope": "Bounded development pilot; three fixed arm tasks, sampled tool-cylinder and joint/effort checks, independent continuous simulation; no real-time, whole-body, global-optimum, or KKT-convergence claim.",
+  "raw_root": "example_artifacts/randomized_multimodal",
+  "openloop": [
+    {
+      "cell": "N128_T1.8_task0",
+      "task": 0,
+      "knots": 128,
+      "duration": 1.8,
+      "dt": 0.014173228346456693,
+      "batch": "1",
+      "failure": null,
+      "rho": 0.01,
+      "sqp_budget": 400,
+      "winner": 0,
+      "coarse_feasible": false,
+      "fine_full_feasible": false,
+      "prefix_physical": true,
+      "prefix_tool_error_mm": 0.02951276741760141,
+      "prefix_velocity_error": 0.016979313988672695,
+      "coarse_goal_mm": 130.74965198758525,
+      "fine_goal_mm": 316.0073324534337,
+      "fine_velocity_ratio": 20.850522055459805,
+      "fine_joint_violation": 17.46346229111229,
+      "coarse_objective": 46.04710283397763,
+      "fine_objective": 228.9463630250368,
+      "planned_replay_q": 10.837847709655762,
+      "planned_replay_v": 24.544044494628906,
+      "fine_step_halving_q": 8.076082320229716e-06,
+      "fine_step_halving_v": 8.533018370115997e-05,
+      "kkt": 0,
+      "accepted_steps": 80,
+      "last_pass_accepted": 0,
+      "pcg_caps": 217,
+      "pcg_breakdown": 0,
+      "cpu_coarse_feasible": true,
+      "cpu_fine_feasible": false,
+      "cpu_gradient_inf": 1.5749550587259393e-05,
+      "cpu_objective": 0.4494031348294006,
+      "solve_ms": 8126.878999999999
+    },
+    {
+      "cell": "N128_T1.8_task0",
+      "task": 0,
+      "knots": 128,
+      "duration": 1.8,
+      "dt": 0.014173228346456693,
+      "batch": "16",
+      "failure": null,
+      "rho": 0.01,
+      "sqp_budget": 400,
+      "winner": 11,
+      "coarse_feasible": false,
+      "fine_full_feasible": false,
+      "prefix_physical": true,
+      "prefix_tool_error_mm": 0.03457522438877649,
+      "prefix_velocity_error": 0.01880296995506925,
+      "coarse_goal_mm": 109.50101657929795,
+      "fine_goal_mm": 246.90073366395555,
+      "fine_velocity_ratio": 21.347011198025314,
+      "fine_joint_violation": 13.36385798607078,
+      "coarse_objective": 22.88776276914889,
+      "fine_objective": 188.41832231565314,
+      "planned_replay_q": 6.805782318115234,
+      "planned_replay_v": 24.216642379760742,
+      "fine_step_halving_q": 3.382282760089339e-06,
+      "fine_step_halving_v": 2.795575210257084e-05,
+      "kkt": 0,
+      "accepted_steps": 75,
+      "last_pass_accepted": 0,
+      "pcg_caps": 197,
+      "pcg_breakdown": 0,
+      "cpu_coarse_feasible": true,
+      "cpu_fine_feasible": false,
+      "cpu_gradient_inf": 2.9072299430998438e-05,
+      "cpu_objective": 0.4493985059819432,
+      "solve_ms": 26940.958
+    },
+    {
+      "cell": "N128_T1.8_task1",
+      "task": 1,
+      "knots": 128,
+      "duration": 1.8,
+      "dt": 0.014173228346456693,
+      "batch": "1",
+      "failure": null,
+      "rho": 0.01,
+      "sqp_budget": 400,
+      "winner": 0,
+      "coarse_feasible": false,
+      "fine_full_feasible": false,
+      "prefix_physical": true,
+      "prefix_tool_error_mm": 0.07135807639806746,
+      "prefix_velocity_error": 0.0353000814550255,
+      "coarse_goal_mm": 323.28599059939984,
+      "fine_goal_mm": 303.3831917295131,
+      "fine_velocity_ratio": 30.211969189270473,
+      "fine_joint_violation": 12.05377952919896,
+      "coarse_objective": 296.5872368625084,
+      "fine_objective": 243.75307462254239,
+      "planned_replay_q": 7.691612243652344,
+      "planned_replay_v": 100.39783477783203,
+      "fine_step_halving_q": 5.9943686565588905e-06,
+      "fine_step_halving_v": 0.0002656468233332987,
+      "kkt": 0,
+      "accepted_steps": 158,
+      "last_pass_accepted": 0,
+      "pcg_caps": 197,
+      "pcg_breakdown": 0,
+      "cpu_coarse_feasible": false,
+      "cpu_fine_feasible": false,
+      "cpu_gradient_inf": 0.0006424311330862423,
+      "cpu_objective": 3.7660580979765,
+      "solve_ms": 7506.728999999999
+    },
+    {
+      "cell": "N128_T1.8_task1",
+      "task": 1,
+      "knots": 128,
+      "duration": 1.8,
+      "dt": 0.014173228346456693,
+      "batch": "16",
+      "failure": null,
+      "rho": 0.01,
+      "sqp_budget": 400,
+      "winner": 9,
+      "coarse_feasible": false,
+      "fine_full_feasible": false,
+      "prefix_physical": true,
+      "prefix_tool_error_mm": 0.05219270906222912,
+      "prefix_velocity_error": 0.031151705152586695,
+      "coarse_goal_mm": 225.2906910175124,
+      "fine_goal_mm": 304.2239343697128,
+      "fine_velocity_ratio": 35.69110623173704,
+      "fine_joint_violation": 20.40828611444855,
+      "coarse_objective": 54.60114268607161,
+      "fine_objective": 345.70215306587335,
+      "planned_replay_q": 6.4802985191345215,
+      "planned_replay_v": 29.73383140563965,
+      "fine_step_halving_q": 1.5981983807478173e-06,
+      "fine_step_halving_v": 6.102428384480163e-05,
+      "kkt": 0,
+      "accepted_steps": 106,
+      "last_pass_accepted": 0,
+      "pcg_caps": 195,
+      "pcg_breakdown": 0,
+      "cpu_coarse_feasible": true,
+      "cpu_fine_feasible": false,
+      "cpu_gradient_inf": 0.00012930898549402988,
+      "cpu_objective": 0.9871769088345393,
+      "solve_ms": 25602.989999999998
+    },
+    {
+      "cell": "N128_T1.8_task2",
+      "task": 2,
+      "knots": 128,
+      "duration": 1.8,
+      "dt": 0.014173228346456693,
+      "batch": "1",
+      "failure": null,
+      "rho": 0.01,
+      "sqp_budget": 400,
+      "winner": 0,
+      "coarse_feasible": false,
+      "fine_full_feasible": false,
+      "prefix_physical": true,
+      "prefix_tool_error_mm": 0.15374101317069247,
+      "prefix_velocity_error": 0.03939464221163469,
+      "coarse_goal_mm": null,
+      "fine_goal_mm": 410.2998002575224,
+      "fine_velocity_ratio": 44.179910346747015,
+      "fine_joint_violation": 15.406922459212971,
+      "coarse_objective": null,
+      "fine_objective": 344.69346886294346,
+      "planned_replay_q": null,
+      "planned_replay_v": null,
+      "fine_step_halving_q": 0.00014036817758622533,
+      "fine_step_halving_v": 0.003530710820101035,
+      "kkt": 0,
+      "accepted_steps": 394,
+      "last_pass_accepted": 194,
+      "pcg_caps": 208,
+      "pcg_breakdown": 0,
+      "cpu_coarse_feasible": null,
+      "cpu_fine_feasible": null,
+      "cpu_gradient_inf": null,
+      "cpu_objective": null,
+      "solve_ms": 7462.299999999999
+    },
+    {
+      "cell": "N128_T1.8_task2",
+      "task": 2,
+      "knots": 128,
+      "duration": 1.8,
+      "dt": 0.014173228346456693,
+      "batch": "16",
+      "failure": null,
+      "rho": 0.01,
+      "sqp_budget": 400,
+      "winner": 13,
+      "coarse_feasible": false,
+      "fine_full_feasible": false,
+      "prefix_physical": true,
+      "prefix_tool_error_mm": 0.14693938088188538,
+      "prefix_velocity_error": 0.03702679142928256,
+      "coarse_goal_mm": 807.3381950694912,
+      "fine_goal_mm": 541.8176582032246,
+      "fine_velocity_ratio": 31.365886698352448,
+      "fine_joint_violation": 16.877156171109363,
+      "coarse_objective": 362.38714003334695,
+      "fine_objective": 536.9752918743626,
+      "planned_replay_q": 20.615541458129883,
+      "planned_replay_v": 87.4892578125,
+      "fine_step_halving_q": 0.0005786174566537738,
+      "fine_step_halving_v": 0.02161260520897912,
+      "kkt": 0,
+      "accepted_steps": 327,
+      "last_pass_accepted": 128,
+      "pcg_caps": 201,
+      "pcg_breakdown": 0,
+      "cpu_coarse_feasible": false,
+      "cpu_fine_feasible": false,
+      "cpu_gradient_inf": 0.0020085173713406904,
+      "cpu_objective": 4.235299146148167,
+      "solve_ms": 25319.302
+    },
+    {
+      "cell": "N16_T0.45_task0",
+      "task": 0,
+      "knots": 16,
+      "duration": 0.45,
+      "dt": 0.030000000000000002,
+      "batch": "1",
+      "failure": null,
+      "rho": 0.01,
+      "sqp_budget": 400,
+      "winner": 0,
+      "coarse_feasible": true,
+      "fine_full_feasible": true,
+      "prefix_physical": true,
+      "prefix_tool_error_mm": 0.09991511736550639,
+      "prefix_velocity_error": 0.021509401667685113,
+      "coarse_goal_mm": 6.81395141080466,
+      "fine_goal_mm": 9.30841251663686,
+      "fine_velocity_ratio": 0.9671835958873733,
+      "fine_joint_violation": 0.0,
+      "coarse_objective": 0.26938580030688947,
+      "fine_objective": 0.4134976983590374,
+      "planned_replay_q": 0.0003480874001979828,
+      "planned_replay_v": 0.0033654868602752686,
+      "fine_step_halving_q": 1.5732259939227333e-10,
+      "fine_step_halving_v": 1.618510658829564e-09,
+      "kkt": 0,
+      "accepted_steps": 41,
+      "last_pass_accepted": 0,
+      "pcg_caps": 197,
+      "pcg_breakdown": 0,
+      "cpu_coarse_feasible": true,
+      "cpu_fine_feasible": true,
+      "cpu_gradient_inf": 7.103553157099176e-09,
+      "cpu_objective": 0.2629924799174546,
+      "solve_ms": 1508.393
+    },
+    {
+      "cell": "N16_T0.45_task0",
+      "task": 0,
+      "knots": 16,
+      "duration": 0.45,
+      "dt": 0.030000000000000002,
+      "batch": "16",
+      "failure": null,
+      "rho": 0.01,
+      "sqp_budget": 400,
+      "winner": 0,
+      "coarse_feasible": true,
+      "fine_full_feasible": true,
+      "prefix_physical": true,
+      "prefix_tool_error_mm": 0.09991511736550639,
+      "prefix_velocity_error": 0.021509401667685113,
+      "coarse_goal_mm": 6.81395141080466,
+      "fine_goal_mm": 9.30841251663686,
+      "fine_velocity_ratio": 0.9671835958873733,
+      "fine_joint_violation": 0.0,
+      "coarse_objective": 0.26938580030688947,
+      "fine_objective": 0.4134976983590374,
+      "planned_replay_q": 0.0003480874001979828,
+      "planned_replay_v": 0.0033654868602752686,
+      "fine_step_halving_q": 1.5732259939227333e-10,
+      "fine_step_halving_v": 1.618510658829564e-09,
+      "kkt": 0,
+      "accepted_steps": 41,
+      "last_pass_accepted": 0,
+      "pcg_caps": 197,
+      "pcg_breakdown": 0,
+      "cpu_coarse_feasible": true,
+      "cpu_fine_feasible": true,
+      "cpu_gradient_inf": 7.103553157099176e-09,
+      "cpu_objective": 0.2629924799174546,
+      "solve_ms": 3199.7439999999997
+    },
+    {
+      "cell": "N16_T0.45_task1",
+      "task": 1,
+      "knots": 16,
+      "duration": 0.45,
+      "dt": 0.030000000000000002,
+      "batch": "1",
+      "failure": null,
+      "rho": 0.01,
+      "sqp_budget": 400,
+      "winner": 0,
+      "coarse_feasible": true,
+      "fine_full_feasible": false,
+      "prefix_physical": true,
+      "prefix_tool_error_mm": 0.17541724974597334,
+      "prefix_velocity_error": 0.03336839744866099,
+      "coarse_goal_mm": 10.816547397955823,
+      "fine_goal_mm": 15.412639075370066,
+      "fine_velocity_ratio": 2.0188584033720094,
+      "fine_joint_violation": 0.0,
+      "coarse_objective": 0.7135132342663943,
+      "fine_objective": 1.1751506148747242,
+      "planned_replay_q": 5.7697296142578125e-05,
+      "planned_replay_v": 0.0004418864846229553,
+      "fine_step_halving_q": 6.294096493997259e-10,
+      "fine_step_halving_v": 9.9816057641533e-09,
+      "kkt": 0,
+      "accepted_steps": 35,
+      "last_pass_accepted": 0,
+      "pcg_caps": 194,
+      "pcg_breakdown": 0,
+      "cpu_coarse_feasible": true,
+      "cpu_fine_feasible": false,
+      "cpu_gradient_inf": 8.165399268192375e-09,
+      "cpu_objective": 0.6877145088650881,
+      "solve_ms": 1480.2930000000001
+    },
+    {
+      "cell": "N16_T0.45_task1",
+      "task": 1,
+      "knots": 16,
+      "duration": 0.45,
+      "dt": 0.030000000000000002,
+      "batch": "16",
+      "failure": null,
+      "rho": 0.01,
+      "sqp_budget": 400,
+      "winner": 4,
+      "coarse_feasible": true,
+      "fine_full_feasible": false,
+      "prefix_physical": true,
+      "prefix_tool_error_mm": 0.25017972464688154,
+      "prefix_velocity_error": 0.03995663724775039,
+      "coarse_goal_mm": 10.579395364017524,
+      "fine_goal_mm": 12.632348401133717,
+      "fine_velocity_ratio": 1.9532540768308948,
+      "fine_joint_violation": 0.0,
+      "coarse_objective": 0.7078218949593152,
+      "fine_objective": 1.0527774114728432,
+      "planned_replay_q": 0.00015816837549209595,
+      "planned_replay_v": 0.0017553530633449554,
+      "fine_step_halving_q": 5.29925390027608e-10,
+      "fine_step_halving_v": 8.136602502872847e-09,
+      "kkt": 0,
+      "accepted_steps": 61,
+      "last_pass_accepted": 0,
+      "pcg_caps": 194,
+      "pcg_breakdown": 0,
+      "cpu_coarse_feasible": true,
+      "cpu_fine_feasible": false,
+      "cpu_gradient_inf": 7.815772911978552e-09,
+      "cpu_objective": 0.6877145088673661,
+      "solve_ms": 3186.52
+    },
+    {
+      "cell": "N16_T0.45_task2",
+      "task": 2,
+      "knots": 16,
+      "duration": 0.45,
+      "dt": 0.030000000000000002,
+      "batch": "1",
+      "failure": null,
+      "rho": 0.01,
+      "sqp_budget": 400,
+      "winner": 0,
+      "coarse_feasible": true,
+      "fine_full_feasible": false,
+      "prefix_physical": true,
+      "prefix_tool_error_mm": 0.5225705698289459,
+      "prefix_velocity_error": 0.08278211478578035,
+      "coarse_goal_mm": 14.838211781051518,
+      "fine_goal_mm": 23.017648643961476,
+      "fine_velocity_ratio": 3.1289578512903544,
+      "fine_joint_violation": 0.0,
+      "coarse_objective": 1.268641169403392,
+      "fine_objective": 2.9014627469588716,
+      "planned_replay_q": 0.00038188695907592773,
+      "planned_replay_v": 0.0044142454862594604,
+      "fine_step_halving_q": 8.224213532415092e-10,
+      "fine_step_halving_v": 1.8420420744291732e-08,
+      "kkt": 0,
+      "accepted_steps": 89,
+      "last_pass_accepted": 0,
+      "pcg_caps": 194,
+      "pcg_breakdown": 0,
+      "cpu_coarse_feasible": true,
+      "cpu_fine_feasible": false,
+      "cpu_gradient_inf": 9.785891168061223e-08,
+      "cpu_objective": 1.2253785290491535,
+      "solve_ms": 1524.53
+    },
+    {
+      "cell": "N16_T0.45_task2",
+      "task": 2,
+      "knots": 16,
+      "duration": 0.45,
+      "dt": 0.030000000000000002,
+      "batch": "16",
+      "failure": null,
+      "rho": 0.01,
+      "sqp_budget": 400,
+      "winner": 13,
+      "coarse_feasible": true,
+      "fine_full_feasible": false,
+      "prefix_physical": true,
+      "prefix_tool_error_mm": 0.7250979291923771,
+      "prefix_velocity_error": 0.10670099737610128,
+      "coarse_goal_mm": 13.39924535261828,
+      "fine_goal_mm": 25.373557966874767,
+      "fine_velocity_ratio": 2.5488996105062447,
+      "fine_joint_violation": 0.0,
+      "coarse_objective": 1.2538406963551465,
+      "fine_objective": 2.8864519446965704,
+      "planned_replay_q": 9.319186210632324e-05,
+      "planned_replay_v": 0.0009408965706825256,
+      "fine_step_halving_q": 2.114886488158163e-09,
+      "fine_step_halving_v": 2.9854891892000524e-08,
+      "kkt": 0,
+      "accepted_steps": 78,
+      "last_pass_accepted": 0,
+      "pcg_caps": 194,
+      "pcg_breakdown": 0,
+      "cpu_coarse_feasible": true,
+      "cpu_fine_feasible": false,
+      "cpu_gradient_inf": 4.1944622019597644e-08,
+      "cpu_objective": 1.2253785290485668,
+      "solve_ms": 3186.471
+    },
+    {
+      "cell": "N32_T0.45_task0",
+      "task": 0,
+      "knots": 32,
+      "duration": 0.45,
+      "dt": 0.014516129032258065,
+      "batch": "1",
+      "failure": null,
+      "rho": 0.01,
+      "sqp_budget": 400,
+      "winner": 0,
+      "coarse_feasible": true,
+      "fine_full_feasible": true,
+      "prefix_physical": true,
+      "prefix_tool_error_mm": 0.04684453586968244,
+      "prefix_velocity_error": 0.012287452300737578,
+      "coarse_goal_mm": 6.902331807229468,
+      "fine_goal_mm": 5.443874710073666,
+      "fine_velocity_ratio": 0.5281438833800823,
+      "fine_joint_violation": 0.0,
+      "coarse_objective": 0.2703726181159537,
+      "fine_objective": 0.30422526782717335,
+      "planned_replay_q": 0.0002549290657043457,
+      "planned_replay_v": 0.002823367714881897,
+      "fine_step_halving_q": 1.1955325618373536e-10,
+      "fine_step_halving_v": 1.1193395099695636e-09,
+      "kkt": 0,
+      "accepted_steps": 27,
+      "last_pass_accepted": 0,
+      "pcg_caps": 202,
+      "pcg_breakdown": 0,
+      "cpu_coarse_feasible": true,
+      "cpu_fine_feasible": true,
+      "cpu_gradient_inf": 9.665735371377354e-09,
+      "cpu_objective": 0.2559665244723622,
+      "solve_ms": 2552.978
+    },
+    {
+      "cell": "N32_T0.45_task0",
+      "task": 0,
+      "knots": 32,
+      "duration": 0.45,
+      "dt": 0.014516129032258065,
+      "batch": "16",
+      "failure": null,
+      "rho": 0.01,
+      "sqp_budget": 400,
+      "winner": 0,
+      "coarse_feasible": true,
+      "fine_full_feasible": true,
+      "prefix_physical": true,
+      "prefix_tool_error_mm": 0.04684453586968244,
+      "prefix_velocity_error": 0.012287452300737578,
+      "coarse_goal_mm": 6.902331807229468,
+      "fine_goal_mm": 5.443874710073666,
+      "fine_velocity_ratio": 0.5281438833800823,
+      "fine_joint_violation": 0.0,
+      "coarse_objective": 0.2703726181159537,
+      "fine_objective": 0.30422526782717335,
+      "planned_replay_q": 0.0002549290657043457,
+      "planned_replay_v": 0.002823367714881897,
+      "fine_step_halving_q": 1.1955325618373536e-10,
+      "fine_step_halving_v": 1.1193395099695636e-09,
+      "kkt": 0,
+      "accepted_steps": 27,
+      "last_pass_accepted": 0,
+      "pcg_caps": 202,
+      "pcg_breakdown": 0,
+      "cpu_coarse_feasible": true,
+      "cpu_fine_feasible": true,
+      "cpu_gradient_inf": 9.665735371377354e-09,
+      "cpu_objective": 0.2559665244723622,
+      "solve_ms": 5753.08
+    },
+    {
+      "cell": "N32_T0.45_task1",
+      "task": 1,
+      "knots": 32,
+      "duration": 0.45,
+      "dt": 0.014516129032258065,
+      "batch": "1",
+      "failure": null,
+      "rho": 0.01,
+      "sqp_budget": 400,
+      "winner": 0,
+      "coarse_feasible": true,
+      "fine_full_feasible": false,
+      "prefix_physical": true,
+      "prefix_tool_error_mm": 0.09056287814338419,
+      "prefix_velocity_error": 0.016482138276253666,
+      "coarse_goal_mm": 10.408906657452714,
+      "fine_goal_mm": 3.78770440027743,
+      "fine_velocity_ratio": 1.0841455247593523,
+      "fine_joint_violation": 0.0,
+      "coarse_objective": 0.708112654274828,
+      "fine_objective": 0.809935101554593,
+      "planned_replay_q": 0.0009040609002113342,
+      "planned_replay_v": 0.01073804497718811,
+      "fine_step_halving_q": 5.604758757798978e-10,
+      "fine_step_halving_v": 7.987950967347501e-09,
+      "kkt": 0,
+      "accepted_steps": 59,
+      "last_pass_accepted": 0,
+      "pcg_caps": 199,
+      "pcg_breakdown": 0,
+      "cpu_coarse_feasible": true,
+      "cpu_fine_feasible": true,
+      "cpu_gradient_inf": 7.149125473256482e-09,
+      "cpu_objective": 0.6675524337126842,
+      "solve_ms": 2511.116
+    },
+    {
+      "cell": "N32_T0.45_task1",
+      "task": 1,
+      "knots": 32,
+      "duration": 0.45,
+      "dt": 0.014516129032258065,
+      "batch": "16",
+      "failure": null,
+      "rho": 0.01,
+      "sqp_budget": 400,
+      "winner": 4,
+      "coarse_feasible": true,
+      "fine_full_feasible": false,
+      "prefix_physical": true,
+      "prefix_tool_error_mm": 0.12992277502756797,
+      "prefix_velocity_error": 0.020691078085211645,
+      "coarse_goal_mm": 10.542683243937715,
+      "fine_goal_mm": 2.7980248425385406,
+      "fine_velocity_ratio": 1.037723643288159,
+      "fine_joint_violation": 0.0,
+      "coarse_objective": 0.7046147010833439,
+      "fine_objective": 0.7830666680288225,
+      "planned_replay_q": 0.0007797777652740479,
+      "planned_replay_v": 0.00946170836687088,
+      "fine_step_halving_q": 6.589524342848208e-10,
+      "fine_step_halving_v": 9.585453986105108e-09,
+      "kkt": 0,
+      "accepted_steps": 60,
+      "last_pass_accepted": 0,
+      "pcg_caps": 202,
+      "pcg_breakdown": 0,
+      "cpu_coarse_feasible": true,
+      "cpu_fine_feasible": true,
+      "cpu_gradient_inf": 9.083834287635512e-09,
+      "cpu_objective": 0.6675524337228664,
+      "solve_ms": 5721.752
+    },
+    {
+      "cell": "N32_T0.45_task2",
+      "task": 2,
+      "knots": 32,
+      "duration": 0.45,
+      "dt": 0.014516129032258065,
+      "batch": "1",
+      "failure": null,
+      "rho": 0.01,
+      "sqp_budget": 400,
+      "winner": 0,
+      "coarse_feasible": false,
+      "fine_full_feasible": false,
+      "prefix_physical": true,
+      "prefix_tool_error_mm": 0.2551639308435786,
+      "prefix_velocity_error": 0.03958753876563581,
+      "coarse_goal_mm": 14.365038294492546,
+      "fine_goal_mm": 6.258013382796876,
+      "fine_velocity_ratio": 1.4071340335516713,
+      "fine_joint_violation": 0.0,
+      "coarse_objective": 1.2686228567607891,
+      "fine_objective": 1.4572282612837117,
+      "planned_replay_q": 5.716085433959961e-05,
+      "planned_replay_v": 0.0006891563534736633,
+      "fine_step_halving_q": 1.4767430611684063e-09,
+      "fine_step_halving_v": 2.4180552227193175e-08,
+      "kkt": 0,
+      "accepted_steps": 75,
+      "last_pass_accepted": 0,
+      "pcg_caps": 198,
+      "pcg_breakdown": 0,
+      "cpu_coarse_feasible": true,
+      "cpu_fine_feasible": false,
+      "cpu_gradient_inf": 7.85651074568499e-09,
+      "cpu_objective": 1.1877688644213031,
+      "solve_ms": 2751.631
+    },
+    {
+      "cell": "N32_T0.45_task2",
+      "task": 2,
+      "knots": 32,
+      "duration": 0.45,
+      "dt": 0.014516129032258065,
+      "batch": "16",
+      "failure": null,
+      "rho": 0.01,
+      "sqp_budget": 400,
+      "winner": 13,
+      "coarse_feasible": true,
+      "fine_full_feasible": false,
+      "prefix_physical": true,
+      "prefix_tool_error_mm": 0.42559193846853816,
+      "prefix_velocity_error": 0.06260467525014801,
+      "coarse_goal_mm": 12.494877721587558,
+      "fine_goal_mm": 8.793754097023584,
+      "fine_velocity_ratio": 1.3683240402461982,
+      "fine_joint_violation": 0.0,
+      "coarse_objective": 1.2417387473501942,
+      "fine_objective": 1.436549513140159,
+      "planned_replay_q": 0.0009863823652267456,
+      "planned_replay_v": 0.009856805205345154,
+      "fine_step_halving_q": 6.954827269645136e-10,
+      "fine_step_halving_v": 8.518648578204058e-09,
+      "kkt": 0,
+      "accepted_steps": 85,
+      "last_pass_accepted": 0,
+      "pcg_caps": 203,
+      "pcg_breakdown": 0,
+      "cpu_coarse_feasible": true,
+      "cpu_fine_feasible": false,
+      "cpu_gradient_inf": 6.456693117736932e-09,
+      "cpu_objective": 1.1877688644626592,
+      "solve_ms": 5937.455
+    },
+    {
+      "cell": "N32_T0.9_task0",
+      "task": 0,
+      "knots": 32,
+      "duration": 0.9,
+      "dt": 0.02903225806451613,
+      "batch": "1",
+      "failure": null,
+      "rho": 0.01,
+      "sqp_budget": 400,
+      "winner": 0,
+      "coarse_feasible": true,
+      "fine_full_feasible": false,
+      "prefix_physical": true,
+      "prefix_tool_error_mm": 0.039423993962307696,
+      "prefix_velocity_error": 0.0233913681306952,
+      "coarse_goal_mm": 2.028392872916115,
+      "fine_goal_mm": 147.18376055682683,
+      "fine_velocity_ratio": 14.592559195797941,
+      "fine_joint_violation": 2.1765288880720126,
+      "coarse_objective": 0.33055990833151133,
+      "fine_objective": 44.319629450468256,
+      "planned_replay_q": 0.025037039071321487,
+      "planned_replay_v": 0.259247750043869,
+      "fine_step_halving_q": 8.83394042361374e-08,
+      "fine_step_halving_v": 1.054069050709927e-06,
+      "kkt": 0,
+      "accepted_steps": 22,
+      "last_pass_accepted": 0,
+      "pcg_caps": 196,
+      "pcg_breakdown": 0,
+      "cpu_coarse_feasible": true,
+      "cpu_fine_feasible": false,
+      "cpu_gradient_inf": 5.4611850434233e-08,
+      "cpu_objective": 0.31228299407078913,
+      "solve_ms": 2135.393
+    },
+    {
+      "cell": "N32_T0.9_task0",
+      "task": 0,
+      "knots": 32,
+      "duration": 0.9,
+      "dt": 0.02903225806451613,
+      "batch": "16",
+      "failure": null,
+      "rho": 0.01,
+      "sqp_budget": 400,
+      "winner": 9,
+      "coarse_feasible": true,
+      "fine_full_feasible": false,
+      "prefix_physical": true,
+      "prefix_tool_error_mm": 0.046815907484439916,
+      "prefix_velocity_error": 0.019748171824557847,
+      "coarse_goal_mm": 1.6031396786775514,
+      "fine_goal_mm": 155.69487551577808,
+      "fine_velocity_ratio": 16.83834448723222,
+      "fine_joint_violation": 2.082331452121201,
+      "coarse_objective": 0.3249054304428436,
+      "fine_objective": 51.79428108074496,
+      "planned_replay_q": 0.019297299906611443,
+      "planned_replay_v": 0.1957789659500122,
+      "fine_step_halving_q": 1.4909779455507532e-07,
+      "fine_step_halving_v": 1.8807396191533599e-06,
+      "kkt": 0,
+      "accepted_steps": 38,
+      "last_pass_accepted": 0,
+      "pcg_caps": 196,
+      "pcg_breakdown": 0,
+      "cpu_coarse_feasible": true,
+      "cpu_fine_feasible": false,
+      "cpu_gradient_inf": 6.534759644473073e-08,
+      "cpu_objective": 0.31228299405995497,
+      "solve_ms": 5302.503000000001
+    },
+    {
+      "cell": "N32_T0.9_task1",
+      "task": 1,
+      "knots": 32,
+      "duration": 0.9,
+      "dt": 0.02903225806451613,
+      "batch": "1",
+      "failure": null,
+      "rho": 0.01,
+      "sqp_budget": 400,
+      "winner": 0,
+      "coarse_feasible": true,
+      "fine_full_feasible": false,
+      "prefix_physical": true,
+      "prefix_tool_error_mm": 0.08466716958680787,
+      "prefix_velocity_error": 0.03779774546073056,
+      "coarse_goal_mm": 5.14683190255002,
+      "fine_goal_mm": 68.17602163385199,
+      "fine_velocity_ratio": 11.473458700820833,
+      "fine_joint_violation": 4.51781217865946,
+      "coarse_objective": 0.7695326895410818,
+      "fine_objective": 43.218994338175555,
+      "planned_replay_q": 0.007155060768127441,
+      "planned_replay_v": 0.06639266759157181,
+      "fine_step_halving_q": 5.795914725936768e-08,
+      "fine_step_halving_v": 1.4811470663289583e-06,
+      "kkt": 0,
+      "accepted_steps": 82,
+      "last_pass_accepted": 0,
+      "pcg_caps": 194,
+      "pcg_breakdown": 0,
+      "cpu_coarse_feasible": true,
+      "cpu_fine_feasible": false,
+      "cpu_gradient_inf": 1.3549727535464018e-07,
+      "cpu_objective": 0.7285307811031673,
+      "solve_ms": 2022.481
+    },
+    {
+      "cell": "N32_T0.9_task1",
+      "task": 1,
+      "knots": 32,
+      "duration": 0.9,
+      "dt": 0.02903225806451613,
+      "batch": "16",
+      "failure": null,
+      "rho": 0.01,
+      "sqp_budget": 400,
+      "winner": 5,
+      "coarse_feasible": true,
+      "fine_full_feasible": false,
+      "prefix_physical": true,
+      "prefix_tool_error_mm": 0.09226604670333047,
+      "prefix_velocity_error": 0.03496820025583092,
+      "coarse_goal_mm": 5.771766663088063,
+      "fine_goal_mm": 75.47699444093257,
+      "fine_velocity_ratio": 11.153162032581772,
+      "fine_joint_violation": 4.837718378822965,
+      "coarse_objective": 0.7637414833585948,
+      "fine_objective": 40.89388524650081,
+      "planned_replay_q": 0.024667799472808838,
+      "planned_replay_v": 0.27615800499916077,
+      "fine_step_halving_q": 2.4966026135331276e-07,
+      "fine_step_halving_v": 3.442144782539458e-06,
+      "kkt": 0,
+      "accepted_steps": 129,
+      "last_pass_accepted": 0,
+      "pcg_caps": 191,
+      "pcg_breakdown": 0,
+      "cpu_coarse_feasible": true,
+      "cpu_fine_feasible": false,
+      "cpu_gradient_inf": 5.6079065128590566e-08,
+      "cpu_objective": 0.7285307811047789,
+      "solve_ms": 4826.711
+    },
+    {
+      "cell": "N32_T0.9_task2",
+      "task": 2,
+      "knots": 32,
+      "duration": 0.9,
+      "dt": 0.02903225806451613,
+      "batch": "1",
+      "failure": null,
+      "rho": 0.01,
+      "sqp_budget": 400,
+      "winner": 0,
+      "coarse_feasible": true,
+      "fine_full_feasible": false,
+      "prefix_physical": true,
+      "prefix_tool_error_mm": 0.34227960268431384,
+      "prefix_velocity_error": 0.05018589752678382,
+      "coarse_goal_mm": 5.52616656331752,
+      "fine_goal_mm": 259.75541270579134,
+      "fine_velocity_ratio": 18.04628769263315,
+      "fine_joint_violation": 5.825333781335643,
+      "coarse_objective": 1.31756066823388,
+      "fine_objective": 108.85460128750827,
+      "planned_replay_q": 0.03296037018299103,
+      "planned_replay_v": 0.4084801971912384,
+      "fine_step_halving_q": 1.0795952576359014e-07,
+      "fine_step_halving_v": 3.2057410876973336e-06,
+      "kkt": 0,
+      "accepted_steps": 248,
+      "last_pass_accepted": 61,
+      "pcg_caps": 193,
+      "pcg_breakdown": 0,
+      "cpu_coarse_feasible": true,
+      "cpu_fine_feasible": false,
+      "cpu_gradient_inf": 2.1752270614426583e-07,
+      "cpu_objective": 1.2664314136574357,
+      "solve_ms": 2027.009
+    },
+    {
+      "cell": "N32_T0.9_task2",
+      "task": 2,
+      "knots": 32,
+      "duration": 0.9,
+      "dt": 0.02903225806451613,
+      "batch": "16",
+      "failure": null,
+      "rho": 0.01,
+      "sqp_budget": 400,
+      "winner": 13,
+      "coarse_feasible": true,
+      "fine_full_feasible": false,
+      "prefix_physical": true,
+      "prefix_tool_error_mm": 0.34499792694561754,
+      "prefix_velocity_error": 0.05016049310685278,
+      "coarse_goal_mm": 4.949094670489166,
+      "fine_goal_mm": 268.9630610588467,
+      "fine_velocity_ratio": 22.225455904679684,
+      "fine_joint_violation": 6.755648445198527,
+      "coarse_objective": 1.3108806252215506,
+      "fine_objective": 112.61694676611663,
+      "planned_replay_q": 0.027898043394088745,
+      "planned_replay_v": 0.32751137018203735,
+      "fine_step_halving_q": 9.167400349952004e-08,
+      "fine_step_halving_v": 4.047423781017301e-06,
+      "kkt": 0,
+      "accepted_steps": 130,
+      "last_pass_accepted": 0,
+      "pcg_caps": 191,
+      "pcg_breakdown": 0,
+      "cpu_coarse_feasible": true,
+      "cpu_fine_feasible": false,
+      "cpu_gradient_inf": 7.138380638069958e-08,
+      "cpu_objective": 1.2664314136837902,
+      "solve_ms": 4955.6939999999995
+    },
+    {
+      "cell": "N64_T0.9_task0",
+      "task": 0,
+      "knots": 64,
+      "duration": 0.9,
+      "dt": 0.014285714285714285,
+      "batch": "1",
+      "failure": null,
+      "rho": 0.01,
+      "sqp_budget": 400,
+      "winner": 0,
+      "coarse_feasible": true,
+      "fine_full_feasible": false,
+      "prefix_physical": true,
+      "prefix_tool_error_mm": 0.02417492959251838,
+      "prefix_velocity_error": 0.014080503569998015,
+      "coarse_goal_mm": 3.532082272809867,
+      "fine_goal_mm": 105.11152058275425,
+      "fine_velocity_ratio": 13.397218503984453,
+      "fine_joint_violation": 1.3340841665325232,
+      "coarse_objective": 0.3412367547868334,
+      "fine_objective": 34.72677992603263,
+      "planned_replay_q": 0.07265707850456238,
+      "planned_replay_v": 0.7942726016044617,
+      "fine_step_halving_q": 1.7597536761115862e-08,
+      "fine_step_halving_v": 4.857117410494993e-07,
+      "kkt": 0,
+      "accepted_steps": 38,
+      "last_pass_accepted": 0,
+      "pcg_caps": 197,
+      "pcg_breakdown": 0,
+      "cpu_coarse_feasible": true,
+      "cpu_fine_feasible": false,
+      "cpu_gradient_inf": 9.251529231449947e-09,
+      "cpu_objective": 0.3066316473170782,
+      "solve_ms": 4034.8900000000003
+    },
+    {
+      "cell": "N64_T0.9_task0",
+      "task": 0,
+      "knots": 64,
+      "duration": 0.9,
+      "dt": 0.014285714285714285,
+      "batch": "16",
+      "failure": null,
+      "rho": 0.01,
+      "sqp_budget": 400,
+      "winner": 13,
+      "coarse_feasible": true,
+      "fine_full_feasible": false,
+      "prefix_physical": true,
+      "prefix_tool_error_mm": 0.0257311918079987,
+      "prefix_velocity_error": 0.012211316112452741,
+      "coarse_goal_mm": 0.7990205188957967,
+      "fine_goal_mm": 109.24988505986727,
+      "fine_velocity_ratio": 14.451610724370365,
+      "fine_joint_violation": 1.4669947304758715,
+      "coarse_objective": 0.3212998869602633,
+      "fine_objective": 39.579952996352375,
+      "planned_replay_q": 0.01461118459701538,
+      "planned_replay_v": 0.14806915819644928,
+      "fine_step_halving_q": 2.6891816773400024e-08,
+      "fine_step_halving_v": 7.335596592383808e-07,
+      "kkt": 0,
+      "accepted_steps": 38,
+      "last_pass_accepted": 0,
+      "pcg_caps": 195,
+      "pcg_breakdown": 0,
+      "cpu_coarse_feasible": true,
+      "cpu_fine_feasible": false,
+      "cpu_gradient_inf": 8.286792606417926e-09,
+      "cpu_objective": 0.306631647287504,
+      "solve_ms": 12294.41
+    },
+    {
+      "cell": "N64_T0.9_task1",
+      "task": 1,
+      "knots": 64,
+      "duration": 0.9,
+      "dt": 0.014285714285714285,
+      "batch": "1",
+      "failure": null,
+      "rho": 0.01,
+      "sqp_budget": 400,
+      "winner": 0,
+      "coarse_feasible": true,
+      "fine_full_feasible": false,
+      "prefix_physical": true,
+      "prefix_tool_error_mm": 0.05273044398597454,
+      "prefix_velocity_error": 0.026948774239720974,
+      "coarse_goal_mm": 3.319194551239087,
+      "fine_goal_mm": 21.981897141654706,
+      "fine_velocity_ratio": 9.273294458205548,
+      "fine_joint_violation": 2.7580184470797993,
+      "coarse_objective": 0.7761203354632233,
+      "fine_objective": 25.158679830551154,
+      "planned_replay_q": 0.033465102314949036,
+      "planned_replay_v": 0.41145387291908264,
+      "fine_step_halving_q": 7.155366543720731e-08,
+      "fine_step_halving_v": 9.487995065171617e-07,
+      "kkt": 0,
+      "accepted_steps": 126,
+      "last_pass_accepted": 0,
+      "pcg_caps": 196,
+      "pcg_breakdown": 0,
+      "cpu_coarse_feasible": true,
+      "cpu_fine_feasible": false,
+      "cpu_gradient_inf": 9.097905906180377e-09,
+      "cpu_objective": 0.7116185472143408,
+      "solve_ms": 3956.5420000000004
+    },
+    {
+      "cell": "N64_T0.9_task1",
+      "task": 1,
+      "knots": 64,
+      "duration": 0.9,
+      "dt": 0.014285714285714285,
+      "batch": "16",
+      "failure": null,
+      "rho": 0.01,
+      "sqp_budget": 400,
+      "winner": 13,
+      "coarse_feasible": true,
+      "fine_full_feasible": false,
+      "prefix_physical": true,
+      "prefix_tool_error_mm": 0.05590841769208443,
+      "prefix_velocity_error": 0.026616425372171904,
+      "coarse_goal_mm": 2.1176936898486134,
+      "fine_goal_mm": 54.782817974014854,
+      "fine_velocity_ratio": 9.51209289848946,
+      "fine_joint_violation": 2.944826927848353,
+      "coarse_objective": 0.7711473147351066,
+      "fine_objective": 28.64725799777592,
+      "planned_replay_q": 0.028834998607635498,
+      "planned_replay_v": 0.27704551815986633,
+      "fine_step_halving_q": 5.543176095912372e-08,
+      "fine_step_halving_v": 9.562156257914012e-07,
+      "kkt": 0,
+      "accepted_steps": 59,
+      "last_pass_accepted": 0,
+      "pcg_caps": 198,
+      "pcg_breakdown": 0,
+      "cpu_coarse_feasible": true,
+      "cpu_fine_feasible": false,
+      "cpu_gradient_inf": 9.817284745013664e-09,
+      "cpu_objective": 0.7116185472391972,
+      "solve_ms": 12392.192
+    },
+    {
+      "cell": "N64_T0.9_task2",
+      "task": 2,
+      "knots": 64,
+      "duration": 0.9,
+      "dt": 0.014285714285714285,
+      "batch": "1",
+      "failure": null,
+      "rho": 0.01,
+      "sqp_budget": 400,
+      "winner": 0,
+      "coarse_feasible": true,
+      "fine_full_feasible": false,
+      "prefix_physical": true,
+      "prefix_tool_error_mm": 0.1404370340333355,
+      "prefix_velocity_error": 0.029745774621308785,
+      "coarse_goal_mm": 3.8545384967714327,
+      "fine_goal_mm": 193.63477599335042,
+      "fine_velocity_ratio": 18.334950093449656,
+      "fine_joint_violation": 1.9301366232500299,
+      "coarse_objective": 1.3502278795769997,
+      "fine_objective": 61.62394897105275,
+      "planned_replay_q": 0.05528131127357483,
+      "planned_replay_v": 0.7818095684051514,
+      "fine_step_halving_q": 2.648972006191741e-07,
+      "fine_step_halving_v": 4.293729613635833e-06,
+      "kkt": 0,
+      "accepted_steps": 145,
+      "last_pass_accepted": 0,
+      "pcg_caps": 193,
+      "pcg_breakdown": 0,
+      "cpu_coarse_feasible": true,
+      "cpu_fine_feasible": false,
+      "cpu_gradient_inf": 4.5934780692688526e-08,
+      "cpu_objective": 1.234803659815775,
+      "solve_ms": 4044.42
+    },
+    {
+      "cell": "N64_T0.9_task2",
+      "task": 2,
+      "knots": 64,
+      "duration": 0.9,
+      "dt": 0.014285714285714285,
+      "batch": "16",
+      "failure": null,
+      "rho": 0.01,
+      "sqp_budget": 400,
+      "winner": 8,
+      "coarse_feasible": true,
+      "fine_full_feasible": false,
+      "prefix_physical": true,
+      "prefix_tool_error_mm": 0.14089843176023983,
+      "prefix_velocity_error": 0.03007458941418628,
+      "coarse_goal_mm": 5.050032565195443,
+      "fine_goal_mm": 186.74326344801693,
+      "fine_velocity_ratio": 19.057188965090056,
+      "fine_joint_violation": 2.494310721138,
+      "coarse_objective": 1.3354726953306035,
+      "fine_objective": 75.22111406484218,
+      "planned_replay_q": 0.028092294931411743,
+      "planned_replay_v": 0.22542284429073334,
+      "fine_step_halving_q": 2.3090838319195228e-07,
+      "fine_step_halving_v": 5.158348272971125e-06,
+      "kkt": 0,
+      "accepted_steps": 158,
+      "last_pass_accepted": 0,
+      "pcg_caps": 194,
+      "pcg_breakdown": 0,
+      "cpu_coarse_feasible": true,
+      "cpu_fine_feasible": false,
+      "cpu_gradient_inf": 4.9241605957475384e-08,
+      "cpu_objective": 1.2348036598111611,
+      "solve_ms": 12487.544
+    },
+    {
+      "cell": "N64_T1.8_task0",
+      "task": 0,
+      "knots": 64,
+      "duration": 1.8,
+      "dt": 0.02857142857142857,
+      "batch": "1",
+      "failure": null,
+      "rho": 0.01,
+      "sqp_budget": 400,
+      "winner": 0,
+      "coarse_feasible": false,
+      "fine_full_feasible": false,
+      "prefix_physical": true,
+      "prefix_tool_error_mm": 0.03975718306857279,
+      "prefix_velocity_error": 0.028294470559404372,
+      "coarse_goal_mm": 254.43826004056734,
+      "fine_goal_mm": 369.3556866044713,
+      "fine_velocity_ratio": 18.675096324068505,
+      "fine_joint_violation": 18.776449494784167,
+      "coarse_objective": 57.143689580519556,
+      "fine_objective": 245.20658536530834,
+      "planned_replay_q": 10.525922775268555,
+      "planned_replay_v": 35.27656555175781,
+      "fine_step_halving_q": 2.092209409054746e-05,
+      "fine_step_halving_v": 0.00021093485896983566,
+      "kkt": 0,
+      "accepted_steps": 73,
+      "last_pass_accepted": 0,
+      "pcg_caps": 191,
+      "pcg_breakdown": 0,
+      "cpu_coarse_feasible": false,
+      "cpu_fine_feasible": false,
+      "cpu_gradient_inf": 0.0002381964335731292,
+      "cpu_objective": 2.309509157202824,
+      "solve_ms": 3262.2349999999997
+    },
+    {
+      "cell": "N64_T1.8_task0",
+      "task": 0,
+      "knots": 64,
+      "duration": 1.8,
+      "dt": 0.02857142857142857,
+      "batch": "16",
+      "failure": null,
+      "rho": 0.01,
+      "sqp_budget": 400,
+      "winner": 6,
+      "coarse_feasible": false,
+      "fine_full_feasible": false,
+      "prefix_physical": true,
+      "prefix_tool_error_mm": 0.03755327619247112,
+      "prefix_velocity_error": 0.02742066391264475,
+      "coarse_goal_mm": 107.15636042756213,
+      "fine_goal_mm": 440.635306899937,
+      "fine_velocity_ratio": 17.447853663769244,
+      "fine_joint_violation": 9.051853893272062,
+      "coarse_objective": 26.483859856378615,
+      "fine_objective": 167.31955333107803,
+      "planned_replay_q": 7.333959102630615,
+      "planned_replay_v": 26.183700561523438,
+      "fine_step_halving_q": 1.1145527881950557e-05,
+      "fine_step_halving_v": 0.00013005003980415264,
+      "kkt": 0,
+      "accepted_steps": 93,
+      "last_pass_accepted": 0,
+      "pcg_caps": 186,
+      "pcg_breakdown": 0,
+      "cpu_coarse_feasible": true,
+      "cpu_fine_feasible": false,
+      "cpu_gradient_inf": 5.12499528090328e-06,
+      "cpu_objective": 0.4548713179437996,
+      "solve_ms": 11164.54
+    },
+    {
+      "cell": "N64_T1.8_task1",
+      "task": 1,
+      "knots": 64,
+      "duration": 1.8,
+      "dt": 0.02857142857142857,
+      "batch": "1",
+      "failure": null,
+      "rho": 0.01,
+      "sqp_budget": 400,
+      "winner": 0,
+      "coarse_feasible": false,
+      "fine_full_feasible": false,
+      "prefix_physical": true,
+      "prefix_tool_error_mm": 0.08920950310945962,
+      "prefix_velocity_error": 0.05242409966122752,
+      "coarse_goal_mm": 428.4135703751619,
+      "fine_goal_mm": 266.2664715500418,
+      "fine_velocity_ratio": 21.708893359998733,
+      "fine_joint_violation": 15.038894840167602,
+      "coarse_objective": null,
+      "fine_objective": 211.32193041016276,
+      "planned_replay_q": 4.375643565863878e+20,
+      "planned_replay_v": 3.062950573510333e+22,
+      "fine_step_halving_q": 2.076111010662629e-05,
+      "fine_step_halving_v": 0.00031934904386865526,
+      "kkt": 0,
+      "accepted_steps": 122,
+      "last_pass_accepted": 0,
+      "pcg_caps": 189,
+      "pcg_breakdown": 0,
+      "cpu_coarse_feasible": false,
+      "cpu_fine_feasible": false,
+      "cpu_gradient_inf": 5.048405272317933e+35,
+      "cpu_objective": 1.0269021929142811e+43,
+      "solve_ms": 3210.096
+    },
+    {
+      "cell": "N64_T1.8_task1",
+      "task": 1,
+      "knots": 64,
+      "duration": 1.8,
+      "dt": 0.02857142857142857,
+      "batch": "16",
+      "failure": null,
+      "rho": 0.01,
+      "sqp_budget": 400,
+      "winner": 6,
+      "coarse_feasible": false,
+      "fine_full_feasible": false,
+      "prefix_physical": true,
+      "prefix_tool_error_mm": 0.08952398927245447,
+      "prefix_velocity_error": 0.05229460919213191,
+      "coarse_goal_mm": 352.312989153837,
+      "fine_goal_mm": 303.1929703125103,
+      "fine_velocity_ratio": 59.656914577560975,
+      "fine_joint_violation": 6.050380295021987,
+      "coarse_objective": 189.39413880795905,
+      "fine_objective": 449.0603928058596,
+      "planned_replay_q": 9.347930908203125,
+      "planned_replay_v": 53.88297653198242,
+      "fine_step_halving_q": 0.0004020267455695503,
+      "fine_step_halving_v": 0.010683314368591823,
+      "kkt": 0,
+      "accepted_steps": 169,
+      "last_pass_accepted": 0,
+      "pcg_caps": 181,
+      "pcg_breakdown": 0,
+      "cpu_coarse_feasible": false,
+      "cpu_fine_feasible": false,
+      "cpu_gradient_inf": 5.946447035655618e-05,
+      "cpu_objective": 2.379662947229638,
+      "solve_ms": 10521.771
+    },
+    {
+      "cell": "N64_T1.8_task2",
+      "task": 2,
+      "knots": 64,
+      "duration": 1.8,
+      "dt": 0.02857142857142857,
+      "batch": "1",
+      "failure": null,
+      "rho": 0.01,
+      "sqp_budget": 400,
+      "winner": 0,
+      "coarse_feasible": false,
+      "fine_full_feasible": false,
+      "prefix_physical": true,
+      "prefix_tool_error_mm": 0.24168437762414732,
+      "prefix_velocity_error": 0.05684156099379667,
+      "coarse_goal_mm": null,
+      "fine_goal_mm": 669.4744533080633,
+      "fine_velocity_ratio": 48.24178480058158,
+      "fine_joint_violation": 15.341506956231056,
+      "coarse_objective": null,
+      "fine_objective": 386.33709104051877,
+      "planned_replay_q": null,
+      "planned_replay_v": null,
+      "fine_step_halving_q": 0.000546382680740809,
+      "fine_step_halving_v": 0.015652705713499415,
+      "kkt": 0,
+      "accepted_steps": 229,
+      "last_pass_accepted": 29,
+      "pcg_caps": 178,
+      "pcg_breakdown": 0,
+      "cpu_coarse_feasible": null,
+      "cpu_fine_feasible": null,
+      "cpu_gradient_inf": null,
+      "cpu_objective": null,
+      "solve_ms": 3224.874
+    },
+    {
+      "cell": "N64_T1.8_task2",
+      "task": 2,
+      "knots": 64,
+      "duration": 1.8,
+      "dt": 0.02857142857142857,
+      "batch": "16",
+      "failure": null,
+      "rho": 0.01,
+      "sqp_budget": 400,
+      "winner": 13,
+      "coarse_feasible": false,
+      "fine_full_feasible": false,
+      "prefix_physical": true,
+      "prefix_tool_error_mm": 0.2653008745039944,
+      "prefix_velocity_error": 0.04559342528618804,
+      "coarse_goal_mm": 470.9895850137729,
+      "fine_goal_mm": 486.432168437887,
+      "fine_velocity_ratio": 56.004669218248694,
+      "fine_joint_violation": 8.309333697265322,
+      "coarse_objective": 227.9023313378548,
+      "fine_objective": 432.78775376513505,
+      "planned_replay_q": 10.228475570678711,
+      "planned_replay_v": 59.87839126586914,
+      "fine_step_halving_q": 0.001521864401603068,
+      "fine_step_halving_v": 0.10484878300199796,
+      "kkt": 0,
+      "accepted_steps": 209,
+      "last_pass_accepted": 18,
+      "pcg_caps": 182,
+      "pcg_breakdown": 0,
+      "cpu_coarse_feasible": false,
+      "cpu_fine_feasible": false,
+      "cpu_gradient_inf": 0.000819823289194891,
+      "cpu_objective": 7.436067360239594,
+      "solve_ms": 10607.428
+    }
+  ],
+  "fixed_dt": [
+    {
+      "case": "tiago_horizon_fixed_dt_pilot",
+      "cell": "N128_T3.81_task1",
+      "config": {
+        "cells": [
+          "128:3.81"
+        ],
+        "tasks": [
+          1
+        ],
+        "batches": [
+          1
+        ],
+        "seed": 1401,
+        "iters": 200,
+        "passes": 2,
+        "pcg_iters": 1000,
+        "rho": 0.01,
+        "pcg": 0.0001,
+        "kkt": 0.001,
+        "margin": 0.008,
+        "amplitude": 0.1,
+        "fine_step": 0.001,
+        "reference": false,
+        "reference_iters": 1500,
+        "export_inputs_only": false,
+        "inputs_root": null,
+        "worker": true,
+        "resume": false,
+        "output": "/workspace/GATO-randomized-mpc/example_artifacts/randomized_multimodal/tiago_horizon_fixed_dt_pilot",
+        "knots": 128,
+        "duration": 3.81,
+        "dt": 0.03
+      },
+      "failure": null,
+      "batch": 1,
+      "winner": 0,
+      "coarse": {
+        "finite": false,
+        "feasible": false,
+        "settled": false,
+        "terminal": null,
+        "terminal_speed": null,
+        "clearance": null,
+        "joint_violation": null,
+        "velocity_ratio": null,
+        "effort_ratio": null,
+        "objective": {
+          "total": null
+        }
+      },
+      "fine": {
+        "finite": true,
+        "feasible": false,
+        "physical": false,
+        "settled": false,
+        "terminal": 0.2275206603595965,
+        "terminal_speed": 9.135827692817056,
+        "clearance": -0.028262780233245466,
+        "margin_clearance": -0.036262780233245466,
+        "joint_violation": 91.640193917245,
+        "velocity_ratio": 125.21048952280685,
+        "effort_ratio": 0.37192172270554763,
+        "winding": -15.468272239744458,
+        "objective": {
+          "position": 18.152445641900545,
+          "terminal": 5.1765650890466866,
+          "velocity": 4298.237200567206,
+          "effort": 0.7634913325309753,
+          "obstacle": 2.068087002527424,
+          "terminal_obstacle": 0.0,
+          "total": 4324.397789633212
+        }
+      },
+      "planned_replay": {
+        "q": null,
+        "v": null,
+        "all": null
+      },
+      "initial_local_defect": {
+        "q": 2.384185791015625e-07,
+        "v": 5.143869202584028e-06,
+        "l1": 0.0012172018177807331
+      },
+      "planned_local_defect": {
+        "q": 4.547089338302612e-05,
+        "v": 1.975148916244507e-05,
+        "l1": 0.0027050678618252277
+      },
+      "initial_xu_sha256": "874159209f6667b227b0baae095f06b55e10524b541a5408d55b01bc44177e2c",
+      "telemetry": [
+        {
+          "solve_ms": 2575.738,
+          "sqp_iters": [
+            200
+          ],
+          "kkt": [
+            0
+          ],
+          "pcg_cap": [
+            78
+          ],
+          "pcg_breakdown": [
+            0
+          ],
+          "pcg_max": 1000,
+          "accepted": [
+            200
+          ],
+          "rejected": [
+            0
+          ],
+          "initial_merit": [
+            9.44509506225586
+          ],
+          "final_merit": [
+            1.7486188411712646
+          ]
+        },
+        {
+          "solve_ms": 2795.522,
+          "sqp_iters": [
+            200
+          ],
+          "kkt": [
+            0
+          ],
+          "pcg_cap": [
+            100
+          ],
+          "pcg_breakdown": [
+            0
+          ],
+          "pcg_max": 1000,
+          "accepted": [
+            190
+          ],
+          "rejected": [
+            10
+          ],
+          "initial_merit": [
+            1.748618721961975
+          ],
+          "final_merit": [
+            1.5828951597213745
+          ]
+        }
+      ],
+      "solve_ms": 5371.26
+    },
+    {
+      "case": "tiago_horizon_fixed_dt_pilot",
+      "cell": "N32_T0.93_task1",
+      "config": {
+        "cells": [
+          "32:0.93"
+        ],
+        "tasks": [
+          1
+        ],
+        "batches": [
+          1
+        ],
+        "seed": 1401,
+        "iters": 200,
+        "passes": 2,
+        "pcg_iters": 1000,
+        "rho": 0.01,
+        "pcg": 0.0001,
+        "kkt": 0.001,
+        "margin": 0.008,
+        "amplitude": 0.1,
+        "fine_step": 0.001,
+        "reference": false,
+        "reference_iters": 1500,
+        "export_inputs_only": false,
+        "inputs_root": null,
+        "worker": true,
+        "resume": false,
+        "output": "/workspace/GATO-randomized-mpc/example_artifacts/randomized_multimodal/tiago_horizon_fixed_dt_pilot",
+        "knots": 32,
+        "duration": 0.93,
+        "dt": 0.030000000000000002
+      },
+      "failure": null,
+      "batch": 1,
+      "winner": 0,
+      "coarse": {
+        "finite": true,
+        "feasible": true,
+        "physical": true,
+        "settled": false,
+        "terminal": 0.004064173953709285,
+        "terminal_speed": 0.15514392093005916,
+        "clearance": 0.007350926176638732,
+        "margin_clearance": -0.0006490738233612681,
+        "joint_violation": 0.0,
+        "velocity_ratio": 0.47423419952392576,
+        "effort_ratio": 0.3682281787578876,
+        "winding": -2.951152858656192,
+        "objective": {
+          "position": 0.39608473133030714,
+          "terminal": 0.001651750992600896,
+          "velocity": 0.2082463651895523,
+          "effort": 0.1579495370388031,
+          "obstacle": 0.00047679721763015993,
+          "terminal_obstacle": 0.0,
+          "total": 0.7644091817688936
+        }
+      },
+      "fine": {
+        "finite": true,
+        "feasible": false,
+        "physical": false,
+        "settled": false,
+        "terminal": 0.06429199804908103,
+        "terminal_speed": 1.888770522242812,
+        "clearance": 0.00556094951090326,
+        "margin_clearance": -0.0024390504890967404,
+        "joint_violation": 5.7951288966172125,
+        "velocity_ratio": 12.12071422379861,
+        "effort_ratio": 0.3682281787578876,
+        "winding": -2.9174281582581068,
+        "objective": {
+          "position": 0.42068101451300605,
+          "terminal": 0.41334610131430394,
+          "velocity": 43.034523905068944,
+          "effort": 0.1579495370388031,
+          "obstacle": 0.009721716683660842,
+          "terminal_obstacle": 0.0,
+          "total": 44.03622227461872
+        }
+      },
+      "planned_replay": {
+        "q": 0.007844597101211548,
+        "v": 0.08867465704679489,
+        "all": 0.08867465704679489
+      },
+      "initial_local_defect": {
+        "q": 2.384185791015625e-07,
+        "v": 4.634261131286621e-06,
+        "l1": 0.00030107912607491016
+      },
+      "planned_local_defect": {
+        "q": 6.012618541717529e-06,
+        "v": 1.9581235392251983e-05,
+        "l1": 0.0004854619619436562
+      },
+      "initial_xu_sha256": "240e3c63e80c47fd4d435d24f9fb66c0dd3b9373cd18a3338714fc19a9b0c03c",
+      "telemetry": [
+        {
+          "solve_ms": 1038.99,
+          "sqp_iters": [
+            200
+          ],
+          "kkt": [
+            0
+          ],
+          "pcg_cap": [
+            93
+          ],
+          "pcg_breakdown": [
+            0
+          ],
+          "pcg_max": 1000,
+          "accepted": [
+            155
+          ],
+          "rejected": [
+            45
+          ],
+          "initial_merit": [
+            2.475532054901123
+          ],
+          "final_merit": [
+            0.7707852125167847
+          ]
+        },
+        {
+          "solve_ms": 1013.226,
+          "sqp_iters": [
+            200
+          ],
+          "kkt": [
+            0
+          ],
+          "pcg_cap": [
+            100
+          ],
+          "pcg_breakdown": [
+            0
+          ],
+          "pcg_max": 1000,
+          "accepted": [
+            14
+          ],
+          "rejected": [
+            186
+          ],
+          "initial_merit": [
+            0.7707852721214294
+          ],
+          "final_merit": [
+            0.7691574692726135
+          ]
+        }
+      ],
+      "solve_ms": 2052.216
+    },
+    {
+      "case": "tiago_horizon_fixed_dt_pilot",
+      "cell": "N64_T1.89_task1",
+      "config": {
+        "cells": [
+          "64:1.89"
+        ],
+        "tasks": [
+          1
+        ],
+        "batches": [
+          1
+        ],
+        "seed": 1401,
+        "iters": 200,
+        "passes": 2,
+        "pcg_iters": 1000,
+        "rho": 0.01,
+        "pcg": 0.0001,
+        "kkt": 0.001,
+        "margin": 0.008,
+        "amplitude": 0.1,
+        "fine_step": 0.001,
+        "reference": false,
+        "reference_iters": 1500,
+        "export_inputs_only": false,
+        "inputs_root": null,
+        "worker": true,
+        "resume": false,
+        "output": "/workspace/GATO-randomized-mpc/example_artifacts/randomized_multimodal/tiago_horizon_fixed_dt_pilot",
+        "knots": 64,
+        "duration": 1.89,
+        "dt": 0.03
+      },
+      "failure": null,
+      "batch": 1,
+      "winner": 0,
+      "coarse": {
+        "finite": false,
+        "feasible": false,
+        "settled": false,
+        "terminal": null,
+        "terminal_speed": null,
+        "clearance": null,
+        "joint_violation": null,
+        "velocity_ratio": null,
+        "effort_ratio": null,
+        "objective": {
+          "total": null
+        }
+      },
+      "fine": {
+        "finite": true,
+        "feasible": false,
+        "physical": false,
+        "settled": false,
+        "terminal": 0.4953620623783175,
+        "terminal_speed": 0.8703775686693163,
+        "clearance": -0.014465494068848814,
+        "margin_clearance": -0.022465494068848815,
+        "joint_violation": 15.681726597929648,
+        "velocity_ratio": 14.72931832849937,
+        "effort_ratio": 0.36875680776742786,
+        "winding": 1.0967691397415518,
+        "objective": {
+          "position": 3.3153527377285177,
+          "terminal": 24.53835728437001,
+          "velocity": 170.97923454296716,
+          "effort": 0.361449658870697,
+          "obstacle": 0.4235150915708852,
+          "terminal_obstacle": 0.0,
+          "total": 199.6179093155073
+        }
+      },
+      "planned_replay": {
+        "q": null,
+        "v": null,
+        "all": null
+      },
+      "initial_local_defect": {
+        "q": 2.384185791015625e-07,
+        "v": 4.87128272652626e-06,
+        "l1": 0.000599424063693732
+      },
+      "planned_local_defect": {
+        "q": 1.376122236251831e-05,
+        "v": 1.154700294137001e-05,
+        "l1": 0.0008183338213711977
+      },
+      "initial_xu_sha256": "5f47b2c06d210ce4fea19fd19a858f159e1a358304f8778abbb9319f29e33875",
+      "telemetry": [
+        {
+          "solve_ms": 1534.466,
+          "sqp_iters": [
+            200
+          ],
+          "kkt": [
+            0
+          ],
+          "pcg_cap": [
+            87
+          ],
+          "pcg_breakdown": [
+            0
+          ],
+          "pcg_max": 1000,
+          "accepted": [
+            173
+          ],
+          "rejected": [
+            27
+          ],
+          "initial_merit": [
+            4.757176876068115
+          ],
+          "final_merit": [
+            1.0465949773788452
+          ]
+        },
+        {
+          "solve_ms": 1618.756,
+          "sqp_iters": [
+            200
+          ],
+          "kkt": [
+            0
+          ],
+          "pcg_cap": [
+            100
+          ],
+          "pcg_breakdown": [
+            0
+          ],
+          "pcg_max": 1000,
+          "accepted": [
+            109
+          ],
+          "rejected": [
+            91
+          ],
+          "initial_merit": [
+            1.0465948581695557
+          ],
+          "final_merit": [
+            1.01819908618927
+          ]
+        }
+      ],
+      "solve_ms": 3153.2219999999998
+    }
+  ],
+  "rescue": [
+    {
+      "case": "tiago_horizon_rescue_sqp800",
+      "cell": "N64_T1.8_task1",
+      "config": {
+        "cells": [
+          "64:1.8"
+        ],
+        "tasks": [
+          1
+        ],
+        "batches": [
+          1
+        ],
+        "seed": 1401,
+        "iters": 200,
+        "passes": 4,
+        "pcg_iters": 1000,
+        "rho": 0.01,
+        "pcg": 0.0001,
+        "kkt": 0.001,
+        "margin": 0.008,
+        "amplitude": 0.1,
+        "fine_step": 0.001,
+        "reference": false,
+        "reference_iters": 1500,
+        "export_inputs_only": false,
+        "inputs_root": "example_artifacts/randomized_multimodal/tiago_horizon",
+        "worker": false,
+        "resume": false,
+        "output": "example_artifacts/randomized_multimodal/tiago_horizon_rescue_sqp800",
+        "knots": 64,
+        "duration": 1.8,
+        "dt": 0.02857142857142857
+      },
+      "failure": null,
+      "batch": 1,
+      "winner": 0,
+      "coarse": {
+        "finite": true,
+        "feasible": false,
+        "physical": false,
+        "settled": false,
+        "terminal": 0.4284135703751619,
+        "terminal_speed": 6.121574819977803e+21,
+        "clearance": -0.0019303710931433127,
+        "margin_clearance": -0.009930371093143313,
+        "joint_violation": 4.375643676993443e+20,
+        "velocity_ratio": 1.2251802294554768e+22,
+        "effort_ratio": 0.3627966000483586,
+        "winding": -0.37808759605109854,
+        "objective": {
+          "position": 2.58683279553735,
+          "terminal": 18.35381872815938,
+          "velocity": null,
+          "effort": 0.33317768573760986,
+          "obstacle": 0.07975950053788826,
+          "terminal_obstacle": 0.0,
+          "total": null
+        }
+      },
+      "fine": {
+        "finite": true,
+        "feasible": false,
+        "physical": false,
+        "settled": false,
+        "terminal": 0.26622117536390594,
+        "terminal_speed": 1.9230588510190414,
+        "clearance": -0.018436110357873764,
+        "margin_clearance": -0.026436110357873764,
+        "joint_violation": 15.038542479886589,
+        "velocity_ratio": 21.709049900371603,
+        "effort_ratio": 0.3627966000483586,
+        "winding": 0.7413935151823638,
+        "objective": {
+          "position": 2.5841798680956325,
+          "terminal": 7.087371421213956,
+          "velocity": 200.54871238998263,
+          "effort": 0.33317768573760986,
+          "obstacle": 0.7671440915626886,
+          "terminal_obstacle": 0.0,
+          "total": 211.3205854565925
+        }
+      },
+      "planned_replay": {
+        "q": 4.375643565863878e+20,
+        "v": 3.062950573510333e+22,
+        "all": 3.062950573510333e+22
+      },
+      "initial_local_defect": {
+        "q": 2.384185791015625e-07,
+        "v": 4.555098712444305e-06,
+        "l1": 0.0005684421630576253
+      },
+      "planned_local_defect": {
+        "q": 2.9101967811584473e-05,
+        "v": 4.955212352797389e-05,
+        "l1": 0.0033148848451673985
+      },
+      "initial_xu_sha256": "03a99b8de6bd1a92da6c07e4a828a4419396ff70cbe743e2f9ed343319f7a293",
+      "telemetry": [
+        {
+          "solve_ms": 1592.986,
+          "sqp_iters": [
+            200
+          ],
+          "kkt": [
+            0
+          ],
+          "pcg_cap": [
+            89
+          ],
+          "pcg_breakdown": [
+            0
+          ],
+          "pcg_max": 1000,
+          "accepted": [
+            122
+          ],
+          "rejected": [
+            78
+          ],
+          "initial_merit": [
+            4.538444519042969
+          ],
+          "final_merit": [
+            1.0671299695968628
+          ]
+        },
+        {
+          "solve_ms": 1626.861,
+          "sqp_iters": [
+            200
+          ],
+          "kkt": [
+            0
+          ],
+          "pcg_cap": [
+            100
+          ],
+          "pcg_breakdown": [
+            0
+          ],
+          "pcg_max": 1000,
+          "accepted": [
+            0
+          ],
+          "rejected": [
+            200
+          ],
+          "initial_merit": [
+            1.0671297311782837
+          ],
+          "final_merit": [
+            1.0671297311782837
+          ]
+        },
+        {
+          "solve_ms": 1626.655,
+          "sqp_iters": [
+            200
+          ],
+          "kkt": [
+            0
+          ],
+          "pcg_cap": [
+            100
+          ],
+          "pcg_breakdown": [
+            0
+          ],
+          "pcg_max": 1000,
+          "accepted": [
+            0
+          ],
+          "rejected": [
+            200
+          ],
+          "initial_merit": [
+            1.0671297311782837
+          ],
+          "final_merit": [
+            1.0671297311782837
+          ]
+        },
+        {
+          "solve_ms": 1626.021,
+          "sqp_iters": [
+            200
+          ],
+          "kkt": [
+            0
+          ],
+          "pcg_cap": [
+            100
+          ],
+          "pcg_breakdown": [
+            0
+          ],
+          "pcg_max": 1000,
+          "accepted": [
+            0
+          ],
+          "rejected": [
+            200
+          ],
+          "initial_merit": [
+            1.0671296119689941
+          ],
+          "final_merit": [
+            1.0671299695968628
+          ]
+        }
+      ],
+      "solve_ms": 6472.523
+    },
+    {
+      "case": "tiago_horizon_rescue_pcg4000",
+      "cell": "N64_T1.8_task1",
+      "config": {
+        "cells": [
+          "64:1.8"
+        ],
+        "tasks": [
+          1
+        ],
+        "batches": [
+          1
+        ],
+        "seed": 1401,
+        "iters": 200,
+        "passes": 2,
+        "pcg_iters": 4000,
+        "rho": 0.01,
+        "pcg": 0.0001,
+        "kkt": 0.001,
+        "margin": 0.008,
+        "amplitude": 0.1,
+        "fine_step": 0.001,
+        "reference": false,
+        "reference_iters": 1500,
+        "export_inputs_only": false,
+        "inputs_root": "example_artifacts/randomized_multimodal/tiago_horizon",
+        "worker": false,
+        "resume": false,
+        "output": "example_artifacts/randomized_multimodal/tiago_horizon_rescue_pcg4000",
+        "knots": 64,
+        "duration": 1.8,
+        "dt": 0.02857142857142857
+      },
+      "failure": null,
+      "batch": 1,
+      "winner": 0,
+      "coarse": {
+        "finite": true,
+        "feasible": false,
+        "physical": false,
+        "settled": false,
+        "terminal": 0.8391466668794796,
+        "terminal_speed": 56814546188.549706,
+        "clearance": 0.007482400078192841,
+        "margin_clearance": -0.0005175999218071589,
+        "joint_violation": 3676401983.9114704,
+        "velocity_ratio": 102937748881.55,
+        "effort_ratio": 0.3646991069500263,
+        "winding": -0.3818858397431901,
+        "objective": {
+          "position": 2.669578689327764,
+          "terminal": 70.41671285349402,
+          "velocity": 7.096573852951847e+20,
+          "effort": 0.3362196683883667,
+          "obstacle": 0.0003629276737240428,
+          "terminal_obstacle": 0.0,
+          "total": 7.096573852951847e+20
+        }
+      },
+      "fine": {
+        "finite": true,
+        "feasible": false,
+        "physical": false,
+        "settled": false,
+        "terminal": 0.35689217946360036,
+        "terminal_speed": 1.510606376236324,
+        "clearance": -0.019504283114583215,
+        "margin_clearance": -0.027504283114583215,
+        "joint_violation": 7.600355526912415,
+        "velocity_ratio": 19.461835030382666,
+        "effort_ratio": 0.3646991069500263,
+        "winding": 0.877809322154,
+        "objective": {
+          "position": 2.5206353692369565,
+          "terminal": 12.737202776227871,
+          "velocity": 178.28953811087297,
+          "effort": 0.3362196683883667,
+          "obstacle": 0.6618798408922499,
+          "terminal_obstacle": 0.0,
+          "total": 194.54547576561842
+        }
+      },
+      "planned_replay": {
+        "q": 3676401920.0,
+        "v": 257344372736.0,
+        "all": 257344372736.0
+      },
+      "initial_local_defect": {
+        "q": 2.384185791015625e-07,
+        "v": 4.555098712444305e-06,
+        "l1": 0.0005684421630576253
+      },
+      "planned_local_defect": {
+        "q": 6.958097219467163e-05,
+        "v": 2.8099253540858626e-05,
+        "l1": 0.0021089524962008
+      },
+      "initial_xu_sha256": "03a99b8de6bd1a92da6c07e4a828a4419396ff70cbe743e2f9ed343319f7a293",
+      "telemetry": [
+        {
+          "solve_ms": 4759.321,
+          "sqp_iters": [
+            200
+          ],
+          "kkt": [
+            0
+          ],
+          "pcg_cap": [
+            88
+          ],
+          "pcg_breakdown": [
+            0
+          ],
+          "pcg_max": 4000,
+          "accepted": [
+            168
+          ],
+          "rejected": [
+            32
+          ],
+          "initial_merit": [
+            4.538444519042969
+          ],
+          "final_merit": [
+            1.0369881391525269
+          ]
+        },
+        {
+          "solve_ms": 5243.795,
+          "sqp_iters": [
+            200
+          ],
+          "kkt": [
+            0
+          ],
+          "pcg_cap": [
+            100
+          ],
+          "pcg_breakdown": [
+            0
+          ],
+          "pcg_max": 4000,
+          "accepted": [
+            0
+          ],
+          "rejected": [
+            200
+          ],
+          "initial_merit": [
+            1.0369882583618164
+          ],
+          "final_merit": [
+            1.0369882583618164
+          ]
+        }
+      ],
+      "solve_ms": 10003.116
+    }
+  ],
+  "mpc": [
+    {
+      "case": "N128_T1.8_clock0.06_warm",
+      "knots": 128,
+      "duration": 1.8,
+      "dt": 0.014173228346456693,
+      "clock": 0.06,
+      "initialization": "warm",
+      "batch": 1,
+      "executed": {
+        "finite": true,
+        "feasible": false,
+        "physical": true,
+        "settled": false,
+        "terminal": 0.020748283004296566,
+        "terminal_speed": 0.02023247682248585,
+        "clearance": 0.007605388828246455,
+        "margin_clearance": -0.000394611171753545,
+        "joint_violation": 0.0,
+        "velocity_ratio": 0.5886573820258408,
+        "effort_ratio": 0.3642489726726825,
+        "winding": -2.903355440381332,
+        "objective": {
+          "total": 0.9022778235941014,
+          "position": 0.46022589107544304,
+          "velocity": 0.18789553090441105,
+          "effort": 0.2108522450845074,
+          "obstacle": 0.00025503176710160686,
+          "terminal": 0.04304912476263817,
+          "terminal_obstacle": 0.0
+        }
+      },
+      "complete": false,
+      "failure": null,
+      "simulated_seconds": 1.2000000000000006,
+      "steps": 20,
+      "full_coarse_feasible": 0,
+      "full_fine_feasible": 0,
+      "solve_ms": 84872.59,
+      "kkt": 9,
+      "max_prefix_tool_error": 7.39270051966419e-05,
+      "initial_local_defects": [
+        {
+          "q": 2.384185791015625e-07,
+          "v": 2.4102628231048584e-06,
+          "l1": 0.0005807705456390977
+        },
+        {
+          "q": 0.0014101266860961914,
+          "v": 0.3734590411186218,
+          "l1": 0.8496228456497192
+        },
+        {
+          "q": 0.0018917322158813477,
+          "v": 0.3065265119075775,
+          "l1": 0.6880901455879211
+        },
+        {
+          "q": 0.0020432472229003906,
+          "v": 0.2487911581993103,
+          "l1": 0.5616241693496704
+        },
+        {
+          "q": 0.0021146535873413086,
+          "v": 0.20953410863876343,
+          "l1": 0.48789355158805847
+        },
+        {
+          "q": 0.001990199089050293,
+          "v": 0.1828487366437912,
+          "l1": 0.43688374757766724
+        },
+        {
+          "q": 0.0017648935317993164,
+          "v": 0.16931553184986115,
+          "l1": 0.3831721842288971
+        },
+        {
+          "q": 0.0018205642700195312,
+          "v": 0.17037178575992584,
+          "l1": 0.37054818868637085
+        },
+        {
+          "q": 0.0015969276428222656,
+          "v": 0.17109107971191406,
+          "l1": 0.34200239181518555
+        },
+        {
+          "q": 0.001388251781463623,
+          "v": 0.16277731955051422,
+          "l1": 0.3133835792541504
+        },
+        {
+          "q": 0.0011810660362243652,
+          "v": 0.15354786813259125,
+          "l1": 0.28886792063713074
+        },
+        {
+          "q": 0.000988304615020752,
+          "v": 0.14898176491260529,
+          "l1": 0.27193644642829895
+        },
+        {
+          "q": 0.0008197426795959473,
+          "v": 0.146299809217453,
+          "l1": 0.25974977016448975
+        },
+        {
+          "q": 0.0006853342056274414,
+          "v": 0.144756019115448,
+          "l1": 0.2505323886871338
+        },
+        {
+          "q": 0.0005848407745361328,
+          "v": 0.1433601826429367,
+          "l1": 0.2426414042711258
+        },
+        {
+          "q": 0.000497281551361084,
+          "v": 0.14354392886161804,
+          "l1": 0.23681588470935822
+        },
+        {
+          "q": 0.0004444122314453125,
+          "v": 0.13431663811206818,
+          "l1": 0.22433900833129883
+        },
+        {
+          "q": 0.0004661083221435547,
+          "v": 0.14094315469264984,
+          "l1": 0.22619293630123138
+        },
+        {
+          "q": 0.00048232078552246094,
+          "v": 0.1458047330379486,
+          "l1": 0.22715868055820465
+        },
+        {
+          "q": 0.0004792213439941406,
+          "v": 0.144917294383049,
+          "l1": 0.22334466874599457
+        }
+      ],
+      "initial_xu_sha256": [
+        "030c4306e342b21bed5fe605711b3acbbe28f5093277a49bab581ef900481025",
+        "ffc6b4c08b79ac9b6fafbe067883722b87e805d2b7a3130c113f29e6eaa89cfc",
+        "0983c590467b0db05d5c31a5f0fabf6d436b403ee823180336600de436d926ff",
+        "0c3d48b0fb6f0202cdaae4687d63de14f3d0b5c8baf22a7d08aeef104b2fede5",
+        "85ba791ea861530c6ba679ded9fbdf5f9aa3d8ddb75cc14c54859ed0c494ea8a",
+        "7e18163ecea9ef1552ee6dcd45718d5df99c9c012c14d9f72d51ea57cfcc541b",
+        "75150d4f0213afc01f5c636f6193bc0f1d4604cb5932d8b866658f0d3ea2ad23",
+        "7501d8edb22a87bfa2d10bc95aefaa8a4a2507a63083e256195f42f0d822d0be",
+        "9db24fb160784449f24b22060e084ce808839a216ca28189ebea408b373a057f",
+        "e99bf69aea57f30a9dfb4464f3fd5b74d3b7c43475a22c2c51e4e9e45fa7f4ff",
+        "7651852ca97338fc5948fc6939e3c0f82bbf8d72df95b0a962ebefab995f3fd2",
+        "7320e5d898a4b513bda5f96c939decd499501740f6a03fe945d086f3132a97ed",
+        "ab711a599509f1f14aafdd3f05f55caf5c7b9dc9168781148147016534b84a4b",
+        "1c38b95b9419e8736b513c85ee6e2722f96b2ae62dedeaa9cb38792cdf223830",
+        "6a2c8967ecfef8862e059d1faf2490b238fe22407c7d87238af736611260dd74",
+        "04c62ea395c0ff1e993979ec9d38e1f1f5650db1d96dc6431803a00e771e1a16",
+        "3b8bfd96cef7d1c6b485546f2652b2156bd4d47a164c89ceffc4b0227ac2555e",
+        "d2efaa4126bf89d89f806a0ae4bc5dad1c260520129161b668d2ecb0f5f96732",
+        "1ac58d26cb9eb31cf510934eb33746979df5d87fb43cf7b49e9b5f16d18c003c",
+        "c29810782b043021be8d616089b71381897d6aa4a63117731b82da11626d5461"
+      ]
+    },
+    {
+      "case": "N32_T0.45_clock0.06_warm",
+      "knots": 32,
+      "duration": 0.45,
+      "dt": 0.014516129032258065,
+      "clock": 0.06,
+      "initialization": "warm",
+      "batch": 1,
+      "executed": {
+        "finite": true,
+        "feasible": true,
+        "physical": true,
+        "settled": true,
+        "terminal": 0.00999255044689348,
+        "terminal_speed": 0.008618224061480417,
+        "clearance": 0.007419769972338813,
+        "margin_clearance": -0.0005802300276611869,
+        "joint_violation": 0.0,
+        "velocity_ratio": 0.5951089477067695,
+        "effort_ratio": 0.4018574127784142,
+        "winding": -2.9376754842913138,
+        "objective": {
+          "total": 0.8227919603086478,
+          "position": 0.31669787682468215,
+          "velocity": 0.24985550822480868,
+          "effort": 0.24599640098694844,
+          "obstacle": 0.00025706782883735664,
+          "terminal": 0.009985106443371108,
+          "terminal_obstacle": 0.0
+        }
+      },
+      "complete": true,
+      "failure": null,
+      "simulated_seconds": 1.2000000000000006,
+      "steps": 20,
+      "full_coarse_feasible": 20,
+      "full_fine_feasible": 16,
+      "solve_ms": 31108.762000000002,
+      "kkt": 7,
+      "max_prefix_tool_error": 0.00018124509006095326,
+      "initial_local_defects": [
+        {
+          "q": 2.384185791015625e-07,
+          "v": 2.2351741790771484e-06,
+          "l1": 0.00013897224562242627
+        },
+        {
+          "q": 0.0008406937122344971,
+          "v": 0.4360780119895935,
+          "l1": 1.4652047157287598
+        },
+        {
+          "q": 0.001207590103149414,
+          "v": 0.6161457300186157,
+          "l1": 1.697853446006775
+        },
+        {
+          "q": 0.0025004148483276367,
+          "v": 0.6497631072998047,
+          "l1": 1.7677958011627197
+        },
+        {
+          "q": 0.0029149651527404785,
+          "v": 0.5960097312927246,
+          "l1": 1.6809351444244385
+        },
+        {
+          "q": 0.0026466846466064453,
+          "v": 0.49947986006736755,
+          "l1": 1.4348170757293701
+        },
+        {
+          "q": 0.0019624829292297363,
+          "v": 0.41163766384124756,
+          "l1": 1.1643996238708496
+        },
+        {
+          "q": 0.0015564560890197754,
+          "v": 0.3491693139076233,
+          "l1": 0.9235348105430603
+        },
+        {
+          "q": 0.0011601448059082031,
+          "v": 0.3102034032344818,
+          "l1": 0.7379399538040161
+        },
+        {
+          "q": 0.0008858442306518555,
+          "v": 0.271663099527359,
+          "l1": 0.6161327362060547
+        },
+        {
+          "q": 0.0007645487785339355,
+          "v": 0.24710379540920258,
+          "l1": 0.5206959843635559
+        },
+        {
+          "q": 0.0005834102630615234,
+          "v": 0.2261110097169876,
+          "l1": 0.4393768310546875
+        },
+        {
+          "q": 0.0004341006278991699,
+          "v": 0.20546850562095642,
+          "l1": 0.37448009848594666
+        },
+        {
+          "q": 0.00037360191345214844,
+          "v": 0.19305989146232605,
+          "l1": 0.3255862891674042
+        },
+        {
+          "q": 0.00032961368560791016,
+          "v": 0.17025363445281982,
+          "l1": 0.2842120826244354
+        },
+        {
+          "q": 0.00029969215393066406,
+          "v": 0.1546476036310196,
+          "l1": 0.2520424723625183
+        },
+        {
+          "q": 0.000278472900390625,
+          "v": 0.14384496212005615,
+          "l1": 0.23204122483730316
+        },
+        {
+          "q": 0.0002592802047729492,
+          "v": 0.13386620581150055,
+          "l1": 0.22097289562225342
+        },
+        {
+          "q": 0.0002503395080566406,
+          "v": 0.1292768120765686,
+          "l1": 0.21587617695331573
+        },
+        {
+          "q": 0.00025713443756103516,
+          "v": 0.13288363814353943,
+          "l1": 0.22525063157081604
+        }
+      ],
+      "initial_xu_sha256": [
+        "f754e480a530399920de6a182591b0b85e3a25075daac5e258c11eb20f406855",
+        "19467c20157a536f96179f28dfbc46f1aef08e4d5269042b014ee59bc4d36738",
+        "6fe6c831b8fd6aa93e5dc7e661e6f36f6782439bab5fca224bec482fb9ce5f25",
+        "b15ca6c80248b4387a6098f986df5789887c5b252405ece0cbd6bcc7eb02314a",
+        "f3243e84e5cd5650336ea505927f9ccb86b62f1f3abffdb5ebe81044fb11f8a6",
+        "eecd92064cf8d9bdbaaebab0ec8c6a02f08a7091a79d07b19b6184069df94080",
+        "52f6ffcd0378a2858542c8267efd45a3613074b8670a8864aa268421b390fd6b",
+        "f55ffb49d2f8269f45d9f76d0b1adead492ccdab9c7ccb96502bedbfdbb482ef",
+        "b198f97aef31a1c991b602d8910c976e3107d4238692a3db30c5fd8ae193ad7d",
+        "abab4a3964f96b631a427d379c0a0b48ee50cea78aad681311f7eebff56efe3f",
+        "234c7ef45a2ea0399dbaf8541a783a08f55da1131a6fc6ba79f215d1b5e632dd",
+        "3dff22dd9b22d15c510fa6b90dae19e2f01c101cdd8f3654d6f9764ee158c290",
+        "6fb91a8b321b410228012f1e65d72fe0055294945464fa8b25b33e10e49d163a",
+        "933a1a3df81e045f5481aa359d85262da4b98a03ccf62a9c659d60c92cf164e3",
+        "721d0d8d4554c1360e67e829beb45d71730474c6a8987be414670b345c8f0f08",
+        "7f08ef268b06191161758650ac07644d0e75ac8991e3ea1bc642474848cc2692",
+        "beb029bc0073e193c4fb67143b884fe89e450dc296e080b6d017cb5600bad554",
+        "453765119ef42a508aba65d90c85d58558841e6befc59b60bccf2b9831d0b68b",
+        "209e257dce4d96fef5a8c168d7ae30dae906f3bda9704fd2ebedde56b465b27c",
+        "5f1c7b033d58fac3236361f2baa5a55d84581dd5509d9341dd9c83fdf2728b87"
+      ]
+    },
+    {
+      "case": "N64_T0.9_clock0.06_cold",
+      "knots": 64,
+      "duration": 0.9,
+      "dt": 0.014285714285714285,
+      "clock": 0.06,
+      "initialization": "cold",
+      "batch": 1,
+      "executed": {
+        "finite": true,
+        "feasible": true,
+        "physical": true,
+        "settled": true,
+        "terminal": 0.011985848401389856,
+        "terminal_speed": 0.02429754301061897,
+        "clearance": 0.005781910041080751,
+        "margin_clearance": -0.002218089958919249,
+        "joint_violation": 0.0,
+        "velocity_ratio": 0.5052706200964823,
+        "effort_ratio": 0.3518953323364258,
+        "winding": -2.904290761933692,
+        "objective": {
+          "total": 0.8737747924671018,
+          "position": 0.45573715832367334,
+          "velocity": 0.1750061699669045,
+          "effort": 0.21983711587815077,
+          "obstacle": 0.008828292108263048,
+          "terminal": 0.014366056190109975,
+          "terminal_obstacle": 0.0
+        }
+      },
+      "complete": true,
+      "failure": null,
+      "simulated_seconds": 1.2000000000000006,
+      "steps": 20,
+      "full_coarse_feasible": 18,
+      "full_fine_feasible": 0,
+      "solve_ms": 80913.07,
+      "kkt": 1,
+      "max_prefix_tool_error": 5.4930059440313895e-05,
+      "initial_local_defects": [
+        {
+          "q": 2.384185791015625e-07,
+          "v": 2.2277235984802246e-06,
+          "l1": 0.00028600249788723886
+        },
+        {
+          "q": 2.384185791015625e-07,
+          "v": 2.5173649191856384e-06,
+          "l1": 0.00032642442965880036
+        },
+        {
+          "q": 2.384185791015625e-07,
+          "v": 2.5276094675064087e-06,
+          "l1": 0.0003523068444337696
+        },
+        {
+          "q": 2.384185791015625e-07,
+          "v": 2.682209014892578e-06,
+          "l1": 0.0003578639589250088
+        },
+        {
+          "q": 2.384185791015625e-07,
+          "v": 2.644956111907959e-06,
+          "l1": 0.00036507437471300364
+        },
+        {
+          "q": 2.384185791015625e-07,
+          "v": 2.635642886161804e-06,
+          "l1": 0.0003690985613502562
+        },
+        {
+          "q": 2.384185791015625e-07,
+          "v": 2.734363079071045e-06,
+          "l1": 0.0003773256903514266
+        },
+        {
+          "q": 2.384185791015625e-07,
+          "v": 2.779066562652588e-06,
+          "l1": 0.0003816334647126496
+        },
+        {
+          "q": 2.384185791015625e-07,
+          "v": 2.7865171432495117e-06,
+          "l1": 0.0003846235340461135
+        },
+        {
+          "q": 2.384185791015625e-07,
+          "v": 2.7045607566833496e-06,
+          "l1": 0.0003888857609126717
+        },
+        {
+          "q": 2.384185791015625e-07,
+          "v": 2.898275852203369e-06,
+          "l1": 0.0004008400719612837
+        },
+        {
+          "q": 2.384185791015625e-07,
+          "v": 2.812594175338745e-06,
+          "l1": 0.0004059644415974617
+        },
+        {
+          "q": 2.384185791015625e-07,
+          "v": 2.905726432800293e-06,
+          "l1": 0.0004073872114531696
+        },
+        {
+          "q": 1.1920928955078125e-07,
+          "v": 2.8479844331741333e-06,
+          "l1": 0.000402569305151701
+        },
+        {
+          "q": 1.1920928955078125e-07,
+          "v": 2.7315691113471985e-06,
+          "l1": 0.00039353841566480696
+        },
+        {
+          "q": 1.1920928955078125e-07,
+          "v": 2.739951014518738e-06,
+          "l1": 0.000400811928557232
+        },
+        {
+          "q": 1.1920928955078125e-07,
+          "v": 2.7455389499664307e-06,
+          "l1": 0.0003951116814278066
+        },
+        {
+          "q": 1.1920928955078125e-07,
+          "v": 2.682209014892578e-06,
+          "l1": 0.0003927885845769197
+        },
+        {
+          "q": 1.1920928955078125e-07,
+          "v": 2.652406692504883e-06,
+          "l1": 0.0003881191660184413
+        },
+        {
+          "q": 1.1920928955078125e-07,
+          "v": 2.559274435043335e-06,
+          "l1": 0.00039420370012521744
+        }
+      ],
+      "initial_xu_sha256": [
+        "465b6800e55d20f8f181506de283d8124cd6db2551d45773cab032951499cd63",
+        "90c93cec130c8fb95f6abc5b39bc4efab6cf5b8f5be79cf2ef5cf6e4f0fca5ac",
+        "7ef8278f593ec96e4e706dbc0b9cf259d3f1c496e399872bbb177cadc7bd92bf",
+        "f4b2cbd9cc5f7580bcde9d68f1d4854d5ee4e308641d2b0c0ced5da9b4bdc8b6",
+        "c4226097c7dd4a744257fba68b78c20b5182b3381455d46575c3189dab14207f",
+        "93db00dc9934982d86f856c82b781471b0aa93f270ae7d091bbe721831fed3e8",
+        "823a3bc6fb4882e5dfd28ef48f966b51981b6dac68b45f0ba4a7fe90472bc1d6",
+        "7cfb4bd8bbd997f107f997bb0363964b4b7b7d9c008910da45016ffd26cbec71",
+        "ff20ce5c02dcce9681bf2dcfb45edcc9a7abbc335eb450b304fc741fee4b4734",
+        "8b62c1c28bfa0a3fadbc0e77092f04778081d240972506c6a572205f0008cc36",
+        "d33119b5206798e489ea26512818471c5546704bfcff1d5a10fbaac2d92e2f56",
+        "94d7315645de00e67a24cd699d3dac1ca3371d32fbb4d7d81f7d98a5bf056499",
+        "48ca03921016b7b3b708cbbce6fdfd3b30f40f5dff5eaff8c6d5a18f211a4eee",
+        "9b18fceca9073b3c59cbe6f36e07d3d6e2955cd77af0a5366a7ef04d444a9d8c",
+        "1a17b9f5af32eae481a252c83cbfd127e355ff6b530071f44e2652152277ff61",
+        "af37cb0c3b18980e6aa74af88f54736d9ad3aba63ac1e70b2ab466711a7bf985",
+        "302a77e3625f6037db09c6ca60ab8ea0de78821a6b878316ba80988817db4f99",
+        "e44e29569583a6d460f6f8f0c8a45c6209dcbe6860f2fb6b8357ce0f73c4455d",
+        "eec9c01f92fcb3423049f114b52f1a657eed050c3e9b560c62c9f9eda4ead4f6",
+        "0c3369a2a4fa4961190bfccf2fc029c0b81d9b97c36a9fea2e728ce8ef794294"
+      ]
+    },
+    {
+      "case": "N64_T0.9_clock0.06_warm",
+      "knots": 64,
+      "duration": 0.9,
+      "dt": 0.014285714285714285,
+      "clock": 0.06,
+      "initialization": "warm",
+      "batch": 1,
+      "executed": {
+        "finite": true,
+        "feasible": true,
+        "physical": true,
+        "settled": true,
+        "terminal": 0.017118577998030515,
+        "terminal_speed": 0.014557225937170236,
+        "clearance": 0.007535080787472732,
+        "margin_clearance": -0.00046491921252726776,
+        "joint_violation": 0.0,
+        "velocity_ratio": 0.5052706200964823,
+        "effort_ratio": 0.36169811395498425,
+        "winding": -2.9131929209806438,
+        "objective": {
+          "total": 0.849858288843399,
+          "position": 0.4091183736254714,
+          "velocity": 0.1900839331516379,
+          "effort": 0.2210664775303433,
+          "obstacle": 0.0002849332684810384,
+          "terminal": 0.02930457126746545,
+          "terminal_obstacle": 0.0
+        }
+      },
+      "complete": true,
+      "failure": null,
+      "simulated_seconds": 1.2000000000000006,
+      "steps": 20,
+      "full_coarse_feasible": 17,
+      "full_fine_feasible": 0,
+      "solve_ms": 48779.41900000001,
+      "kkt": 8,
+      "max_prefix_tool_error": 8.37550705568724e-05,
+      "initial_local_defects": [
+        {
+          "q": 2.384185791015625e-07,
+          "v": 2.2277235984802246e-06,
+          "l1": 0.00028600249788723886
+        },
+        {
+          "q": 0.001130819320678711,
+          "v": 0.3957439363002777,
+          "l1": 0.8032273650169373
+        },
+        {
+          "q": 0.0014376640319824219,
+          "v": 0.3406204879283905,
+          "l1": 0.641533613204956
+        },
+        {
+          "q": 0.001755356788635254,
+          "v": 0.31122228503227234,
+          "l1": 0.6046934723854065
+        },
+        {
+          "q": 0.002091526985168457,
+          "v": 0.27640360593795776,
+          "l1": 0.5947054624557495
+        },
+        {
+          "q": 0.002036452293395996,
+          "v": 0.25105831027030945,
+          "l1": 0.5579121112823486
+        },
+        {
+          "q": 0.001975536346435547,
+          "v": 0.2291693538427353,
+          "l1": 0.5125062465667725
+        },
+        {
+          "q": 0.0017197728157043457,
+          "v": 0.22130827605724335,
+          "l1": 0.4645441174507141
+        },
+        {
+          "q": 0.0014248490333557129,
+          "v": 0.21473917365074158,
+          "l1": 0.4186571538448334
+        },
+        {
+          "q": 0.001162409782409668,
+          "v": 0.20311686396598816,
+          "l1": 0.37530800700187683
+        },
+        {
+          "q": 0.0009371042251586914,
+          "v": 0.20098276436328888,
+          "l1": 0.3503604829311371
+        },
+        {
+          "q": 0.000751793384552002,
+          "v": 0.20119403302669525,
+          "l1": 0.32962843775749207
+        },
+        {
+          "q": 0.0006003975868225098,
+          "v": 0.19659863412380219,
+          "l1": 0.3098136782646179
+        },
+        {
+          "q": 0.0005303621292114258,
+          "v": 0.1856192946434021,
+          "l1": 0.2905285954475403
+        },
+        {
+          "q": 0.0005052089691162109,
+          "v": 0.1768953651189804,
+          "l1": 0.27658990025520325
+        },
+        {
+          "q": 0.0004775524139404297,
+          "v": 0.16713018715381622,
+          "l1": 0.26282620429992676
+        },
+        {
+          "q": 0.0004646778106689453,
+          "v": 0.1626490354537964,
+          "l1": 0.2549961507320404
+        },
+        {
+          "q": 0.00046956539154052734,
+          "v": 0.16433359682559967,
+          "l1": 0.25400257110595703
+        },
+        {
+          "q": 0.0004767179489135742,
+          "v": 0.16682490706443787,
+          "l1": 0.2519134283065796
+        },
+        {
+          "q": 0.00047707557678222656,
+          "v": 0.16694806516170502,
+          "l1": 0.24748465418815613
+        }
+      ],
+      "initial_xu_sha256": [
+        "465b6800e55d20f8f181506de283d8124cd6db2551d45773cab032951499cd63",
+        "bacca998a041a4a644bd0ead4a67d0764525e2989b50159022a289d4b1cfac72",
+        "e211342b11d85f408cd55d78d43ce58ea1254bf5bc17972ca02523861de3afba",
+        "35c77c29966a182945462fd90f8fc8fdfc1ccb31d1f5af756f81828593239a93",
+        "e5cadb4a371fed37b3e4adc067ed38bb6762549cb3fc6cd72a7084a28df81408",
+        "bccc50034a490d24f919738f382363fc0e4b0d6d5594f3231011b76977281bd8",
+        "1bcd688d0d3d188bedd15ae51cf7d2ca61efe82f8bb3c7f81c9be0fb8fdc8a0c",
+        "36c2c3f7dd2339e7e21b8cd88e86505344bf90fdd7baa22b927d9078ac46bdc9",
+        "9acbe389fedf9c70c7f9638bfcb095920f24a76d59746c90e61e73bb1961acd2",
+        "3c38822598a39cc8a31d5be4157e33e923173647104dce796ef45182ebafa060",
+        "a551271d466d5599b3d632cb17d759227336fd74a8015aa7fa2124bb036c4e7e",
+        "8042a6ef95e1f487fedf7b62ca9fe44ed9c0bed139c3640986b9528d50f7410c",
+        "135fa2f4c3b41a4691fa639cdde2f0e852f512d29413b8aba7a7c55997d58281",
+        "66569b103d39cb8ad3537de5960e2759479d25260edb24102c7866ace631df6e",
+        "156364135a931e62155e79fb474894c7e85ffd66da3df17a7b83cd797f7f6bb2",
+        "0a1f1fc49a7d8386899abfef051140b072b1b16ff19f94c1e3e6b84ae240e771",
+        "40bc6c9dbda98dd85bec4c1dca48d48bdaee176d2d51d7ad0d72acf1c5bcdb87",
+        "86834656d20e0a89b5859bb1f1b07088bb8bc449101092cd4690a5b00ba79494",
+        "53b2f44864589ce29e6301726ece1438da83c23d75dea23da48d9a7086168a37",
+        "0d542cbb9a83539a37be94e9df1edb6db3cc001f795d00538f5c785065ec1d51"
+      ]
+    },
+    {
+      "case": "N64_T0.9_clock0.12_warm",
+      "knots": 64,
+      "duration": 0.9,
+      "dt": 0.014285714285714285,
+      "clock": 0.12,
+      "initialization": "warm",
+      "batch": 1,
+      "executed": {
+        "finite": true,
+        "feasible": true,
+        "physical": true,
+        "settled": true,
+        "terminal": 0.01628758562964996,
+        "terminal_speed": 0.013636177620209704,
+        "clearance": 0.007473514224090608,
+        "margin_clearance": -0.0005264857759093924,
+        "joint_violation": 0.0,
+        "velocity_ratio": 0.5052706200964823,
+        "effort_ratio": 0.3596950677724985,
+        "winding": -2.918596667488837,
+        "objective": {
+          "total": 0.8519031660596724,
+          "position": 0.4144775203912052,
+          "velocity": 0.18927508402607957,
+          "effort": 0.22129488034929554,
+          "obstacle": 0.00032713672877417047,
+          "terminal": 0.02652854456431799,
+          "terminal_obstacle": 0.0
+        }
+      },
+      "complete": true,
+      "failure": null,
+      "simulated_seconds": 1.2000000000000002,
+      "steps": 10,
+      "full_coarse_feasible": 9,
+      "full_fine_feasible": 0,
+      "solve_ms": 40258.808000000005,
+      "kkt": 0,
+      "max_prefix_tool_error": 0.00023605584318396215,
+      "initial_local_defects": [
+        {
+          "q": 2.384185791015625e-07,
+          "v": 2.2277235984802246e-06,
+          "l1": 0.00028600249788723886
+        },
+        {
+          "q": 0.004616856575012207,
+          "v": 0.39574742317199707,
+          "l1": 0.8922446966171265
+        },
+        {
+          "q": 0.007060050964355469,
+          "v": 0.29721158742904663,
+          "l1": 0.7807602286338806
+        },
+        {
+          "q": 0.007355153560638428,
+          "v": 0.2304421216249466,
+          "l1": 0.676033079624176
+        },
+        {
+          "q": 0.006041347980499268,
+          "v": 0.19052070379257202,
+          "l1": 0.5387090444564819
+        },
+        {
+          "q": 0.0040016770362854,
+          "v": 0.16984719038009644,
+          "l1": 0.41133883595466614
+        },
+        {
+          "q": 0.0025480985641479492,
+          "v": 0.17140771448612213,
+          "l1": 0.35799869894981384
+        },
+        {
+          "q": 0.0016114115715026855,
+          "v": 0.17245551943778992,
+          "l1": 0.31775474548339844
+        },
+        {
+          "q": 0.001249551773071289,
+          "v": 0.16930486261844635,
+          "l1": 0.2850407361984253
+        },
+        {
+          "q": 0.0009208917617797852,
+          "v": 0.16115054488182068,
+          "l1": 0.26354414224624634
+        }
+      ],
+      "initial_xu_sha256": [
+        "465b6800e55d20f8f181506de283d8124cd6db2551d45773cab032951499cd63",
+        "7b22215f30eaa2fd6f81a3fe077ca54f0a82da259278624a3544707994e83784",
+        "d2e8679f2d99642a0cafcfaa6173650939f1ecf71b26527dbdbbdf7a2b1f6511",
+        "eb121538ea114b47ba4201628fbe10b7e48f4b15b520fac3a3da4e8d1b7d5b7a",
+        "3cad12ae37b639b2cc192365236837156ddd2f0481b58a611bda52f0740e52f5",
+        "bd1f367ff2e05c4a068e7e00d655e6958fb3cece518f4ed2f8148a813bdb4394",
+        "737d59b48745bf0d42fe80a7a60e45e90732da9debda42e59f3bbfa02f6e940d",
+        "e87e9982bc52e24fcf5798238664f08a76771ed3b2da87957cff3b7db203d291",
+        "dc86e082ef5eebccd99b3e27c97c5692dcafc3232cdae35368aa738a71b722c7",
+        "a726507938ca6cfd382c721f3b0a03a6aedae0abcc021525adb52f95515c53e8"
+      ]
+    },
+    {
+      "case": "N64_T0.9_clock0.24_warm",
+      "knots": 64,
+      "duration": 0.9,
+      "dt": 0.014285714285714285,
+      "clock": 0.24,
+      "initialization": "warm",
+      "batch": 1,
+      "executed": {
+        "finite": true,
+        "feasible": true,
+        "physical": true,
+        "settled": true,
+        "terminal": 0.014115062780755316,
+        "terminal_speed": 0.017215224462038343,
+        "clearance": 0.007246745403159907,
+        "margin_clearance": -0.000753254596840093,
+        "joint_violation": 0.0,
+        "velocity_ratio": 0.5052706200964823,
+        "effort_ratio": 0.3599705329308143,
+        "winding": -2.9255738689564796,
+        "objective": {
+          "total": 0.8509029347727665,
+          "position": 0.41470945406021714,
+          "velocity": 0.19320182892950016,
+          "effort": 0.2223449333190917,
+          "obstacle": 0.0007232187334911271,
+          "terminal": 0.0199234997304664,
+          "terminal_obstacle": 0.0
+        }
+      },
+      "complete": true,
+      "failure": null,
+      "simulated_seconds": 1.1999999999999993,
+      "steps": 5,
+      "full_coarse_feasible": 4,
+      "full_fine_feasible": 0,
+      "solve_ms": 19798.885,
+      "kkt": 0,
+      "max_prefix_tool_error": 0.0011160510983319048,
+      "initial_local_defects": [
+        {
+          "q": 2.384185791015625e-07,
+          "v": 2.2277235984802246e-06,
+          "l1": 0.00028600249788723886
+        },
+        {
+          "q": 0.027368128299713135,
+          "v": 0.39576256275177,
+          "l1": 1.2670114040374756
+        },
+        {
+          "q": 0.03301393985748291,
+          "v": 0.3364178538322449,
+          "l1": 1.25801420211792
+        },
+        {
+          "q": 0.017303168773651123,
+          "v": 0.17125281691551208,
+          "l1": 0.6047141551971436
+        },
+        {
+          "q": 0.007146477699279785,
+          "v": 0.164285346865654,
+          "l1": 0.3801426291465759
+        }
+      ],
+      "initial_xu_sha256": [
+        "465b6800e55d20f8f181506de283d8124cd6db2551d45773cab032951499cd63",
+        "7ee9c4482b12f30cd108d768cac9a9c02ea4c7f951786276a5f0cff5390cb2a1",
+        "884798fa2f7334f2a311fcd5d07633f9c6f4fc13d7aafb2a4394bd4afe1841e8",
+        "ca39ce7e234c66acef8e8546e4b55a661333e264e1387a65c3cd1d3c4f3dff4d",
+        "2c46c60e2a36c23a0d7da47cbe616177c7602f4ef7c235ab717e3fe35756f411"
+      ]
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "example_artifacts/randomized_multimodal/tiago_horizon/N128_T1.8_task0/summary.json",
+      "sha256": "a969e458c47085da39d8ae957698b5f7b959af17387ac4f2aa638fe661e98e0b",
+      "provenance": {
+        "git_head": "c6f3621f15cca7ab3d51e56237ea72ff8960f7a0",
+        "sha256": {
+          "examples/randomized_multimodal/tiago_horizon.py": "d1e116b89e113f4cfb10a80479ac11f3010547f4168ca97bd86530b6e9f53b0e",
+          "examples/randomized_multimodal/tiago_probe.py": "4d02b63cae1b9c809595fde54ea2d973118e06283dcb3720e8c35b00cf0748f9",
+          "python/bsqp/bsqpN128_tiago_right_multimodal.cpython-310-x86_64-linux-gnu.so": "d7e6011a18b92c269988bd3e20e770086a2df3cff70909e582d99f0b8376592d",
+          "gato/dynamics/tiago_right/tiago_right_arm.urdf": "8e1fd973a1d1c3fbddd55039e6eb17b355ebb29f46e1bd8c774b7879c2cdc5bb",
+          "gato/dynamics/tiago_right/tiago_right_plant.cuh": "cf4d4175bd9fae7a85a366d20c0d03410a3da1d4cfde81f285cdd5a5d85579eb"
+        }
+      },
+      "machine": {
+        "platform": "Linux-6.19.11-200.fc43.x86_64-x86_64-with-glibc2.35",
+        "python": "3.10.12 (main, Mar  3 2026, 11:56:32) [GCC 11.4.0]",
+        "executable": "/opt/gato-venv/bin/python",
+        "numpy": "2.2.6",
+        "scipy": "1.15.3",
+        "pinocchio": "3.9.0",
+        "gpu": "NVIDIA GeForce GTX 1070, GPU-9da0d229-0c40-c025-8185-b4c5dd67edfb, 580.126.18, 8192 MiB",
+        "cuda_compiler": "nvcc: NVIDIA (R) Cuda compiler driver\nCopyright (c) 2005-2025 NVIDIA Corporation\nBuilt on Tue_May_27_02:21:03_PDT_2025\nCuda compilation tools, release 12.9, V12.9.86\nBuild cuda_12.9.r12.9/compiler.36037853_0"
+      }
+    },
+    {
+      "path": "example_artifacts/randomized_multimodal/tiago_horizon/N128_T1.8_task1/summary.json",
+      "sha256": "ce8a3a16724dfcfea500343ca5dcb85b811fb9429b6268e03234efa3fa95bf79",
+      "provenance": {
+        "git_head": "e361a455b0cb14e7b25aaddc74413d4b7aa5378c",
+        "sha256": {
+          "examples/randomized_multimodal/tiago_horizon.py": "d1e116b89e113f4cfb10a80479ac11f3010547f4168ca97bd86530b6e9f53b0e",
+          "examples/randomized_multimodal/tiago_probe.py": "4d02b63cae1b9c809595fde54ea2d973118e06283dcb3720e8c35b00cf0748f9",
+          "python/bsqp/bsqpN128_tiago_right_multimodal.cpython-310-x86_64-linux-gnu.so": "d7e6011a18b92c269988bd3e20e770086a2df3cff70909e582d99f0b8376592d",
+          "gato/dynamics/tiago_right/tiago_right_arm.urdf": "8e1fd973a1d1c3fbddd55039e6eb17b355ebb29f46e1bd8c774b7879c2cdc5bb",
+          "gato/dynamics/tiago_right/tiago_right_plant.cuh": "cf4d4175bd9fae7a85a366d20c0d03410a3da1d4cfde81f285cdd5a5d85579eb"
+        }
+      },
+      "machine": {
+        "platform": "Linux-6.19.11-200.fc43.x86_64-x86_64-with-glibc2.35",
+        "python": "3.10.12 (main, Mar  3 2026, 11:56:32) [GCC 11.4.0]",
+        "executable": "/opt/gato-venv/bin/python",
+        "numpy": "2.2.6",
+        "scipy": "1.15.3",
+        "pinocchio": "3.9.0",
+        "gpu": "NVIDIA GeForce GTX 1070, GPU-9da0d229-0c40-c025-8185-b4c5dd67edfb, 580.126.18, 8192 MiB",
+        "cuda_compiler": "nvcc: NVIDIA (R) Cuda compiler driver\nCopyright (c) 2005-2025 NVIDIA Corporation\nBuilt on Tue_May_27_02:21:03_PDT_2025\nCuda compilation tools, release 12.9, V12.9.86\nBuild cuda_12.9.r12.9/compiler.36037853_0"
+      }
+    },
+    {
+      "path": "example_artifacts/randomized_multimodal/tiago_horizon/N128_T1.8_task2/summary.json",
+      "sha256": "eb2567f43548698c8a76f1216d201a658d7a71dd154304bee8cbe2a12962ad66",
+      "provenance": {
+        "git_head": "e361a455b0cb14e7b25aaddc74413d4b7aa5378c",
+        "sha256": {
+          "examples/randomized_multimodal/tiago_horizon.py": "80f555965e331a3a48cf279773b77b60485a39488ccc38ef75967493c5381acc",
+          "examples/randomized_multimodal/tiago_probe.py": "4d02b63cae1b9c809595fde54ea2d973118e06283dcb3720e8c35b00cf0748f9",
+          "python/bsqp/bsqpN128_tiago_right_multimodal.cpython-310-x86_64-linux-gnu.so": "d7e6011a18b92c269988bd3e20e770086a2df3cff70909e582d99f0b8376592d",
+          "gato/dynamics/tiago_right/tiago_right_arm.urdf": "8e1fd973a1d1c3fbddd55039e6eb17b355ebb29f46e1bd8c774b7879c2cdc5bb",
+          "gato/dynamics/tiago_right/tiago_right_plant.cuh": "cf4d4175bd9fae7a85a366d20c0d03410a3da1d4cfde81f285cdd5a5d85579eb"
+        }
+      },
+      "machine": {
+        "platform": "Linux-6.19.11-200.fc43.x86_64-x86_64-with-glibc2.35",
+        "python": "3.10.12 (main, Mar  3 2026, 11:56:32) [GCC 11.4.0]",
+        "executable": "/opt/gato-venv/bin/python",
+        "numpy": "2.2.6",
+        "scipy": "1.15.3",
+        "pinocchio": "3.9.0",
+        "gpu": "NVIDIA GeForce GTX 1070, GPU-9da0d229-0c40-c025-8185-b4c5dd67edfb, 580.126.18, 8192 MiB",
+        "cuda_compiler": "nvcc: NVIDIA (R) Cuda compiler driver\nCopyright (c) 2005-2025 NVIDIA Corporation\nBuilt on Tue_May_27_02:21:03_PDT_2025\nCuda compilation tools, release 12.9, V12.9.86\nBuild cuda_12.9.r12.9/compiler.36037853_0"
+      }
+    },
+    {
+      "path": "example_artifacts/randomized_multimodal/tiago_horizon/N16_T0.45_task0/summary.json",
+      "sha256": "b4b0c68540faa06c907964b930c2611e7a65b41773d8dd01099d5f1701faf689",
+      "provenance": {
+        "git_head": "6153bcc1a31a14b0912438face4a05ac85b34ea4",
+        "sha256": {
+          "examples/randomized_multimodal/tiago_horizon.py": "3004088827e49fdb277589cfe93eec73b336f59a2754f001311d5f745f043e8a",
+          "examples/randomized_multimodal/tiago_probe.py": "4d02b63cae1b9c809595fde54ea2d973118e06283dcb3720e8c35b00cf0748f9",
+          "python/bsqp/bsqpN16_tiago_right_multimodal.cpython-310-x86_64-linux-gnu.so": "a1a4ed1ff039c8eda002c48a94f6e36a2a7af6f8def076c087cc4a4d5d458890",
+          "gato/dynamics/tiago_right/tiago_right_arm.urdf": "8e1fd973a1d1c3fbddd55039e6eb17b355ebb29f46e1bd8c774b7879c2cdc5bb",
+          "gato/dynamics/tiago_right/tiago_right_plant.cuh": "cf4d4175bd9fae7a85a366d20c0d03410a3da1d4cfde81f285cdd5a5d85579eb"
+        }
+      },
+      "machine": null
+    },
+    {
+      "path": "example_artifacts/randomized_multimodal/tiago_horizon/N16_T0.45_task1/summary.json",
+      "sha256": "5263290f972ac1bb2f21a3a7f470b05c51854b668b01e2750033d805f90aa437",
+      "provenance": {
+        "git_head": "6153bcc1a31a14b0912438face4a05ac85b34ea4",
+        "sha256": {
+          "examples/randomized_multimodal/tiago_horizon.py": "3004088827e49fdb277589cfe93eec73b336f59a2754f001311d5f745f043e8a",
+          "examples/randomized_multimodal/tiago_probe.py": "4d02b63cae1b9c809595fde54ea2d973118e06283dcb3720e8c35b00cf0748f9",
+          "python/bsqp/bsqpN16_tiago_right_multimodal.cpython-310-x86_64-linux-gnu.so": "a1a4ed1ff039c8eda002c48a94f6e36a2a7af6f8def076c087cc4a4d5d458890",
+          "gato/dynamics/tiago_right/tiago_right_arm.urdf": "8e1fd973a1d1c3fbddd55039e6eb17b355ebb29f46e1bd8c774b7879c2cdc5bb",
+          "gato/dynamics/tiago_right/tiago_right_plant.cuh": "cf4d4175bd9fae7a85a366d20c0d03410a3da1d4cfde81f285cdd5a5d85579eb"
+        }
+      },
+      "machine": null
+    },
+    {
+      "path": "example_artifacts/randomized_multimodal/tiago_horizon/N16_T0.45_task2/summary.json",
+      "sha256": "c9c607aab72adbf11552d94e5661db69697624b73eba6ca9021977493991cfde",
+      "provenance": {
+        "git_head": "6153bcc1a31a14b0912438face4a05ac85b34ea4",
+        "sha256": {
+          "examples/randomized_multimodal/tiago_horizon.py": "3004088827e49fdb277589cfe93eec73b336f59a2754f001311d5f745f043e8a",
+          "examples/randomized_multimodal/tiago_probe.py": "4d02b63cae1b9c809595fde54ea2d973118e06283dcb3720e8c35b00cf0748f9",
+          "python/bsqp/bsqpN16_tiago_right_multimodal.cpython-310-x86_64-linux-gnu.so": "a1a4ed1ff039c8eda002c48a94f6e36a2a7af6f8def076c087cc4a4d5d458890",
+          "gato/dynamics/tiago_right/tiago_right_arm.urdf": "8e1fd973a1d1c3fbddd55039e6eb17b355ebb29f46e1bd8c774b7879c2cdc5bb",
+          "gato/dynamics/tiago_right/tiago_right_plant.cuh": "cf4d4175bd9fae7a85a366d20c0d03410a3da1d4cfde81f285cdd5a5d85579eb"
+        }
+      },
+      "machine": null
+    },
+    {
+      "path": "example_artifacts/randomized_multimodal/tiago_horizon/N32_T0.45_task0/summary.json",
+      "sha256": "a45cff63bbbc583ce5bf9e7c51cf4128e78b789474c352785c21562766fa3841",
+      "provenance": {
+        "git_head": "6153bcc1a31a14b0912438face4a05ac85b34ea4",
+        "sha256": {
+          "examples/randomized_multimodal/tiago_horizon.py": "3004088827e49fdb277589cfe93eec73b336f59a2754f001311d5f745f043e8a",
+          "examples/randomized_multimodal/tiago_probe.py": "4d02b63cae1b9c809595fde54ea2d973118e06283dcb3720e8c35b00cf0748f9",
+          "python/bsqp/bsqpN32_tiago_right_multimodal.cpython-310-x86_64-linux-gnu.so": "0ce2bcae14f7878d9883bffba8b2557f57abdd83fee5d5602ca671fbeb8b9800",
+          "gato/dynamics/tiago_right/tiago_right_arm.urdf": "8e1fd973a1d1c3fbddd55039e6eb17b355ebb29f46e1bd8c774b7879c2cdc5bb",
+          "gato/dynamics/tiago_right/tiago_right_plant.cuh": "cf4d4175bd9fae7a85a366d20c0d03410a3da1d4cfde81f285cdd5a5d85579eb"
+        }
+      },
+      "machine": null
+    },
+    {
+      "path": "example_artifacts/randomized_multimodal/tiago_horizon/N32_T0.45_task1/summary.json",
+      "sha256": "a05de705a7ac3b48484849d28dbdeec693ade9fc3090a71bcbc2db3a944c8b5e",
+      "provenance": {
+        "git_head": "6153bcc1a31a14b0912438face4a05ac85b34ea4",
+        "sha256": {
+          "examples/randomized_multimodal/tiago_horizon.py": "3004088827e49fdb277589cfe93eec73b336f59a2754f001311d5f745f043e8a",
+          "examples/randomized_multimodal/tiago_probe.py": "4d02b63cae1b9c809595fde54ea2d973118e06283dcb3720e8c35b00cf0748f9",
+          "python/bsqp/bsqpN32_tiago_right_multimodal.cpython-310-x86_64-linux-gnu.so": "0ce2bcae14f7878d9883bffba8b2557f57abdd83fee5d5602ca671fbeb8b9800",
+          "gato/dynamics/tiago_right/tiago_right_arm.urdf": "8e1fd973a1d1c3fbddd55039e6eb17b355ebb29f46e1bd8c774b7879c2cdc5bb",
+          "gato/dynamics/tiago_right/tiago_right_plant.cuh": "cf4d4175bd9fae7a85a366d20c0d03410a3da1d4cfde81f285cdd5a5d85579eb"
+        }
+      },
+      "machine": null
+    },
+    {
+      "path": "example_artifacts/randomized_multimodal/tiago_horizon/N32_T0.45_task2/summary.json",
+      "sha256": "aa6906983f40cda00c1a6e039a16599c85514f258068aa4288c5691f0aab42be",
+      "provenance": {
+        "git_head": "6153bcc1a31a14b0912438face4a05ac85b34ea4",
+        "sha256": {
+          "examples/randomized_multimodal/tiago_horizon.py": "3004088827e49fdb277589cfe93eec73b336f59a2754f001311d5f745f043e8a",
+          "examples/randomized_multimodal/tiago_probe.py": "4d02b63cae1b9c809595fde54ea2d973118e06283dcb3720e8c35b00cf0748f9",
+          "python/bsqp/bsqpN32_tiago_right_multimodal.cpython-310-x86_64-linux-gnu.so": "0ce2bcae14f7878d9883bffba8b2557f57abdd83fee5d5602ca671fbeb8b9800",
+          "gato/dynamics/tiago_right/tiago_right_arm.urdf": "8e1fd973a1d1c3fbddd55039e6eb17b355ebb29f46e1bd8c774b7879c2cdc5bb",
+          "gato/dynamics/tiago_right/tiago_right_plant.cuh": "cf4d4175bd9fae7a85a366d20c0d03410a3da1d4cfde81f285cdd5a5d85579eb"
+        }
+      },
+      "machine": null
+    },
+    {
+      "path": "example_artifacts/randomized_multimodal/tiago_horizon/N32_T0.9_task0/summary.json",
+      "sha256": "7da1259e3349fb6060a615777c645ecd53db232161bca5c5cc0e38af099c3e79",
+      "provenance": {
+        "git_head": "6153bcc1a31a14b0912438face4a05ac85b34ea4",
+        "sha256": {
+          "examples/randomized_multimodal/tiago_horizon.py": "3004088827e49fdb277589cfe93eec73b336f59a2754f001311d5f745f043e8a",
+          "examples/randomized_multimodal/tiago_probe.py": "4d02b63cae1b9c809595fde54ea2d973118e06283dcb3720e8c35b00cf0748f9",
+          "python/bsqp/bsqpN32_tiago_right_multimodal.cpython-310-x86_64-linux-gnu.so": "0ce2bcae14f7878d9883bffba8b2557f57abdd83fee5d5602ca671fbeb8b9800",
+          "gato/dynamics/tiago_right/tiago_right_arm.urdf": "8e1fd973a1d1c3fbddd55039e6eb17b355ebb29f46e1bd8c774b7879c2cdc5bb",
+          "gato/dynamics/tiago_right/tiago_right_plant.cuh": "cf4d4175bd9fae7a85a366d20c0d03410a3da1d4cfde81f285cdd5a5d85579eb"
+        }
+      },
+      "machine": null
+    },
+    {
+      "path": "example_artifacts/randomized_multimodal/tiago_horizon/N32_T0.9_task1/summary.json",
+      "sha256": "9347a591eb0fa741b253400f372a5112b0944a9906ef7953fa19279d5ff77455",
+      "provenance": {
+        "git_head": "6153bcc1a31a14b0912438face4a05ac85b34ea4",
+        "sha256": {
+          "examples/randomized_multimodal/tiago_horizon.py": "3004088827e49fdb277589cfe93eec73b336f59a2754f001311d5f745f043e8a",
+          "examples/randomized_multimodal/tiago_probe.py": "4d02b63cae1b9c809595fde54ea2d973118e06283dcb3720e8c35b00cf0748f9",
+          "python/bsqp/bsqpN32_tiago_right_multimodal.cpython-310-x86_64-linux-gnu.so": "0ce2bcae14f7878d9883bffba8b2557f57abdd83fee5d5602ca671fbeb8b9800",
+          "gato/dynamics/tiago_right/tiago_right_arm.urdf": "8e1fd973a1d1c3fbddd55039e6eb17b355ebb29f46e1bd8c774b7879c2cdc5bb",
+          "gato/dynamics/tiago_right/tiago_right_plant.cuh": "cf4d4175bd9fae7a85a366d20c0d03410a3da1d4cfde81f285cdd5a5d85579eb"
+        }
+      },
+      "machine": null
+    },
+    {
+      "path": "example_artifacts/randomized_multimodal/tiago_horizon/N32_T0.9_task2/summary.json",
+      "sha256": "64fa7440d4a36be655b00fea77aefebb564945a6e4267d4ce127b5bcabc0136e",
+      "provenance": {
+        "git_head": "6153bcc1a31a14b0912438face4a05ac85b34ea4",
+        "sha256": {
+          "examples/randomized_multimodal/tiago_horizon.py": "3004088827e49fdb277589cfe93eec73b336f59a2754f001311d5f745f043e8a",
+          "examples/randomized_multimodal/tiago_probe.py": "4d02b63cae1b9c809595fde54ea2d973118e06283dcb3720e8c35b00cf0748f9",
+          "python/bsqp/bsqpN32_tiago_right_multimodal.cpython-310-x86_64-linux-gnu.so": "0ce2bcae14f7878d9883bffba8b2557f57abdd83fee5d5602ca671fbeb8b9800",
+          "gato/dynamics/tiago_right/tiago_right_arm.urdf": "8e1fd973a1d1c3fbddd55039e6eb17b355ebb29f46e1bd8c774b7879c2cdc5bb",
+          "gato/dynamics/tiago_right/tiago_right_plant.cuh": "cf4d4175bd9fae7a85a366d20c0d03410a3da1d4cfde81f285cdd5a5d85579eb"
+        }
+      },
+      "machine": null
+    },
+    {
+      "path": "example_artifacts/randomized_multimodal/tiago_horizon/N64_T0.9_task0/summary.json",
+      "sha256": "a4511250451b66fba5e48c87ccbc2af7b22804f9e9fddc9a47a54700481698de",
+      "provenance": {
+        "git_head": "313567a7312f086b3a7ff8c3b9af9170eb494e20",
+        "sha256": {
+          "examples/randomized_multimodal/tiago_horizon.py": "3004088827e49fdb277589cfe93eec73b336f59a2754f001311d5f745f043e8a",
+          "examples/randomized_multimodal/tiago_probe.py": "4d02b63cae1b9c809595fde54ea2d973118e06283dcb3720e8c35b00cf0748f9",
+          "python/bsqp/bsqpN64_tiago_right_multimodal.cpython-310-x86_64-linux-gnu.so": "d29c5300b67e1fb7a96b20e4dd6e34f292650f737657bc34311d6bdfbe3767f0",
+          "gato/dynamics/tiago_right/tiago_right_arm.urdf": "8e1fd973a1d1c3fbddd55039e6eb17b355ebb29f46e1bd8c774b7879c2cdc5bb",
+          "gato/dynamics/tiago_right/tiago_right_plant.cuh": "cf4d4175bd9fae7a85a366d20c0d03410a3da1d4cfde81f285cdd5a5d85579eb"
+        }
+      },
+      "machine": null
+    },
+    {
+      "path": "example_artifacts/randomized_multimodal/tiago_horizon/N64_T0.9_task1/summary.json",
+      "sha256": "cd4953aa15d8b60f132301b596243c25dc8aa37aede5b78a730d7d5891875916",
+      "provenance": {
+        "git_head": "313567a7312f086b3a7ff8c3b9af9170eb494e20",
+        "sha256": {
+          "examples/randomized_multimodal/tiago_horizon.py": "3004088827e49fdb277589cfe93eec73b336f59a2754f001311d5f745f043e8a",
+          "examples/randomized_multimodal/tiago_probe.py": "4d02b63cae1b9c809595fde54ea2d973118e06283dcb3720e8c35b00cf0748f9",
+          "python/bsqp/bsqpN64_tiago_right_multimodal.cpython-310-x86_64-linux-gnu.so": "d29c5300b67e1fb7a96b20e4dd6e34f292650f737657bc34311d6bdfbe3767f0",
+          "gato/dynamics/tiago_right/tiago_right_arm.urdf": "8e1fd973a1d1c3fbddd55039e6eb17b355ebb29f46e1bd8c774b7879c2cdc5bb",
+          "gato/dynamics/tiago_right/tiago_right_plant.cuh": "cf4d4175bd9fae7a85a366d20c0d03410a3da1d4cfde81f285cdd5a5d85579eb"
+        }
+      },
+      "machine": null
+    },
+    {
+      "path": "example_artifacts/randomized_multimodal/tiago_horizon/N64_T0.9_task2/summary.json",
+      "sha256": "6156a6295a9a631b74fa74218353db3343b667bc64ba4bc7e472b4c37b78834a",
+      "provenance": {
+        "git_head": "313567a7312f086b3a7ff8c3b9af9170eb494e20",
+        "sha256": {
+          "examples/randomized_multimodal/tiago_horizon.py": "3004088827e49fdb277589cfe93eec73b336f59a2754f001311d5f745f043e8a",
+          "examples/randomized_multimodal/tiago_probe.py": "4d02b63cae1b9c809595fde54ea2d973118e06283dcb3720e8c35b00cf0748f9",
+          "python/bsqp/bsqpN64_tiago_right_multimodal.cpython-310-x86_64-linux-gnu.so": "d29c5300b67e1fb7a96b20e4dd6e34f292650f737657bc34311d6bdfbe3767f0",
+          "gato/dynamics/tiago_right/tiago_right_arm.urdf": "8e1fd973a1d1c3fbddd55039e6eb17b355ebb29f46e1bd8c774b7879c2cdc5bb",
+          "gato/dynamics/tiago_right/tiago_right_plant.cuh": "cf4d4175bd9fae7a85a366d20c0d03410a3da1d4cfde81f285cdd5a5d85579eb"
+        }
+      },
+      "machine": null
+    },
+    {
+      "path": "example_artifacts/randomized_multimodal/tiago_horizon/N64_T1.8_task0/summary.json",
+      "sha256": "bbf3703a251d7a0a3121e124463109278a4daf3827b90e4c83e71c9c1c7d2deb",
+      "provenance": {
+        "git_head": "313567a7312f086b3a7ff8c3b9af9170eb494e20",
+        "sha256": {
+          "examples/randomized_multimodal/tiago_horizon.py": "3004088827e49fdb277589cfe93eec73b336f59a2754f001311d5f745f043e8a",
+          "examples/randomized_multimodal/tiago_probe.py": "4d02b63cae1b9c809595fde54ea2d973118e06283dcb3720e8c35b00cf0748f9",
+          "python/bsqp/bsqpN64_tiago_right_multimodal.cpython-310-x86_64-linux-gnu.so": "d29c5300b67e1fb7a96b20e4dd6e34f292650f737657bc34311d6bdfbe3767f0",
+          "gato/dynamics/tiago_right/tiago_right_arm.urdf": "8e1fd973a1d1c3fbddd55039e6eb17b355ebb29f46e1bd8c774b7879c2cdc5bb",
+          "gato/dynamics/tiago_right/tiago_right_plant.cuh": "cf4d4175bd9fae7a85a366d20c0d03410a3da1d4cfde81f285cdd5a5d85579eb"
+        }
+      },
+      "machine": null
+    },
+    {
+      "path": "example_artifacts/randomized_multimodal/tiago_horizon/N64_T1.8_task1/summary.json",
+      "sha256": "18306a93a2ec732f2b8c3eab327fec2e06636e330780a7869f53c714484482d6",
+      "provenance": {
+        "git_head": "313567a7312f086b3a7ff8c3b9af9170eb494e20",
+        "sha256": {
+          "examples/randomized_multimodal/tiago_horizon.py": "3004088827e49fdb277589cfe93eec73b336f59a2754f001311d5f745f043e8a",
+          "examples/randomized_multimodal/tiago_probe.py": "4d02b63cae1b9c809595fde54ea2d973118e06283dcb3720e8c35b00cf0748f9",
+          "python/bsqp/bsqpN64_tiago_right_multimodal.cpython-310-x86_64-linux-gnu.so": "d29c5300b67e1fb7a96b20e4dd6e34f292650f737657bc34311d6bdfbe3767f0",
+          "gato/dynamics/tiago_right/tiago_right_arm.urdf": "8e1fd973a1d1c3fbddd55039e6eb17b355ebb29f46e1bd8c774b7879c2cdc5bb",
+          "gato/dynamics/tiago_right/tiago_right_plant.cuh": "cf4d4175bd9fae7a85a366d20c0d03410a3da1d4cfde81f285cdd5a5d85579eb"
+        }
+      },
+      "machine": null
+    },
+    {
+      "path": "example_artifacts/randomized_multimodal/tiago_horizon/N64_T1.8_task2/summary.json",
+      "sha256": "4cd0479df781b4d530cea1b437461418174e2249cfe1f552d2e8fb69db4b0e9a",
+      "provenance": {
+        "git_head": "313567a7312f086b3a7ff8c3b9af9170eb494e20",
+        "sha256": {
+          "examples/randomized_multimodal/tiago_horizon.py": "3004088827e49fdb277589cfe93eec73b336f59a2754f001311d5f745f043e8a",
+          "examples/randomized_multimodal/tiago_probe.py": "4d02b63cae1b9c809595fde54ea2d973118e06283dcb3720e8c35b00cf0748f9",
+          "python/bsqp/bsqpN64_tiago_right_multimodal.cpython-310-x86_64-linux-gnu.so": "d29c5300b67e1fb7a96b20e4dd6e34f292650f737657bc34311d6bdfbe3767f0",
+          "gato/dynamics/tiago_right/tiago_right_arm.urdf": "8e1fd973a1d1c3fbddd55039e6eb17b355ebb29f46e1bd8c774b7879c2cdc5bb",
+          "gato/dynamics/tiago_right/tiago_right_plant.cuh": "cf4d4175bd9fae7a85a366d20c0d03410a3da1d4cfde81f285cdd5a5d85579eb"
+        }
+      },
+      "machine": null
+    },
+    {
+      "path": "example_artifacts/randomized_multimodal/tiago_horizon_fixed_dt_pilot/N128_T3.81_task1/summary.json",
+      "sha256": "e0aa2e3a4803d8775f27111891d7a57d280f4df24e39aba8303b8dfd362bffa7",
+      "provenance": {
+        "git_head": "e361a455b0cb14e7b25aaddc74413d4b7aa5378c",
+        "sha256": {
+          "examples/randomized_multimodal/tiago_horizon.py": "80f555965e331a3a48cf279773b77b60485a39488ccc38ef75967493c5381acc",
+          "examples/randomized_multimodal/tiago_probe.py": "4d02b63cae1b9c809595fde54ea2d973118e06283dcb3720e8c35b00cf0748f9",
+          "python/bsqp/bsqpN128_tiago_right_multimodal.cpython-310-x86_64-linux-gnu.so": "d7e6011a18b92c269988bd3e20e770086a2df3cff70909e582d99f0b8376592d",
+          "gato/dynamics/tiago_right/tiago_right_arm.urdf": "8e1fd973a1d1c3fbddd55039e6eb17b355ebb29f46e1bd8c774b7879c2cdc5bb",
+          "gato/dynamics/tiago_right/tiago_right_plant.cuh": "cf4d4175bd9fae7a85a366d20c0d03410a3da1d4cfde81f285cdd5a5d85579eb"
+        }
+      },
+      "machine": {
+        "platform": "Linux-6.19.11-200.fc43.x86_64-x86_64-with-glibc2.35",
+        "python": "3.10.12 (main, Mar  3 2026, 11:56:32) [GCC 11.4.0]",
+        "executable": "/opt/gato-venv/bin/python",
+        "numpy": "2.2.6",
+        "scipy": "1.15.3",
+        "pinocchio": "3.9.0",
+        "gpu": "NVIDIA GeForce GTX 1070, GPU-9da0d229-0c40-c025-8185-b4c5dd67edfb, 580.126.18, 8192 MiB",
+        "cuda_compiler": "nvcc: NVIDIA (R) Cuda compiler driver\nCopyright (c) 2005-2025 NVIDIA Corporation\nBuilt on Tue_May_27_02:21:03_PDT_2025\nCuda compilation tools, release 12.9, V12.9.86\nBuild cuda_12.9.r12.9/compiler.36037853_0"
+      }
+    },
+    {
+      "path": "example_artifacts/randomized_multimodal/tiago_horizon_fixed_dt_pilot/N32_T0.93_task1/summary.json",
+      "sha256": "ece21c408d43af5a47f608b3db6e5758b8d48b03c297e167e04e4e388cc76d5a",
+      "provenance": {
+        "git_head": "e361a455b0cb14e7b25aaddc74413d4b7aa5378c",
+        "sha256": {
+          "examples/randomized_multimodal/tiago_horizon.py": "80f555965e331a3a48cf279773b77b60485a39488ccc38ef75967493c5381acc",
+          "examples/randomized_multimodal/tiago_probe.py": "4d02b63cae1b9c809595fde54ea2d973118e06283dcb3720e8c35b00cf0748f9",
+          "python/bsqp/bsqpN32_tiago_right_multimodal.cpython-310-x86_64-linux-gnu.so": "0ce2bcae14f7878d9883bffba8b2557f57abdd83fee5d5602ca671fbeb8b9800",
+          "gato/dynamics/tiago_right/tiago_right_arm.urdf": "8e1fd973a1d1c3fbddd55039e6eb17b355ebb29f46e1bd8c774b7879c2cdc5bb",
+          "gato/dynamics/tiago_right/tiago_right_plant.cuh": "cf4d4175bd9fae7a85a366d20c0d03410a3da1d4cfde81f285cdd5a5d85579eb"
+        }
+      },
+      "machine": {
+        "platform": "Linux-6.19.11-200.fc43.x86_64-x86_64-with-glibc2.35",
+        "python": "3.10.12 (main, Mar  3 2026, 11:56:32) [GCC 11.4.0]",
+        "executable": "/opt/gato-venv/bin/python",
+        "numpy": "2.2.6",
+        "scipy": "1.15.3",
+        "pinocchio": "3.9.0",
+        "gpu": "NVIDIA GeForce GTX 1070, GPU-9da0d229-0c40-c025-8185-b4c5dd67edfb, 580.126.18, 8192 MiB",
+        "cuda_compiler": "nvcc: NVIDIA (R) Cuda compiler driver\nCopyright (c) 2005-2025 NVIDIA Corporation\nBuilt on Tue_May_27_02:21:03_PDT_2025\nCuda compilation tools, release 12.9, V12.9.86\nBuild cuda_12.9.r12.9/compiler.36037853_0"
+      }
+    },
+    {
+      "path": "example_artifacts/randomized_multimodal/tiago_horizon_fixed_dt_pilot/N64_T1.89_task1/summary.json",
+      "sha256": "71c1e2901135187424e99885baf97f79471d5000092a28ae571e00eb16d484e4",
+      "provenance": {
+        "git_head": "e361a455b0cb14e7b25aaddc74413d4b7aa5378c",
+        "sha256": {
+          "examples/randomized_multimodal/tiago_horizon.py": "80f555965e331a3a48cf279773b77b60485a39488ccc38ef75967493c5381acc",
+          "examples/randomized_multimodal/tiago_probe.py": "4d02b63cae1b9c809595fde54ea2d973118e06283dcb3720e8c35b00cf0748f9",
+          "python/bsqp/bsqpN64_tiago_right_multimodal.cpython-310-x86_64-linux-gnu.so": "d29c5300b67e1fb7a96b20e4dd6e34f292650f737657bc34311d6bdfbe3767f0",
+          "gato/dynamics/tiago_right/tiago_right_arm.urdf": "8e1fd973a1d1c3fbddd55039e6eb17b355ebb29f46e1bd8c774b7879c2cdc5bb",
+          "gato/dynamics/tiago_right/tiago_right_plant.cuh": "cf4d4175bd9fae7a85a366d20c0d03410a3da1d4cfde81f285cdd5a5d85579eb"
+        }
+      },
+      "machine": {
+        "platform": "Linux-6.19.11-200.fc43.x86_64-x86_64-with-glibc2.35",
+        "python": "3.10.12 (main, Mar  3 2026, 11:56:32) [GCC 11.4.0]",
+        "executable": "/opt/gato-venv/bin/python",
+        "numpy": "2.2.6",
+        "scipy": "1.15.3",
+        "pinocchio": "3.9.0",
+        "gpu": "NVIDIA GeForce GTX 1070, GPU-9da0d229-0c40-c025-8185-b4c5dd67edfb, 580.126.18, 8192 MiB",
+        "cuda_compiler": "nvcc: NVIDIA (R) Cuda compiler driver\nCopyright (c) 2005-2025 NVIDIA Corporation\nBuilt on Tue_May_27_02:21:03_PDT_2025\nCuda compilation tools, release 12.9, V12.9.86\nBuild cuda_12.9.r12.9/compiler.36037853_0"
+      }
+    },
+    {
+      "path": "example_artifacts/randomized_multimodal/tiago_horizon_rescue_sqp800/N64_T1.8_task1/summary.json",
+      "sha256": "2df87e0fa4cbd23a8a65eda16cdba75e5d00e0b262296315de7fda7e7b76943a",
+      "provenance": {
+        "git_head": "1e655880b441a2775f025b2c5f5e3f1dff37ee5c",
+        "sha256": {
+          "examples/randomized_multimodal/tiago_horizon.py": "80f555965e331a3a48cf279773b77b60485a39488ccc38ef75967493c5381acc",
+          "examples/randomized_multimodal/tiago_probe.py": "4d02b63cae1b9c809595fde54ea2d973118e06283dcb3720e8c35b00cf0748f9",
+          "python/bsqp/bsqpN64_tiago_right_multimodal.cpython-310-x86_64-linux-gnu.so": "d29c5300b67e1fb7a96b20e4dd6e34f292650f737657bc34311d6bdfbe3767f0",
+          "gato/dynamics/tiago_right/tiago_right_arm.urdf": "8e1fd973a1d1c3fbddd55039e6eb17b355ebb29f46e1bd8c774b7879c2cdc5bb",
+          "gato/dynamics/tiago_right/tiago_right_plant.cuh": "cf4d4175bd9fae7a85a366d20c0d03410a3da1d4cfde81f285cdd5a5d85579eb"
+        }
+      },
+      "machine": {
+        "platform": "Linux-6.19.11-200.fc43.x86_64-x86_64-with-glibc2.35",
+        "python": "3.10.12 (main, Mar  3 2026, 11:56:32) [GCC 11.4.0]",
+        "executable": "/opt/gato-venv/bin/python",
+        "numpy": "2.2.6",
+        "scipy": "1.15.3",
+        "pinocchio": "3.9.0",
+        "gpu": "NVIDIA GeForce GTX 1070, GPU-9da0d229-0c40-c025-8185-b4c5dd67edfb, 580.126.18, 8192 MiB",
+        "cuda_compiler": "nvcc: NVIDIA (R) Cuda compiler driver\nCopyright (c) 2005-2025 NVIDIA Corporation\nBuilt on Tue_May_27_02:21:03_PDT_2025\nCuda compilation tools, release 12.9, V12.9.86\nBuild cuda_12.9.r12.9/compiler.36037853_0"
+      }
+    },
+    {
+      "path": "example_artifacts/randomized_multimodal/tiago_horizon_rescue_pcg4000/N64_T1.8_task1/summary.json",
+      "sha256": "c90b5759b8d495b5a9d5ac3d19f60c5b2cd90ec77d1c48a0b4dadd72a7063ad5",
+      "provenance": {
+        "git_head": "1e655880b441a2775f025b2c5f5e3f1dff37ee5c",
+        "sha256": {
+          "examples/randomized_multimodal/tiago_horizon.py": "80f555965e331a3a48cf279773b77b60485a39488ccc38ef75967493c5381acc",
+          "examples/randomized_multimodal/tiago_probe.py": "4d02b63cae1b9c809595fde54ea2d973118e06283dcb3720e8c35b00cf0748f9",
+          "python/bsqp/bsqpN64_tiago_right_multimodal.cpython-310-x86_64-linux-gnu.so": "d29c5300b67e1fb7a96b20e4dd6e34f292650f737657bc34311d6bdfbe3767f0",
+          "gato/dynamics/tiago_right/tiago_right_arm.urdf": "8e1fd973a1d1c3fbddd55039e6eb17b355ebb29f46e1bd8c774b7879c2cdc5bb",
+          "gato/dynamics/tiago_right/tiago_right_plant.cuh": "cf4d4175bd9fae7a85a366d20c0d03410a3da1d4cfde81f285cdd5a5d85579eb"
+        }
+      },
+      "machine": {
+        "platform": "Linux-6.19.11-200.fc43.x86_64-x86_64-with-glibc2.35",
+        "python": "3.10.12 (main, Mar  3 2026, 11:56:32) [GCC 11.4.0]",
+        "executable": "/opt/gato-venv/bin/python",
+        "numpy": "2.2.6",
+        "scipy": "1.15.3",
+        "pinocchio": "3.9.0",
+        "gpu": "NVIDIA GeForce GTX 1070, GPU-9da0d229-0c40-c025-8185-b4c5dd67edfb, 580.126.18, 8192 MiB",
+        "cuda_compiler": "nvcc: NVIDIA (R) Cuda compiler driver\nCopyright (c) 2005-2025 NVIDIA Corporation\nBuilt on Tue_May_27_02:21:03_PDT_2025\nCuda compilation tools, release 12.9, V12.9.86\nBuild cuda_12.9.r12.9/compiler.36037853_0"
+      }
+    },
+    {
+      "path": "example_artifacts/randomized_multimodal/tiago_horizon_mpc/N128_T1.8_clock0.06_warm/summary.json",
+      "sha256": "bf7be80d53e5261c159710e62cffe5dbde62e640b5c95a7469aaf468b49adf19",
+      "provenance": null,
+      "machine": {
+        "platform": "Linux-6.19.11-200.fc43.x86_64-x86_64-with-glibc2.35",
+        "python": "3.10.12 (main, Mar  3 2026, 11:56:32) [GCC 11.4.0]",
+        "executable": "/opt/gato-venv/bin/python",
+        "numpy": "2.2.6",
+        "scipy": "1.15.3",
+        "pinocchio": "3.9.0",
+        "gpu": "NVIDIA GeForce GTX 1070, GPU-9da0d229-0c40-c025-8185-b4c5dd67edfb, 580.126.18, 8192 MiB",
+        "cuda_compiler": "nvcc: NVIDIA (R) Cuda compiler driver\nCopyright (c) 2005-2025 NVIDIA Corporation\nBuilt on Tue_May_27_02:21:03_PDT_2025\nCuda compilation tools, release 12.9, V12.9.86\nBuild cuda_12.9.r12.9/compiler.36037853_0"
+      }
+    },
+    {
+      "path": "example_artifacts/randomized_multimodal/tiago_horizon_mpc/N32_T0.45_clock0.06_warm/summary.json",
+      "sha256": "a708c4662db9aefd029d0f96a07122c70455cac81514f3f030b957d69ff0fb63",
+      "provenance": null,
+      "machine": {
+        "platform": "Linux-6.19.11-200.fc43.x86_64-x86_64-with-glibc2.35",
+        "python": "3.10.12 (main, Mar  3 2026, 11:56:32) [GCC 11.4.0]",
+        "executable": "/opt/gato-venv/bin/python",
+        "numpy": "2.2.6",
+        "scipy": "1.15.3",
+        "pinocchio": "3.9.0",
+        "gpu": "NVIDIA GeForce GTX 1070, GPU-9da0d229-0c40-c025-8185-b4c5dd67edfb, 580.126.18, 8192 MiB",
+        "cuda_compiler": "nvcc: NVIDIA (R) Cuda compiler driver\nCopyright (c) 2005-2025 NVIDIA Corporation\nBuilt on Tue_May_27_02:21:03_PDT_2025\nCuda compilation tools, release 12.9, V12.9.86\nBuild cuda_12.9.r12.9/compiler.36037853_0"
+      }
+    },
+    {
+      "path": "example_artifacts/randomized_multimodal/tiago_horizon_mpc/N64_T0.9_clock0.06_cold/summary.json",
+      "sha256": "033c92e101db59e5e5f92d38a62a58b2039b9557943289abcb3c71ed48b86101",
+      "provenance": null,
+      "machine": {
+        "platform": "Linux-6.19.11-200.fc43.x86_64-x86_64-with-glibc2.35",
+        "python": "3.10.12 (main, Mar  3 2026, 11:56:32) [GCC 11.4.0]",
+        "executable": "/opt/gato-venv/bin/python",
+        "numpy": "2.2.6",
+        "scipy": "1.15.3",
+        "pinocchio": "3.9.0",
+        "gpu": "NVIDIA GeForce GTX 1070, GPU-9da0d229-0c40-c025-8185-b4c5dd67edfb, 580.126.18, 8192 MiB",
+        "cuda_compiler": "nvcc: NVIDIA (R) Cuda compiler driver\nCopyright (c) 2005-2025 NVIDIA Corporation\nBuilt on Tue_May_27_02:21:03_PDT_2025\nCuda compilation tools, release 12.9, V12.9.86\nBuild cuda_12.9.r12.9/compiler.36037853_0"
+      }
+    },
+    {
+      "path": "example_artifacts/randomized_multimodal/tiago_horizon_mpc/N64_T0.9_clock0.06_warm/summary.json",
+      "sha256": "4844ca39111b56a87d2838206e9735fae8ee7741fb88d42e5c7fdf8326c04199",
+      "provenance": null,
+      "machine": {
+        "platform": "Linux-6.19.11-200.fc43.x86_64-x86_64-with-glibc2.35",
+        "python": "3.10.12 (main, Mar  3 2026, 11:56:32) [GCC 11.4.0]",
+        "executable": "/opt/gato-venv/bin/python",
+        "numpy": "2.2.6",
+        "scipy": "1.15.3",
+        "pinocchio": "3.9.0",
+        "gpu": "NVIDIA GeForce GTX 1070, GPU-9da0d229-0c40-c025-8185-b4c5dd67edfb, 580.126.18, 8192 MiB",
+        "cuda_compiler": "nvcc: NVIDIA (R) Cuda compiler driver\nCopyright (c) 2005-2025 NVIDIA Corporation\nBuilt on Tue_May_27_02:21:03_PDT_2025\nCuda compilation tools, release 12.9, V12.9.86\nBuild cuda_12.9.r12.9/compiler.36037853_0"
+      }
+    },
+    {
+      "path": "example_artifacts/randomized_multimodal/tiago_horizon_mpc/N64_T0.9_clock0.12_warm/summary.json",
+      "sha256": "0100acef9f212c481d282e5ce6e0c3145cfcf75a7d29ad647bbf012ee98a787f",
+      "provenance": null,
+      "machine": {
+        "platform": "Linux-6.19.11-200.fc43.x86_64-x86_64-with-glibc2.35",
+        "python": "3.10.12 (main, Mar  3 2026, 11:56:32) [GCC 11.4.0]",
+        "executable": "/opt/gato-venv/bin/python",
+        "numpy": "2.2.6",
+        "scipy": "1.15.3",
+        "pinocchio": "3.9.0",
+        "gpu": "NVIDIA GeForce GTX 1070, GPU-9da0d229-0c40-c025-8185-b4c5dd67edfb, 580.126.18, 8192 MiB",
+        "cuda_compiler": "nvcc: NVIDIA (R) Cuda compiler driver\nCopyright (c) 2005-2025 NVIDIA Corporation\nBuilt on Tue_May_27_02:21:03_PDT_2025\nCuda compilation tools, release 12.9, V12.9.86\nBuild cuda_12.9.r12.9/compiler.36037853_0"
+      }
+    },
+    {
+      "path": "example_artifacts/randomized_multimodal/tiago_horizon_mpc/N64_T0.9_clock0.24_warm/summary.json",
+      "sha256": "d04b70e660b772c0d494bcee8a399619477121d34cd720bd378f2b9a9f601c57",
+      "provenance": null,
+      "machine": {
+        "platform": "Linux-6.19.11-200.fc43.x86_64-x86_64-with-glibc2.35",
+        "python": "3.10.12 (main, Mar  3 2026, 11:56:32) [GCC 11.4.0]",
+        "executable": "/opt/gato-venv/bin/python",
+        "numpy": "2.2.6",
+        "scipy": "1.15.3",
+        "pinocchio": "3.9.0",
+        "gpu": "NVIDIA GeForce GTX 1070, GPU-9da0d229-0c40-c025-8185-b4c5dd67edfb, 580.126.18, 8192 MiB",
+        "cuda_compiler": "nvcc: NVIDIA (R) Cuda compiler driver\nCopyright (c) 2005-2025 NVIDIA Corporation\nBuilt on Tue_May_27_02:21:03_PDT_2025\nCuda compilation tools, release 12.9, V12.9.86\nBuild cuda_12.9.r12.9/compiler.36037853_0"
+      }
+    }
+  ],
+  "prefix_refinement": [
+    {
+      "cell": "N128_T1.8_task0",
+      "batch": 1,
+      "step_halving_terminal": {
+        "q": 1.922684234045846e-12,
+        "v": 1.5921819418451832e-11,
+        "all": 1.5921819418451832e-11
+      },
+      "clock": 0.06000000000000001
+    },
+    {
+      "cell": "N128_T1.8_task0",
+      "batch": 16,
+      "step_halving_terminal": {
+        "q": 2.2040147484858608e-12,
+        "v": 1.9784729410332602e-11,
+        "all": 1.9784729410332602e-11
+      },
+      "clock": 0.06000000000000001
+    },
+    {
+      "cell": "N128_T1.8_task1",
+      "batch": 1,
+      "step_halving_terminal": {
+        "q": 1.6874331792982034e-12,
+        "v": 3.834910167199723e-11,
+        "all": 3.834910167199723e-11
+      },
+      "clock": 0.06000000000000001
+    },
+    {
+      "cell": "N128_T1.8_task1",
+      "batch": 16,
+      "step_halving_terminal": {
+        "q": 1.6133760993852775e-12,
+        "v": 2.563005363498405e-11,
+        "all": 2.563005363498405e-11
+      },
+      "clock": 0.06000000000000001
+    },
+    {
+      "cell": "N128_T1.8_task2",
+      "batch": 1,
+      "step_halving_terminal": {
+        "q": 1.2639778113054945e-11,
+        "v": 2.8971458565507646e-10,
+        "all": 2.8971458565507646e-10
+      },
+      "clock": 0.06000000000000001
+    },
+    {
+      "cell": "N128_T1.8_task2",
+      "batch": 16,
+      "step_halving_terminal": {
+        "q": 1.1657449311419654e-11,
+        "v": 2.677652544136322e-10,
+        "all": 2.677652544136322e-10
+      },
+      "clock": 0.06000000000000001
+    },
+    {
+      "cell": "N16_T0.45_task0",
+      "batch": 1,
+      "step_halving_terminal": {
+        "q": 1.5523138330308939e-12,
+        "v": 1.9061530132091775e-11,
+        "all": 1.9061530132091775e-11
+      },
+      "clock": 0.060000000000000046
+    },
+    {
+      "cell": "N16_T0.45_task0",
+      "batch": 16,
+      "step_halving_terminal": {
+        "q": 1.5523138330308939e-12,
+        "v": 1.9061530132091775e-11,
+        "all": 1.9061530132091775e-11
+      },
+      "clock": 0.060000000000000046
+    },
+    {
+      "cell": "N16_T0.45_task1",
+      "batch": 1,
+      "step_halving_terminal": {
+        "q": 1.8927394374035345e-12,
+        "v": 5.8667959379477e-11,
+        "all": 5.8667959379477e-11
+      },
+      "clock": 0.060000000000000046
+    },
+    {
+      "cell": "N16_T0.45_task1",
+      "batch": 16,
+      "step_halving_terminal": {
+        "q": 2.6816951437247383e-12,
+        "v": 1.0582934528713395e-10,
+        "all": 1.0582934528713395e-10
+      },
+      "clock": 0.060000000000000046
+    },
+    {
+      "cell": "N16_T0.45_task2",
+      "batch": 1,
+      "step_halving_terminal": {
+        "q": 1.940725358196005e-12,
+        "v": 1.7667045604241594e-10,
+        "all": 1.7667045604241594e-10
+      },
+      "clock": 0.060000000000000046
+    },
+    {
+      "cell": "N16_T0.45_task2",
+      "batch": 16,
+      "step_halving_terminal": {
+        "q": 3.708811036062798e-12,
+        "v": 2.373599095051304e-10,
+        "all": 2.373599095051304e-10
+      },
+      "clock": 0.060000000000000046
+    },
+    {
+      "cell": "N32_T0.45_task0",
+      "batch": 1,
+      "step_halving_terminal": {
+        "q": 1.3220535777236364e-12,
+        "v": 1.6238288491621233e-11,
+        "all": 1.6238288491621233e-11
+      },
+      "clock": 0.06
+    },
+    {
+      "cell": "N32_T0.45_task0",
+      "batch": 16,
+      "step_halving_terminal": {
+        "q": 1.3220535777236364e-12,
+        "v": 1.6238288491621233e-11,
+        "all": 1.6238288491621233e-11
+      },
+      "clock": 0.06
+    },
+    {
+      "cell": "N32_T0.45_task1",
+      "batch": 1,
+      "step_halving_terminal": {
+        "q": 3.0890810742700836e-12,
+        "v": 7.027423087890838e-11,
+        "all": 7.027423087890838e-11
+      },
+      "clock": 0.06
+    },
+    {
+      "cell": "N32_T0.45_task1",
+      "batch": 16,
+      "step_halving_terminal": {
+        "q": 4.575593376410225e-12,
+        "v": 1.2129208748490328e-10,
+        "all": 1.2129208748490328e-10
+      },
+      "clock": 0.06
+    },
+    {
+      "cell": "N32_T0.45_task2",
+      "batch": 1,
+      "step_halving_terminal": {
+        "q": 7.247022426604133e-12,
+        "v": 1.972700891528234e-10,
+        "all": 1.972700891528234e-10
+      },
+      "clock": 0.06
+    },
+    {
+      "cell": "N32_T0.45_task2",
+      "batch": 16,
+      "step_halving_terminal": {
+        "q": 4.301024814079568e-12,
+        "v": 2.7116087153444823e-10,
+        "all": 2.7116087153444823e-10
+      },
+      "clock": 0.06
+    },
+    {
+      "cell": "N32_T0.9_task0",
+      "batch": 1,
+      "step_halving_terminal": {
+        "q": 1.7112977701572163e-12,
+        "v": 1.2953749184418939e-11,
+        "all": 1.2953749184418939e-11
+      },
+      "clock": 0.06
+    },
+    {
+      "cell": "N32_T0.9_task0",
+      "batch": 16,
+      "step_halving_terminal": {
+        "q": 1.56008539420327e-12,
+        "v": 1.0156875340783245e-11,
+        "all": 1.0156875340783245e-11
+      },
+      "clock": 0.06
+    },
+    {
+      "cell": "N32_T0.9_task1",
+      "batch": 1,
+      "step_halving_terminal": {
+        "q": 1.894484569220367e-12,
+        "v": 2.483868666303124e-11,
+        "all": 2.483868666303124e-11
+      },
+      "clock": 0.06
+    },
+    {
+      "cell": "N32_T0.9_task1",
+      "batch": 16,
+      "step_halving_terminal": {
+        "q": 1.7010837183306649e-12,
+        "v": 2.5886293109067537e-11,
+        "all": 2.5886293109067537e-11
+      },
+      "clock": 0.06
+    },
+    {
+      "cell": "N32_T0.9_task2",
+      "batch": 1,
+      "step_halving_terminal": {
+        "q": 2.8864029222308574e-12,
+        "v": 1.1811174260856205e-10,
+        "all": 1.1811174260856205e-10
+      },
+      "clock": 0.06
+    },
+    {
+      "cell": "N32_T0.9_task2",
+      "batch": 16,
+      "step_halving_terminal": {
+        "q": 2.7756408282897382e-12,
+        "v": 1.1598189075812115e-10,
+        "all": 1.1598189075812115e-10
+      },
+      "clock": 0.06
+    },
+    {
+      "cell": "N64_T0.9_task0",
+      "batch": 1,
+      "step_halving_terminal": {
+        "q": 1.6995294060961896e-12,
+        "v": 1.2100653812296969e-11,
+        "all": 1.2100653812296969e-11
+      },
+      "clock": 0.06
+    },
+    {
+      "cell": "N64_T0.9_task0",
+      "batch": 16,
+      "step_halving_terminal": {
+        "q": 1.539435245945242e-12,
+        "v": 1.009753392011703e-11,
+        "all": 1.009753392011703e-11
+      },
+      "clock": 0.06
+    },
+    {
+      "cell": "N64_T0.9_task1",
+      "batch": 1,
+      "step_halving_terminal": {
+        "q": 1.8758883335578957e-12,
+        "v": 3.865180397966128e-11,
+        "all": 3.865180397966128e-11
+      },
+      "clock": 0.06
+    },
+    {
+      "cell": "N64_T0.9_task1",
+      "batch": 16,
+      "step_halving_terminal": {
+        "q": 1.961805717876075e-12,
+        "v": 3.901934331196344e-11,
+        "all": 3.901934331196344e-11
+      },
+      "clock": 0.06
+    },
+    {
+      "cell": "N64_T0.9_task2",
+      "batch": 1,
+      "step_halving_terminal": {
+        "q": 8.520760486074863e-12,
+        "v": 1.9561774422527378e-10,
+        "all": 1.9561774422527378e-10
+      },
+      "clock": 0.06
+    },
+    {
+      "cell": "N64_T0.9_task2",
+      "batch": 16,
+      "step_halving_terminal": {
+        "q": 9.486446350681632e-12,
+        "v": 2.1864587917974632e-10,
+        "all": 2.1864587917974632e-10
+      },
+      "clock": 0.06
+    },
+    {
+      "cell": "N64_T1.8_task0",
+      "batch": 1,
+      "step_halving_terminal": {
+        "q": 2.19868567796766e-12,
+        "v": 1.9744761381446096e-11,
+        "all": 1.9744761381446096e-11
+      },
+      "clock": 0.05999999999999999
+    },
+    {
+      "cell": "N64_T1.8_task0",
+      "batch": 16,
+      "step_halving_terminal": {
+        "q": 2.1187496201946487e-12,
+        "v": 1.8494872300323095e-11,
+        "all": 1.8494872300323095e-11
+      },
+      "clock": 0.05999999999999999
+    },
+    {
+      "cell": "N64_T1.8_task1",
+      "batch": 1,
+      "step_halving_terminal": {
+        "q": 2.4726887204451486e-12,
+        "v": 2.8830715592675915e-11,
+        "all": 2.8830715592675915e-11
+      },
+      "clock": 0.05999999999999999
+    },
+    {
+      "cell": "N64_T1.8_task1",
+      "batch": 16,
+      "step_halving_terminal": {
+        "q": 2.4373836282620687e-12,
+        "v": 2.8936075757712842e-11,
+        "all": 2.8936075757712842e-11
+      },
+      "clock": 0.05999999999999999
+    },
+    {
+      "cell": "N64_T1.8_task2",
+      "batch": 1,
+      "step_halving_terminal": {
+        "q": 5.177993450677931e-12,
+        "v": 1.5060874769545762e-10,
+        "all": 1.5060874769545762e-10
+      },
+      "clock": 0.05999999999999999
+    },
+    {
+      "cell": "N64_T1.8_task2",
+      "batch": 16,
+      "step_halving_terminal": {
+        "q": 4.823853122504218e-12,
+        "v": 1.481647027290478e-10,
+        "all": 1.481647027290478e-10
+      },
+      "clock": 0.05999999999999999
+    }
+  ],
+  "expected_counts": {
+    "openloop": 36,
+    "fixed_dt": 3,
+    "rescue": 2,
+    "mpc": 6
+  },
+  "observed_counts": {
+    "openloop": 36,
+    "fixed_dt": 3,
+    "rescue": 2,
+    "mpc": 6
+  },
+  "all_expected_present": true
+}

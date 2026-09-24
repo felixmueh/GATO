@@ -1,0 +1,136 @@
+TIAGo horizon, discretization, and controller-clock pilot (2026-09-24)
+==================================================================
+
+Status and interpretation
+-------------------------
+This is a bounded development screen, not a final parameter-selection study.
+The paired matrix contains all 18 requested task-cells (36 selected B1/B16
+outputs). It separates duration from grid refinement. The additional exact
+dt=.03 probes extend to 3.81 seconds on task 1. No hard cell was removed or
+replaced with a shorter motion. Latency is measured separately and never changes
+physical simulation time. The independent batching audit is reported separately;
+full N16 and preliminary N32 results do not certify all larger shapes.
+
+Observed selected-output counts (three tasks x B1/B16, denominator six):
+ N    T [s]    dt [s]       coarse feasible    full fine feasible    .06s safe
+ 16    .45    .030000             6                  2                 6
+ 32    .45    .014516             5                  2                 6
+ 32    .90    .029032             6                  0                 6
+ 64    .90    .014286             6                  0                 6
+ 64   1.80    .028571             0                  0                 6
+128   1.80    .014173             0                  0                 6
+Here feasible includes <20 mm final position error and physical bounds; final
+tool speed is checked separately. Physical means no sampled tool-center cylinder
+collision, and no joint-position, velocity, or effort violation. The additional
+8 mm optimization padding is a soft cost, not a hard clearance guarantee.
+
+All 36 short prefixes are safe in these checks, with maximum tool-position
+prediction error .725 mm. RK4 step halving from 1 ms to .5 ms changes prefix
+terminal joint velocity by at most 2.90e-10 rad/s. This validates short integration
+intervals; failed 1.8 s full rollouts have much larger refinement differences
+(up to .105 rad/s) and are not claimed to be equally well resolved.
+
+Independent fine-RK4 feedback, task 1, B1, equal 1.2 s physical execution:
+ N    T [s]  clock [s]   initialization   final error [mm]  speed [mm/s]
+ 32    .45     .06          warm                9.993           8.618
+ 64    .90     .06          warm               17.119          14.557
+128   1.80     .06          warm               20.748          20.232
+ 64    .90     .12          warm               16.288          13.636
+ 64    .90     .24          warm               14.115          17.215
+ 64    .90     .06          cold               11.986          24.298
+These warm runs
+all remain physically safe. N128/1.8 is NOT settled at the unchanged 20 mm
+criterion, despite being close and moving slowly. N32/.45 and all three N64/.9
+clock settings settle. All these trajectories slightly enter the soft padding
+but retain >7 mm physical cylinder clearance. Longer open-loop torque drift
+therefore does not imply failure under frequent measured-state feedback.
+Cold reset also settles safely, with 5.78 mm minimum physical clearance and
+executed cost .87377 versus warm .84986. Its smaller endpoint error does not
+mean lower integrated cost. Unlike the initial matrix, feedback solves sometimes
+set their local KKT flag: 7/20 N32/.45, 8/20 N64/.9, and 9/20 N128/1.8 warm
+steps at clock.06. N128's full torque replay remains infeasible throughout;
+local stopping criteria therefore do not certify full shooting fidelity.
+
+Exact dt=.03, task 1/B1: N32/.93 has feasible coarse but infeasible fine replay;
+N64/1.89 and N128/3.81 fail both full replays. Small local transcription defects
+can coexist with explosive full torque-shooting errors. The N64/1.8 exact-input
+rescue with 800 SQP iterations accepts [122,0,0,0] steps per 200-iteration pass;
+quadrupling PCG cap to 4000 accepts [168,0] at 400 SQP. Neither repairs full replay.
+Planned local defects are only order 1e-5 rad/rad/s, so propagation sensitivity
+is an important finding alongside stalled line searches and PCG caps. No tested
+matrix winner reaches the solver's KKT stopping condition. CPU reference results
+in the JSON are discrete, independently optimized comparators, not GATO results
+or continuous reachability certificates.
+
+Recommendation for discussion: N64/.9 is a defensible next development baseline
+with a .06 s measured-state controller clock; N128/1.8 remains a valuable stress
+case, not a validated long-horizon optimum. This pilot does not prove that .9 s
+is the best horizon, that long horizons are intrinsically unusable, or that the
+old .45 s choice was justified. The old choice primarily stabilized development
+and affordable tuning; adaptive-rho/low-budget failures were insufficient evidence
+against longer horizons. Before expanding scenes, retain this distinction and
+review the larger-shape batching gate. The portable suite's exact dt=.015 protocol
+is separately specified and must not be described as already validated by these
+near-.015 paired cells. No new scene family or configuration fuzzing was run.
+N256/3.6 and a finer .03 s controller-clock test were not run in this bounded
+pilot; the portable runner can extend those axes after review.
+
+Declared objective and physics
+------------------------------
+T=(N-1)dt, s=dt/.03. Objective:
+ .5 sum(k=0..N-2) [2s ||tool(q_k)-goal||^2 + .0001s ||u_k||^2
+                   + s cylinder_residual(q_k)^2]
+ + .5*.01s sum(k=0..N-1) ||v_k||^2
+ + 100 ||tool(q_last)-goal||^2 + .5 cylinder_residual(q_last)^2.
+Cylinder residual=max(1-distance_xy^2/(radius+.008)^2,0). Velocity at the final
+knot is an O(dt) running-quadrature endpoint contribution; there is NO fixed
+terminal velocity penalty. This is a declared consistent limiting objective,
+not the frozen multimodal campaign's original objective. Continuous executed
+cost uses duration-aware trapezoidal state quadrature and exact ZOH effort
+integration, with the same coefficients and fixed terminal terms.
+
+The optimization plant uses CUDA constant-acceleration updates. Independent
+validation integrates [qdot=v, vdot=Pinocchio ABA(q,v,u)] in float64 RK4, with
+exact ZOH control switches and exact controller boundaries. Initial states are
+aligned to saved float32 CUDA values for integration comparisons; actual MPC
+plant state remains float64, with measurement quantization recorded. RK4 is an
+independent numerical reference, not a different robot model. Checks cover the
+seven-joint arm/tool center only; no full-body, self-collision, hardware, or
+real-time safety claim is made.
+
+Reproduction (repository root, appropriate Python environment and built modules)
+---------------------------------------------------------------------------
+Dependencies: NumPy, SciPy, Pinocchio and the built bsqpN{16,32,64,128}_tiago_right_multimodal
+modules. Use the parent portable validation runner for machine-specific builds;
+do not assume the local GTX1070's sm61 flags on another GPU.
+
+python examples/randomized_multimodal/tiago_horizon.py --cells 16:.45 32:.45 32:.9 64:.9 64:1.8 128:1.8 --tasks 0 1 2 --batches 1 16 --reference --output example_artifacts/randomized_multimodal/tiago_horizon
+python examples/randomized_multimodal/tiago_horizon_mpc.py --validate-saved
+python examples/randomized_multimodal/tiago_horizon_report.py example_artifacts/randomized_multimodal/tiago_horizon
+python examples/randomized_multimodal/tiago_horizon.py --export-inputs-only --output example_artifacts/randomized_multimodal/tiago_horizon
+python examples/randomized_multimodal/tiago_horizon.py --cells 32:.93 64:1.89 128:3.81 --tasks 1 --batches 1 --output example_artifacts/randomized_multimodal/tiago_horizon_fixed_dt_pilot
+python examples/randomized_multimodal/tiago_horizon.py --cells 64:1.8 --tasks 1 --batches 1 --passes 4 --inputs-root example_artifacts/randomized_multimodal/tiago_horizon --output example_artifacts/randomized_multimodal/tiago_horizon_rescue_sqp800
+python examples/randomized_multimodal/tiago_horizon.py --cells 64:1.8 --tasks 1 --batches 1 --pcg-iters 4000 --inputs-root example_artifacts/randomized_multimodal/tiago_horizon --output example_artifacts/randomized_multimodal/tiago_horizon_rescue_pcg4000
+
+MPC command template (replace N,T,CLOCK,STEPS,POLICY,LABEL):
+python examples/randomized_multimodal/tiago_horizon_mpc.py --knots N --duration T --task 1 --batches 1 --steps STEPS --clock CLOCK --initialization POLICY --output example_artifacts/randomized_multimodal/tiago_horizon_mpc/LABEL
+Six tuples: (32,.45,.06,20,warm), (64,.9,.06,20,warm), (128,1.8,.06,20,warm),
+(64,.9,.12,10,warm), (64,.9,.24,5,warm), (64,.9,.06,20,cold).
+Common defaults: seed1401, fixed rho.01, 200 SQP x2passes, PCG tolerance1e-4,
+cap1000, margin.008, obstacle-blind seed amplitude.1, fine-step.001.
+
+python examples/randomized_multimodal/tiago_numerical_summary.py --output experiments/tiago_solver_limits/results/numerical_pilot.json
+python -m unittest discover -s examples/randomized_multimodal -p test_tiago_horizon.py -v
+
+Reproducibility and limits
+--------------------------
+Exact tasks, qgoal, initial XU/reference arrays and hashes are saved in baseline
+NPZ/input_manifest.json; --inputs-root replays them without IK regeneration.
+Both rescue initial arrays were checked bit-identical to baseline. Per-cell
+source/binary/URDF hashes, git provenance, machine/toolchain metadata, solver
+telemetry and failures remain in raw summaries. Early baseline rows predate the
+local-defect telemetry addition; these missing measurements are left missing.
+MPC used tiago_horizon_mpc.py from commit1e65588; it was unchanged throughout the
+six runs. The compact JSON preserves summary hashes and metrics. Full raw NPZ
+artifacts are local, ignored outputs and require a separate archive for transfer;
+a git checkout alone is not an exact-input archival package.
