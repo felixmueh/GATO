@@ -239,6 +239,18 @@ class BSQP:
         dot /= np.linalg.norm(actual_axis) * np.linalg.norm(target_axis)
         return np.arccos(np.clip(dot, -1.0, 1.0))
 
+    def set_cost_weights(self, *, q_cost, qd_cost, u_cost, N_cost,
+                         ee_orient_cost, ee_orient_N_cost,
+                         q_lim_cost, vel_lim_cost, ctrl_lim_cost):
+        """Change shared objective weights without resetting MPC solver state."""
+        values = np.asarray([q_cost, qd_cost, u_cost, N_cost, ee_orient_cost,
+                             ee_orient_N_cost, q_lim_cost, vel_lim_cost, ctrl_lim_cost],
+                            dtype=float)
+        if (not np.all(np.isfinite(values)) or np.any(values < 0) or
+                np.any(values > np.finfo(np.float32).max)):
+            raise ValueError("cost weights must be finite and nonnegative")
+        self.solver.set_cost_weights(*map(float, values))
+
     def reset(self):
         self.reset_dual()
         self.set_f_ext_B(np.zeros((self.batch_size, 6)))

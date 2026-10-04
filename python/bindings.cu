@@ -175,6 +175,15 @@ class PyBSQP {
                 solver_.set_drho_batch(static_cast<T*>(buf.ptr), set_as_reset_default);
         }
 
+        void set_cost_weights(T q_cost, T qd_cost, T u_cost, T N_cost,
+                              T ee_orient_cost, T ee_orient_N_cost,
+                              T q_lim_cost, T vel_lim_cost, T ctrl_lim_cost)
+        {
+                solver_.set_cost_weights(q_cost, qd_cost, u_cost, N_cost,
+                                         ee_orient_cost, ee_orient_N_cost,
+                                         q_lim_cost, vel_lim_cost, ctrl_lim_cost);
+        }
+
         void set_mu_batch(py::array_t<T> mu_batch)
         {
                 py::buffer_info buf = mu_batch.request();
@@ -244,6 +253,7 @@ class PyBSQP {
             .def("set_f_ext_batch", &PyBSQP<Type, BatchSize>::set_f_ext_batch)                                                                                                                   \
             .def("set_rho_penalty_batch", &PyBSQP<Type, BatchSize>::set_rho_penalty_batch, py::arg("rho_batch"), py::arg("set_as_reset_default") = true)                                      \
             .def("set_drho_batch", &PyBSQP<Type, BatchSize>::set_drho_batch, py::arg("drho_batch"), py::arg("set_as_reset_default") = true)                                                     \
+            .def("set_cost_weights", &PyBSQP<Type, BatchSize>::set_cost_weights) \
             .def("set_mu_batch", &PyBSQP<Type, BatchSize>::set_mu_batch)                                                                                                                          \
             .def("set_pcg_tol_batch", &PyBSQP<Type, BatchSize>::set_pcg_tol_batch)                                                                                                                \
             .def("sim_forward", &PyBSQP<Type, BatchSize>::sim_forward)                                                                                                                           \

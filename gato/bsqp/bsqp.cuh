@@ -80,6 +80,23 @@ class BSQP {
         void set_mu_batch(const T* h_mu_batch) { gpuErrchk(cudaMemcpy(d_mu_batch_, h_mu_batch, BatchSize * sizeof(T), cudaMemcpyHostToDevice)); }
         void set_pcg_tol_batch(const T* h_pcg_tol_batch) { gpuErrchk(cudaMemcpy(d_pcg_tol_batch_, h_pcg_tol_batch, BatchSize * sizeof(T), cudaMemcpyHostToDevice)); }
 
+        // Shared objective weights take effect on the next solve. Keep primal,
+        // dual and adaptive damping state intact across MPC objective changes.
+        void set_cost_weights(T q_cost, T qd_cost, T u_cost, T N_cost,
+                              T ee_orient_cost, T ee_orient_N_cost,
+                              T q_lim_cost, T vel_lim_cost, T ctrl_lim_cost)
+        {
+                q_cost_ = q_cost;
+                qd_cost_ = qd_cost;
+                u_cost_ = u_cost;
+                N_cost_ = N_cost;
+                ee_orient_cost_ = ee_orient_cost;
+                ee_orient_N_cost_ = ee_orient_N_cost;
+                q_lim_cost_ = q_lim_cost;
+                vel_lim_cost_ = vel_lim_cost;
+                ctrl_lim_cost_ = ctrl_lim_cost;
+        }
+
         void reset_dual() { gpuErrchk(cudaMemset(d_lambda_batch_, 0, VEC_SIZE_PADDED * BatchSize * sizeof(T))); }
 
         void reset_rho()
