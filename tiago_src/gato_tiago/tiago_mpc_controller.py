@@ -702,7 +702,10 @@ class MPC_GATO:
             else:
                 # Simulate forward with current control
                 timestep = self.dt
-                nsteps = int(timestep/sim_dt)
+                # Decimal intervals such as .03/.001 are exact intended
+                # multiples even when floating-point % returns almost sim_dt.
+                nsteps = int(np.floor(timestep / sim_dt + 1e-10))
+                residual_time = max(0.0, timestep - nsteps * sim_dt)
 
                 for i in range(nsteps):
                     offset = int(i/(self.dt/sim_dt))
@@ -722,8 +725,8 @@ class MPC_GATO:
                     total_sim_time += sim_dt
 
                 # Handle residual time
-                if timestep % sim_dt > 1e-5:
-                    accumulated_time += timestep % sim_dt
+                if residual_time > max(1e-12, sim_dt * 1e-9):
+                    accumulated_time += residual_time
                     if accumulated_time >= sim_dt:
                         accumulated_time = 0.0
                         offset = int(nsteps/(self.dt/sim_dt))

@@ -114,8 +114,7 @@ def test_old_native_extension_is_rejected_before_mutating_parameters():
     assert not switch.active
 
 
-@pytest.mark.parametrize('with_seed', [False, True])
-def test_reaching_applies_switch_before_first_solve_and_restores_for_next_goal(monkeypatch, with_seed):
+def make_reaching_boundary(monkeypatch, *, enabled=True):
     import pinocchio as pin
     from pathlib import Path
     from gato_tiago import tiago_mpc_controller as module
@@ -155,7 +154,13 @@ def test_reaching_applies_switch_before_first_solve_and_restores_for_next_goal(m
     monkeypatch.setattr(module, 'BSQP', NativeBoundary)
     mpc = module.MPC_GATO(model, str(model_path), N=16, dt=.03,
                           plant_type='tiago_right', solver_params=TIAGO_REACHING_SOLVER_PARAMS,
-                          final_approach=True)
+                          final_approach=enabled)
+    return mpc, q, seen, initial_plans, module
+
+
+@pytest.mark.parametrize('with_seed', [False, True])
+def test_reaching_applies_switch_before_first_solve_and_restores_for_next_goal(monkeypatch, with_seed):
+    mpc, q, seen, initial_plans, module = make_reaching_boundary(monkeypatch)
     goal = mpc.solver.ee_pos(q)
 
     class Feedback:
@@ -193,3 +198,18 @@ def test_reaching_applies_switch_before_first_solve_and_restores_for_next_goal(m
     assert stats['goal_indices'][0] == 0
     assert not stats['planned_final_approach_active'][0]
     assert feedback.finished
+
+
+def test_offline_reaching_executes_exact_30ms_prefixes_on_1ms_grid(monkeypatch):
+    mpc, q, _, _, module = make_reaching_boundary(monkeypatch, enabled=False)
+    steps = []
+    def plant_boundary(model, data, q, velocity, torque, dt, forces):
+        steps.append(dt)
+        return q.copy(), velocity.copy()
+    monkeypatch.setattr(module, 'rk4', plant_boundary)
+    goal = mpc.solver.ee_pos(q) + [.2, 0, 0]
+    _, stats = mpc.run_mpc_goals(np.r_[q, np.zeros(7)], [goal],
+                                 sim_dt=.001, goal_timeout=.12, goal_threshold=0)
+    assert stats['terminal_time_s'] == pytest.approx(.12, abs=1e-12)
+    assert len(steps) == 120
+    np.testing.assert_allclose(stats['timestamps'], [.03, .06, .09], atol=1e-12)
