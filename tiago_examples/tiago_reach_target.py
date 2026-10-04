@@ -45,7 +45,6 @@ PICK_PLACE_RECTANGLE = {
     "orientation_cone_half_angle_deg": 45.0,
 }
 RECTANGLE_GRID_REGULARIZATION_OVERRIDES = {
-    "vel_lim_cost": 0.05,
     "ctrl_lim_cost": 0.05,
 }
 RECTANGLE_GRID_ORIENTATION_OVERRIDES = {
@@ -1360,7 +1359,7 @@ def save_gif(
 def run_experiment(args):
     from gato_tiago.config import (
         TIAGO_RIGHT_START_CONFIGS,
-        TIAGO_TRACKING_SOLVER_PARAMS,
+        TIAGO_REACHING_SOLVER_PARAMS,
     )
     from gato_tiago.tiago_mpc_controller import MPC_GATO
 
@@ -1417,7 +1416,7 @@ def run_experiment(args):
         tool_axis_tolerance_deg=args.tool_axis_tolerance_deg,
     )
 
-    solver_params = dict(TIAGO_TRACKING_SOLVER_PARAMS)
+    solver_params = dict(TIAGO_REACHING_SOLVER_PARAMS)
     if goal_selection.get("mode") == "rectangle_grid":
         solver_params.update(RECTANGLE_GRID_REGULARIZATION_OVERRIDES)
     if goals_are_pose_targets:
@@ -1643,9 +1642,9 @@ def run_single_goal_trial(model, start_q, goal, args, solver_params):
 
 
 def run_goal_sweep(args, model, start_q, start_ee, goals, goal_selection):
-    from gato_tiago.config import TIAGO_TRACKING_SOLVER_PARAMS
+    from gato_tiago.config import TIAGO_REACHING_SOLVER_PARAMS
 
-    solver_params = dict(TIAGO_TRACKING_SOLVER_PARAMS)
+    solver_params = dict(TIAGO_REACHING_SOLVER_PARAMS)
     if goal_selection.get("mode") == "rectangle_grid":
         solver_params.update(RECTANGLE_GRID_REGULARIZATION_OVERRIDES)
     if np.asarray(goals).shape[1] >= 6:

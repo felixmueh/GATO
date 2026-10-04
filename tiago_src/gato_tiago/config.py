@@ -46,3 +46,10 @@ TIAGO_TRACKING_SOLVER_PARAMS = {
     "ctrl_lim_cost": 0.003,
     "rho": 0.01,
 }
+
+# Reaching needs stronger velocity-limit regularization than slow tracking.
+# This is a soft penalty, not a guarantee of physical feasibility.
+TIAGO_REACHING_SOLVER_PARAMS = {
+    **TIAGO_TRACKING_SOLVER_PARAMS,
+    "vel_lim_cost": 0.1,
+}
