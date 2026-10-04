@@ -97,6 +97,12 @@ class BSQP {
                 ctrl_lim_cost_ = ctrl_lim_cost;
         }
 
+        // Change the next solve's effort without resetting persistent MPC state.
+        void set_max_sqp_iters(uint32_t max_sqp_iters)
+        {
+                max_sqp_iters_ = max_sqp_iters;
+        }
+
         void reset_dual() { gpuErrchk(cudaMemset(d_lambda_batch_, 0, VEC_SIZE_PADDED * BatchSize * sizeof(T))); }
 
         void reset_rho()

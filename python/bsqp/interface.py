@@ -251,6 +251,12 @@ class BSQP:
             raise ValueError("cost weights must be finite and nonnegative")
         self.solver.set_cost_weights(*map(float, values))
 
+    def set_max_sqp_iters(self, value):
+        """Set the next solve's iteration budget, retaining persistent state."""
+        if isinstance(value, bool) or not isinstance(value, (int, np.integer)) or value <= 0:
+            raise ValueError("max_sqp_iters must be a positive integer")
+        self.solver.set_max_sqp_iters(int(value))
+
     def reset(self):
         self.reset_dual()
         self.set_f_ext_B(np.zeros((self.batch_size, 6)))

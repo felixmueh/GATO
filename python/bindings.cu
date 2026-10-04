@@ -212,6 +212,7 @@ class PyBSQP {
                 return py::array_t<T>({BatchSize, STATE_SIZE}, h_xkp1_batch_.data());
         }
 
+        void set_max_sqp_iters(uint32_t value) { solver_.set_max_sqp_iters(value); }
         void reset_dual() { solver_.reset_dual(); }
         void reset_rho() { solver_.reset_rho(); }
         void set_rho_adaptation(bool enabled) { solver_.set_rho_adaptation(enabled); }
@@ -249,6 +250,7 @@ class PyBSQP {
             .def(py::init<>())                                                                                                                                                                     \
             .def(py::init<const Type, const uint32_t, const Type, const uint32_t, const Type, const Type, const Type, const Type, const Type, const Type, const Type, const Type, const Type, const Type, const Type, const Type, const Type>()) \
             .def("solve", &PyBSQP<Type, BatchSize>::solve)                                                                                                                                       \
+            .def("set_max_sqp_iters", &PyBSQP<Type, BatchSize>::set_max_sqp_iters) \
             .def("reset_dual", &PyBSQP<Type, BatchSize>::reset_dual)                                                                                                                             \
             .def("set_f_ext_batch", &PyBSQP<Type, BatchSize>::set_f_ext_batch)                                                                                                                   \
             .def("set_rho_penalty_batch", &PyBSQP<Type, BatchSize>::set_rho_penalty_batch, py::arg("rho_batch"), py::arg("set_as_reset_default") = true)                                      \
