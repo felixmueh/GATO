@@ -53,3 +53,21 @@ TIAGO_REACHING_SOLVER_PARAMS = {
     **TIAGO_TRACKING_SOLVER_PARAMS,
     "vel_lim_cost": 0.1,
 }
+
+# Optional final approach, measured on the nominal far-goal reaching experiment.
+# Limit penalties and all unspecified solver parameters inherit the approach.
+TIAGO_REACHING_FINAL_APPROACH_PARAMS = {
+    "q_cost": 400.0,
+    "N_cost": 1200.0,
+    "qd_cost": 1.0,
+    "u_cost": 0.0003,
+    "ee_orient_cost": 10.0,
+    "ee_orient_N_cost": 10.0,
+    "max_sqp_iters": 20,
+    "mu": 30.0,
+}
+
+TIAGO_REACHING_FINAL_APPROACH_TRIGGER = {
+    "distance_m": 0.075,
+    "max_joint_speed_rad_s": 0.1,
+}

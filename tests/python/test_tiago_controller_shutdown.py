@@ -10,6 +10,8 @@ import numpy as np
 import pytest
 
 from gato_tiago import tiago_controller_process as execution
+from gato_tiago.config import TIAGO_REACHING_SOLVER_PARAMS
+from gato_tiago.final_approach import FinalApproachSwitch
 
 
 @pytest.mark.parametrize("experiment", ["fig8", "goals"])
@@ -24,6 +26,8 @@ def test_tracking_restores_control_before_slow_result_saving(monkeypatch, experi
         spec.loader.exec_module(module)
     mpc = module.MPC_GATO.__new__(module.MPC_GATO)
     mpc.N, mpc.nq, mpc.nx, mpc.nu = 3, 1, 2, 1
+    mpc.nq_robot, mpc.nv_robot = 1, 1
+    mpc.final_approach = FinalApproachSwitch(TIAGO_REACHING_SOLVER_PARAMS)
     mpc.dt, mpc.batch_size, mpc.track_full_stats = .1, 1, False
     mpc.constant_f_ext_world = np.zeros(6)
     mpc.has_pendulum = False

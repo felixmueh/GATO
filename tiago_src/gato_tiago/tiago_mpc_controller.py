@@ -12,6 +12,7 @@ from bsqp.common import rk4, sample_reference_horizon, shift_packed_trajectory_w
 from bsqp.config import DEFAULT_SOLVER_PARAMS
 from gato_tiago.tiago_controller_process import elapsed_sim_time_from_stamp
 from gato_tiago.config import TIAGO_DEFAULT_STARTUP_TIMEOUT_SEC
+from gato_tiago.final_approach import FinalApproachSwitch
 
 # Import force estimator if available
 sys.path.append('./examples')
@@ -35,6 +36,9 @@ class MPC_GATO:
         plant_type='indy7',
         pendulum_config=None,
         solver_params=None,
+        final_approach=False,
+        final_approach_params=None,
+        final_approach_trigger=None,
     ):
         """
         Initialize MPC controller.
@@ -49,6 +53,9 @@ class MPC_GATO:
             track_full_stats: If True, track all stats; if False, only essential ones
             plant_type: Plant identifier used for selecting dynamics (e.g., 'indy7', 'iiwa14')
             pendulum_config: Optional dict with keys: mass, length, damping, initial_angle
+            final_approach: Enable the per-goal, latched reaching parameter switch.
+            final_approach_params: Overrides using the solver_params cost/SQP/mu/PCG names.
+            final_approach_trigger: Distance in m and max joint speed in rad/s.
         """
         # Store original model for solver (without pendulum)
         self.solver_model = model
@@ -76,6 +83,11 @@ class MPC_GATO:
         if solver_params is not None:
             solver_cfg.update(solver_params)
 
+        self.final_approach = FinalApproachSwitch(
+            solver_cfg, enabled=final_approach, params=final_approach_params,
+            trigger=final_approach_trigger,
+        )
+
         self.solver = BSQP(
             model_path=model_path,
             batch_size=batch_size,
@@ -101,6 +113,8 @@ class MPC_GATO:
         )
 
         self.solver_params = solver_cfg
+        if self.final_approach.enabled:
+            self.final_approach.check_solver(self.solver)
         
         self.nq = self.model.nq
         self.nv = self.model.nv
@@ -165,6 +179,7 @@ class MPC_GATO:
         
         Returns only essential statistics for visualization and analysis.
         """
+        self.final_approach.reset(self.solver)
         use_controller = controller is not None
         if offline_timing not in {"controller_dt", "solve_time"}:
             raise ValueError("offline_timing must be 'controller_dt' or 'solve_time'")
@@ -494,6 +509,8 @@ class MPC_GATO:
         controller=None,
         controller_timeout=2.0,
         controller_startup_timeout=TIAGO_DEFAULT_STARTUP_TIMEOUT_SEC,
+        reset_rho_each_solve=False,
+        initial_guess=None,
     ):
         """
         Run MPC controller tracking discrete goal positions.
@@ -507,6 +524,10 @@ class MPC_GATO:
             goal_axis_threshold: Tool local z-axis direction threshold for 6D goals (rad)
             velocity_threshold: Velocity threshold for goal reached (rad/s L1 norm)
             goal_dwell_time: Time to remain within the threshold before switching goals
+            reset_rho_each_solve: Reset damping at every feedback solve. Default
+                False retains adaptive damping, as in the tuned reaching study.
+            initial_guess: Optional packed initial trajectory, not a tracking
+                reference. Shape (packed_size,), (1, packed_size) or (batch, packed_size).
             
         Returns:
             q_traj: Joint trajectory (robot only)
@@ -527,6 +548,18 @@ class MPC_GATO:
             check_goal_axis = True
         else:
             raise ValueError(f"goals must have shape (n, 3) or (n, 6), got {goals.shape}")
+        if (self.final_approach.enabled and not check_goal_axis
+                and any(self.final_approach.after[key] > 0
+                        for key in ('ee_orient_cost', 'ee_orient_N_cost'))):
+            raise ValueError("Final-approach orientation costs require 6D pose goals; "
+                             "set both final orientation costs to zero for position-only goals")
+        if initial_guess is not None:
+            initial_guess = np.atleast_2d(np.asarray(initial_guess, dtype=np.float32))
+            packed_size = self.N * (self.nx + self.nu) - self.nu
+            if (initial_guess.shape not in ((1, packed_size), (self.batch_size, packed_size))
+                    or not np.isfinite(initial_guess).all()):
+                raise ValueError("initial_guess must be a finite packed trajectory matching N and batch_size")
+        self.final_approach.reset(self.solver)
         sim_stamp_origin_sec = None
         if use_controller:
             if self.has_pendulum:
@@ -559,6 +592,11 @@ class MPC_GATO:
             'planned_controls': [],
             'tool_axis_errors': [],
             'goal_indices': [],
+            # Activity refers to the next planned control, while goal_indices
+            # labels the measured state from the previously executed interval.
+            'planned_final_approach_active': [],
+            'planned_goal_indices': [],
+            'final_approach_switches': [],
         }
         if use_controller:
             stats['state_age_sec'] = []
@@ -606,12 +644,26 @@ class MPC_GATO:
             start_idx = i * (self.nx + self.nu)
             XU[start_idx:start_idx+self.nx] = x_curr
         self.solver.reset_dual()
+        self.solver.reset_rho()
         XU_batch = np.tile(XU, (self.batch_size, 1))
+        if initial_guess is not None:
+            XU_batch = np.broadcast_to(initial_guess, XU_batch.shape).copy()
+            XU_batch[:, :self.nx] = x_curr
+
+        event = self.final_approach.update(
+            self.solver, time_s=0.0, goal_index=0,
+            distance_m=float(np.linalg.norm(self.solver.ee_pos(x_curr[:self.nq_robot]) - current_goal[:3])),
+            joint_velocities=x_curr[self.nq_robot:self.nx],
+        )
+        if event is not None:
+            stats['final_approach_switches'].append(event)
         
         # Warm up solve
         self.update_force_batch(q[:self.nq_robot] if self.has_pendulum else q)
         XU_batch, _ = self.solver.solve(x_curr_batch, ee_g_batch, XU_batch)
         XU_best = XU_batch[0, :]
+        stats['initial_state'] = x_curr.copy()
+        stats['initial_planned_control'] = XU_best[self.nx:self.nx+self.nu].copy()
         if use_controller:
             controller.send_trajectory(self.control_horizon_from_plan(XU_best), self.dt)
         
@@ -729,7 +781,16 @@ class MPC_GATO:
                 ee_g = np.tile(current_goal, self.N)
                 goal_start_time = total_sim_time
                 goal_dwell_start_time = None
+                self.final_approach.reset(self.solver)
                 self.solver.reset_rho()
+
+            event = self.final_approach.update(
+                self.solver, time_s=total_sim_time, goal_index=current_goal_idx,
+                distance_m=float(np.linalg.norm(ee_pos - current_goal[:3])),
+                joint_velocities=dq_robot,
+            )
+            if event is not None:
+                stats['final_approach_switches'].append(event)
             
             # Prepare next optimization
             x_curr_batch = np.tile(x_curr, (self.batch_size, 1))
@@ -747,7 +808,8 @@ class MPC_GATO:
             
             # Update forces and solve
             self.update_force_batch(q_robot)
-            self.solver.reset_rho()
+            if reset_rho_each_solve:
+                self.solver.reset_rho()
             
             start = time.time()
             XU_batch_new, gpu_solve_time = self.solver.solve(x_curr_batch, ee_g_batch, XU_batch)
@@ -773,6 +835,8 @@ class MPC_GATO:
             stats['applied_controls'].append(applied_u)
             stats['planned_controls'].append(planned_u)
             stats['goal_indices'].append(measured_goal_idx)
+            stats['planned_final_approach_active'].append(self.final_approach.active)
+            stats['planned_goal_indices'].append(current_goal_idx)
             if use_controller:
                 stats['state_age_sec'].append(state.age_sec)
                 stats['controller_command_rate_hz'].append(state.command_rate_hz)
@@ -800,10 +864,13 @@ class MPC_GATO:
         if use_controller:
             controller.finish_control(timeout_sec=controller_timeout)
 
+        stats['terminal_state'] = x_curr.copy()
+        stats['terminal_time_s'] = float(total_sim_time)
+
         # Convert to numpy arrays
         for key in stats:
             if isinstance(stats[key], list) and len(stats[key]) > 0:
-                if key not in ['goal_outcomes', 'goal_reached_times', 'time_to_all_reached']:
+                if key not in ['goal_outcomes', 'goal_reached_times', 'time_to_all_reached', 'final_approach_switches']:
                     try:
                         stats[key] = np.array(stats[key])
                     except (ValueError, TypeError):

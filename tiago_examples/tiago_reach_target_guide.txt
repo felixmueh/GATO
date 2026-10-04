@@ -1,0 +1,64 @@
+Optional final-approach MPC parameters
+=====================================
+
+Enable the switch with --final-approach; omit it to keep approach parameters.
+The same MPC solver supplies every torque. The switch latches at the first
+feedback observation within 75 mm and max absolute joint speed <= 0.1 rad/s.
+It restores approach parameters at a new goal or a new run.
+
+Example (offline; the switch is separate from goal-completion criteria):
+
+  python tiago_examples/tiago_reach_target.py run --final-approach \
+    --sim-dt 0.001 --goal-timeout 30 --goal-threshold 0.01 \
+    --velocity-threshold 0.1 --goal-axis-threshold-deg 5 --goal-dwell-time 0.5
+
+Defaults live next to TIAGO_REACHING_SOLVER_PARAMS in
+tiago_src/gato_tiago/config.py:
+
+  TIAGO_REACHING_FINAL_APPROACH_PARAMS
+  TIAGO_REACHING_FINAL_APPROACH_TRIGGER
+
+The post-switch defaults are position 400/1200 (running/terminal), orientation
+10/10, joint velocity 1, effort 0.0003, max_sqp_iters 20 and mu 30. Unspecified
+limit penalties and PCG tolerance inherit the approach. Configure overrides
+with --final-approach-params final.json, for example:
+
+  {"qd_cost": 2.0, "q_cost": 300.0, "N_cost": 900.0}
+
+Change gates with --final-approach-distance 0.05 (metres) and
+--final-approach-speed 0.08 (rad/s). Orientation costs require 6D pose goals;
+for --position-only-goals explicitly set ee_orient_cost and ee_orient_N_cost
+to zero in the final-approach overrides. No orientation target is invented.
+
+Python API:
+
+  controller = MPC_GATO(
+      model, model_path, N=16, dt=0.03, plant_type="tiago_right",
+      solver_params={**TIAGO_REACHING_SOLVER_PARAMS,
+                     "ee_orient_cost": 0.1, "ee_orient_N_cost": 2.0},
+      final_approach=True,
+      final_approach_params={"qd_cost": 1.0},
+      final_approach_trigger={"distance_m": 0.075,
+                              "max_joint_speed_rad_s": 0.1},
+  )
+  _, stats = controller.run_mpc_goals(x_start, pose_goals, sim_dt=0.001)
+
+run_mpc_goals now retains adaptive damping between feedback solves in both
+switch modes, matching the tuning experiment. Pass reset_rho_each_solve=True
+to restore the former per-solve reset policy. Cold-start and new-goal resets
+are retained. Optional initial_guess accepts a finite packed witness-prefix
+trajectory; it is an initialization, not a tracking reference.
+
+Stats include final_approach_switches (time, goal, measured gates, before/after
+parameters), planned_final_approach_active and planned_goal_indices. Existing
+goal_indices label the measured state from the previous executed interval.
+CLI metadata preserves the switch configuration/events and initial/terminal
+measured states in sequential runs and independent goal sweeps.
+
+Native extensions built before the in-place cost/SQP setters must be rebuilt;
+enabled construction rejects missing setters before torque execution.
+
+The preset is a nominal far-goal result, not a robust setting for arbitrary
+goals or perturbed starts. Soft penalties do not enforce physical limits.
+The matched comparison uses fixed simulated feedback timing independent of
+solver latency; its output is not real-time hardware certification.

@@ -1356,6 +1356,33 @@ def save_gif(
         plt.close(fig)
 
 
+def final_approach_kwargs(args):
+    """Build the same switch settings for sequential and independent goal runs."""
+    params = None
+    if args.final_approach_params is not None:
+        with args.final_approach_params.open(encoding="utf-8") as f:
+            params = json.load(f)
+        if not isinstance(params, dict):
+            raise ValueError("--final-approach-params must contain a JSON object")
+    return {
+        "final_approach": args.final_approach,
+        "final_approach_params": params,
+        "final_approach_trigger": {
+            "distance_m": args.final_approach_distance,
+            "max_joint_speed_rad_s": args.final_approach_speed,
+        },
+    }
+
+
+def reaching_boundary_states(stats):
+    """Persist boundary feedback that lies outside the per-solve CSV rows."""
+    return {
+        "initial_state": np.asarray(stats["initial_state"]).tolist(),
+        "terminal_state": np.asarray(stats["terminal_state"]).tolist(),
+        "terminal_time_s": float(stats["terminal_time_s"]),
+    }
+
+
 def run_experiment(args):
     from gato_tiago.config import (
         TIAGO_RIGHT_START_CONFIGS,
@@ -1437,6 +1464,7 @@ def run_experiment(args):
         track_full_stats=True,
         plant_type="tiago_right",
         solver_params=solver_params,
+        **final_approach_kwargs(args),
     )
     controller.force_estimator = None
 
@@ -1537,6 +1565,13 @@ def run_experiment(args):
             key: float(value) if isinstance(value, (int, float, np.floating)) else value
             for key, value in solver_params.items()
         },
+        "final_approach": {
+            "enabled": controller.final_approach.enabled,
+            "trigger": controller.final_approach.trigger,
+            "solver_params": controller.final_approach.after,
+            "switches": stats.get("final_approach_switches", []),
+        },
+        "boundary_states": reaching_boundary_states(stats),
         "ros_tiago": bool(args.ros_tiago),
         "ros_clamp_torque": bool(args.ros_clamp_torque),
         "timestamp_source": (
@@ -1587,6 +1622,7 @@ def run_single_goal_trial(model, start_q, goal, args, solver_params):
         track_full_stats=True,
         plant_type="tiago_right",
         solver_params=solver_params,
+        **final_approach_kwargs(args),
     )
     controller.force_estimator = None
     x_start = np.concatenate([start_q, np.zeros(model.nv, dtype=np.float32)]).astype(np.float32)
@@ -1638,6 +1674,13 @@ def run_single_goal_trial(model, start_q, goal, args, solver_params):
         "tool_axis_errors": tool_axis_errors,
         "target_rows": target_rows,
         "summary": summary,
+        "final_approach": {
+            "enabled": controller.final_approach.enabled,
+            "trigger": controller.final_approach.trigger,
+            "solver_params": controller.final_approach.after,
+            "switches": stats.get("final_approach_switches", []),
+        },
+        "boundary_states": reaching_boundary_states(stats),
     }
 
 
@@ -1694,6 +1737,8 @@ def run_goal_sweep(args, model, start_q, start_ee, goals, goal_selection):
             "finite": finite,
             "renderable": renderable,
             "summary": trial["summary"],
+            "final_approach": trial["final_approach"],
+            "boundary_states": trial["boundary_states"],
         }
         trial_summaries.append(trial_summary)
         if finite and renderable:
@@ -1847,6 +1892,7 @@ def add_run_args(parser):
         TIAGO_DEFAULT_STARTUP_TIMEOUT_SEC,
         TIAGO_RIGHT_DEFAULT_START_CONFIG,
         TIAGO_RIGHT_START_CONFIGS,
+        TIAGO_REACHING_FINAL_APPROACH_TRIGGER,
     )
 
     parser.add_argument("--N", type=int, default=16)
@@ -1878,6 +1924,16 @@ def add_run_args(parser):
     parser.add_argument("--required-limit-clearance", type=float, default=DEFAULT_LIMIT_CLEARANCE)
     parser.add_argument("--vel-lim-cost", type=float, default=None)
     parser.add_argument("--ctrl-lim-cost", type=float, default=None)
+    parser.add_argument("--final-approach", action="store_true",
+                        help="Latch the tuned MPC parameters near each goal (default: disabled).")
+    parser.add_argument("--final-approach-params", type=Path, default=None,
+                        help="JSON overrides using the final-approach solver parameter names.")
+    parser.add_argument("--final-approach-distance", type=float,
+                        default=TIAGO_REACHING_FINAL_APPROACH_TRIGGER["distance_m"],
+                        help="Final-approach trigger distance in metres (default: 0.075).")
+    parser.add_argument("--final-approach-speed", type=float,
+                        default=TIAGO_REACHING_FINAL_APPROACH_TRIGGER["max_joint_speed_rad_s"],
+                        help="Trigger maximum absolute joint speed in rad/s (default: 0.1).")
     parser.add_argument("--output-root", type=Path, default=OUTPUT_ROOT)
     parser.add_argument("--output-label", default="default")
     parser.add_argument("--expr-dir", type=Path, default=None)
@@ -1951,6 +2007,17 @@ def parse_args():
         not np.isfinite(args.ros_startup_timeout) or args.ros_startup_timeout <= 0
     ):
         parser.error("--ros-startup-timeout must be finite and positive")
+    if args.command == "run":
+        from gato_tiago.config import TIAGO_REACHING_SOLVER_PARAMS
+        from gato_tiago.final_approach import FinalApproachSwitch
+        try:
+            settings = final_approach_kwargs(args)
+            FinalApproachSwitch(
+                TIAGO_REACHING_SOLVER_PARAMS, enabled=settings["final_approach"],
+                params=settings["final_approach_params"], trigger=settings["final_approach_trigger"],
+            )
+        except (OSError, ValueError, TypeError) as error:
+            parser.error(str(error))
     return args
 
 
