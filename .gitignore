@@ -60,3 +60,7 @@ example_artifacts/
 
 .agents
 .codex
+
+# Local experiment runner settings and immutable source worktrees.
+/experiments/local.json
+/.worktrees/

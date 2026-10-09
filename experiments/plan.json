@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "experiments": [
+    {
+      "id": "runner-smoke",
+      "source_commit": "7187cf8842d0cc33184ade757c15e69c60b69bca",
+      "machines": ["local", "gtx1070", "rtx5060", "jetson"],
+      "command": ["{python}", "{runner}/adapters/smoke.py", "--case", "{case}", "--output", "{output}"],
+      "cases": [{"id": "receipt", "parameters": {"message": "experiment runner ready"}}]
+    },
+    {
+      "id": "tiago-frequency-pilot",
+      "source_commit": "7187cf8842d0cc33184ade757c15e69c60b69bca",
+      "machines": ["gtx1070", "rtx5060", "jetson"],
+      "build": {
+        "commands": [
+          ["cmake", "-S", "{source}/examples/solve_time_heatmap", "-B", "{build}", "-DPLANT=tiago_right", "-DKNOTS=16;32", "-DCMAKE_BUILD_TYPE=Release", "-DCMAKE_CUDA_ARCHITECTURES={cuda_arch}", "-DPython3_EXECUTABLE={python}"],
+          ["cmake", "--build", "{build}", "--parallel", "2"]
+        ],
+        "artifacts": ["modules/*.so", "resources_N16", "resources_N32"]
+      },
+      "command": ["{python}", "{runner}/adapters/heatmap.py", "--case", "{case}", "--output", "{output}"],
+      "repeats": 3,
+      "cases": [
+        {"id": "N16-B1", "parameters": {"N": 16, "batch": 1, "horizon_seconds": 0.504, "sqp_iterations": 5, "wall_seconds": 2, "seed": 20261009}},
+        {"id": "N32-B1", "parameters": {"N": 32, "batch": 1, "horizon_seconds": 0.504, "sqp_iterations": 5, "wall_seconds": 2, "seed": 20261009}}
+      ]
+    }
+  ]
+}
