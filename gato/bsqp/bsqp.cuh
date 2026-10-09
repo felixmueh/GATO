@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <iostream>
 #include <cstdint>
 #include <chrono>
@@ -8,6 +9,7 @@
 #include "settings.h"
 #include "constants.h"
 #include "types.cuh"
+#include "kkt_convergence.h"
 #include "kernels/setup_kkt.cuh"
 #include "kernels/schur_linsys.cuh"
 #include "kernels/pcg.cuh"
@@ -156,40 +158,36 @@ class BSQP {
 
                         // d_q_batch, d_r_batch contain the KKT residuals after computeDzBatched
                         gpuErrchk(cudaMemcpyAsync(h_q_batch_, kkt_system_batch_.d_q_batch, STATE_P_KNOTS * BatchSize * sizeof(T), cudaMemcpyDeviceToHost, stream_));
+                        gpuErrchk(cudaMemcpyAsync(h_r_batch_, kkt_system_batch_.d_r_batch, CONTROL_P_KNOTS * BatchSize * sizeof(T), cudaMemcpyDeviceToHost, stream_));
                         gpuErrchk(cudaMemcpyAsync(h_c_batch_, kkt_system_batch_.d_c_batch, STATE_P_KNOTS * BatchSize * sizeof(T), cudaMemcpyDeviceToHost, stream_));
-                        // gpuErrchk(cudaMemcpy(h_r_batch_, kkt_system_batch_.d_r_batch, CONTROL_P_KNOTS * BatchSize * sizeof(T), cudaMemcpyDeviceToHost));
 
                         gpuErrchk(cudaMemcpyAsync(pcg_stats.num_iterations.data(), d_pcg_iterations_, sizeof(uint32_t) * BatchSize, cudaMemcpyDeviceToHost, stream_));
                         pcg_stats.solve_time_us = 0;
+                        // The residual copies target pinned host memory. Enqueueing
+                        // them does not publish their values to the CPU predicate.
+                        gpuErrchk(cudaStreamSynchronize(stream_));
                         sqp_stats.pcg_stats.push_back(pcg_stats);
 
-                        // KKT condition check on cpu is async with gpu
+                        // These are current-point stationarity and primal defects;
+                        // the inner PCG iteration count is not a KKT certificate.
                         uint32_t num_solved = 0;
                         for (uint32_t b = 0; b < BatchSize; ++b) {
                                 const T* q_ptr = h_q_batch_ + b * STATE_P_KNOTS;
+                                const T* r_ptr = h_r_batch_ + b * CONTROL_P_KNOTS;
                                 const T* c_ptr = h_c_batch_ + b * STATE_P_KNOTS;
 
-                                auto abs_cmp = [](T a, T b) { return std::abs(a) < std::abs(b); };
-
-                                T q_max = std::abs(*std::max_element(q_ptr, q_ptr + STATE_P_KNOTS, abs_cmp));
-                                T c_max = std::abs(*std::max_element(c_ptr, c_ptr + STATE_P_KNOTS, abs_cmp));
-
-                                // within kkt exit tol or pcg exit tol (no steps taken)
-                                if (pcg_stats.num_iterations[b] == 0) {   // || (q_max < kkt_tol_ && c_max < kkt_tol_)
-                                        h_kkt_converged_batch_[b] = 1;
-                                        h_sqp_iters_B_[b] += 1;
-                                }
+                                h_kkt_converged_batch_[b] = gato::kktResidualsConverged(
+                                    q_ptr, STATE_P_KNOTS, r_ptr, CONTROL_P_KNOTS,
+                                    c_ptr, STATE_P_KNOTS, kkt_tol_);
+                                // Preserve the existing once-per-lane outer count.
+                                h_sqp_iters_B_[b] += 1;
 
                                 if (h_kkt_converged_batch_[b]) {
                                         num_solved++;
-                                } else {
-                                        h_sqp_iters_B_[b] += 1;
                                 }
                         }
 
                         if (num_solved >= BatchSize * solve_ratio_) break;
-
-                        gpuErrchk(cudaMemcpyAsync(d_kkt_converged_batch_, h_kkt_converged_batch_, BatchSize * sizeof(int32_t), cudaMemcpyHostToDevice, stream_));
 
                         computeMeritBatched<T, BatchSize, NUM_ALPHAS>(
                             d_merit_batch_, d_dz_batch_, d_xu_traj_batch, d_f_ext_batch_, inputs, d_mu_batch_, d_GRiD_mem_, q_cost_, qd_cost_, u_cost_, N_cost_, ee_orient_cost_, ee_orient_N_cost_, q_lim_cost_, vel_lim_cost_, ctrl_lim_cost_, stream_);
@@ -199,6 +197,10 @@ class BSQP {
                         gpuErrchk(cudaMemcpyAsync(ls_stats.min_merit.data(), d_merit_initial_batch_, BatchSize * sizeof(T), cudaMemcpyDeviceToHost, stream_));
                         gpuErrchk(cudaMemcpyAsync(ls_stats.step_size.data(), d_step_size_batch_, BatchSize * sizeof(T), cudaMemcpyDeviceToHost, stream_));
                         sqp_stats.line_search_stats.push_back(ls_stats);
+                        // Line search can update every lane, including a lane
+                        // certified above while its peers were unfinished. Only
+                        // the next current-point check may certify it again.
+                        std::fill(h_kkt_converged_batch_, h_kkt_converged_batch_ + BatchSize, 0);
                 }
 
                 // Final merit on updated trajectory for selection

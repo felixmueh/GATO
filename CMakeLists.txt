@@ -76,6 +76,10 @@ add_executable(bsqp examples/bsqp.cu)
 target_compile_definitions(bsqp PRIVATE KNOT_POINTS=16 PLANT_INDY7=1)
 
 if(BUILD_TESTING)
+  add_executable(kkt_convergence_host tests/cpp/kkt_convergence_host.cpp)
+  target_include_directories(kkt_convergence_host PRIVATE ${CMAKE_SOURCE_DIR}/gato)
+  add_test(NAME kkt_convergence_host COMMAND kkt_convergence_host)
+
   add_executable(cuda_access_smoke tests/cpp/cuda_access_smoke.cu)
   target_include_directories(cuda_access_smoke PRIVATE ${CMAKE_SOURCE_DIR}/gato
                                                        ${CUDA_INCLUDE_DIRS})
@@ -178,14 +182,16 @@ if(BUILD_TESTING)
   add_custom_target(
     check
     COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
-    DEPENDS cuda_access_smoke bsqpN8_indy7
+    DEPENDS cuda_access_smoke bsqpN8_indy7 kkt_convergence_host
     USES_TERMINAL
     COMMENT "Building test dependencies and running the default test suite")
 
   add_custom_target(
     check-fast
-    COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure -R python_behavior
+    COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure -R "python_behavior|kkt_convergence_host"
+    DEPENDS kkt_convergence_host
     USES_TERMINAL
+    VERBATIM
     COMMENT "Running fast behavior tests")
 
   add_custom_target(
