@@ -71,6 +71,21 @@ def sample_reference_horizon(reference_traj, start_time, dt, knots):
     return sample_reference(reference_traj, times, dt).reshape(-1)
 
 
+def sample_packed_trajectory_control(XU, nx, nu, knots, elapsed, dt):
+    """Sample a piecewise-constant control, holding the last past the horizon.
+
+    Packed trajectories end with a state: ``x0, u0, ..., uN-2, xN-1``.
+    The terminal state has no control.
+    """
+    if knots < 2:
+        raise ValueError("at least two knots are required to sample a control")
+    if dt <= 0.0:
+        raise ValueError("dt must be positive")
+    control_knot = min(max(int(elapsed / dt), 0), knots - 2)
+    start = control_knot * (nx + nu) + nx
+    return XU[start:start + nu]
+
+
 def shift_packed_trajectory_warm_start(XU, x_current, nx, nu, knots, elapsed, dt):
     """Shift a packed state/control trajectory to start after elapsed time.
 
