@@ -8,7 +8,12 @@ import time
 import numpy as np
 import pinocchio as pin
 from bsqp.interface import BSQP
-from bsqp.common import rk4, sample_reference_horizon, shift_packed_trajectory_warm_start
+from bsqp.common import (
+    rk4,
+    sample_packed_trajectory_control,
+    sample_reference_horizon,
+    shift_packed_trajectory_warm_start,
+)
 from bsqp.config import DEFAULT_SOLVER_PARAMS
 from gato_tiago.tiago_controller_process import elapsed_sim_time_from_stamp
 from gato_tiago.config import TIAGO_DEFAULT_STARTUP_TIMEOUT_SEC
@@ -290,9 +295,9 @@ class MPC_GATO:
                 interval_elapsed = 0.0
                 while interval_elapsed + 1e-12 < timestep:
                     step_dt = min(sim_dt, timestep - interval_elapsed)
-                    offset = int(interval_elapsed / self.dt)
-                    u_idx = self.nx + (self.nx+self.nu)*min(offset, self.N-1)
-                    u = XU_best[u_idx:u_idx+self.nu]
+                    u = sample_packed_trajectory_control(
+                        XU_best, self.nx, self.nu, self.N, interval_elapsed, self.dt
+                    )
                     q, dq = rk4(self.model, self.data, q, dq, u, step_dt, self.actual_f_ext)
                     total_sim_time += step_dt
                     interval_elapsed += step_dt
