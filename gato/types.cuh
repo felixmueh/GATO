@@ -64,6 +64,8 @@ template<typename T, uint32_t BatchSize>
 struct KKTSystem {
         T* d_Q_batch;
         T* d_R_batch;
+        T* d_Q_inv_batch;
+        T* d_R_inv_batch;
         T* d_q_batch;
         T* d_r_batch;
         T* d_A_batch;
