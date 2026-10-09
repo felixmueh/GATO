@@ -65,6 +65,21 @@ __global__ __launch_bounds__(PCG_THREADS) void solvePCGBatchedKernel(uint32_t* _
         block::copy<T, VEC_SIZE_PADDED>(s_x_vector, d_x_vector);
         __syncthreads();
 
+        // A failed previous solve may leave a nonfinite retained seed. Keep
+        // every finite seed, including capped iterates, for ordinary warm starts.
+        bool nonfinite_seed = false;
+        for (uint32_t j = threadIdx.x; j < VEC_SIZE_PADDED; j += blockDim.x) {
+                nonfinite_seed |= !isfinite(s_x_vector[j]);
+        }
+        if (__syncthreads_or(nonfinite_seed)) {
+                for (uint32_t j = threadIdx.x; j < VEC_SIZE_PADDED; j += blockDim.x) {
+                        s_x_vector[j] = static_cast<T>(0);
+                        // Publish even if the initial residual exits immediately.
+                        d_x_vector[j] = static_cast<T>(0);
+                }
+        }
+        __syncthreads();
+
         // ----- Init PCG -----
 
         // r = b - A * x
