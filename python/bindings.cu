@@ -111,22 +111,23 @@ class PyBSQP {
 
                 // Per-iteration stats: shape them as (iters, BatchSize)
                 const size_t num_iters = stats.line_search_stats.size();
+                const size_t num_pcg_iters = stats.pcg_stats.size();
                 result["ls_num_iters"] = static_cast<int>(num_iters);
 
                 std::vector<float> pcg_times_us;
                 std::vector<int>   pcg_iters;
-                pcg_times_us.reserve(num_iters);
-                pcg_iters.reserve(num_iters * BatchSize);
+                pcg_times_us.reserve(num_pcg_iters);
+                pcg_iters.reserve(num_pcg_iters * BatchSize);
                 for (const auto& pcg_stat : stats.pcg_stats) {
                         pcg_times_us.push_back(pcg_stat.solve_time_us);
                         for (size_t i = 0; i < BatchSize; ++i) { pcg_iters.push_back(pcg_stat.num_iterations[i]); }
                 }
                 {
-                        std::vector<py::ssize_t> sh_times = { static_cast<py::ssize_t>(num_iters) };
+                        std::vector<py::ssize_t> sh_times = { static_cast<py::ssize_t>(num_pcg_iters) };
                         result["pcg_times_us"] = py::array_t<float>(sh_times, pcg_times_us.data());
                 }
                 {
-                        std::vector<py::ssize_t> sh_iters = { static_cast<py::ssize_t>(num_iters), static_cast<py::ssize_t>(BatchSize) };
+                        std::vector<py::ssize_t> sh_iters = { static_cast<py::ssize_t>(num_pcg_iters), static_cast<py::ssize_t>(BatchSize) };
                         result["pcg_iters"] = py::array_t<int>(sh_iters, pcg_iters.data());
                 }
 
