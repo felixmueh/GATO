@@ -51,6 +51,7 @@ TIAGO_TRACKING_SOLVER_PARAMS = {
 # This is a soft penalty, not a guarantee of physical feasibility.
 TIAGO_REACHING_SOLVER_PARAMS = {
     **TIAGO_TRACKING_SOLVER_PARAMS,
+    "qd_cost": 0.1,
     "vel_lim_cost": 0.1,
 }
 
