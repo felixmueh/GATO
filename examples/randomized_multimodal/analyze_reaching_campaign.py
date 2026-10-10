@@ -81,7 +81,7 @@ def validate_campaign_episode(manifest, campaign_manifest):
     if any(key in campaign_manifest for key in ("N", "knot_dt", "prediction_seconds")):
         validate_prediction_duration(campaign_manifest)
         validate_prediction_duration(manifest)
-    for key in ("N", "knot_dt", "feedback_seconds", "simulation_step", "simulation_timeout", "solver_params", "binary_sha256"):
+    for key in ("N", "knot_dt", "feedback_seconds", "simulation_step", "simulation_timeout", "solver_params", "binary_sha256", "cohort_id", "timing_mode", "offline_timing", "protocol_sha256"):
         if key in campaign_manifest and manifest.get(key) != campaign_manifest[key]:
             raise ValueError(f"Episode differs from campaign {key}")
     if "episode_seed" in campaign_manifest and manifest["args"]["seed"] != campaign_manifest["episode_seed"]:
@@ -153,6 +153,10 @@ def episode(campaign, record, robot_limits, campaign_manifest):
                   reached=summary["outcome"] == "reached", physical_valid=bool(p["physical_valid"]),
                   valid_reach=summary["outcome"] == "reached" and bool(p["physical_valid"]),
                   reached_seconds=summary.get("reached_seconds"), simulated_seconds=summary["simulated_seconds"],
+                  controller_failure=summary.get("controller_failure", summary.get("failure")),
+                  selection_failure=summary.get("selection_failure"),
+                  timing_mode=manifest.get("timing_mode"), timing_scope=manifest.get("timing_scope"),
+                  overheads=summary.get("overheads"),execution_intervals=summary.get("execution_intervals"),
                   executed_quadratic_cost=summary.get("quadratic_executed_cost", summary.get("total_integrated_cost")),
                   max_position_excess_deg=float(np.rad2deg(number(p.get("max_joint_bound_excess_rad")))) if np.isfinite(q).all() else np.nan,
                   max_speed_ratio=p.get("max_velocity_ratio"), max_torque_ratio=p.get("max_effort_ratio"),
@@ -164,7 +168,8 @@ def episode(campaign, record, robot_limits, campaign_manifest):
                                   verified_file_sha256=hashes, source_input_sha256=manifest.get("source_input_sha256")))
     with np.load(folder/"inputs.npz") as a:
         identity = tuple(a[k].copy() for k in ("initial_state", "target_xyz", "target_rotation"))
-    config = dict(solver_params=manifest["solver_params"], knot_dt=manifest["knot_dt"],
+    config = dict(solver_params=manifest["solver_params"],timing_mode=manifest.get("timing_mode"),
+                  offline_timing=manifest.get("offline_timing"),protocol_sha256=manifest.get("protocol_sha256"),knot_dt=manifest["knot_dt"],
                   prediction_seconds=manifest["prediction_seconds"], feedback_seconds=manifest["feedback_seconds"],
                   simulation_step=manifest["simulation_step"], simulation_timeout=manifest["simulation_timeout"],
                   success=manifest["success"], prefix_guard=manifest["args"].get("prefix_guard", False))

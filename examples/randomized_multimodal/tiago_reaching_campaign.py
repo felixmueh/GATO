@@ -23,7 +23,7 @@ import pinocchio as pin
 ROOT = Path(__file__).resolve().parents[2]
 RUNNER = ROOT/'examples/randomized_multimodal/tiago_reaching_batch_pilot.py'
 sys.path.insert(0, str(ROOT/'tiago_src'))
-from validate_reaching_mpc import load_protocol, COHORT_ID, PROTOCOL_PATH
+from validate_reaching_mpc import load_protocol, COHORT_ID, PROTOCOL_PATH, protocol_path, cohort_id
 
 FIXED_ARGS = ['--knot-dts', '.03', '--feedback', '.03', '--sim-dt', '.003',
               '--seconds', '8', '--position-tolerance', '.05',
@@ -56,12 +56,15 @@ def read_json(path):
     return json.loads(path.read_text())
 
 
-def provenance(pool):
+def provenance(pool,selected_protocol_path=None):
+    selected_protocol_path=Path(selected_protocol_path or PROTOCOL_PATH)
+    protocol=load_protocol(selected_protocol_path)
     sources = [Path(__file__), RUNNER,
                ROOT/'examples/randomized_multimodal/validate_reaching_mpc.py',
                ROOT/'tiago_src/gato_tiago/config.py',
                ROOT/'gato/dynamics/tiago_right/tiago_right_plant.cuh',
-               ROOT/'gato/dynamics/tiago_right/tiago_right_arm.urdf',PROTOCOL_PATH]
+               ROOT/'gato/dynamics/tiago_right/tiago_right_arm.urdf',selected_protocol_path]
+    if protocol['timing_mode']=='B':sources.append(ROOT/'examples/randomized_multimodal/tiago_batching_execution.py')
     sources += sorted((ROOT/'python/bsqp').glob('*.py'))
     binaries = sorted((ROOT/'python/bsqp').glob('bsqpN32_tiago_right*.so'))
     if len(binaries) != 1:
@@ -72,7 +75,12 @@ def provenance(pool):
                 binary_sha256=digest(binaries[0]),
                 versions=dict(python=platform.python_version(), numpy=np.__version__, pinocchio=pin.__version__),
                 fixed_runner_args=FIXED_ARGS,
-                solver_params=dict(load_protocol()['solver_params']))
+                solver_params=dict(protocol['solver_params']))
+
+
+def selected_provenance(pool,path):
+    # Preserve the default A call boundary used by existing audits/mocks.
+    return provenance(pool) if path==PROTOCOL_PATH.resolve() else provenance(pool,path)
 
 
 def journal(root, event, **fields):
@@ -101,7 +109,10 @@ def prepare(args, root):
         raise ValueError('campaign exists; use --resume or choose a new output')
     pool = args.pool.resolve()
     historical=read_json(args.pair_manifest)
-    protocol=load_protocol()
+    selected_path=protocol_path(args)
+    protocol=load_protocol(selected_path)
+    if protocol['timing_mode']=='B' and (args.wall_timeout is None or not np.isfinite(args.wall_timeout) or args.wall_timeout<=0):
+        raise ValueError('BB needs an explicit calibrated positive child wall timeout')
     if digest(args.pair_manifest)!=protocol['input_sha256']['historical_manifest.json']:
         raise ValueError('Exact historical100 task manifest changed')
     if args.count!=100 or args.sample_seed!=historical['sample_seed']:
@@ -111,8 +122,11 @@ def prepare(args, root):
     ids=list(historical['pair_ids']);selected=list(historical['pairs'])
     if ids!=protocol['task_ids'] or len(ids)!=100 or len(set(ids))!=100:
         raise ValueError('Exact ordered100 task IDs required')
-    manifest = dict(schema_version=1, cohort_id=COHORT_ID, timing_mode='A',
-                    protocol_sha256=digest(PROTOCOL_PATH),frozen_pair_manifest_sha256=digest(args.pair_manifest),created=now(), pair_ids=ids, pairs=selected,
+    if protocol['timing_mode']=='B' and selected!=protocol['roster']['pair_records']:
+        raise ValueError('BB frozen full pair/start/goal roster differs')
+    manifest = dict(schema_version=1, cohort_id=cohort_id(protocol), timing_mode=protocol['timing_mode'],offline_timing=protocol['offline_timing'],
+                    protocol_relative_path=str(selected_path.relative_to(ROOT)),
+                    protocol_sha256=digest(selected_path),frozen_pair_manifest_sha256=digest(args.pair_manifest),created=now(), pair_ids=ids, pairs=selected,
                     batches=[1,16], count=args.count, sample_seed=args.sample_seed,
                     episode_seed=20260925, excluded_pair_ids=EXCLUDED,
                     sampling='uniform permutation without replacement of existing pair IDs; no IK or task filtering',
@@ -125,7 +139,7 @@ def prepare(args, root):
                     goal='XYZ < .05 m, tool-Z-axis angle < 30 deg, joint velocity L1 < 1 rad/s; no dwell',
                     physical_limits='soft optimization penalties; independent executed-prefix checks; no collision checks',
                     initialization='existing pilot: identical constant-state/zero-control cold seed; shifted winner, fresh target-independent B16 perturbations thereafter',
-                    **provenance(pool))
+                    **selected_provenance(pool,selected_path))
     atomic_json(root/'manifest.json', manifest)
     status = dict(schema_version=1, manifest_sha256=digest(root/'manifest.json'), created=now(),
                   episodes=[dict(pair_id=i, batch=b, state='pending', attempts=[]) for i in ids for b in [1,16]])
@@ -146,12 +160,16 @@ def verify_receipt(root, attempt):
 
 def resume(args, root):
     manifest, status = read_json(root/'manifest.json'), read_json(root/'status.json')
-    if manifest.get('cohort_id')!=COHORT_ID:raise ValueError('Historical cohort resume forbidden; choose fresh current output')
+    selected_path=protocol_path(args);protocol=load_protocol(selected_path)
+    if manifest.get('cohort_id')!=cohort_id(protocol):raise ValueError('Historical cohort or cross-mode resume forbidden; choose fresh current output')
+    if manifest.get('protocol_sha256')!=digest(selected_path) or manifest.get('timing_mode')!=protocol['timing_mode']:
+        raise ValueError('Resume timing/protocol identity differs')
+    if args.wall_timeout!=manifest['wall_timeout_seconds']:raise ValueError('Resume child wall timeout differs')
     if status.get('family_hold'):raise ValueError('Current family held after executionfailure')
     if digest(root/'manifest.json') != status['manifest_sha256']:
         raise ValueError('campaign manifest changed')
     pool = args.pool.resolve() if args.pool is not None else Path(manifest['source_pool'])
-    current = provenance(pool)
+    current = selected_provenance(pool,selected_path)
     for key, value in current.items():
         if manifest.get(key) != value:
             raise ValueError(f'resume provenance mismatch: {key}')
@@ -208,6 +226,7 @@ def run_attempt(args, root, manifest, status, episode, pool):
     child_output = directory/'output'
     command = [sys.executable, str(RUNNER), '--pool', str(pool), '--output', str(child_output),
                '--pairs', str(episode['pair_id']), '--batches', str(episode['batch']), *FIXED_ARGS]
+    if manifest['timing_mode']=='B':command+=['--protocol',str(ROOT/manifest['protocol_relative_path'])]
     attempt = dict(attempt=number, relative_output=str(directory.relative_to(root)),
                    log_path=str((directory/'episode.log').relative_to(root)), state='running', started=now(),
                    command=command)
@@ -232,6 +251,9 @@ def run_attempt(args, root, manifest, status, episode, pool):
         summary = read_json(inner/'summary.json')
         if not summary.get('complete'):
             raise RuntimeError('child summary is incomplete')
+        child_manifest=read_json(inner/'manifest.json')
+        for key in ('cohort_id','timing_mode','offline_timing','protocol_sha256','solver_params','binary_sha256'):
+            if child_manifest.get(key)!=manifest.get(key):raise RuntimeError('child identity differs: '+key)
         for name, expected in read_json(inner/'receipt.json').items():
             if digest(inner/name) != expected:
                 raise RuntimeError(f'inner artifact hash mismatch: {name}')
@@ -261,16 +283,21 @@ def run_attempt(args, root, manifest, status, episode, pool):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', type=Path, required=True)
+    parser.add_argument('--protocol',type=Path,default=PROTOCOL_PATH,help='explicit frozen protocol; default A')
     parser.add_argument('--pool', type=Path, default=None, help='default: repository reaching pool; resume can relocate identical inputs')
     parser.add_argument('--count', type=int, default=100)
     parser.add_argument('--sample-seed', type=int, default=20260926)
-    parser.add_argument('--wall-timeout', type=float, default=120.)
+    parser.add_argument('--wall-timeout', type=float, default=None,help='A default120s; BB requires explicit calibrated value')
     parser.add_argument('--prepare-only', action='store_true')
     parser.add_argument('--resume', action='store_true')
     parser.add_argument('--retry-technical-failures', action='store_true', help='explicitly append new attempts for prior technical failures')
     parser.add_argument('--max-pairs', type=int, default=None, help='bounded execution prefix this invocation; manifest remains unchanged')
     parser.add_argument('--pair-manifest',type=Path,default=ROOT/'experiments/tiago_batching/historical_manifest.json')
     args = parser.parse_args()
+    protocol=load_protocol(protocol_path(args))
+    if args.wall_timeout is None:
+        if protocol['timing_mode']=='B':parser.error('BB needs explicit calibrated --wall-timeout; no inherited Jetson120s assumption')
+        args.wall_timeout=120.
     if args.retry_technical_failures:parser.error('Current cohort holds on executionfailure; no retries')
     if not np.isfinite(args.wall_timeout) or args.wall_timeout <= 0:
         parser.error('wall-timeout must be finite and positive')

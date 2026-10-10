@@ -96,8 +96,16 @@ PROTOCOL_PATH = ROOT/'experiments/tiago_batching/protocol.json'
 COHORT_ID = 'current-default-batching-A-v1'
 
 
-def load_protocol():
-    protocol = json.loads(PROTOCOL_PATH.read_text())
+def protocol_path(args):
+    return Path(getattr(args, 'protocol', None) or PROTOCOL_PATH).resolve()
+
+
+def cohort_id(protocol):
+    return COHORT_ID if protocol['timing_mode'] == 'A' else 'current-default-batching-B-v1'
+
+
+def load_protocol(path=None):
+    protocol = json.loads(Path(path or PROTOCOL_PATH).read_text())
     expected = dict(TIAGO_TRACKING_SOLVER_PARAMS, max_sqp_iters=5, max_pcg_iters=120,
                     qd_cost=.1, vel_lim_cost=.1, ctrl_lim_cost=.05,
                     ee_orient_cost=.1, ee_orient_N_cost=2.)
@@ -106,8 +114,19 @@ def load_protocol():
     for key,value in dict(N=32,knot_dt_s=.03,feedback_s=.03,sim_dt_s=.003,
                           timeout_s=8.,position_tolerance_m=.05,tool_axis_tolerance_deg=30.,
                           velocity_l1_tolerance_rad_s=1.,goal_dwell_s=0.,final_approach=False,
-                          orientation_enabled=True,timing_mode='A').items():
+                          orientation_enabled=True).items():
         if protocol.get(key) != value:raise ValueError('Frozen current protocol changed: '+key)
+    mode = protocol.get('timing_mode')
+    if mode not in ('A', 'B') or protocol.get('offline_timing') != {'A':'controller_dt', 'B':'solve_time'}[mode]:
+        raise ValueError('Frozen timing mode differs')
+    if mode == 'B':
+        original = json.loads(PROTOCOL_PATH.read_text())
+        for key in ('task_ids', 'task_count', 'arms', 'repeats', 'input_sha256', 'episode_seed', 'sample_seed', 'solver_core_base'):
+            if protocol.get(key) != original[key]:raise ValueError('Frozen BB identity differs: '+key)
+        roster = protocol['roster']
+        encoded = json.dumps(roster['pair_records'], sort_keys=True, separators=(',', ':')).encode()
+        if hashlib.sha256(encoded).hexdigest() != roster['full_ordered_pair_records_sha256']:
+            raise ValueError('Frozen BB ordered roster hash differs')
     return protocol
 
 
@@ -133,19 +152,27 @@ def numeric_payload(value,prefix='record'):
     return result
 
 
-def solve_recorded(controller,state,reference,candidates,out,step,cfg):
+def solve_recorded(controller,state,reference,candidates,out,step,cfg,timings=None):
     path=out/f'step_{step:04d}'
+    raw_started=time.perf_counter() if timings is not None else None
     np.savez_compressed(str(path)+'_input.npz',actual_state=state,reference=reference,candidates=candidates,
                         caps=np.array([controller.N,len(candidates),cfg['max_sqp_iters'],cfg['max_pcg_iters']]))
+    if timings is not None:timings['raw_recording_wall_s'] += time.perf_counter()-raw_started
     started=time.perf_counter();wall=None
     try:
         optimized,gpu_us=controller.solver.solve(state,reference,candidates)
         wall=time.perf_counter()-started
         reply=controller.solver.solver.reply
+        raw_started=time.perf_counter() if timings is not None else None
         np.savez_compressed(str(path)+'_returned.npz',optimized=optimized,wall_seconds=wall,gpu_microseconds=gpu_us,
                             **numeric_payload(reply,'native'))
+        if timings is not None:timings['raw_recording_wall_s'] += time.perf_counter()-raw_started
+        stats_started=time.perf_counter() if timings is not None else None
         stats=controller.solver.get_stats()
+        if timings is not None:timings['diagnostics_wall_s'] += time.perf_counter()-stats_started
+        raw_started=time.perf_counter() if timings is not None else None
         np.savez_compressed(str(path)+'_stats.npz',**numeric_payload(stats,'stats'))
+        if timings is not None:timings['raw_recording_wall_s'] += time.perf_counter()-raw_started
         return optimized,gpu_us,wall,stats
     except BaseException as error:
         if wall is None:wall=time.perf_counter()-started

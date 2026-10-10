@@ -95,3 +95,89 @@ python3 -B examples/randomized_multimodal/analyze_reaching_campaign.py \
   --campaign /home/felix/gato-results/gtx1070/BA-current-defaults-100-A-20261010T192610Z \
   --output /path/to/fresh/analysis
 ```
+
+## BB: solver-wrapper wall paid, GTX1070 harness qualified
+
+`bb_protocol.json` reuses the exact100 ordered tasks, input/model hashes,
+current-default costs and portfolio policy. It is a separately identified B
+cohort, not a continuation of the A results. One Jetson pass of200 episodes is
+approved. Implementation and GTX1070 preflight are reviewed; the full BB task
+cohort has not run. Target runtime/storage discussion and exact deployment
+still precede large execution. RTX5060/internal and Jetson need their own suite
+and canonical B preflight.
+
+The bootstrap solve is recorded but unpaid and executes one nominal30ms prefix.
+Thereafter the old active plan runs for each current public solver wrapper's
+measured wall seconds; the returned winner starts u0 on arrival. Feedback has
+no30ms minimum wait. Warm shift uses the previous solve-start origin, separately
+from control activation age. Replay splits3ms substeps at control knots and
+fractional boundaries, holds the last valid control beyond the plan, and clips
+only at the terminal8s episode boundary. Late/unneeded outputs remain raw and
+never activate. Candidate selection remains the original finite full plan,
+finite native merit and nominal-feedback prefix from solve-start state; physical
+bounds do not veto. No eligible paid return still pays old-plan execution;
+task success, selection/controller failure and physical compliance are separate.
+
+The paid scope is **public solver-wrapper wall only**, including work inside
+that call. Candidate generation/shifting, rho setup, get_stats/native defect
+checks, selection/prefix screening, replay, metrics, recording and process work
+are unpaid. Report generation, selection, diagnostic, raw-recording and replay
+wall fields plus whole episode elapsed time. The component fields cover their
+named sections, not an exhaustive accounting of initialization, reset/setup,
+metrics outside replay, JSON preparation, or every final receipt write. Never
+claim full Python pipeline latency paid. Native microseconds are saved and
+converted to milliseconds separately; they do not drive the plant.
+
+The local `tiago_batching_execution.py` helper adapts only accepted12dc7cc
+old-plan boundary/remainder logic. Existing common sampling/shift helpers are
+unchanged. Raw `execution.jsonl` records attempted/completed/failed substeps;
+`executed.npz` keeps typed executed states/controls/times and active-plan IDs/ages.
+Per-solve clock/input/returned/stats/candidate files retain all outputs, proposal
+coefficients, full timings and activation/discard reasons, including typed
+nonfinite native arrays. `*_prefixes.npz` is candidate diagnostic motion, not
+executed plant motion. Internal dual/rho buffers remain unexposed.
+
+The existing pilot defaults to A. To inspect BB CPU policy/timing checks:
+
+```sh
+/opt/gato-venv/bin/python -B -m pytest -q tests/python/test_tiago_batching_mode_b.py tests/python/test_tiago_batching_policy.py tests/python/test_reaching_prediction_provenance.py tests/python/test_reaching_campaign_analysis.py
+```
+
+After independent review, the coordinator runs the required unchanged
+`make test-tiago-tasks` and canonical B preflight through the portfolio pilot,
+with explicit `--protocol experiments/tiago_batching/bb_protocol.json` and
+`--preflight-input experiments/tiago_batching/bb_preflight.json`. Use a fresh
+checkout-local timestamped output path, B1/B16, and the frozen CLI defaults.
+Failures are retained/reported and hold that target family. No solver/native
+suite, preflight, calibration or cohort run is implied by the CPU tests.
+
+The manager selects B only with the explicit protocol path and requires an
+explicit calibrated positive `--wall-timeout`; it cannot silently inherit the
+A120s guard for Jetson. All100 pairs, attempts and failure holds remain frozen.
+There are no automatic retries, task filters, strict deadline gates or hidden
+feedback floors. Faster-than30ms B1 calls can multiply call count/storage;
+measure actual target overhead/storage and discuss duration before a full run.
+Existing source/module pins and a reviewed deployment/dry-run remain required.
+Known SB-001/SB-002 and obstacle-free simulated-plant limitations remain.
+
+GTX1070 validation on 2026-10-10 used the unchanged N32 Release sm61 module
+SHA256 `5d21dc1d887f24dd66aa2dce77fe0a3606f66b178deea7c9b6148892c227b7b8`.
+Independent focused CPU checks passed 43 tests plus 25 analyzer subtests; two
+metadata correction checks passed. The required `make test-tiago-tasks` passed
+all three unchanged cases in 20.919 s. One canonical same-loop B preflight per
+arm then passed both rough reaching and sampled physical limits:
+
+| Arm | Solves including bootstrap | Simulated reach time | Position error | Tool-axis error | Speed L1 |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| B1 | 232 | 0.484714 s | 49.8723 mm | 8.1451 degrees | 0.60175 rad/s |
+| B16 | 25 | 0.507115 s | 48.4665 mm | 8.2507 degrees | 0.58793 rad/s |
+
+Both arms had zero sampled position-limit excess, peak velocity ratios below
+0.223 and peak effort ratios below 0.34. All actual inputs, returned plans,
+telemetry, controls, states and clocks are retained under
+`example_artifacts/bb_validation/20261010T203804.657656Z/`. No retries, solver
+changes, robot runs or full 100-task BB campaign occurred. `BB_VALIDATION.json`
+pins the exact source/module/protocol, task-suite and preflight receipts.
+Only solver-wrapper wall is paid. B1 file recording dominates its recorded
+episode-body time; whole child time also includes startup. These separate
+measurements provide context for later runtime/storage estimates.
