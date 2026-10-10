@@ -179,7 +179,8 @@ def write_state_history_csv(
         "source_seq,stamp_sec,received_monotonic_sec,controller_mode_code,"
         "q0,q1,q2,q3,q4,q5,q6,qd0,qd1,qd2,qd3,qd4,qd5,qd6"
     )
-    np.savetxt(path, rows, delimiter=",", header=header, comments="", fmt="%.10g")
+    # Preserve float64 ROS epoch stamps and subsecond update intervals.
+    np.savetxt(path, rows, delimiter=",", header=header, comments="", fmt="%.17g")
 
 
 def state_history_rows(records: Sequence[HistoryRecord]) -> np.ndarray:
