@@ -7,6 +7,7 @@ Actual target validation, canonical A preflight, then64sequentialcells. No autom
 import argparse,hashlib,json,os,platform,shutil,subprocess,sys,datetime,signal,re,time
 import full_run
 import target
+import reuse
 from pathlib import Path
 PACKAGE=Path(__file__).resolve().parent
 ROOT=PACKAGE.parents[1]
@@ -174,13 +175,18 @@ if __name__=='__main__':
     parser.add_argument('--check',action='store_true',help='CPU package integrity check only')
     parser.add_argument('--repo',type=Path,default=ROOT,help='Existing Git checkout (default: this repository)')
     parser.add_argument('--work',type=Path,default=ROOT/'example_artifacts/jetson_f01ab'/datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dT%H%M%S.%fZ'),help='Fresh attempt under this worktree/example_artifacts/jetson_f01ab')
-    parser.add_argument('--continue-prepared',type=Path,help='Continue only a successful prior preparation under example_artifacts, without rebuilding/repeating Make')
+    resume=parser.add_mutually_exclusive_group()
+    resume.add_argument('--reuse-qualified',type=Path,help='Fresh setup-correction cohort reusing only the qualified Jetson pre-owner screening failure')
+    resume.add_argument('--continue-prepared',type=Path,help='Continue only a successful prior preparation under example_artifacts, without rebuilding/repeating Make')
     parser.add_argument('--python',default=sys.executable,help='Existing working GATO Python/venv executable; preserve its path')
     args=parser.parse_args()
     signal.signal(signal.SIGTERM,lambda signum,frame: (_ for _ in ()).throw(KeyboardInterrupt('SIGTERM')))
     if args.check:verify_package();print('Package hashes/source authority checked. No build/GPU performed.')
     else:
-        if args.continue_prepared:
+        if args.reuse_qualified:
+            verify_package()
+            reuse.reuse_qualified(args.reuse_qualified,args.work,args.python,sha,write,run,device=args.device)
+        elif args.continue_prepared:
             work=args.continue_prepared.expanduser().resolve()
             if not work.is_relative_to((ROOT/'example_artifacts/jetson_f01ab').resolve()):parser.error('Prepared artifacts must be under this worktree/example_artifacts/jetson_f01ab')
             verify_package()

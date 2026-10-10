@@ -8,15 +8,33 @@ cd /workspace/.worktrees/jetson-f01ab
 git fetch https://github.com/felixmueh/GATO.git experiment/jetson-f01-preparation
 git merge --ff-only FETCH_HEAD
 python3 -B experiments/jetson_preparation/prepare_jetson.py --check
-python3 -B experiments/jetson_preparation/prepare_jetson.py --device jetson
+python3 -B experiments/jetson_preparation/prepare_jetson.py --device jetson --reuse-qualified "$PWD/example_artifacts/jetson_f01ab/20261010T203259.571927Z"
 ```
 
+The reuse command is for the recorded Jetson attempt above: all four builds,
+the unchanged suite and qualification succeeded; readiness stopped on frozen
+screening metadata before any native/task event. It creates a fresh timestamped
+correction cohort, preserving that failure. It reuses the qualified modules and
+suite, runs one actual canonical mode A task/physical preflight, then the same64
+cells. It never rebuilds or repeats Make. Unrelated task/native failures and
+already-started matrix attempts cannot use this option.
+
+Runtime bank validation checks the exact frozen bytes, source/model/generator,
+array definitions and schedules, and preserves the historical saved screening.
+It does not rerun CPU screening, compare library versions or regenerate physical
+witnesses on the deployment machine. The actual canonical task remains the gate.
+New receipts distinguish original compiled source502fa29 from the new collector
+commit, whose six runtime/controller/model files must equal the compiled archive.
+Original build/suite/cache receipts and held markers are untouched.
+
 For a first container checkout, clone the branch without registering a worktree,
-then run the same two Python commands:
+then check and run the fresh pipeline:
 
 ```bash
 git clone --branch experiment/jetson-f01-preparation https://github.com/felixmueh/GATO.git /workspace/.worktrees/jetson-f01ab
 cd /workspace/.worktrees/jetson-f01ab
+python3 -B experiments/jetson_preparation/prepare_jetson.py --check
+python3 -B experiments/jetson_preparation/prepare_jetson.py --device jetson
 ```
 
 Activate the existing GATO Python environment first, or pass `--python` with its
@@ -91,6 +109,6 @@ CPU fake-pipeline checks (no native import/build/GPU):
 
 ```bash
 mkdir -p example_artifacts/jetson_f01ab-tests
-PYTHONDONTWRITEBYTECODE=1 python3 -B -m pytest -q experiments/jetson_preparation/test_full_pipeline.py experiments/jetson_preparation/test_target.py --basetemp=example_artifacts/jetson_f01ab-tests/tmp -o cache_dir=example_artifacts/jetson_f01ab-tests/cache
+PYTHONDONTWRITEBYTECODE=1 python3 -B -m pytest -q experiments/jetson_preparation/test_full_pipeline.py experiments/jetson_preparation/test_target.py experiments/jetson_preparation/test_bank_reuse.py --basetemp=example_artifacts/jetson_f01ab-tests/tmp -o cache_dir=example_artifacts/jetson_f01ab-tests/cache
 python3 -B experiments/jetson_preparation/check_artifact_retention.py
 ```

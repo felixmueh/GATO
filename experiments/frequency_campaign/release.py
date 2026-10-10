@@ -11,7 +11,7 @@ RUNTIME = ('python/bsqp/interface.py', 'python/bsqp/common.py', 'python/bsqp/off
            'tiago_src/gato_tiago/tiago_mpc_controller.py', 'tiago_src/gato_tiago/config.py',
            'gato/dynamics/tiago_right/tiago_right_arm.urdf')
 COLLECTOR = tuple('experiments/frequency_campaign/' + name for name in
-                  ('episode.py', 'record_bank.py', 'protocol.py', 'run.py', 'factory.py', 'readiness.py', 'release.py', 'build_isolated.py'))
+                  ('episode.py', 'record_bank.py', 'protocol.py', 'run.py', 'factory.py', 'readiness.py', 'release.py', 'build_isolated.py', 'runtime_bank.py'))
 
 
 def load(name):
@@ -69,7 +69,10 @@ def validate(manifest_path, expected_hash, machine, N):
     if manifest.get('status') != 'released_F01_A': raise RuntimeError('F01 release held: ' + manifest.get('reason', 'no reviewed release'))
     if machine not in P.MACHINES or manifest['machine'] != machine: raise ValueError('Release machine differs')
     if manifest['production_core_commit'] != CORE: raise ValueError('Approved production core differs')
-    commit = manifest['collector_source_commit']
+    commit = manifest.get('compiled_source_commit',manifest['collector_source_commit'])
+    if commit!='502fa29c8b0d649dcb347f9534bf29c6935fa6dd':raise ValueError('Accepted compiled source differs')
+    collector_commit=manifest['collector_source_commit']
+    if len(collector_commit)!=40 or any(c not in '0123456789abcdef' for c in collector_commit):raise ValueError('Pinned full collector commit required')
     if len(commit) != 40 or any(c not in '0123456789abcdef' for c in commit): raise ValueError('Pinned full source commit required')
     if set(manifest['collector_source_sha256']) != set(COLLECTOR): raise ValueError('Collector source receipt incomplete')
     for name, digest in manifest['collector_source_sha256'].items():
@@ -96,7 +99,7 @@ def validate(manifest_path, expected_hash, machine, N):
     for key in {str(N), '32'}:
         info = manifest['modules'][key]
         build = evidence(info['build_receipt'])
-        if build.get('variant') != 'ON' or build['source_commit'] != manifest['collector_source_commit']:
+        if build.get('variant') != 'ON' or build['source_commit'] != commit:
             raise ValueError('Compiled observer identity differs')
         if build['flags'].get('GATO_EXPERIMENT_TELEMETRY') is not True or build['flags'].get('N') != int(key) or build['flags'].get('plant') != 'tiago_right':
             raise ValueError('Compiled target differs')

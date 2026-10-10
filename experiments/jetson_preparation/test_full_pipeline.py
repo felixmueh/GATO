@@ -51,7 +51,10 @@ def raw_cell(results,eid,damage=None):
 
 @pytest.fixture
 def pipeline(tmp_path,monkeypatch):
-    repo=tmp_path/'repo';repo.mkdir();work=repo/'example_artifacts/jetson_f01ab/attempt'
+    repo=tmp_path/'repo';repo.mkdir()
+    for name in ['protocol.py','release.py','runtime_bank.py']:
+        path=repo/'experiments/frequency_campaign'/name;path.parent.mkdir(parents=True,exist_ok=True);path.write_bytes((HERE.parents[1]/'experiments/frequency_campaign'/name).read_bytes())
+    work=repo/'example_artifacts/jetson_f01ab/attempt'
     monkeypatch.setattr(P,'BANK',hashlib.sha256(b'{}').hexdigest());monkeypatch.setattr(P,'ROOT',repo);monkeypatch.setattr(P,'verify_package',lambda:None)
     monkeypatch.setattr(P,'check_prerequisites',lambda *a:({},'fake dependencies',dict(target='jetson',selection='fake_CPU_fixture')))
     monkeypatch.setattr(P.subprocess,'check_output',lambda *a,**k:str(work/'source/.git')+'\n')
@@ -65,16 +68,18 @@ def pipeline(tmp_path,monkeypatch):
             if failure['stage']=='preflight' or json.loads(family.read_text())['status']!='ready':raise RuntimeError('preflight task/physical failed')
         def write_state(self,path,context,status,**kw):dump(path,dict(status=status,**kw))
     release=Release()
-    def qualify(source,work,sha,write):
+    def qualify(source,work,sha,write,**kwargs):
         manifest=work/'jetson-release.json';dump(manifest,dict(fake=True));return release,manifest
     monkeypatch.setattr(F,'qualify',qualify)
     def command(argv,cwd,log,env=None):
         calls.append(argv);log.parent.mkdir(parents=True,exist_ok=True);log.write_text('')
         if '--no-checkout' in argv:
             source=Path(argv[-1]);source.mkdir(parents=True);(source/'experiments').mkdir()
-            if source.name=='source':
+            if source.name in ['source','collector-source']:
                 inputs=source/'experiments/frequency_campaign/inputs';dump(inputs/'SHA256SUMS.json',{})
                 dump(inputs.parent/'selected_variant.json',{})
+                if source.name=='collector-source':
+                    for name in ['protocol.py','release.py','runtime_bank.py']:(inputs.parent/name).write_bytes((HERE.parents[1]/'experiments/frequency_campaign'/name).read_bytes())
             return
         if '--N' in argv:
             n=int(argv[argv.index('--N')+1]);build=Path(argv[argv.index('--build')+1]);module=build/'campaign-source/python/bsqp/module.so';module.parent.mkdir(parents=True);module.write_bytes(b'fake module')
@@ -186,3 +191,24 @@ def test_nested_process_interruption_cleanup(tmp_path):
     with pytest.raises(KeyboardInterrupt):P.run([sys.executable,'-B',str(wrapper)],tmp_path,tmp_path/'outer.log')
     pid=int(marker.read_text());stat=Path(f'/proc/{pid}/stat')
     assert not stat.exists() or stat.read_text().rsplit(')',1)[1].split()[0]=='Z'
+
+
+def test_reuse_pipeline_has_no_build_or_suite_repeat(pipeline,monkeypatch):
+    import reuse as U
+    repo,work,calls,failure=pipeline
+    monkeypatch.setattr(F,'ROOT',repo)
+    parent=work.parent/'original';parent.mkdir(parents=True)
+    dump(parent/'preparation.json',dict(python=str(Path(sys.executable).absolute())))
+    dump(parent/'launch-state.json',dict(status='held',stage='canonical_A_preflight'))
+    before=(parent/'launch-state.json').read_bytes()
+    original=dict(path=str(parent),release=dict(path=str(parent/'jetson-release.json'),sha256='original'))
+    monkeypatch.setattr(U,'validate_parent',lambda *a:original)
+    monkeypatch.setattr(U.target,'select_target',lambda *a:dict(target='jetson',selection='explicit_user_selection'))
+    U.reuse_qualified(parent,work,sys.executable,P.sha,P.write,P.run,device='jetson')
+    assert not any('--N' in x or x==['make','test-tiago-tasks'] for x in calls)
+    assert len([x for x in calls if '--readiness' in x])==1 and len([x for x in calls if '--only' in x])==64
+    assert (parent/'launch-state.json').read_bytes()==before
+    assert json.loads((work/'launch-state.json').read_text())['parent_failed_attempt']==original
+    previous=len(calls)
+    with pytest.raises(RuntimeError,match='already reused'):U.reuse_qualified(parent,work.parent/'next',sys.executable,P.sha,P.write,P.run,device='jetson')
+    assert len(calls)==previous

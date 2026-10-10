@@ -31,7 +31,7 @@ def evidence(tmp):
     module = source / 'python/bsqp/bsqpN16_tiago_right.fake'; module.write_text('CPU artifact only')
     module32 = source / 'python/bsqp/bsqpN32_tiago_right.fake'; module32.write_text('CPU N32 artifact only')
     commit = subprocess.check_output(['git', '-C', str(ROOT), 'rev-parse', 'HEAD'], text=True).strip()
-    src = write(tmp / 'source.json', dict(source_file_sha256=hashes, source_commit=commit))
+    src = write(tmp / 'source.json', dict(source_file_sha256=hashes, source_commit='502fa29c8b0d649dcb347f9534bf29c6935fa6dd'))
     reason = write(tmp / 'reason.json', dict(telemetry_reason_validation='synthetic_test actual-path metadata'))
     acceptance = write(tmp / 'accept.json', dict(decision='accept_existing_first_instrumentation_without_equivalence_gate',
         numerical_equivalence_required=False, accepted_native_patch_sha256='observer', comparison_audit=reason))
@@ -42,13 +42,13 @@ def evidence(tmp):
     commit = subprocess.check_output(['git', '-C', str(ROOT), 'rev-parse', 'HEAD'], text=True).strip()
     for N, target in [(16, module), (32, module32)]:
         cache = tmp / f'cache{N}.txt'; cache.write_text(f'GATO_EXPERIMENT_TELEMETRY:BOOL=ON\nKNOTS:STRING={N}\nPLANT:STRING=tiago_right\n')
-        build = write(tmp / f'build{N}.json', dict(variant='ON', source_commit=commit, source_root=str(source),
+        build = write(tmp / f'build{N}.json', dict(variant='ON', source_commit='502fa29c8b0d649dcb347f9534bf29c6935fa6dd', source_root=str(source),
             flags=dict(GATO_EXPERIMENT_TELEMETRY=True, N=N, plant='tiago_right'),
             module=dict(path=str(target), sha256=R.sha(target)), cmake_cache=dict(path=str(cache), sha256=R.sha(cache)),
             source_receipt=src, source_file_sha256=hashes))
         modules[str(N)] = dict(path=str(target), sha256=R.sha(target), build_receipt=build)
     m = dict(status='released_F01_A', evidence_kind='synthetic_test', machine='gtx1070', production_core_commit=R.CORE,
-        collector_source_commit=commit, collector_source_sha256={name:R.sha(ROOT / name) for name in R.COLLECTOR},
+        compiled_source_commit='502fa29c8b0d649dcb347f9534bf29c6935fa6dd',collector_source_commit=commit, collector_source_sha256={name:R.sha(ROOT / name) for name in R.COLLECTOR},
         bank_manifest_sha256=R.P.BANK_MANIFEST_SHA256, selection_sha256=R.sha(R.HERE / 'selected_variant.json'),
         telemetry_acceptance=acceptance, observer_patch_sha256='observer', reason_review=reason,
         build_review=write(tmp / 'review.json', dict(verdict='approved', evidence_kind='synthetic_test')),

@@ -21,7 +21,7 @@ def sha(path):return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 def load_bank():
     if sha(BANK/'SHA256SUMS.json')!=BANK_MANIFEST_SHA256:raise ValueError('Pinned bank manifest differs')
-    spec=importlib.util.spec_from_file_location('f01_freeze',ROOT/'experiments/frequency_campaign/freeze_inputs.py')
+    spec=importlib.util.spec_from_file_location('f01_freeze',ROOT/'experiments/frequency_campaign/runtime_bank.py')
     module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
     bank=module.validate(BANK)
     import numpy as np
