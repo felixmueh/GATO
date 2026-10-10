@@ -1,0 +1,171 @@
+{
+  "review_date_UTC": "2026-10-10",
+  "reviewer": "independent delegated read-only reviewer; only this receipt written",
+  "production_core": "16b33719b4f0fd463eec7262c99b16b0b324366f",
+  "worktree": "/workspace/GATO-eval-ordinary",
+  "status": "bootstrap provenance accepted; declared Q04 approximation statically validated; original replay passes; mode B release held",
+  "scope": "Source/bootstrap/build receipt and Q04 controller/test/protocol review; CPU-only verification and saved-array audit. Reviewer ran no build, GPU job, solver construction or solve.",
+  "bootstrap": {
+    "accepted": true,
+    "test_transplant_receipt": "/workspace/GATO-eval-ordinary/experiments/campaign/test_transplant_receipt.json",
+    "test_transplant_receipt_sha256": "c199e6752f71ce887091bfc81a9127acfd05507231ad577b6b427e23bc4a127e",
+    "exact_transplants": [
+      "75b17ce5acd9167b552543386fa4f312c42ea12d",
+      "4b6fa25e22fa47cae0199b6b7161f86806bc1cfe"
+    ],
+    "patch_hash_reproduction": "git show --format= <commit> | sha256sum; both declared hashes match",
+    "all_10_transplanted_files_match_4b6fa25": true,
+    "all_three_frozen_fixture_hashes_match": true,
+    "worker_sha256": "ea4317bdc91e81dd98279a3ad6f10eb92dfec1f29eb6e9deac8b1adb395adb98",
+    "production_source_parity": "All 84 tracked gato/python/tiago_src/tiago_tools paths matched16b3371 before concurrent authorized controller edits; current native gato/bindings remain unchanged.",
+    "B01_solver_source_adopted": false,
+    "historical_test_documentation": "Preserved B01 qualification history is historical evidence, not the active solver baseline."
+  },
+  "native_build": {
+    "accepted_identity": true,
+    "receipt": "/workspace/gato-campaign-g0-20261010/build_receipt.json",
+    "receipt_sha256": "6541bdf71700692a052e42ff9adbc8b917e1c9cbf7319086b86473be690160c2",
+    "30_input_hashes_and_two_log_hashes_match": true,
+    "all_18_local_compiled_dependencies_covered": true,
+    "native_core_hashes_match_16b3371": true,
+    "module_sha256": "9d8e666e4204c50d692dd2bcb72808a42956d7082055352dbf039a80a60b4c0f",
+    "configuration": "Release; CUDA sm61; N32; tiago_right; BUILD_TESTING=ON; /opt/gato-venv/bin/python3",
+    "flags_match_receipt": true,
+    "retained_CPU_checks": "host1/1; gripper3cases pass; qualification-cpu30pass/1skip is partial coverage"
+  },
+  "Q04": {
+    "static_acceptance": "No implementation blocker for the explicitly declared inherited tracking approximation; not full revision compliance.",
+    "reviewed_sha256": {
+      "python/bsqp/mpc_controller.py": "98654e97c999004cf6d3ef6413a0d8fa588fecd0e2ed7e0c499e3004438b8eb2",
+      "tiago_src/gato_tiago/tiago_mpc_controller.py": "cfe5a2835b12d8ed387bb84fbf394df9eb112bd46d01859ba0f4b7e040bef632",
+      "tests/python/test_reaching_timing.py": "f81b5ebbf127f41ba72304169b54693426b5a17a17121737f9317be95dc88ef4",
+      "experiments/campaign/mode_b_protocol.json": "50ac424c2eeb9dd760aab7e7b8f898931b4cef55afcce05a929c7be8e5de0560"
+    },
+    "independent_CPU_command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=python:tiago_src /opt/gato-venv/bin/python -m pytest -q -p no:cacheprovider tests/python/test_reaching_timing.py tests/python/test_tiago_final_approach.py tests/python/test_tiago_controller_shutdown.py",
+    "independent_CPU_result": "59 passed; one existing hppfcl import deprecation warning; 2.00s",
+    "reviewed_behavior": [
+      "nominal unpaid startup with retained wall/native timings",
+      "separate solve-call wall/native clocks",
+      "elapsed substeps and knot boundaries",
+      "fractional remainders integrated immediately",
+      "final valid control hold beyond horizon",
+      "actual elapsed warm-start shift and measured-state anchor",
+      "mode B requested/realized interval and timeout clipping",
+      "mode A update-based timeout preserved",
+      "terminal intervals and goal switches retained",
+      "input/output snapshots survive mutation",
+      "started/failed solver and plant records persist",
+      "archive callback time excluded from solve-call clock",
+      "callback failure propagated",
+      "live mode B rejected; ROS policy unchanged"
+    ],
+    "mode_A_correction_limit": "Noncommensurate plant intervals now integrate exact fractional remainder; changed setups must be separate cohorts.",
+    "semantic_conflict": "Revision calls for previous plan continuing during computation; inherited implementation instead executes the newly returned plan in the next interval for its producing solve duration. This is a preceding-duration approximation, not exact asynchronous stale-plan replay.",
+    "mode_B_release": "HELD pending Felix timing choice; no mode B tasks qualified or released",
+    "campaign_worker_review": "Pending; worker was outside Q04 review scope.",
+    "worker_archival_requirement": "solve_completed callback precedes best_trajectory_id assignment; persist final last_run_stats/raw_solves or separate selection record."
+  },
+  "required_native_suite": {
+    "status": "completed; saved-array audit passed; original replay scope only",
+    "command": "GATO_BUILD_DIR=/workspace/gato-campaign-g0-20261010/build make test-tiago-tasks",
+    "repeat_policy": "Coordinator ran one frozen suite; no reviewer GPU run or additional rerun requested.",
+    "suite_log": "/workspace/gato-campaign-g0-20261010/suite-once.log",
+    "suite_log_sha256": "6b0891ba4fa9c26edb233b3959b4abad22eb6d6392c8fab3d5f26235f48ba58a",
+    "source_receipt": "/workspace/gato-campaign-g0-20261010/suite_source_receipt.json",
+    "source_receipt_sha256": "11e786e8569f29d15458bec15921541fa1f6f2c416a0d1f9a2a971c336ea4c13",
+    "CUDA_readiness": "Logged cuda_access_smoke_ok=1, GTX1070, sm61",
+    "observed_result": "3 passed; one warning;15.05s",
+    "source_fixture_module_hashes_match": true,
+    "saved_array_audit": "Recomputed all frozen gates using retained execution.npz/public_stats and original evaluation helper; all agree. Finite wall sample counts equal plan counts17/50/3001.",
+    "cases": [
+      {
+        "case": "figure8_tracking",
+        "artifact_directory": "/workspace/GATO-eval-ordinary/test-artifacts/tiago-tasks/figure8_tracking_0osjhbd9",
+        "task_and_physical_gates_pass": true,
+        "duration_s": 24.00000000000635,
+        "solves": 3001,
+        "physical_limit_excesses": {
+          "position_violation_rad": 0.0,
+          "velocity_violation_rad_s": 0.0,
+          "torque_violation_Nm": 0.0
+        }
+      },
+      {
+        "case": "long_reach",
+        "artifact_directory": "/workspace/GATO-eval-ordinary/test-artifacts/tiago-tasks/long_reach_595ap5i0",
+        "task_and_physical_gates_pass": true,
+        "duration_s": 1.4999999999999456,
+        "solves": 50,
+        "physical_limit_excesses": {
+          "position_violation_rad": 0.0,
+          "velocity_violation_rad_s": 0.0,
+          "torque_violation_Nm": 0.0
+        }
+      },
+      {
+        "case": "short_reach",
+        "artifact_directory": "/workspace/GATO-eval-ordinary/test-artifacts/tiago-tasks/short_reach_tj6h18bb",
+        "task_and_physical_gates_pass": true,
+        "duration_s": 0.5100000000000002,
+        "solves": 17,
+        "physical_limit_excesses": {
+          "position_violation_rad": 0.0,
+          "velocity_violation_rad_s": 0.0,
+          "torque_violation_Nm": 0.0
+        }
+      }
+    ],
+    "tracking_errors_m": {
+      "RMS": 0.014316960338722023,
+      "maximum": 0.026108525121067268
+    },
+    "raw_contract_limit": "Existing frozen worker records states/controls/plans/wall timings and task inputs, but not every shifted warm-start input or full native telemetry; controller record_raw defaultsFalse. Regression gate only, not F01ab/T01 raw-contract fulfillment.",
+    "qualification_limits": [
+      "original mode A-equivalent simulation replay",
+      "1ms plant frozen fixtures; not canonical3ms viability preflight",
+      "not mode B qualification",
+      "not complete solver numerical qualification or reliability",
+      "matched RTX5060 replay pending",
+      "bounded Jetson proposal/execution pending; Q03 cross-platform incomplete"
+    ],
+    "artifact_sha256": {
+      "/workspace/GATO-eval-ordinary/test-artifacts/tiago-tasks/figure8_tracking_0osjhbd9/execution.npz": "e496ed1679c8d3313a76dcedf1e960e1826ba4e6d8a0e52b90a344f4c02a67dd",
+      "/workspace/GATO-eval-ordinary/test-artifacts/tiago-tasks/figure8_tracking_0osjhbd9/public_stats.json": "6e0e123b9a1ecd818b2350b8e45c53aebf8afbc40019f5b19dbae33a0875f8cb",
+      "/workspace/GATO-eval-ordinary/test-artifacts/tiago-tasks/figure8_tracking_0osjhbd9/receipt.json": "0c6c48f68cba1061c756135fbde3a8b8ed197484c02584ec563f7f844f350d2c",
+      "/workspace/GATO-eval-ordinary/test-artifacts/tiago-tasks/figure8_tracking_0osjhbd9/reference.npz": "560a7fb7287602a3f5852db1992e9c695c6285a4837c617308145517db68370a",
+      "/workspace/GATO-eval-ordinary/test-artifacts/tiago-tasks/figure8_tracking_0osjhbd9/stderr.txt": "340b6cf74acad2945b9034b3ff239979e66e4d138a09bc566bcbf8cbd637378b",
+      "/workspace/GATO-eval-ordinary/test-artifacts/tiago-tasks/figure8_tracking_0osjhbd9/stdout.txt": "6155c49d672c8752733a014dfe7ecf37096abd9a8307796bf28217a0a852dfd3",
+      "/workspace/GATO-eval-ordinary/test-artifacts/tiago-tasks/figure8_tracking_0osjhbd9/summary.json": "7cb84c3b492c83705427db234ae9be78656cbe1abd782b18ec4cd9050a20f664",
+      "/workspace/GATO-eval-ordinary/test-artifacts/tiago-tasks/long_reach_595ap5i0/execution.npz": "1a26f475abfd3d5fce98c426508a39426363ad74f97691f7f5ee9dcf7d1ff3c1",
+      "/workspace/GATO-eval-ordinary/test-artifacts/tiago-tasks/long_reach_595ap5i0/public_stats.json": "ebfad8545f7f0cc884ec6e5a3bc2b74af3edddd6e31874c112a750e96ded4982",
+      "/workspace/GATO-eval-ordinary/test-artifacts/tiago-tasks/long_reach_595ap5i0/receipt.json": "1694cdb0384ff40ee7671217b661acbc076a73798bc9d5c0222c8d80ddcf6a29",
+      "/workspace/GATO-eval-ordinary/test-artifacts/tiago-tasks/long_reach_595ap5i0/stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "/workspace/GATO-eval-ordinary/test-artifacts/tiago-tasks/long_reach_595ap5i0/stdout.txt": "8869680439b1e05d0ec2a109b8ab1ed15e1cbfe418d059ab031baf08457ece04",
+      "/workspace/GATO-eval-ordinary/test-artifacts/tiago-tasks/long_reach_595ap5i0/summary.json": "225ebda1c45c633d1ad013cba8dac17bed7f40dc50e4e75cb135748592110da2",
+      "/workspace/GATO-eval-ordinary/test-artifacts/tiago-tasks/short_reach_tj6h18bb/execution.npz": "d77ee322d1a85c4e1441fb5cc650ca627f53a5869b86ac629504275f63c47805",
+      "/workspace/GATO-eval-ordinary/test-artifacts/tiago-tasks/short_reach_tj6h18bb/public_stats.json": "aeaa9137d826e9962c5bff07661ee3792ba88278871e28f9a75942cb7c55f72b",
+      "/workspace/GATO-eval-ordinary/test-artifacts/tiago-tasks/short_reach_tj6h18bb/receipt.json": "15cd3401cc96dcc0e449337dcc01d93ea00b47b41c723b90f3a2038ac8ad0e63",
+      "/workspace/GATO-eval-ordinary/test-artifacts/tiago-tasks/short_reach_tj6h18bb/stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "/workspace/GATO-eval-ordinary/test-artifacts/tiago-tasks/short_reach_tj6h18bb/stdout.txt": "9350a3970f9fad4964fb25407e37048d563502e0248c42dc4e3b5ae951627ab1",
+      "/workspace/GATO-eval-ordinary/test-artifacts/tiago-tasks/short_reach_tj6h18bb/summary.json": "6938b73758f1c015e44ce99323c7627190b7f123b77665f67d41a64df640e94c"
+    }
+  },
+  "Q02": {
+    "status": "partial existing pack; full Q02 not completed",
+    "available_checks": [
+      "tiago_tools/check_tiago_reduction.py:CPU1007states +3x100step rollouts",
+      "tiago_tools/check_tiago_gripper_lump.py:3CPUcases",
+      "tests/python/test_tiago_terminal_cost.py:B1/N16/two endpoint solves; opt-in/skip-prone; not executed by reviewer"
+    ],
+    "missing_current_pack": "Historical examples/tiago_debug_checks.py absent from main16b3371; no tracked full CUDA/Pinocchio derivative/scalar-batch terminal pack identified.",
+    "limits": "No solver investigation, expanded numerical cohorts, B01/P01-cause/NaN tracing or exact determinism work authorized."
+  },
+  "release_blockers": [
+    "Felix decision on mode B timing semantics remains pending; hold affected mode B task/release",
+    "campaign worker raw-contract implementation and independent review pending"
+  ],
+  "preserved_solver_limits": [
+    "SB-001 original P01goal1 failure",
+    "SB-002 static full-finiteness failure; no fresh investigation"
+  ]
+}

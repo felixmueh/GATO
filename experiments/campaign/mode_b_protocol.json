@@ -1,0 +1,94 @@
+{
+  "id": "Q04-reaching-timing",
+  "status": "implementation CPU-validated; independent review and required native task suite pending",
+  "production_core": "16b33719b4f0fd463eec7262c99b16b0b324366f",
+  "scope": "offline experiment/controller reaching harness only; no solver or ROS overrun policy changes",
+  "api": {
+    "method": "MPC_GATO.run_mpc_goals",
+    "offline_timing_default": "controller_dt",
+    "mode_A": "controller_dt",
+    "mode_B": "solve_time",
+    "record_raw_default": false,
+    "campaign_record_raw_required": true,
+    "live_policy": "solve_time rejected with controller; default live path retains ROS policy",
+    "record_callback": "Optional (event, record) read-only observer with record_raw=True; before/after solve and plant substep events are outside solve wall timer."
+  },
+  "clock": {
+    "mode_B_scope": "perf_counter wall seconds around solver.solve only, including wrapper work within the call; excludes force-batch updates, recording, statistics, selection and plant integration",
+    "alignment": "The most recently returned plan is executed in the next plant interval for the wall duration of the solve that produced it. This is the existing tracking preceding-duration approximation, not concurrent integration during the actual call or an exact asynchronous stale-plan replay.",
+    "startup": "The first task solve starts from the ordinary initial guess (or explicit initial_guess for TIAGo); it is recorded as startup/cold. Startup solve wall/native durations are retained, but first plant interval is nominal dt. This task solve is not the unrelated process/CUDA warm-up required by F01ab; that warm-up must be supplied separately by the experiment.",
+    "native_units": "solver.solve returns native microseconds; divide by 1000 for milliseconds. Native timing never drives mode B.",
+    "substeps": "Maximum sim_dt; split at piecewise-constant control-knot boundaries and integrate fractional remainders immediately, with no deferred remainder accumulation.",
+    "plan_end": "Packed terminal knot is state-only; clamp control selection to knot N-2 and hold the final valid control beyond the horizon.",
+    "warm_start": "Shift previous selected trajectory by actual elapsed execution interval, then re-anchor first state at measured state; preserve exact shifted solver input.",
+    "timeout_mode_B": "Clip requested interval at remaining per-goal timeout; preserve requested/realized duration and clipping flag. Record final interval even when it leads to reach/timeout without another solve.",
+    "timeout_mode_A": "Preserve previous at-update timeout checking without clipping. Canonical .03s intervals on .003s/.001s grids remain the same. Noncommensurate steps now integrate exact fractional remainders rather than defer/drop them; this is a harness correction and changed-setup cohorts must be labeled.",
+    "success_check": "Check existing goal/dwell gates at updates; task success and physical compliance remain separate.",
+    "interval_gate": "No strict deadline gate; share of intervals longer than nominal dt is descriptive only. Preserve terminal clipped interval and identify it in summaries."
+  },
+  "stats": {
+    "feedback_solve_arrays": [
+      "timestamps",
+      "wall_solve_times_s",
+      "native_solve_times_ms",
+      "solve_times"
+    ],
+    "startup_timing": [
+      "startup_wall_solve_time_s",
+      "startup_native_solve_time_ms"
+    ],
+    "all_execution_intervals": [
+      "interval_start_times_s",
+      "update_intervals_s",
+      "requested_update_intervals_s",
+      "interval_goal_indices",
+      "interval_plan_solve_indices",
+      "interval_timeout_clipped"
+    ],
+    "interval_mapping": "interval_plan_solve_indices=0 means startup solve; index1 and later map to feedback solves. All interval arrays include terminal intervals, while feedback solve arrays contain only intervals followed by another solve.",
+    "raw_solves": "record_raw=True: startup/cold, warm and goal_switch records with state/reference/shifted warm_start/output arrays per lane, simulated timestamp, goal index, solve index, shift seconds, wall seconds, native milliseconds, selected lane and full solver stats when track_full_stats=True",
+    "raw_execution": "record_raw=True: every simulated substep start time, actual step seconds, plan solve index, measured goal index, augmented control, full state before and after. Live applied controls remain unobservable here; live recorder must retain its separate histories.",
+    "terminal": [
+      "initial_state",
+      "initial_planned_control",
+      "terminal_state",
+      "terminal_time_s"
+    ],
+    "persistence": "Campaign uses record_raw=True and persists read-only record_callback events into fresh attempt directories with source/build/input/config hashes. self.last_run_stats is available before startup and includes started/completed/failed records and recording_failure if callback raises. Exceptions propagate; native/plant failures are not successful task outcomes.",
+    "observer_events": [
+      "solve_started",
+      "solve_completed",
+      "solve_failed",
+      "step_started",
+      "step_completed",
+      "step_failed"
+    ]
+  },
+  "validation": {
+    "CPU_command": "PYTHONPATH=python:tiago_src /opt/gato-venv/bin/python -m pytest -q tests/python/test_reaching_timing.py tests/python/test_tiago_final_approach.py tests/python/test_tiago_controller_shutdown.py",
+    "coverage": [
+      "generic and TIAGo reaching",
+      "distinct wall and native timing",
+      "nominal startup",
+      "preceding returned-plan interval alignment",
+      "75ms solve exceeding 60ms control horizon",
+      "noncommensurate 7ms plant steps",
+      "fractional 7.5ms interval",
+      "final valid control hold",
+      "actual elapsed warm-start shift",
+      "per-goal timeout clipping",
+      "terminal reach before feedback solve",
+      "multiple goals and goal_switch categories",
+      "input/output copies survive solver buffer mutation",
+      "mode A defaults",
+      "invalid timing rejected before solver",
+      "live mode B rejected without ROS change",
+      "existing final-approach and shutdown CPU tests",
+      "archive callbacks excluded from paid wall duration",
+      "startup solve and plant substep failure retain pre-call evidence",
+      "callback failures preserved and propagated"
+    ],
+    "required_before_commit": "Independent review, substantive correction re-review, then coordinator's make test-tiago-tasks using audited test-only transplants 75b17ce/4b6fa25 and isolated current-source modules. Native suite keeps original replay modes/fixtures; no B01 baseline, skips, rescue tuning or retry-until-green.",
+    "CPU_result": "59 passed; one existing hppfcl import deprecation warning; no native solve construction, GPU jobs or builds by implementer."
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "production_core": "16b33719b4f0fd463eec7262c99b16b0b324366f",
+  "transplants": [
+    {
+      "commit": "75b17ce5acd9167b552543386fa4f312c42ea12d",
+      "patch_sha256": "c3491481e11018677ad1fd16fd32a09d86705d6564bd9521c0f614ac878a62a2",
+      "paths": [
+        "CMakeLists.txt",
+        "Makefile",
+        "pyproject.toml",
+        "tests/README.md",
+        "tests/python/test_tiago_task_regression.py",
+        "tests/python/tiago_task_cases",
+        "tests/python/tiago_task_worker.py",
+        "tests/tiago_task_qualification.json"
+      ]
+    },
+    {
+      "commit": "4b6fa25e22fa47cae0199b6b7161f86806bc1cfe",
+      "patch_sha256": "88edfe31e40bcfe6b6d860f9840ef8fb444975932aabdd9ab4f67cd2a980d781",
+      "paths": [
+        "tests/README.md",
+        "tests/tiago_task_qualification.json"
+      ]
+    }
+  ],
+  "no_solver_source_transplanted": true,
+  "fixtures": {
+    "tests/python/tiago_task_cases/figure8_tracking.json": "78da04c93f8e799cd04543de7fed6492cb6dfd725ae0bb42b4b9b768ed85ce15",
+    "tests/python/tiago_task_cases/long_reach.json": "05a0784ee2abe24e00eb0c799c4197c08bc401d1eee67f39e6cc9dbc107dd691",
+    "tests/python/tiago_task_cases/short_reach.json": "fc7b77a8054d41b32f7d49ab7c4e44696c45e657c4a104d6c29f68a0664a3055"
+  }
+}

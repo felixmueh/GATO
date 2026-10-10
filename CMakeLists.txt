@@ -207,6 +207,23 @@ if(BUILD_TESTING)
     USES_TERMINAL
     COMMENT "Building tracking test dependencies and running tracking tests")
 
+  if(NOT TARGET bsqpN32_tiago_right)
+    add_gato_python_module(tiago_right 32)
+  endif()
+
+  # Explicit task suite: excluded from routine CTest/fast/smoke runs.
+  add_custom_target(
+    check-tiago-tasks
+    COMMAND $<TARGET_FILE:cuda_access_smoke>
+    COMMAND ${CMAKE_COMMAND} -E env
+            GATO_RUN_TIAGO_TASK_TESTS=1
+            GATO_TEST_ARTIFACT_DIR=${CMAKE_SOURCE_DIR}/test-artifacts/tiago-tasks
+            ${Python3_EXECUTABLE} -m pytest -m task_regression tests/python/test_tiago_task_regression.py
+    DEPENDS cuda_access_smoke bsqpN32_tiago_right
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    USES_TERMINAL
+    COMMENT "Building and running TIAGo task quality regressions")
+
   add_custom_target(
     check-performance
     COMMAND ${CMAKE_COMMAND} -E env
