@@ -30,6 +30,7 @@ def boundary(request, monkeypatch):
     mpc.nq_robot, mpc.nv_robot = 1, 1
     mpc.dt, mpc.batch_size, mpc.track_full_stats = .03, 1, True
     mpc.has_pendulum = False
+    mpc.constant_f_ext_world = np.zeros(6)
     mpc.model, mpc.data, mpc.actual_f_ext = None, None, None
     mpc.final_approach = FinalApproachSwitch(TIAGO_REACHING_SOLVER_PARAMS)
     mpc.update_force_batch = lambda q: None
@@ -70,8 +71,8 @@ def run(boundary, **kwargs):
         sim_dt=.007, goal_timeout=.12, record_raw=True, **kwargs)[1]
 
 
-def test_mode_b_clock_controls_remainder_hold_and_warm_alignment(boundary):
-    stats = run(boundary, offline_timing='solve_time')
+def test_legacy_clock_controls_remainder_hold_and_warm_alignment(boundary):
+    stats = run(boundary, offline_timing='solve_time_legacy')
     # Startup .8 seconds is retained but nominal .03 is executed first.
     np.testing.assert_allclose(stats['update_intervals_s'], [.03, .075, .0075, .0075])
     np.testing.assert_allclose(stats['requested_update_intervals_s'], [.03, .075, .0075, .01])
@@ -121,12 +122,12 @@ def test_mode_b_multiple_timeout_goals_keep_goal_switch_separate(boundary):
     _, stats = boundary.mpc.run_mpc_goals(np.zeros(2), [[100.,0.,0.], [200.,0.,0.]],
         sim_dt=.007, goal_timeout=.04, offline_timing='solve_time', record_raw=True)
     assert stats['goal_outcomes'] == ['timeout', 'timeout']
-    assert stats['terminal_time_s'] == pytest.approx(.08)
+    assert stats['terminal_time_s'] == pytest.approx(.145)
     assert stats['interval_goal_indices'][0] == 0
     assert stats['interval_goal_indices'][-1] == 1
     switch = [r for r in stats['raw_solves'] if r['category'] == 'goal_switch']
     assert len(switch) == 1
-    assert switch[0]['time_s'] == pytest.approx(.04)
+    assert switch[0]['time_s'] == pytest.approx(.105)
     assert switch[0]['goal_index'] == 1
     assert switch[0]['reference'][0, 0] == 200
     assert stats['raw_solves'][0]['category'] == 'startup/cold'
@@ -218,3 +219,84 @@ def test_recording_failure_preserved_and_propagated(boundary):
     assert partial['recording_failure']['error_type'] == 'OSError'
     assert partial['raw_solves'][0]['status'] == 'started'
     assert boundary.calls == []
+
+
+def test_current_b_executes_old_plan_at_activation_age_then_new_plan_on_arrival(boundary):
+    stats = run(boundary, offline_timing='solve_time')
+    assert stats['timing_mode'] == 'B'
+    np.testing.assert_allclose(stats['update_intervals_s'], [.03, .075, .0075, .0075])
+    assert stats['interval_plan_solve_indices'].tolist() == [0, 0, 1, 2]
+    # First 30ms consumes bootstrap u0=1; during first compute, bootstrap u1=2
+    # continues from age30ms and holds beyond horizon60ms. Returned u0=11 starts
+    # only at105ms; next u0=21 starts at112.5ms.
+    assert stats['terminal_state'][0] == pytest.approx(.03*1 + .075*2 + .0075*11 + .0075*21)
+    np.testing.assert_allclose(stats['feedback_timestamps_s'], [.03, .105, .1125])
+    assert stats['control_activation_timestamps_s'].tolist()[:2] == [pytest.approx(.105), pytest.approx(.1125)]
+    assert stats['control_activation_timestamps_s'][-1] is None
+    assert stats['plan_activation_status'][-1] == 'discarded_task_terminal'
+    solve2 = stats['raw_solves'][2]
+    assert solve2['previous_optimizer_reference_time_s'] == pytest.approx(.03)
+    assert solve2['warm_start_shift_s'] == pytest.approx(.075)
+    assert solve2['feedback_time_s'] == pytest.approx(.105)
+    assert solve2['warm_start'][0, 0] == pytest.approx(.18)
+    assert solve2['warm_start'][0, 2] == pytest.approx(12.)  # Warm seed age75ms, not newly active control age0.
+    initial_compute = [r for r in stats['raw_execution'] if .03 <= r['time_s'] < .105-1e-12]
+    assert initial_compute
+    assert all(r['plan_solve_index'] == 0 and r['control'][0] == 2 for r in initial_compute)
+    assert initial_compute[0]['active_control_age_s'] == pytest.approx(.03)
+    latest = stats['raw_solves'][-1]
+    np.testing.assert_allclose(latest['warm_start'][0, 3:5], [1.25, 2.5])
+    np.testing.assert_allclose(latest['warm_start'][0, [2, 5]], [21., 22.])
+    assert latest['output'][0, 2] == 31.
+    assert latest['activation_time_s'] is None
+    assert latest['activation_status'] == 'discarded_task_terminal'
+    assert latest['wall_solve_time_s'] == pytest.approx(.01)
+    assert stats['update_intervals_s'][-1] == pytest.approx(.0075)
+
+
+def test_current_b_goal_transition_keeps_active_old_plan_and_retains_unused_output(boundary):
+    _, stats = boundary.mpc.run_mpc_goals(np.zeros(2), [[100.,0.,0.], [200.,0.,0.]],
+        sim_dt=.007, goal_timeout=.04, offline_timing='solve_time', record_raw=True)
+    raw = stats['raw_solves']
+    assert raw[1]['activation_status'] == 'discarded_goal_transition'
+    assert raw[2]['category'] == 'goal_switch'
+    assert raw[1]['solve_arrival_time_s'] == pytest.approx(.105)
+    assert raw[2]['feedback_time_s'] == pytest.approx(.105)
+    assert raw[2]['previous_optimizer_reference_time_s'] == pytest.approx(.03)
+    assert raw[2]['warm_start_shift_s'] == pytest.approx(.075)
+    after_transition = [r for r in stats['raw_execution'] if .105-1e-12 <= r['time_s'] < .1125-1e-12]
+    assert after_transition
+    assert all(r['plan_solve_index'] == 0 and r['control'][0] == 2 for r in after_transition)
+    assert after_transition[0]['active_control_age_s'] == pytest.approx(.105)
+    assert stats['goal_outcomes'] == ['timeout', 'timeout']
+    # This is the retained review failure: first call's 75ms must be paid in
+    # full after feedback30ms, despite goal0's requested deadline40ms.
+    # Bootstrap is exempt because its duration is explicitly uncharged.
+    for previous, following in zip(raw[1:], raw[2:]):
+        assert following['feedback_time_s'] >= previous['solve_arrival_time_s'] - 1e-12
+    assert raw[1]['activation_time_s'] is None
+    assert raw[1]['output'][0, 2] == 11.  # Solved output retained, never used.
+    assert raw[2]['activation_time_s'] == pytest.approx(.1125)
+    np.testing.assert_allclose(stats['goal_requested_deadline_times_s'], [.04, .145])
+    np.testing.assert_allclose(stats['goal_end_times_s'], [.105, .145])
+    np.testing.assert_allclose(stats['goal_timeout_lateness_s'], [.065, 0.], atol=1e-12)
+    assert stats['interval_timeout_clipped'].tolist()[:3] == [False, False, False]
+    assert stats['interval_timeout_clipped'][-1]
+    # Distinct output2 controls begin only at112.5ms, after the old startup
+    # plan pays both calls across the goal switch; discarded output1u=11
+    # never appears in the executed controls.
+    controls = [r['control'][0] for r in stats['raw_execution']]
+    assert 11. not in controls
+    assert 21. in controls
+    assert stats['terminal_time_s'] == pytest.approx(.145)
+
+
+def test_current_b_reach_during_compute_does_not_activate_completed_output(boundary):
+    _, stats = boundary.mpc.run_mpc_goals(np.zeros(2), [[.18,0.,0.]],
+        sim_dt=.007, goal_threshold=.001, goal_timeout=.5, offline_timing='solve_time', record_raw=True)
+    assert stats['goal_outcomes'] == ['reached']
+    assert stats['terminal_time_s'] == pytest.approx(.105)
+    assert len(stats['raw_solves']) == 2
+    assert stats['raw_solves'][1]['status'] == 'completed'
+    assert stats['raw_solves'][1]['activation_status'] == 'discarded_task_terminal'
+    assert all(r['plan_solve_index'] == 0 for r in stats['raw_execution'])

@@ -1,0 +1,167 @@
+{
+  "review_date_UTC": "2026-10-10",
+  "reviewer": "independent delegated controller source/CPU reviewer",
+  "production_core": "16b33719b4f0fd463eec7262c99b16b0b324366f",
+  "base_checkpoint": "9b69fd605bad87cabffcd0d9af4f7c9135b0a271",
+  "scope": "New shared offline helper, generic/TIAGo reaching+tracking integrations, CPU timing tests andmode protocol only. No solver/native/core fixes, GPU build/import/constructor/solve or task execution.",
+  "status": "Corrected timing-v2 static/CPU review ACCEPTED and required original-mode suite3/3 independently audited; actualBtaskfamily release held separately on failedQ02pendingFelixdecision.",
+  "reviewed_file_sha256": {
+    "python/bsqp/offline_mpc.py": "cd689296b079aad7bf0637768c6c5107e725e58b1bda57cf6adc92879fada198",
+    "python/bsqp/mpc_controller.py": "976591094ab6266596c2e89744e0ffbe33e8544c2f1c745623c275dc5edb570e",
+    "tiago_src/gato_tiago/tiago_mpc_controller.py": "e7b7471b88643395d7a51c106a36c9ebb39cfcfda892ac5d1ab6b679b94a73c8",
+    "tests/python/test_reaching_timing.py": "928cfc969cca132ca49ac57b98f766f4493ecfbaf28f1b5acb5fd3b826029e71",
+    "tests/python/test_tracking_timing.py": "479d03ef1f8ed67bee8678a04623151bb28d24397a55ca981101231706bfd482",
+    "experiments/campaign/mode_b_protocol.json": "bf0bf9f58ddfd20fd4b663fc0dcfea4193ba936a3755160f63039c72fb7cc6e7"
+  },
+  "all_six_snapshot_hashes_match": true,
+  "native_core_sources_unchanged_from_16b3371": true,
+  "independent_CPU_validation": {
+    "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=python:tiago_src /opt/gato-venv/bin/python -m pytest -q -p no:cacheprovider tests/python/test_reaching_timing.py tests/python/test_tracking_timing.py tests/python/test_tiago_final_approach.py tests/python/test_tiago_controller_shutdown.py",
+    "result": "103 passed; one existing hppfcl import warning;2.10s",
+    "scope": "Stub solver/plant CPU oracles; not native task qualification. Existing multi-goal test currently encodes the timing defect and needs correction."
+  },
+  "accepted_findings": {
+    "single_goal_tracking_clock": "For intervals not interrupted by intermediate goal transitions, active oldplan sampled at planttime-activationtime executes duringCURRENTmeasuredsolve; newselectedoutputu0 activates only on recorded arrival. No nominal interval inserted betweenfeedbacksolves.",
+    "startup": "Cold tasksolve wall/native timings retained separately; lane0 activatedt0/unpaid bootstrap; one nominaldt requestedprefix. This is distinct from unrelated process/CUDA warmup requiredF01ab.",
+    "warm_start": "Shift latestselectedsolvertrajectory byfeedbacktime-previousSOLVESTART referenceorigin; reanchorfirststate. Activecontrols separatelysample atplanttime-activationtime. Warmoutput mayremainseed whenactivationdiscarded; rawfields distinguishorigins.",
+    "tracking_reference": "Reference horizon sampled at actual pre-solve feedbacktime, not predictedarrival orfinaltaskendpoint; feedbackstates/errors andactivationclocks separate. No stale-state compensation claimed.",
+    "substeps": "Fractionalremainders immediatelyintegrated; noncommensurateplantsteps cut atactiveplan controlknots; terminalstate-onlyknotneverusedascontrol; final validcontrolheld past horizon.",
+    "terminal_overall_task": "Onlyfinaloverallgoal/taskendclips;allnonterminalgoalscheckatfullactualarrival;requesteddeadline/actualend/latenessdescriptive. Lateunactivatedterminaloroldgoaloutputsretained.",
+    "selection": "Existingmeasured-transition selection usesprior/currentpre-solvefeedbackobservations andprecedingexecutedinterval; no post-computationstate substitution. Current normalTIAGoB1 useslane0; no newbatchlane/forcepolicy.",
+    "raw": "Presolveinput/reference/warmstartcopies andpostsolveoutput/telemetrycopies outsideclock;started/completed/failedsolver+plantrecords,last_run_stats,selection/activation/discard/interval events,partialterminalstate retained;recordercallbackfailures propagate.",
+    "timing_scope": "perf_counteraround actualsolver.solve only; nativeus->ms separate;forceupdates/recording/selection/stats/RK4 excluded; no strictdeadlinegate.",
+    "A_legacy_live": "A/frozenreplay decisions/timing remain ininlineoriginal loops; explicit solve_time_legacy identifiespreceding-returned-plan duration. Reachingcheckpointfractionalintegration retained; legacytrackingnoncommensurateknotstraddle preserved. CurrentB rejectedwithlivecontroller;ROS overrunpolicy untouched."
+  },
+  "remaining_validation": "Noadditional frozen-suite replay requested. Q02FAIL2/560 hold/downstreamBdecision remains separate; exactreleasedprotocol/source/module/plan+matchingdryrun andcanonicalV01 preflight requiredbeforeBtasks.",
+  "H1_link": "review_harness.json separatelyacceptsA-diagnosticcorrection andmatchesintendedtrueBmetadata; itdoesnotqualify thisblockedcontrollerclock. H1receipt remainsheldpreparation.",
+  "initial_status": "BLOCKED: multi-goal transition drops current in-flight solve time; required native suite and B execution held pending correction/re-review",
+  "initial_reviewed_file_sha256": {
+    "python/bsqp/offline_mpc.py": "abb56c696d5cd5d1223661553f3d9f41b8d4a2021cfefb12a6c0a339b6fb9538",
+    "python/bsqp/mpc_controller.py": "976591094ab6266596c2e89744e0ffbe33e8544c2f1c745623c275dc5edb570e",
+    "tiago_src/gato_tiago/tiago_mpc_controller.py": "e7b7471b88643395d7a51c106a36c9ebb39cfcfda892ac5d1ab6b679b94a73c8",
+    "tests/python/test_reaching_timing.py": "67edff90070680e36a25fbca94fabc05c5f51b4f154c27657534e29520667f31",
+    "tests/python/test_tracking_timing.py": "479d03ef1f8ed67bee8678a04623151bb28d24397a55ca981101231706bfd482",
+    "experiments/campaign/mode_b_protocol.json": "5452f45be72c42be380ad79eebf9f5612327f601ebe4b6ea58b1665ad968b7b3"
+  },
+  "initial_blockers": [
+    {
+      "severity": "SUBSTANTIAL_CLOCK_BLOCKER",
+      "path": "python/bsqp/offline_mpc.py",
+      "finding": "execute(wall) clips at current per-goal timeout, check_task switches to a remaining goal, and loop launches its next solve at clipped time instead of waiting/paying previous full call. Compute time disappears and synchronous calls overlap in the simulated clock.",
+      "reproduction_scope": "Read-only CPU execution using existing test_reaching_timing.boundary fixture, bothgeneric/TIAGo,2goals/40mspergoal,delays[.8,.075,.0075,.01...]. No native solver or GPU.",
+      "evidence": {
+        "previous_feedback_solve_index": 1,
+        "previous_feedback_start_s": 0.03,
+        "previous_full_call_arrival_s": 0.10499999999999995,
+        "next_feedback_solve_start_s": 0.04,
+        "unpaid_prior_call_before_next_solve_s": 0.06499999999999995,
+        "observed_paid_after_startup_s": 0.049999999999999996,
+        "observed_completed_feedback_wall_total_s": 0.12249999999999994
+      },
+      "impact": "Multi-goal modeB understateselapsedcompute cost andchangesfeedback/goal-switch/warm-inputtiming; affectedrelease/experimentsheld. Existing103CPU suitepass doesnotprove thissemantics.",
+      "required_correction": "Preservefullin-flightcall availability beforeanynextsolve. Carry remainingmeasuredcomputation acrossintermediategoaltransitions orapply an explicitly reviewed transition-at-arrival policy; do not silentlydrop it. Keepoverallterminaltask clipping andfullrawrequested/realizedduration/outputdiscard evidence.",
+      "required_CPU_validation": "Independent oracle asserts nextsynchronoussolve feedbacktime>=previousfullcallarrival whenevertaskcontinues, compute durationconservation acrossmultiplegoals, currentgoal deadlines/goal indices/warm origins/controlage, unusedoldgoaloutputdiscard, and terminaltaskclipping withoutunnecessarynextsolve. Preserveinitialnegativefixture/results; nosolver/tolerance/goal rescue."
+    }
+  ],
+  "all_six_corrected_snapshot_hashes_match": true,
+  "substantive_correction_re_review": {
+    "correction": "Nonterminal goal currentcall fullwall is paid before taskcheck/transition; onlyfinaloverallgoal/taskend mayclip. Fullcallarrival orders allsubsequentfeedbacksolves;originalbug preserved ashistory.",
+    "independent_CPU_command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=python:tiago_src /opt/gato-venv/bin/python -m pytest -q -p no:cacheprovider tests/python/test_reaching_timing.py tests/python/test_tracking_timing.py tests/python/test_tiago_final_approach.py tests/python/test_tiago_controller_shutdown.py",
+    "result": "103 passed; one existing hppfcl import warning;2.09s",
+    "independent_original_fixture_replay": "Bothgeneric/TIAGo CPUfixture2goals40mspergoal:feedback .03 then .105;firstarrival.105;nonterminalpaidinterval.075;no subsequentfeedbackbeforepreviousarrival.",
+    "goal_deadline_evidence": {
+      "requested_first_goal_deadline_s": 0.04,
+      "actual_first_goal_end_s": 0.10499999999999995,
+      "first_goal_lateness_s": 0.06499999999999995,
+      "second_goal_deadline_and_terminal_s": 0.14499999999999996
+    },
+    "remaining_checks": "Oldgoaloutput retained/unactivated, activebootstrapcontrolagecontinuesacrosstransition, newgoalreturnactivatesat112.5ms,shiftoriginfeedback .03->.105=75ms independentactivation;finaloverallcall retainsfullwallwhileclippedexecutionends145ms.",
+    "new_observer_and_fields": "goal_finished event plusgoal_start/requesteddeadline/end/lateness arrays retained descriptively;no deadlinepass/failgate. Genericrawrecorder accepts event;errors propagateoutsidewalltimer.",
+    "native_core": "Stillunchanged16b3371; no reviewernativeconstruction/GPU/build."
+  },
+  "actual_required_native_suite_audit": {
+    "source_receipt": "/workspace/gato-campaign-g0-20261010/suite-current-b-source-receipt.json",
+    "source_receipt_sha256": "18a96c7456d6f7323d9b6497a47a13a743f1a5df0b80aeef04d0b97d33194c02",
+    "log": "/workspace/gato-campaign-g0-20261010/suite-current-b-once.log",
+    "log_sha256": "03f805821eea5aec5a5955a5e7d744d7d99812d5ed97840ea39e72860f4b81a7",
+    "logged_result": "3passed/1existingwarning/15.59s;CUDA smokeGTX1070sm61",
+    "source_fixture_module_hash_failures": [],
+    "new_directory_count": 3,
+    "case_count3": true,
+    "cases": [
+      {
+        "case": "figure8_tracking",
+        "artifact_directory": "/workspace/GATO-eval-ordinary/test-artifacts/tiago-tasks/figure8_tracking_s7inq5mr",
+        "all_frozen_gates_recomputed_pass": true,
+        "duration_s": 24.00000000000635,
+        "solves": 3001,
+        "wall_samples": 3001,
+        "plan_count": 3001,
+        "wall_samples_finite": true,
+        "physical_limits": {
+          "position_violation_rad": 0.0,
+          "velocity_violation_rad_s": 0.0,
+          "torque_violation_Nm": 0.0
+        },
+        "tracking_RMS_m": 0.014313471056150827,
+        "tracking_maximum_m": 0.026164842235667486
+      },
+      {
+        "case": "long_reach",
+        "artifact_directory": "/workspace/GATO-eval-ordinary/test-artifacts/tiago-tasks/long_reach_uayxfg0n",
+        "all_frozen_gates_recomputed_pass": true,
+        "duration_s": 1.4999999999999456,
+        "solves": 50,
+        "wall_samples": 50,
+        "plan_count": 50,
+        "wall_samples_finite": true,
+        "physical_limits": {
+          "position_violation_rad": 0.0,
+          "velocity_violation_rad_s": 0.0,
+          "torque_violation_Nm": 0.0
+        },
+        "tracking_RMS_m": null,
+        "tracking_maximum_m": null
+      },
+      {
+        "case": "short_reach",
+        "artifact_directory": "/workspace/GATO-eval-ordinary/test-artifacts/tiago-tasks/short_reach_ps070r6q",
+        "all_frozen_gates_recomputed_pass": true,
+        "duration_s": 0.5100000000000002,
+        "solves": 17,
+        "wall_samples": 17,
+        "plan_count": 17,
+        "wall_samples_finite": true,
+        "physical_limits": {
+          "position_violation_rad": 0.0,
+          "velocity_violation_rad_s": 0.0,
+          "torque_violation_Nm": 0.0
+        },
+        "tracking_RMS_m": null,
+        "tracking_maximum_m": null
+      }
+    ],
+    "new_artifact_sha256": {
+      "/workspace/GATO-eval-ordinary/test-artifacts/tiago-tasks/figure8_tracking_s7inq5mr/execution.npz": "47e8d765e8dfbfa8db56487cd5bb1fb27183450697b591602447987eaf84dcc0",
+      "/workspace/GATO-eval-ordinary/test-artifacts/tiago-tasks/figure8_tracking_s7inq5mr/public_stats.json": "3b98332492daf9e9fe11bacc01ca79bd07a8c1d9cd1c3e4930697724d18124b2",
+      "/workspace/GATO-eval-ordinary/test-artifacts/tiago-tasks/figure8_tracking_s7inq5mr/receipt.json": "7f6a8f2bb4c107bb7301726500cb5e8785aadd502a85f62f5cfa1b9a645f0342",
+      "/workspace/GATO-eval-ordinary/test-artifacts/tiago-tasks/figure8_tracking_s7inq5mr/reference.npz": "560a7fb7287602a3f5852db1992e9c695c6285a4837c617308145517db68370a",
+      "/workspace/GATO-eval-ordinary/test-artifacts/tiago-tasks/figure8_tracking_s7inq5mr/stderr.txt": "340b6cf74acad2945b9034b3ff239979e66e4d138a09bc566bcbf8cbd637378b",
+      "/workspace/GATO-eval-ordinary/test-artifacts/tiago-tasks/figure8_tracking_s7inq5mr/stdout.txt": "79a756ea7552779e11f9e3111976145152a9c7f7b98bf2f058dd1fdf1a57fb93",
+      "/workspace/GATO-eval-ordinary/test-artifacts/tiago-tasks/figure8_tracking_s7inq5mr/summary.json": "1a75958b48629d1a3633690fd4616f8fc49dd53c8d45eb0c70b10b9ebaf4ae8e",
+      "/workspace/GATO-eval-ordinary/test-artifacts/tiago-tasks/long_reach_uayxfg0n/execution.npz": "8436b168cadfcec2e2956ba6a6246dd14479017edd3534bb7272d49756e1071c",
+      "/workspace/GATO-eval-ordinary/test-artifacts/tiago-tasks/long_reach_uayxfg0n/public_stats.json": "7e4266acb78b4a2379b9bbad180f265d609e292a84a6b217ae1abc402f820dc6",
+      "/workspace/GATO-eval-ordinary/test-artifacts/tiago-tasks/long_reach_uayxfg0n/receipt.json": "a4c6cdb0bbc2f16f34d00e71588bcd25529df7a54319c4af54263a923246d184",
+      "/workspace/GATO-eval-ordinary/test-artifacts/tiago-tasks/long_reach_uayxfg0n/stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "/workspace/GATO-eval-ordinary/test-artifacts/tiago-tasks/long_reach_uayxfg0n/stdout.txt": "67212aa0e36f769b152d1e4e9fafbc0ed73f20c29363827faf306146e8f2aed7",
+      "/workspace/GATO-eval-ordinary/test-artifacts/tiago-tasks/long_reach_uayxfg0n/summary.json": "5281bcd782bc5090cad3ebcb696cf3b8976a5ed9f8f6f63e122a116eba3aca59",
+      "/workspace/GATO-eval-ordinary/test-artifacts/tiago-tasks/short_reach_ps070r6q/execution.npz": "e81fe7b81d7e2ab18f7153724efffb95942d9d0f9f3cf8e38170790c4cf5616f",
+      "/workspace/GATO-eval-ordinary/test-artifacts/tiago-tasks/short_reach_ps070r6q/public_stats.json": "d059ed0f346caaaf4e006a24d30ab648097825e51a7490820596f7d65c8d6dfa",
+      "/workspace/GATO-eval-ordinary/test-artifacts/tiago-tasks/short_reach_ps070r6q/receipt.json": "a5da648779db2ab488eb2c065a669e62680da03a07687da5eeb5fd8e4ab622c3",
+      "/workspace/GATO-eval-ordinary/test-artifacts/tiago-tasks/short_reach_ps070r6q/stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "/workspace/GATO-eval-ordinary/test-artifacts/tiago-tasks/short_reach_ps070r6q/stdout.txt": "406bf82dbc9788cead7137f4647c7d11168558a3ed12082a156d28c13649aee4",
+      "/workspace/GATO-eval-ordinary/test-artifacts/tiago-tasks/short_reach_ps070r6q/summary.json": "fa5a04dd4514cfc4c3c5d4edaf402c4743c10a7e47f011701b7bb8db28e5be2d"
+    },
+    "scope": "ExactlyoneoriginalmodeA-equivalentfrozenregression suite aftercorrectedtiming staticreview. No reviewerGPUrun; notrealBtask/canonical3ms viability/modelconvergencequalification. Originalworkerrawcontractlimitationsremain."
+  }
+}

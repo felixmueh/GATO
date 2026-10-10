@@ -1,37 +1,46 @@
 {
-  "id": "Q04-reaching-timing",
-  "status": "implementation CPU-validated; independent review and required native task suite pending",
+  "id": "Q04-controller-timing-v2",
+  "status": "true old-plan mode B CPU-validated; independent review and required native task suite pending",
   "production_core": "16b33719b4f0fd463eec7262c99b16b0b324366f",
-  "scope": "offline experiment/controller reaching harness only; no solver or ROS overrun policy changes",
+  "scope": "offline reaching and figure-eight controller harnesses, generic and TIAGo; no solver or ROS overrun policy changes",
   "api": {
-    "method": "MPC_GATO.run_mpc_goals",
+    "method": [
+      "MPC_GATO.run_mpc_goals",
+      "MPC_GATO.run_mpc_fig8"
+    ],
     "offline_timing_default": "controller_dt",
     "mode_A": "controller_dt",
     "mode_B": "solve_time",
     "record_raw_default": false,
     "campaign_record_raw_required": true,
     "live_policy": "solve_time rejected with controller; default live path retains ROS policy",
-    "record_callback": "Optional (event, record) read-only observer with record_raw=True; before/after solve and plant substep events are outside solve wall timer."
+    "record_callback": "Optional (event, record) read-only observer with record_raw=True; before/after solve and plant substep events are outside solve wall timer.",
+    "historical_approximation": "solve_time_legacy; timing_mode=B-legacy. Never pool with current B."
   },
   "clock": {
     "mode_B_scope": "perf_counter wall seconds around solver.solve only, including wrapper work within the call; excludes force-batch updates, recording, statistics, selection and plant integration",
-    "alignment": "The most recently returned plan is executed in the next plant interval for the wall duration of the solve that produced it. This is the existing tracking preceding-duration approximation, not concurrent integration during the actual call or an exact asynchronous stale-plan replay.",
-    "startup": "The first task solve starts from the ordinary initial guess (or explicit initial_guess for TIAGo); it is recorded as startup/cold. Startup solve wall/native durations are retained, but first plant interval is nominal dt. This task solve is not the unrelated process/CUDA warm-up required by F01ab; that warm-up must be supplied separately by the experiment.",
+    "alignment": "At feedback/solve start, freeze measured state, current goal/reference window and shifted seed. Measure solver.solve wall duration. Replay the OLD active plan for that duration at its existing time since activation; only then activate the selected returned plan at control u0 on arrival. No separate nominal interval is inserted between feedback solves. This sequential offline replay implements the same plant/control behavior as holding the old plan while computation runs; it does not claim GPU/plant computation concurrency or compensate stale initial state.",
+    "startup": "First task solve starts from the normal initial guess (or explicit TIAGo initial_guess); category startup/cold, selected lane0, activated at simulated t=0. Retain startup wall/native durations; do not charge them to plant. Execute one requested nominal dt prefix, clipped only at terminal overall task boundary; nonterminal goal check occurs after full nominal prefix. Bootstrap active control age is dt at first feedback. This is not the unrelated process/CUDA warm-up required by F01ab; that warm-up is supplied separately.",
     "native_units": "solver.solve returns native microseconds; divide by 1000 for milliseconds. Native timing never drives mode B.",
     "substeps": "Maximum sim_dt; split at piecewise-constant control-knot boundaries and integrate fractional remainders immediately, with no deferred remainder accumulation.",
     "plan_end": "Packed terminal knot is state-only; clamp control selection to knot N-2 and hold the final valid control beyond the horizon.",
-    "warm_start": "Shift previous selected trajectory by actual elapsed execution interval, then re-anchor first state at measured state; preserve exact shifted solver input.",
-    "timeout_mode_B": "Clip requested interval at remaining per-goal timeout; preserve requested/realized duration and clipping flag. Record final interval even when it leads to reach/timeout without another solve.",
-    "timeout_mode_A": "Preserve previous at-update timeout checking without clipping. Canonical .03s intervals on .003s/.001s grids remain the same. Noncommensurate steps now integrate exact fractional remainders rather than defer/drop them; this is a harness correction and changed-setup cohorts must be labeled.",
+    "warm_start": "Optimizer trajectory reference origin is previous SOLVE START, not its activation. At next feedback shift the latest selected solved output by feedback_time - previous_optimizer_reference_time, then re-anchor first state to current measured state. The output is a warm seed even if it was discarded from activation at a goal transition. Control sampling separately uses plant_time - active_plan_activation_time; a newly activated plan can have zero control age while its optimizer seed already has nonzero reference age. No stale-state compensation or cost/solver tuning is introduced.",
+    "timeout_mode_B": "Every nonterminal goal pays the FULL measured solver call duration before another solve or goal switch, even if its requested per-goal deadline lies inside that interval. Check existing reach/timeout gates at actual arrival, record requested deadline, actual goal end and lateness descriptively, then switch goal. Only the final overall reaching-task goal timeout or tracking task/reference end may clip replay; its completed late output is retained but never activated, with full requested arrival and actual shorter execution saved. Old active plan continues aging across nonterminal goal transitions. No new solve before prior call arrival. Bootstrap remains uncharged and no additional solve is performed after its terminal prefix.",
+    "timeout_mode_A": "Mode A and legacy loops retain checkpoint decisions and timeout conventions, including tracking at-loop-entry duration checks and possible terminal feedback solve. No new A clipping or control-knot splitting is introduced. Reaching retains checkpoint fractional integration correction; legacy tracking retains its original plant-grid sampling, including a step straddling a control knot on noncommensurate grids. Historical cohorts must use their original mode/version.",
     "success_check": "Check existing goal/dwell gates at updates; task success and physical compliance remain separate.",
-    "interval_gate": "No strict deadline gate; share of intervals longer than nominal dt is descriptive only. Preserve terminal clipped interval and identify it in summaries."
+    "interval_gate": "No strict deadline gate; share of intervals longer than nominal dt is descriptive only. Preserve terminal clipped interval and identify it in summaries.",
+    "reference": "Tracking samples its next window at actual feedback/solve-start time, never predicted future arrival. New plans start u0 on arrival as in live plan-arrival policy, despite their stale solve-start state/reference; clocks are recorded separately.",
+    "selection": "Preserve evaluate_best_trajectory measured-transition provenance: pass prior/current pre-solve feedback states, recorded control and preceding executed interval; do not substitute newly advanced post-computation state. Current V01/T01 B1 selects lane0. No new batch-lane selection or force-estimation policy."
   },
   "stats": {
     "feedback_solve_arrays": [
       "timestamps",
       "wall_solve_times_s",
       "native_solve_times_ms",
-      "solve_times"
+      "solve_times",
+      "feedback_timestamps_s",
+      "control_activation_timestamps_s",
+      "plan_activation_status"
     ],
     "startup_timing": [
       "startup_wall_solve_time_s",
@@ -45,9 +54,9 @@
       "interval_plan_solve_indices",
       "interval_timeout_clipped"
     ],
-    "interval_mapping": "interval_plan_solve_indices=0 means startup solve; index1 and later map to feedback solves. All interval arrays include terminal intervals, while feedback solve arrays contain only intervals followed by another solve.",
-    "raw_solves": "record_raw=True: startup/cold, warm and goal_switch records with state/reference/shifted warm_start/output arrays per lane, simulated timestamp, goal index, solve index, shift seconds, wall seconds, native milliseconds, selected lane and full solver stats when track_full_stats=True",
-    "raw_execution": "record_raw=True: every simulated substep start time, actual step seconds, plan solve index, measured goal index, augmented control, full state before and after. Live applied controls remain unobservable here; live recorder must retain its separate histories.",
+    "interval_mapping": "interval_plan_solve_indices identifies the ACTUALLY EXECUTED active plan: bootstrap solve0 runs nominal startup and first paid compute interval; returned solve1 starts only on arrival. Discarded outputs do not appear as executed plans. All interval arrays retain terminal intervals; feedback-solve arrays retain every performed feedback call, including a completed output that never activates.",
+    "raw_solves": "record_raw=True: full per-lane state/reference/shifted seed/output, cold/warm/goal_switch category, selected lane, solver telemetry when track_full_stats=True, solve index, feedback_time_s/optimizer_reference_time_s, previous_optimizer_reference_time_s, shift seconds, solve_arrival_time_s, activation_time_s, activation_status, wall seconds/native milliseconds. Requested arrival can lie after clipped task end; discarded outputs retain full duration and bytes.",
+    "raw_execution": "Every attempted simulated substep has start time, exact step duration, active plan index, active_control_age_s, goal index, full augmented control and state_before. Completed steps retain state_after; failed steps retain errors. Terminal state/time are updated after each successful substep for interrupted evidence. Live applied controls remain unobservable here and need their own histories.",
     "terminal": [
       "initial_state",
       "initial_planned_control",
@@ -61,34 +70,49 @@
       "solve_failed",
       "step_started",
       "step_completed",
-      "step_failed"
+      "step_failed",
+      "solve_selected",
+      "plan_activated",
+      "plan_discarded",
+      "interval_completed",
+      "goal_finished"
+    ],
+    "goal_timing": [
+      "goal_start_times_s",
+      "goal_requested_deadline_times_s",
+      "goal_end_times_s",
+      "goal_timeout_lateness_s"
     ]
   },
   "validation": {
-    "CPU_command": "PYTHONPATH=python:tiago_src /opt/gato-venv/bin/python -m pytest -q tests/python/test_reaching_timing.py tests/python/test_tiago_final_approach.py tests/python/test_tiago_controller_shutdown.py",
+    "CPU_command": "PYTHONPATH=python:tiago_src /opt/gato-venv/bin/python -m pytest -q tests/python/test_reaching_timing.py tests/python/test_tracking_timing.py tests/python/test_tiago_final_approach.py tests/python/test_tiago_controller_shutdown.py",
     "coverage": [
-      "generic and TIAGo reaching",
-      "distinct wall and native timing",
-      "nominal startup",
-      "preceding returned-plan interval alignment",
-      "75ms solve exceeding 60ms control horizon",
-      "noncommensurate 7ms plant steps",
-      "fractional 7.5ms interval",
-      "final valid control hold",
-      "actual elapsed warm-start shift",
-      "per-goal timeout clipping",
-      "terminal reach before feedback solve",
-      "multiple goals and goal_switch categories",
-      "input/output copies survive solver buffer mutation",
-      "mode A defaults",
+      "generic/TIAGo reaching and figure-eight",
+      "distinct old/new controls during computation",
+      "active-plan offset retains nominal startup age",
+      "feedback vs arrival vs activation clocks",
+      "reference windows at measured solve-start time",
+      "optimizer-reference shift independent of active-control age",
+      "fractional warm-state interpolation",
+      "75ms solve exceeding 60ms horizon with last valid control hold",
+      "noncommensurate 7ms substeps and 7.5ms remainder",
+      "control-knot boundaries at activation-offset times",
+      "terminal timeout clipping and unactivated completed output",
+      "multiple goals discard old-goal output and preserve its seed",
+      "reach during old-plan compute without activating return",
+      "mode A/frozen replay and explicit legacy behavior",
+      "full raw copies survive solver buffer mutation",
+      "record callbacks excluded from paid wall duration",
+      "native/plant/callback failures preserve partial evidence and propagate",
       "invalid timing rejected before solver",
-      "live mode B rejected without ROS change",
-      "existing final-approach and shutdown CPU tests",
-      "archive callbacks excluded from paid wall duration",
-      "startup solve and plant substep failure retain pre-call evidence",
-      "callback failures preserved and propagated"
+      "live current mode B rejected with ROS policy unchanged",
+      "existing final-approach/shutdown CPU coverage",
+      "nonterminal compute debt fully paid: every subsequent feedback after prior actual solve arrival; requested goal deadline versus actual update retained"
     ],
     "required_before_commit": "Independent review, substantive correction re-review, then coordinator's make test-tiago-tasks using audited test-only transplants 75b17ce/4b6fa25 and isolated current-source modules. Native suite keeps original replay modes/fixtures; no B01 baseline, skips, rescue tuning or retry-until-green.",
-    "CPU_result": "59 passed; one existing hppfcl import deprecation warning; no native solve construction, GPU jobs or builds by implementer."
-  }
+    "CPU_result": "103 passed, one existing hppfcl import deprecation warning; final correction validation retained by coordinator, no native solver construction, GPU job or build by implementer.",
+    "review_correction": "Independent review found nonterminal per-goal clipping allowed a second call at40ms before the preceding call arrived105ms, dropping65ms of paid time. Original snapshot/evidence retained by coordinator. Corrected clipping to final overall task stop only; update-boundary nonterminal goal transitions now occur at actual arrival."
+  },
+  "authorization": "Felix explicitly selected old-plan execution during solve after reviewing the inherited preceding returned-plan approximation; v2 supersedes that approximation for current mode B.",
+  "checkpoint": "9b69fd6: prior mode B reaching approximation remains accessible as solve_time_legacy; original tracking approximation is similarly explicit"
 }

@@ -154,14 +154,32 @@ class MPC_GATO:
         sim_dt=0.001,
         sim_time=5.0,
         offline_timing="controller_dt",
+        record_raw=False,
+        record_callback=None,
     ):
         """
         Run MPC controller tracking figure-8 trajectory.
         
-        Returns only essential statistics for visualization and analysis.
+        Current solve_time mode executes the old active plan during the current
+        solver call wall duration, then activates the result on arrival.
+        solve_time_legacy preserves the historical preceding-duration clock.
+        record_raw/record_callback retain every solver input/output and simulated
+        substep; callbacks are read-only observers outside the solve timer.
+        Default controller_dt and the live ROS control policy are preserved.
         """
-        if offline_timing not in {"controller_dt", "solve_time"}:
-            raise ValueError("offline_timing must be 'controller_dt' or 'solve_time'")
+        if not np.isfinite(sim_dt) or sim_dt <= 0 or not np.isfinite(self.dt) or self.dt <= 0:
+            raise ValueError("sim_dt and dt must be finite and positive")
+        if not np.isfinite(sim_time) or sim_time <= 0:
+            raise ValueError("sim_time must be finite and positive")
+        if offline_timing not in {"controller_dt", "solve_time", "solve_time_legacy"}:
+            raise ValueError("offline_timing must be 'controller_dt', 'solve_time', or 'solve_time_legacy'")
+
+        if offline_timing == "solve_time":
+            from bsqp.offline_mpc import run_mode_b
+            return run_mode_b(self, x_start, reference=fig8_traj, sim_time=sim_time,
+                sim_dt=sim_dt, record_raw=record_raw, record_callback=record_callback,
+                clock=time.perf_counter,
+                integrate=lambda q, dq, u, step_dt: rk4(self.model, self.data, q, dq, u, step_dt, self.actual_f_ext))
 
         # Initialize essential statistics
         stats = {
@@ -176,6 +194,10 @@ class MPC_GATO:
             'planned_controls': [],   # First control planned for the next interval
         }
         
+        from bsqp.offline_mpc import OfflineRecorder, finish_arrays
+        recorder = OfflineRecorder(self, stats, offline_timing, record_raw, record_callback, time.perf_counter)
+        stats['timing_convention'] = 'historical fixed clock' if offline_timing == 'controller_dt' else 'legacy preceding returned-plan duration'
+
         # Add SQP iterations only if tracking full stats
         if self.track_full_stats:
             stats['sqp_iters'] = []
@@ -206,8 +228,17 @@ class MPC_GATO:
         
         # Warm up solve
         self.update_force_batch(q)
-        XU_batch, _ = self.solver.solve(x_curr_batch, ee_g_batch, XU_batch)
+        XU_batch, native_us, startup_wall, bootstrap = recorder.solve(
+            x_curr_batch, ee_g_batch, XU_batch, 0., 0, 0., 'startup/cold', 0.)
+        stats['startup_wall_solve_time_s'] = float(startup_wall)
+        stats['startup_native_solve_time_ms'] = float(native_us)/1000.
+        stats['initial_state'] = x_curr.copy()
+        plan_solve_index = 0
+        optimizer_time = 0.
+        recorder.select(bootstrap, 0)
+        recorder.activation(bootstrap, 0.)
         XU_best = XU_batch[0, :]
+        stats['initial_planned_control'] = XU_best[self.nx:self.nx+self.nu].copy()
         
         print(f"\nRunning MPC: N={self.N}, batch={self.batch_size}, time={sim_time}s")
         if np.any(self.constant_f_ext_world):
@@ -216,13 +247,14 @@ class MPC_GATO:
         # Main control loop
         last_solver_wall_time = self.dt
         while total_sim_time < sim_time:
+            interval_start = total_sim_time
             
             # Store state for force estimation
             x_last = x_curr
             u_last = XU_best[self.nx:self.nx+self.nu]
             applied_u = u_last.copy()
             
-            if offline_timing == "solve_time":
+            if offline_timing == "solve_time_legacy":
                 timestep = max(float(last_solver_wall_time), np.finfo(np.float64).eps)
             else:
                 # Default offline simulation follows the controller clock.
@@ -235,12 +267,19 @@ class MPC_GATO:
                 u = sample_packed_trajectory_control(
                     XU_best, self.nx, self.nu, self.N, interval_elapsed, self.dt
                 )
-                q, dq = rk4(self.model, self.data, q, dq, u, step_dt, self.actual_f_ext)
+                q, dq = recorder.step(
+                    lambda q, dq, torque, step: rk4(self.model, self.data, q, dq, torque, step, self.actual_f_ext),
+                    q, dq, u, step_dt, total_sim_time, plan_solve_index, 0, interval_elapsed)
                 total_sim_time += step_dt
                 interval_elapsed += step_dt
                 
             x_curr = np.concatenate([q, dq])
             
+            recorder.interval(interval_start, total_sim_time-interval_start, timestep,
+                              plan_solve_index, 0, False, interval_start)
+            stats['terminal_state'] = x_curr.copy()
+            stats['terminal_time_s'] = float(total_sim_time)
+
             # Check if trajectory is complete
             if total_sim_time >= (len(fig8_traj) / 6 - self.N) * self.dt:
                 break
@@ -269,17 +308,16 @@ class MPC_GATO:
             self.update_force_batch(q)
             self.solver.reset_rho()
             
-            start = time.time()
-            XU_batch_new, gpu_solve_time = self.solver.solve(
-                x_curr_batch,
-                ee_g_batch,
-                XU_batch,
-            )
-            last_solver_wall_time = time.time() - start
+            XU_batch_new, gpu_solve_time, last_solver_wall_time, raw = recorder.solve(
+                x_curr_batch, ee_g_batch, XU_batch, total_sim_time, 0, timestep, 'warm', optimizer_time)
+            optimizer_time = total_sim_time
+            plan_solve_index += 1
             
             # Select best trajectory
             best_id = self.evaluate_best_trajectory(x_last, u_last, x_curr, timestep)
             XU_best = XU_batch_new[best_id, :]
+            recorder.select(raw, best_id)
+            recorder.activation(raw, total_sim_time)
             XU_batch[:, :] = XU_best
             planned_u = XU_best[self.nx:self.nx+self.nu].copy()
             
@@ -290,7 +328,12 @@ class MPC_GATO:
             tool_axis_error = self.solver.ee_tool_axis_error(q_solver, ee_g[9:12])
             
             stats['timestamps'].append(total_sim_time)
-            stats['solve_times'].append(gpu_solve_time/1000.0)  # Convert to ms
+            stats['solve_times'].append(gpu_solve_time/1000.0)  # Native us -> ms
+            stats['native_solve_times_ms'].append(float(gpu_solve_time)/1000.)
+            stats['wall_solve_times_s'].append(float(last_solver_wall_time))
+            stats['feedback_timestamps_s'].append(float(total_sim_time))
+            stats['control_activation_timestamps_s'].append(float(total_sim_time))
+            stats['plan_activation_status'].append('activated')
             stats['goal_distances'].append(goal_dist)
             stats['tool_axis_errors'].append(tool_axis_error)
             stats['ee_actual'].append(ee_pos.copy())
@@ -326,15 +369,10 @@ class MPC_GATO:
                 else:
                     stats['kkt_converged'].append(int(kkt_converged) if kkt_converged != [] else 0)
                 
-        # Convert to numpy arrays
-        for key in stats:
-            if stats[key]:
-                try:
-                    stats[key] = np.array(stats[key])
-                except (ValueError, TypeError):
-                    # Keep as list if conversion fails
-                    pass
-                
+        stats['terminal_state'] = x_curr.copy()
+        stats['terminal_time_s'] = float(total_sim_time)
+        finish_arrays(stats)
+
         # Print summary
         print(f"Avg error: {np.mean(stats['goal_distances']):.4f}m")
         print(f"Avg tool-axis direction error: {np.mean(stats['tool_axis_errors']):.4f}rad")
@@ -445,8 +483,9 @@ class MPC_GATO:
             goals: List of 3D goal positions np.array([x, y, z])
             sim_dt: Maximum simulation substep (seconds)
             offline_timing: "controller_dt" (A) or "solve_time" (B). B executes
-                the current plan for the preceding solve call wall duration;
-                startup executes one nominal interval. Native timing is separate.
+                the old active plan during the measured solve call, then activates
+                new output on arrival. solve_time_legacy retains the checkpoint
+                preceding-duration approximation. Startup interval is nominal.
             record_raw: Retain every solve input/output and executed substep.
             record_callback: Optional (event, record) observer with record_raw=True;
                 invoked outside solve timing. Records must be treated as read-only.
@@ -466,8 +505,8 @@ class MPC_GATO:
         """
         from copy import deepcopy
 
-        if offline_timing not in {"controller_dt", "solve_time"}:
-            raise ValueError("offline_timing must be 'controller_dt' or 'solve_time'")
+        if offline_timing not in {"controller_dt", "solve_time", "solve_time_legacy"}:
+            raise ValueError("offline_timing must be 'controller_dt', 'solve_time', or 'solve_time_legacy'")
         if record_callback is not None and not record_raw:
             raise ValueError("record_callback requires record_raw=True")
         if not np.isfinite(sim_dt) or sim_dt <= 0 or not np.isfinite(self.dt) or self.dt <= 0:
@@ -476,6 +515,19 @@ class MPC_GATO:
             raise ValueError("goal_timeout must be finite and positive")
         if len(goals) == 0:
             raise ValueError("at least one goal is required")
+        if offline_timing == "solve_time":
+            from bsqp.offline_mpc import run_mode_b
+            poses = np.atleast_2d(np.asarray(goals))
+            if poses.shape[1] != 3:
+                raise ValueError("goals must contain three-dimensional positions")
+            poses = np.hstack([poses, np.zeros((len(poses), 3))])
+            return run_mode_b(self, x_start, goals=poses, reset_rho_each_solve=True,
+                goal_timeout=goal_timeout, goal_threshold=goal_threshold,
+                velocity_threshold=velocity_threshold, goal_dwell_time=goal_dwell_time,
+                sim_dt=sim_dt, record_raw=record_raw, record_callback=record_callback,
+                clock=time.perf_counter,
+                integrate=lambda q, dq, u, step_dt: rk4(self.model, self.data, q, dq, u, step_dt, self.actual_f_ext))
+
         # Initialize statistics
         stats = {
             'timestamps': [],
@@ -489,7 +541,7 @@ class MPC_GATO:
         
         stats.update({
             'offline_timing': offline_timing,
-            'timing_mode': 'B' if offline_timing == 'solve_time' else 'A',
+            'timing_mode': 'B-legacy' if offline_timing == 'solve_time_legacy' else 'A',
             'raw_execution_scope': 'simulated plant substeps',
             'timing_scope': 'perf_counter wall seconds around solver.solve only; native microseconds converted to milliseconds',
             'nominal_feedback_s': float(self.dt),
@@ -621,9 +673,9 @@ class MPC_GATO:
             # Execute the current (previously returned) plan. B intentionally
             # uses the preceding solve duration, matching the tracking harness.
             requested_timestep = (max(float(last_solver_wall_time), np.finfo(np.float64).eps)
-                                  if offline_timing == "solve_time" else self.dt)
+                                  if offline_timing == "solve_time_legacy" else self.dt)
             timestep = requested_timestep
-            if offline_timing == "solve_time":
+            if offline_timing == "solve_time_legacy":
                 timestep = min(timestep, max(0.0, goal_timeout - (total_sim_time - goal_start_time)))
             interval_elapsed = 0.0
             while interval_elapsed + 1e-12 < timestep:
@@ -673,7 +725,7 @@ class MPC_GATO:
             stats['interval_goal_indices'].append(interval_goal_index)
             stats['interval_plan_solve_indices'].append(plan_solve_index)
             stats['interval_timeout_clipped'].append(bool(
-                offline_timing == "solve_time" and timestep < requested_timestep))
+                offline_timing == "solve_time_legacy" and timestep < requested_timestep))
 
             # Check goal reached or timeout
             ee_pos = self.solver.ee_pos(q_robot)
@@ -688,7 +740,7 @@ class MPC_GATO:
                 goal_dwell_start_time = None
                 reached = False
             timeout = (total_sim_time - goal_start_time) >= goal_timeout
-            if offline_timing == "solve_time":
+            if offline_timing == "solve_time_legacy":
                 timeout = timeout or np.isclose(total_sim_time - goal_start_time, goal_timeout, rtol=0, atol=1e-12)
             
             if reached or timeout:
