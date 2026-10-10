@@ -53,7 +53,7 @@ def raw_cell(results,eid,damage=None):
 def pipeline(tmp_path,monkeypatch):
     repo=tmp_path/'repo';repo.mkdir();work=repo/'example_artifacts/jetson_f01ab/attempt'
     monkeypatch.setattr(P,'BANK',hashlib.sha256(b'{}').hexdigest());monkeypatch.setattr(P,'ROOT',repo);monkeypatch.setattr(P,'verify_package',lambda:None)
-    monkeypatch.setattr(P,'check_prerequisites',lambda *a:({},'fake dependencies','Orin fake CPU pipeline'))
+    monkeypatch.setattr(P,'check_prerequisites',lambda *a:({},'fake dependencies',dict(target='jetson',selection='fake_CPU_fixture')))
     monkeypatch.setattr(P.subprocess,'check_output',lambda *a,**k:str(work/'source/.git')+'\n')
     calls=[];failure={'stage':None}
     cases=[dict(variant='short12',N=n,SQP=s,PCG=p,timing_mode='A',backend='internal') for n in [16,32,64,128] for s in [1,2,5,10] for p in [100,200,400,800]]

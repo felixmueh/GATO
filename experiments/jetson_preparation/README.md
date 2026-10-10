@@ -1,14 +1,22 @@
 # Jetson F01ab full run
 
-Use the existing Jetson GATO container and Python environment on the Orin. Update
-Felix's existing detached preparation checkout without adding another worktree:
+Use the existing Jetson GATO container and active GATO Python environment. Update
+the standalone container checkout in place:
 
 ```bash
-cd /home/pal/FelixGATO/GATO-jetson-preparation
+cd /workspace/.worktrees/jetson-f01ab
 git fetch https://github.com/felixmueh/GATO.git experiment/jetson-f01-preparation
 git merge --ff-only FETCH_HEAD
 python3 -B experiments/jetson_preparation/prepare_jetson.py --check
-python3 -B experiments/jetson_preparation/prepare_jetson.py
+python3 -B experiments/jetson_preparation/prepare_jetson.py --device jetson
+```
+
+For a first container checkout, clone the branch without registering a worktree,
+then run the same two Python commands:
+
+```bash
+git clone --branch experiment/jetson-f01-preparation https://github.com/felixmueh/GATO.git /workspace/.worktrees/jetson-f01ab
+cd /workspace/.worktrees/jetson-f01ab
 ```
 
 Activate the existing GATO Python environment first, or pass `--python` with its
@@ -22,8 +30,13 @@ caches and receipts remain below this checkout. Prior HOME-based attempts remain
 historical evidence and are not resumed by this launcher.
 
 Before creating an attempt, it checks CMake >=3.24, make, git, nvcc, C++, Python
-development headers, NumPy, Pinocchio, pytest, pybind11 and torch, the actual Orin
-model and both source pins' ancestry. It does not install dependencies. The
+development headers, NumPy, Pinocchio, pytest, pybind11 and torch, both source pins' ancestry and target selection.
+`--device jetson` explicitly selects this dedicated Jetson/87-real pipeline when
+the container hides `/proc/device-tree/model`. It records user selection, host
+architecture and optional model/error; it makes no CUDA or Torch CUDA query.
+Omitting the flag retains automatic host Orin model detection. Explicit selection
+is not hardware verification: the actual SM87 suite smoke remains mandatory
+before canonical preflight or any matrix cell. It does not install dependencies. The
 branch must carry runtime `502fa29c8b0d649dcb347f9534bf29c6935fa6dd` and science
 `9cbf25721056e5b9dae1a5daf9e24982849b0573` in its history; no native binary or
 bundle is needed. Standalone local clones avoid stale worktree registrations.
@@ -78,6 +91,6 @@ CPU fake-pipeline checks (no native import/build/GPU):
 
 ```bash
 mkdir -p example_artifacts/jetson_f01ab-tests
-PYTHONDONTWRITEBYTECODE=1 python3 -B -m pytest -q experiments/jetson_preparation/test_full_pipeline.py --basetemp=example_artifacts/jetson_f01ab-tests/tmp -o cache_dir=example_artifacts/jetson_f01ab-tests/cache
+PYTHONDONTWRITEBYTECODE=1 python3 -B -m pytest -q experiments/jetson_preparation/test_full_pipeline.py experiments/jetson_preparation/test_target.py --basetemp=example_artifacts/jetson_f01ab-tests/tmp -o cache_dir=example_artifacts/jetson_f01ab-tests/cache
 python3 -B experiments/jetson_preparation/check_artifact_retention.py
 ```

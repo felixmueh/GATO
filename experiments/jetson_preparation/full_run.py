@@ -2,6 +2,7 @@
 import importlib.util,json,os,shutil,subprocess,time
 from collections import Counter
 import hashlib,re
+import target
 from pathlib import Path
 
 HERE=Path(__file__).resolve().parent
@@ -62,7 +63,7 @@ def qualify(source,work,sha,write):
     suite=work/'jetson-task-suite.json';write(suite,dict(status='passed',machine='jetson',exit_code=0,fixed_task_processes=3,error=None,
         restored_patch_sha256=acceptance['accepted_native_patch_sha256'],module_before_sha256=prep['module_before_sha256'],module_after_sha256=prep['module_after_sha256'],
         preparation=pin(work/'preparation.json',sha),summaries=prep['suite_summaries'],validation='Actual same-machine unchanged Make outputs, no imported GTX evidence'))
-    review=work/'automated-target-validation.json';write(review,dict(verdict='approved',kind='automated_target_validation_under_reviewed_source_policy',validation_kind='automated',policy=[pin(HERE/name,sha) for name in ['full_run.py','prepare_jetson.py']],suite_log=pin(work/'logs/make-test-tiago-tasks.log',sha),actual_cuda_smoke='sm=87',checks=checks,
+    review=work/'automated-target-validation.json';write(review,dict(verdict='approved',kind='automated_target_validation_under_reviewed_source_policy',validation_kind='automated',policy=[pin(HERE/name,sha) for name in ['full_run.py','prepare_jetson.py','target.py']],suite_log=pin(work/'logs/make-test-tiago-tasks.log',sha),actual_cuda_smoke='sm=87',checks=checks,
         authority='Accepted original observer source authority; target mechanical validation, not human review or numeric equivalence',task_suite=pin(suite,sha),suite_receipts=[pin(Path(x['path']).parent/'receipt.json',sha) for x in prep['suite_summaries']]))
     manifest=work/'jetson-release.json';write(manifest,dict(status='released_F01_A',machine='jetson',production_core_commit=CORE,collector_source_commit=RUNTIME,
         collector_source_sha256={name:sha(source/name) for name in R.COLLECTOR},bank_manifest_sha256=R.P.BANK_MANIFEST_SHA256,
@@ -156,7 +157,7 @@ def run_campaign(source,work,python,sha,write,command):
         raise
 
 
-def continue_prepared(work,python,sha,write,command):
+def continue_prepared(work,python,sha,write,command,device=None):
     prep=json.loads((work/'preparation.json').read_text())
     for marker in work.parent.glob('*/launch-state.json'):
         if json.loads(marker.read_text()).get('status') in ['running','held']:raise RuntimeError('Existing campaign held or interrupted; preserve and review: '+str(marker))
@@ -167,8 +168,8 @@ def continue_prepared(work,python,sha,write,command):
         if sha(Path(item['path']))!=item['sha256']:raise ValueError('Prepared receipt changed')
     python=str(Path(shutil.which(python) or python).expanduser().absolute())
     if python!=prep.get('python'):raise ValueError('Prepared Python environment differs; no changed-setup continuation')
-    model=Path('/proc/device-tree/model')
-    if not model.exists() or 'Orin' not in model.read_text():raise RuntimeError('Actual Orin Jetson required for continuation')
+    selection=target.select_target(device)
+    write(work/'target-selection-continuation.json',selection)
     (work/'tmp').mkdir(exist_ok=True);(work/'environment-cache').mkdir(exist_ok=True)
     subprocess.run([python,'-B','-c','import numpy, pinocchio, pytest, pybind11, torch'],check=True,env=dict(os.environ,PYTHONDONTWRITEBYTECODE='1',TMPDIR=str(work/'tmp'),XDG_CACHE_HOME=str(work/'environment-cache')))
     os.environ.update(TMPDIR=str(work/'tmp'),XDG_CACHE_HOME=str(work/'environment-cache'),PYTHONDONTWRITEBYTECODE='1')

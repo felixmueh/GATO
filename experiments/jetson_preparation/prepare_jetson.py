@@ -6,6 +6,7 @@ Actual target validation, canonical A preflight, then64sequentialcells. No autom
 """
 import argparse,hashlib,json,os,platform,shutil,subprocess,sys,datetime,signal,re,time
 import full_run
+import target
 from pathlib import Path
 PACKAGE=Path(__file__).resolve().parent
 ROOT=PACKAGE.parents[1]
@@ -70,7 +71,7 @@ def retain_suite(actual,retained):
         raise RuntimeError("Required suite did not retain exactly3 passing task summaries")
     return summaries
 
-def check_prerequisites(repo,work,python,allowed):
+def check_prerequisites(repo,work,python,allowed,device=None):
     prerequisites=allowed/'.prerequisites'
     for name in ['tmp','cache']:(prerequisites/name).mkdir(parents=True,exist_ok=True)
     os.environ.update(TMPDIR=str(prerequisites/'tmp'),XDG_CACHE_HOME=str(prerequisites/'cache'),PYTHONDONTWRITEBYTECODE='1')
@@ -82,15 +83,14 @@ def check_prerequisites(repo,work,python,allowed):
     version=re.search(r'(\d+)\.(\d+)',tools['cmake'])
     if not version or tuple(map(int,version.groups()))<(3,24):raise RuntimeError('CMake >=3.24 required; no attempt directory created')
     deps=subprocess.check_output([python,'-c','import numpy, pinocchio, pytest, pybind11, torch, sys, sysconfig; from pathlib import Path; assert Path(sysconfig.get_path("include"), "Python.h").is_file(), "Python development headers missing"; assert Path(pybind11.get_cmake_dir(), "pybind11Config.cmake").is_file(), "pybind11 CMake package missing"; print(sys.executable); print(numpy.__version__); print(pinocchio.__version__); print(pybind11.get_cmake_dir())'],text=True)
-    model=Path('/proc/device-tree/model')
-    if not model.exists() or 'Orin' not in model.read_text():raise RuntimeError('Actual Orin Jetson required; no attempt directory created')
+    selection=target.select_target(device)
     if work.exists():raise FileExistsError('Fresh preparation directory required; failed evidence retained: '+str(work))
     for commit in [RUNTIME,SCIENCE]:
         subprocess.run(['git','-C',str(repo),'cat-file','-e',commit+'^{commit}'],check=True)
         subprocess.run(['git','-C',str(repo),'merge-base','--is-ancestor',commit,'HEAD'],check=True)
-    return tools,deps,model.read_text().strip('\x00')
+    return tools,deps,selection
 
-def prepare(repo,work,python):
+def prepare(repo,work,python,device=None):
     verify_package()
     repo=repo.expanduser().resolve();work=work.expanduser().absolute()
     # Preserve venv identity: do not resolve its executable symlink.
@@ -100,11 +100,12 @@ def prepare(repo,work,python):
     for marker in allowed.glob('*/launch-state.json'):
         if json.loads(marker.read_text()).get('status') in ['running','held']:
             raise RuntimeError('Previous native preparation/campaign is held or interrupted; preserve and review: '+str(marker))
-    tools,deps,device_model=check_prerequisites(repo,work,python,allowed)
+    tools,deps,selection=check_prerequisites(repo,work,python,allowed,device)
     work.mkdir(parents=True);logs=work/'logs';logs.mkdir();source=work/'source'
     (work/'tmp').mkdir();(work/'environment-cache').mkdir()
     os.environ.update(TMPDIR=str(work/'tmp'),XDG_CACHE_HOME=str(work/'environment-cache'),PYTHONDONTWRITEBYTECODE='1')
-    write(work/'tool-environment.json',dict(tools=tools,python_dependencies=deps,device_model=device_model,disk_usage_bytes=dict(zip(['total','used','free'],shutil.disk_usage(work)))))
+    write(work/'tool-environment.json',dict(tools=tools,python_dependencies=deps,target_selection=selection,disk_usage_bytes=dict(zip(['total','used','free'],shutil.disk_usage(work)))))
+    write(work/'target-selection.json',selection)
     write(work/'launch-state.json',dict(status='running',stage='builds_and_suite'))
     started=time.time()
     record=dict(started_utc=datetime.datetime.now(datetime.timezone.utc).isoformat(),started_unix_s=started,status='started',machine_claim='jetson',platform=platform.platform(),python=python,
@@ -169,6 +170,7 @@ def prepare(repo,work,python):
 
 if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--device',choices=['jetson'],default=None,help='Explicit Jetson target for containers hiding host device-tree; actual suite SM87 remains required')
     parser.add_argument('--check',action='store_true',help='CPU package integrity check only')
     parser.add_argument('--repo',type=Path,default=ROOT,help='Existing Git checkout (default: this repository)')
     parser.add_argument('--work',type=Path,default=ROOT/'example_artifacts/jetson_f01ab'/datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dT%H%M%S.%fZ'),help='Fresh attempt under this worktree/example_artifacts/jetson_f01ab')
@@ -182,5 +184,5 @@ if __name__=='__main__':
             work=args.continue_prepared.expanduser().resolve()
             if not work.is_relative_to((ROOT/'example_artifacts/jetson_f01ab').resolve()):parser.error('Prepared artifacts must be under this worktree/example_artifacts/jetson_f01ab')
             verify_package()
-            full_run.continue_prepared(work,args.python,sha,write,run)
-        else:prepare(args.repo,args.work,args.python)
+            full_run.continue_prepared(work,args.python,sha,write,run,device=args.device)
+        else:prepare(args.repo,args.work,args.python,device=args.device)
