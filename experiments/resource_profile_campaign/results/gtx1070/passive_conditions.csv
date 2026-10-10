@@ -1,0 +1,7 @@
+source_field,count,available,unavailable,mean,median,p95,minimum,maximum,missing_value_tokens
+ temperature.gpu,899,899,0,47.6218020022247,50.0,57.0,32.0,57.0,{}
+ utilization.gpu [%],899,899,0,30.800889877641826,26.0,85.0,0.0,90.0,{}
+ clocks.current.sm [MHz],899,899,0,1711.3715239154617,1632.0,1974.0,139.0,1987.0,{}
+ clocks.current.memory [MHz],899,899,0,3693.925472747497,3802.0,4006.0,405.0,4006.0,{}
+ power.draw [W],899,899,0,46.448142380422695,40.74,73.95100000000001,6.5,83.57,{}
+ memory.used [MiB],899,899,0,288.6051167964405,298.0,302.0,208.0,302.0,{}

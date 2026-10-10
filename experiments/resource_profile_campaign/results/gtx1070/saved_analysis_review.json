@@ -1,0 +1,144 @@
+{
+  "verdict": "approved",
+  "reviewed_at_utc": "2026-10-10T17:26:44.679993+00:00",
+  "scope": "Independent bounded CPU saved-export/report and representative raw-return review. No native imports, constructors, GPU queries/solves, builds, fresh tests/replays, source/raw edits or repeated full manifest/file sweep.",
+  "authorities": {
+    "author_receipt": {
+      "path": "/workspace/gato-campaign-recovery-20261010/f04-f05-gtx1070-report/receipt.json",
+      "sha256": "4088daa096dba2aa5691796a8632c8b0d99a057c115eb4ad68a2f45b3e3a9085"
+    },
+    "index": {
+      "path": "/workspace/gato-campaign-recovery-20261010/f04-f05-gtx1070-analysis-index.json",
+      "sha256": "260ed100e64ee1849552c331b0d83d19c331adaa3f5f00c73fa3017bb4170fcf"
+    },
+    "target_plan_review": {
+      "path": "/workspace/gato-campaign-recovery-20261010/f04-f05-gtx1070-plan-review.json",
+      "sha256": "b8b38e8bf3112647a478e61c40aa0a2a9ea326b6f3b1844b2779e714a62986a4"
+    },
+    "review_check_script_sha256": "b2f6b2bdd4fa65db6b4ccf20a4a54e79e60d39b77df3baf4ca98696d1cac7666",
+    "review_checks_sha256": "1e7daedc8989222b494f1fe59945069f754c9ea4f9f9df03cfa83cbaeb39aa38"
+  },
+  "bounded_checks": {
+    "attempts": 38,
+    "total_calls": 44385,
+    "categories": [
+      {
+        "arm": "sustained",
+        "category": "warmup",
+        "count": 6
+      },
+      {
+        "arm": "sustained",
+        "category": "measured",
+        "count": 44349
+      },
+      {
+        "arm": "profile",
+        "category": "warmup",
+        "count": 6
+      },
+      {
+        "arm": "profile",
+        "category": "measured",
+        "count": 6
+      },
+      {
+        "arm": "first_response",
+        "category": "measured",
+        "count": 18
+      }
+    ],
+    "latency_groups": 60,
+    "sustained_groups": 6,
+    "stage_windows": 472,
+    "measured_stage_windows": 236,
+    "kernel_rows": 56,
+    "resource_API_errors": 0,
+    "passive_rows": 899,
+    "missing_numeric_passive_fields": 0,
+    "bounded_metadata_checks": [
+      "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/0a9d00265ab1b96d638fb835261727dfe694f6cd4b806f65d3d6f4c2c910e681/attempt-001/resource-profile-raw",
+      "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/15d320a04c3834ac04beac23f0775c27432608064979dcea101f7c76d5988af3/attempt-001/resource-profile-raw",
+      "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/1e99f96e60c458306fec96e49fce3fa0581a43243dabc2c37a91538e5552cdeb/attempt-001/resource-profile-raw",
+      "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/3da6aa53deeb358abfc930a84c295e23161e3485d1104ed8c440febaf71c1532/attempt-001/resource-profile-raw",
+      "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/3db7394a6d691ec73dcd26dac5824779de888eb607c11c19f37cabe207a7bf4e/attempt-001/resource-profile-raw",
+      "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/4456472e994682496c3e2fc657f9af843051d8b12d836afca469180397f291d4/attempt-001/resource-profile-raw",
+      "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/4bde814bebed85216fc5ff075a3484dd70fb16c64d6bc07d56c84a368196f6e3/attempt-001/resource-profile-raw",
+      "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/5ecd8550e58ef326edeb6f68a0801eec6fba93b5e5cf0a213e9690d336318a05/attempt-001/resource-profile-raw"
+    ],
+    "direct_raw_checks": [
+      {
+        "arm": "query",
+        "N": 128,
+        "B": 16,
+        "SQP": null,
+        "path": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/15d320a04c3834ac04beac23f0775c27432608064979dcea101f7c76d5988af3/attempt-001/resource-profile-raw",
+        "kind": "query"
+      },
+      {
+        "arm": "first_response",
+        "N": 32,
+        "B": 1,
+        "SQP": 1,
+        "path": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/6e1ffc1f6721434ba0f02fa3664b49bfb01ca28b09d360de5b17f9634b61421d/attempt-001/resource-profile-raw",
+        "kind": "native_reply+completed"
+      },
+      {
+        "arm": "profile",
+        "N": 32,
+        "B": 16,
+        "SQP": 1,
+        "path": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/c04043587fe7a2d110aeab9190a37a5381cdfbb4bb7840771f75ad4783c04197/attempt-001/resource-profile-raw",
+        "kind": "native_reply+completed"
+      },
+      {
+        "arm": "profile",
+        "N": 32,
+        "B": 16,
+        "SQP": 10,
+        "path": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/1e99f96e60c458306fec96e49fce3fa0581a43243dabc2c37a91538e5552cdeb/attempt-001/resource-profile-raw",
+        "kind": "native_reply+completed"
+      },
+      {
+        "arm": "sustained",
+        "N": 32,
+        "B": 1,
+        "SQP": 1,
+        "path": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/7d8fb9148cad10a23406a77021807cc6256f346b8cb871d75fa816a44d955aba/attempt-001/resource-profile-raw",
+        "kind": "native_reply+completed"
+      }
+    ],
+    "max_overrun_s": 6.1661673199996585,
+    "raw_manifest_sweeps": 0
+  },
+  "timing_correctness": "Recomputed60all-call latency category/scope groups mean/median/p95 and1000 divided by each statistic from retained CSV. Recomputed six measured calls/actual sustained duration rates separately from solve-only reciprocals; excluded warmups remain retained. Counts44385=18first+6profile+44349sustain+12warmups, zerofailed/missingtiming. Native microseconds\u2192ms and public seconds\u2192ms verified in four representative direct replies/completion records. StageOFF ordinary timing remains separate from stageON profiling. Full901.473s queue and retained6.166smaximum loop boundary overrun are descriptive; no deadline gate/cause attribution.",
+  "resources_and_stages": "Eight query cases56unique kernel rows; attribute and occupancy API statuses0, predictivefittrue, actual launchesunobserved. DirectN128B16 query record attributes correspond.472stage rows236measured all reached; independently recomputed summaries and per-profile totals, directly checked oneSQP1 and oneSQP10 B16raw stage layout/units/windows. Single-call repeated-iteration windows are not repeated profile trials. Literal oldpcg_times_us zeros directly confirmed as placeholder/unavailable; newPCG stream-window measurement distinct. Idle host submission gaps and nonadditive nativechrono interpretation clear.",
+  "passive_monitor": "899nominal1Hz NVML rows; all six numeric fields available. Recomputed range/statistic/missingness values and pinned CSV/command/receipt. Queue startup/idle intervals included; observer overhead unestimated; no clock/power changes, thermalsteady/saturation, percallenergy or causal claim.",
+  "provenance_and_raw": "Five exact variant module identities/source4e5301f/accepted observer flags/bankf8 correspond to previously approved target manifest. Eight retained protocol/metrics/provenance hashes checked against validated export. Direct raw checks limited to one query plus first/profile/sustained representative returns; reviewed adapter already hash-validated every retained raw file. No duplicate fullrawaudit. Raw total bytes/file count remain null with reason, not fabricated.",
+  "visual_inspection": {
+    "files": [
+      "native-solve-time.png",
+      "wrapper-solve-time.png",
+      "native-reciprocal.png",
+      "wrapper-reciprocal.png",
+      "stage-windows.png"
+    ],
+    "verdict": "Readable units, scopes, arm/cap/batch/count legends. All figures show real saved measurement label; stream stage caveat and placeholder unavailable explicit. Some longduration title text/count annotations are crowded but plots and CSV convey comparisons; no material readability blocker.",
+    "figure_sha256": {
+      "native-reciprocal.png": "978d304987d656b1e6f06d2cb65e5c82b0fffc5b83e44807638609722396e051",
+      "native-solve-time.png": "b26f66f87e39a10fd0378fad2c586856b0949e571f8fbf595e5a612808f9e409",
+      "stage-windows.png": "bd6e43b12acfbb5be498cf4185224d6845532928b8b69f38142e4e8ce075bdad",
+      "wrapper-reciprocal.png": "32bf17067b3d104f7bfc698bf900bd4e46cd99ae43d055b5c24fb88ab724c8db",
+      "wrapper-solve-time.png": "50555549da9c23ff081910ba1f85f33acb953f07f1d84564297003fe0cefa7d8"
+    }
+  },
+  "limitations": [
+    "Only GTX1070; matchingRTX5060internal and Jetson cohorts pending.",
+    "Processfirst public solve excludes import/constructor and is not hardwarepower-oncold. Sustainedwholeloop includes freshowner/reset/setup/recording, not controller actuation or samecandidate/equalqualitybatch speedup.",
+    "Resource APIs/occupancy/fit predictions are not actual launches or utilization observations. StageON adds observationoverhead and is a separate cohort; no numeric equivalence or causaloverhead claim.",
+    "Task success, executed physical compliance, solver certificate and totalrawstoragemissing remain explicit unknowns. No solver cause/repair/determinism/retry expansion requested."
+  ],
+  "findings": [],
+  "required_corrections": [],
+  "stopping_point": "Saved GTX1070 F04/F05 report and plots provide sensible timing/resource thesis evidence with stated limits; stop at acceptance, no extra calls or qualification."
+}

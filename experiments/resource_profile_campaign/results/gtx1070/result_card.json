@@ -1,0 +1,16 @@
+{
+  "status": "GTX1070_saved_evidence_reviewed",
+  "machine": "gtx1070",
+  "source_commit": "4e5301feaea5f2d06530922ba46aa543e1995d47",
+  "science_plan_checkpoint": "714736a380135ebf00a50bebdc90474915d181f1",
+  "workers": 38,
+  "native_calls": 44385,
+  "execution_errors": 0,
+  "whole_queue_wall_s": 901.4732685089111,
+  "raw": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070",
+  "plots": "/workspace/gato-campaign-recovery-20261010/analysis/f04-f05-gtx1070",
+  "full_report": "/workspace/gato-campaign-recovery-20261010/f04-f05-gtx1070-report/REPORT.md",
+  "other_machines": "rtx5060/internal and Jetson pending",
+  "limitations": "Predicted resources are not actual launches; stage ON separate; whole-loop rate includes owner/reset/recording; no task/equal-quality/numerical/thermal steady-state certificate",
+  "saved_review_sha256": "7fb88e37f2c8de73be6801c60b67f4b1474e38a0e1558e852cbb018203f0b83d"
+}

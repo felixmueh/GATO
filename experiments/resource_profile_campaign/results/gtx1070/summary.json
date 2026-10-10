@@ -1,0 +1,43 @@
+{
+  "total_native_calls": 44385,
+  "counts": [
+    {
+      "arm": "first_response",
+      "category": "measured",
+      "calls": 18
+    },
+    {
+      "arm": "profile",
+      "category": "measured",
+      "calls": 6
+    },
+    {
+      "arm": "profile",
+      "category": "warmup",
+      "calls": 6
+    },
+    {
+      "arm": "sustained",
+      "category": "measured",
+      "calls": 44349
+    },
+    {
+      "arm": "sustained",
+      "category": "warmup",
+      "calls": 6
+    }
+  ],
+  "execution_failures": 0,
+  "missing_timings": {
+    "native": 0,
+    "wrapper": 0
+  },
+  "query_count": 8,
+  "kernel_query_rows": 56,
+  "resource_api_errors": 0,
+  "predicted_fit_false": 0,
+  "actual_launch_observations": 0,
+  "profile_measured_windows": 236,
+  "profile_measured_missing": 0,
+  "passive_rows": 899
+}

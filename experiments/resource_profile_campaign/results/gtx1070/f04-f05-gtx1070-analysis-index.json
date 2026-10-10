@@ -1,0 +1,509 @@
+{
+  "machine": "gtx1070",
+  "source_commit": "4e5301feaea5f2d06530922ba46aa543e1995d47",
+  "evidence_kind": "measurement",
+  "attempts": [
+    {
+      "path": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/0a9d00265ab1b96d638fb835261727dfe694f6cd4b806f65d3d6f4c2c910e681/attempt-001/resource-profile-raw",
+      "manifest_sha256": "c47d1646254b62a306c1bfe68c9f95d967481833f7b3fb9f15213b662866826f",
+      "case": {
+        "study": "F05",
+        "N": 32,
+        "B": 1,
+        "SQP": 10,
+        "PCG": 800,
+        "arm": "sustained",
+        "duration_s": 120,
+        "stage_timing": false
+      }
+    },
+    {
+      "path": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/15d320a04c3834ac04beac23f0775c27432608064979dcea101f7c76d5988af3/attempt-001/resource-profile-raw",
+      "manifest_sha256": "0357193a2bd5f38741ba437b345b9dd613c3b6f00ffb52160cd5b1dc1b64eff2",
+      "case": {
+        "study": "F04",
+        "arm": "query",
+        "N": 128,
+        "B": 16,
+        "stage_timing": false
+      }
+    },
+    {
+      "path": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/1e99f96e60c458306fec96e49fce3fa0581a43243dabc2c37a91538e5552cdeb/attempt-001/resource-profile-raw",
+      "manifest_sha256": "0e703fa11be1578a1e1727dab757234f0aae098c597919338d7328eca2906f53",
+      "case": {
+        "study": "F05",
+        "N": 32,
+        "B": 16,
+        "SQP": 10,
+        "PCG": 800,
+        "arm": "profile",
+        "stage_timing": true
+      }
+    },
+    {
+      "path": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/3da6aa53deeb358abfc930a84c295e23161e3485d1104ed8c440febaf71c1532/attempt-001/resource-profile-raw",
+      "manifest_sha256": "929e5cffd89d877986a9757d3a36168032ca59f9799374d8950abe0783bb7407",
+      "case": {
+        "study": "F05",
+        "N": 32,
+        "B": 16,
+        "SQP": 1,
+        "PCG": 100,
+        "arm": "first_response",
+        "replicate": 0,
+        "stage_timing": false
+      }
+    },
+    {
+      "path": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/3db7394a6d691ec73dcd26dac5824779de888eb607c11c19f37cabe207a7bf4e/attempt-001/resource-profile-raw",
+      "manifest_sha256": "74e864b9c5d3e40d2bfcb3d4b87760cec0999f8a270ea11eb50f95aae76bc188",
+      "case": {
+        "study": "F05",
+        "N": 32,
+        "B": 16,
+        "SQP": 10,
+        "PCG": 800,
+        "arm": "sustained",
+        "duration_s": 120,
+        "stage_timing": false
+      }
+    },
+    {
+      "path": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/4456472e994682496c3e2fc657f9af843051d8b12d836afca469180397f291d4/attempt-001/resource-profile-raw",
+      "manifest_sha256": "4f3257a5619c830ca19d210af8014579d7cd9f6f9c86aff5ad945e23c235f7e7",
+      "case": {
+        "study": "F05",
+        "N": 32,
+        "B": 16,
+        "SQP": 1,
+        "PCG": 100,
+        "arm": "sustained",
+        "duration_s": 120,
+        "stage_timing": false
+      }
+    },
+    {
+      "path": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/4471d9a1c5e36aa5cbfcc4aaf57e0cce6eeffe6cc45800b7f574e563f0f456ab/attempt-001/resource-profile-raw",
+      "manifest_sha256": "fcaa80adfeabb6809d5ee00231e82a44a182fb86fbe06638628e18077ea33514",
+      "case": {
+        "study": "F05",
+        "N": 32,
+        "B": 16,
+        "SQP": 10,
+        "PCG": 800,
+        "arm": "first_response",
+        "replicate": 0,
+        "stage_timing": false
+      }
+    },
+    {
+      "path": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/4bde814bebed85216fc5ff075a3484dd70fb16c64d6bc07d56c84a368196f6e3/attempt-001/resource-profile-raw",
+      "manifest_sha256": "0628f19a07af797777a90def9287ad21949109cc6dd00cf985ffd971724b2d80",
+      "case": {
+        "study": "F05",
+        "N": 32,
+        "B": 1,
+        "SQP": 5,
+        "PCG": 100,
+        "arm": "profile",
+        "stage_timing": true
+      }
+    },
+    {
+      "path": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/518d43543e361165f8898c22b841d9de1965469e6257742706bf94502fabcbb4/attempt-001/resource-profile-raw",
+      "manifest_sha256": "597327c27aa9b2f305623d86581cba96314d1899c7a055b9a7c512ebf1c18b2f",
+      "case": {
+        "study": "F04",
+        "arm": "query",
+        "N": 64,
+        "B": 16,
+        "stage_timing": false
+      }
+    },
+    {
+      "path": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/559be4b63da5322f0d0077802752fd093412cae9dff7e932a0a73345193768d1/attempt-001/resource-profile-raw",
+      "manifest_sha256": "b239169e0e1d78a2fd7f5e010349d46793c20ecee16a018384ae890f04d92a8a",
+      "case": {
+        "study": "F04",
+        "arm": "query",
+        "N": 32,
+        "B": 16,
+        "stage_timing": false
+      }
+    },
+    {
+      "path": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/5ecd8550e58ef326edeb6f68a0801eec6fba93b5e5cf0a213e9690d336318a05/attempt-001/resource-profile-raw",
+      "manifest_sha256": "5f2e94d46b3836f170b0e436c4e351ab2c0c1da32fefe6b1f1e3ec316ec93ee7",
+      "case": {
+        "study": "F05",
+        "N": 32,
+        "B": 1,
+        "SQP": 1,
+        "PCG": 100,
+        "arm": "profile",
+        "stage_timing": true
+      }
+    },
+    {
+      "path": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/654f0d711fdeba5455048f49156340cb30a4d62fad10c7b877d9e12133a52ce8/attempt-001/resource-profile-raw",
+      "manifest_sha256": "7610d72a6f66cb9418a06b2b0aa5a990f8a3b9aacab2730157b642bb0f02ffe5",
+      "case": {
+        "study": "F05",
+        "N": 32,
+        "B": 16,
+        "SQP": 10,
+        "PCG": 800,
+        "arm": "first_response",
+        "replicate": 1,
+        "stage_timing": false
+      }
+    },
+    {
+      "path": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/69c9e13116ebff05887b46c8d433ebd09b0e7a936d32f22ab2f0f6af429fb7b5/attempt-001/resource-profile-raw",
+      "manifest_sha256": "3c8ad9dfece83dfb2318622d85575e9e28267794abf98209a896e97adb39cbad",
+      "case": {
+        "study": "F05",
+        "N": 32,
+        "B": 1,
+        "SQP": 5,
+        "PCG": 100,
+        "arm": "first_response",
+        "replicate": 0,
+        "stage_timing": false
+      }
+    },
+    {
+      "path": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/6a566e86df9b6d1e310a69ea5a74cdc6fc40eb10b237c64c0f6f7659f67f55f7/attempt-001/resource-profile-raw",
+      "manifest_sha256": "db94b9c55cd4575d10edc8abbf1b6b94788f76b412f2c20eab9aaa59859ad482",
+      "case": {
+        "study": "F04",
+        "arm": "query",
+        "N": 16,
+        "B": 16,
+        "stage_timing": false
+      }
+    },
+    {
+      "path": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/6e1ffc1f6721434ba0f02fa3664b49bfb01ca28b09d360de5b17f9634b61421d/attempt-001/resource-profile-raw",
+      "manifest_sha256": "0f470aeda048dfe9ff1b273b2129e5812e234b33b2151d71f517b1b541eb872d",
+      "case": {
+        "study": "F05",
+        "N": 32,
+        "B": 1,
+        "SQP": 1,
+        "PCG": 100,
+        "arm": "first_response",
+        "replicate": 2,
+        "stage_timing": false
+      }
+    },
+    {
+      "path": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/720717e540bc124310b9d955ea273cc6afc47c75ccf2d677d9061dfab8eb829f/attempt-001/resource-profile-raw",
+      "manifest_sha256": "2dbb4eec9b1feb916aeca61bcfce4735e4aca6b7ebde4fedc0cf2b8aeed93927",
+      "case": {
+        "study": "F05",
+        "N": 32,
+        "B": 16,
+        "SQP": 1,
+        "PCG": 100,
+        "arm": "first_response",
+        "replicate": 2,
+        "stage_timing": false
+      }
+    },
+    {
+      "path": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/7d8fb9148cad10a23406a77021807cc6256f346b8cb871d75fa816a44d955aba/attempt-001/resource-profile-raw",
+      "manifest_sha256": "4fc4ddafcdae29d0bc7eee804a03541199f26f00fce1f033f0f1900523afa5c9",
+      "case": {
+        "study": "F05",
+        "N": 32,
+        "B": 1,
+        "SQP": 1,
+        "PCG": 100,
+        "arm": "sustained",
+        "duration_s": 120,
+        "stage_timing": false
+      }
+    },
+    {
+      "path": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/8518470e49d1b9084180042fab833d7c833d931d2dcfd0f77dba9081bdc4d196/attempt-001/resource-profile-raw",
+      "manifest_sha256": "bc3ba5d342f2d4d348c722cc9daf88b27a6197b33e9e86c8713447389e494e2c",
+      "case": {
+        "study": "F05",
+        "N": 32,
+        "B": 16,
+        "SQP": 10,
+        "PCG": 800,
+        "arm": "first_response",
+        "replicate": 2,
+        "stage_timing": false
+      }
+    },
+    {
+      "path": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/8812f92d4a52d235c6d8f7db228314f986a341ebce12270380e84b71e5981f69/attempt-001/resource-profile-raw",
+      "manifest_sha256": "4080d0bc56a605970ebfbf2812e12541df0b89718e741acab4f574bda31d8cd3",
+      "case": {
+        "study": "F05",
+        "N": 32,
+        "B": 1,
+        "SQP": 5,
+        "PCG": 100,
+        "arm": "first_response",
+        "replicate": 1,
+        "stage_timing": false
+      }
+    },
+    {
+      "path": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/91d5100e32b124772f5f1958d8d87fd70e7733782f8c25c31629f9f5bf5f32da/attempt-001/resource-profile-raw",
+      "manifest_sha256": "5013932cc3b05031b9791c3cb99cf9c500dca4c4051d1c4fd93225c8620aea16",
+      "case": {
+        "study": "F05",
+        "N": 32,
+        "B": 1,
+        "SQP": 10,
+        "PCG": 800,
+        "arm": "first_response",
+        "replicate": 1,
+        "stage_timing": false
+      }
+    },
+    {
+      "path": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/9c934621b93f7465118dbfd9dfbd209def6e438257d3f5f371e47d9a3a3bcd6c/attempt-001/resource-profile-raw",
+      "manifest_sha256": "451fd30c2a721e697d2656ce02a752b3e5d3d615458575335ee1b8112dc4907d",
+      "case": {
+        "study": "F05",
+        "N": 32,
+        "B": 16,
+        "SQP": 5,
+        "PCG": 100,
+        "arm": "profile",
+        "stage_timing": true
+      }
+    },
+    {
+      "path": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/9e01d9b1f222232a172138fdc40eb1159110fa18271069a57f9169435a4c1f48/attempt-001/resource-profile-raw",
+      "manifest_sha256": "f20c962cc08eb74643ae5a9f001274961af9b1194f0eeb6807451c1aa4bc0892",
+      "case": {
+        "study": "F04",
+        "arm": "query",
+        "N": 16,
+        "B": 1,
+        "stage_timing": false
+      }
+    },
+    {
+      "path": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/a1b204aa36aa3febcecba1336a14255d0b26ec8ca250ec69495311433a4e6906/attempt-001/resource-profile-raw",
+      "manifest_sha256": "eff1fff952e8921ab0a686b18f10a9c8183a70e0da0e2677aed3660e897059a7",
+      "case": {
+        "study": "F05",
+        "N": 32,
+        "B": 16,
+        "SQP": 5,
+        "PCG": 100,
+        "arm": "first_response",
+        "replicate": 1,
+        "stage_timing": false
+      }
+    },
+    {
+      "path": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/a60fd182d97c759d5117e854b7471c5050ac5d8c9fade621a524e1ef1d826e34/attempt-001/resource-profile-raw",
+      "manifest_sha256": "49c7906dc83a5276983e6d523b3a063d798b6b9aa1f82ca871c736367bac60e5",
+      "case": {
+        "study": "F05",
+        "N": 32,
+        "B": 1,
+        "SQP": 1,
+        "PCG": 100,
+        "arm": "first_response",
+        "replicate": 0,
+        "stage_timing": false
+      }
+    },
+    {
+      "path": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/ac460f7deae725f4ea33fa6cd3c0e512c8d9126a171d7eb797d697055ed6b8a3/attempt-001/resource-profile-raw",
+      "manifest_sha256": "7a3b0aa8e19e081174bc3d5d348e3238c307dfdd26e3c3ea7a2a4d8b74895c41",
+      "case": {
+        "study": "F05",
+        "N": 32,
+        "B": 1,
+        "SQP": 5,
+        "PCG": 100,
+        "arm": "first_response",
+        "replicate": 2,
+        "stage_timing": false
+      }
+    },
+    {
+      "path": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/b1d1b5d652237873ba92b3fef7e9b9b4d8afb065d4b5bdcdffc24c62681c609c/attempt-001/resource-profile-raw",
+      "manifest_sha256": "259d4dd35b23132ca8595f4293ac77b26eafbcba5bfc3e8b31ad58b48a4d8564",
+      "case": {
+        "study": "F05",
+        "N": 32,
+        "B": 1,
+        "SQP": 10,
+        "PCG": 800,
+        "arm": "first_response",
+        "replicate": 0,
+        "stage_timing": false
+      }
+    },
+    {
+      "path": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/b8208d1f0d5a7d225e42caa95780195ed9a5f078fce893671f86b043176f4fb3/attempt-001/resource-profile-raw",
+      "manifest_sha256": "1263beb0313352f578a98353f902ba8b94f60e3775b32897955db558295ec668",
+      "case": {
+        "study": "F05",
+        "N": 32,
+        "B": 16,
+        "SQP": 5,
+        "PCG": 100,
+        "arm": "first_response",
+        "replicate": 0,
+        "stage_timing": false
+      }
+    },
+    {
+      "path": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/ba44646248ca9198e9ca7f6c5bcd712a508c95de534899832bbe4311d68d0d96/attempt-001/resource-profile-raw",
+      "manifest_sha256": "63ca946fa2cbdda89be145765bc0931cf689c2427a6507c646357be683dceaf9",
+      "case": {
+        "study": "F05",
+        "N": 32,
+        "B": 16,
+        "SQP": 5,
+        "PCG": 100,
+        "arm": "first_response",
+        "replicate": 2,
+        "stage_timing": false
+      }
+    },
+    {
+      "path": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/befd1bf86119cc0d65f46a40014d5e68be46ab4e44059dab467a50c79cde2213/attempt-001/resource-profile-raw",
+      "manifest_sha256": "c7ff4ea5092b61469b1c67fb1977fde8e387b5bcf1b98f153cb2f9bb85694dee",
+      "case": {
+        "study": "F05",
+        "N": 32,
+        "B": 1,
+        "SQP": 1,
+        "PCG": 100,
+        "arm": "first_response",
+        "replicate": 1,
+        "stage_timing": false
+      }
+    },
+    {
+      "path": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/c04043587fe7a2d110aeab9190a37a5381cdfbb4bb7840771f75ad4783c04197/attempt-001/resource-profile-raw",
+      "manifest_sha256": "e5b3f268c651b780c7ef5c40910ddaf150b09cee9f6ddfaca17b809f87bbbaa3",
+      "case": {
+        "study": "F05",
+        "N": 32,
+        "B": 16,
+        "SQP": 1,
+        "PCG": 100,
+        "arm": "profile",
+        "stage_timing": true
+      }
+    },
+    {
+      "path": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/c2abc0c62e574cecaf2238e71f5c5fdf0cb1ba952fbeb93effb13945bc7371a7/attempt-001/resource-profile-raw",
+      "manifest_sha256": "9305f98c311318d4bed5c8f472d3e67445b122f48d9c844b46636b243dfb6893",
+      "case": {
+        "study": "F05",
+        "N": 32,
+        "B": 1,
+        "SQP": 10,
+        "PCG": 800,
+        "arm": "profile",
+        "stage_timing": true
+      }
+    },
+    {
+      "path": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/c8170a42708ac0450adc055dfc617352101d7a8fd482e7940852b4511a0aaf87/attempt-001/resource-profile-raw",
+      "manifest_sha256": "9dba1e57b1f36bdb5af68ecc680189ea2a501971ef1960cabdbfd0a1fb668fb7",
+      "case": {
+        "study": "F05",
+        "N": 32,
+        "B": 16,
+        "SQP": 5,
+        "PCG": 100,
+        "arm": "sustained",
+        "duration_s": 120,
+        "stage_timing": false
+      }
+    },
+    {
+      "path": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/cba4817b89f83645683d7b19b6af3e841443c6a88c509cd64491afc6df065065/attempt-001/resource-profile-raw",
+      "manifest_sha256": "3234ba639663756312543f22bca5ebb528d3c705844c9cb386dc8f5c23e39bd1",
+      "case": {
+        "study": "F05",
+        "N": 32,
+        "B": 1,
+        "SQP": 10,
+        "PCG": 800,
+        "arm": "first_response",
+        "replicate": 2,
+        "stage_timing": false
+      }
+    },
+    {
+      "path": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/cbb671b647a1b98102f05c49ce05c78d286299f13ae4382f82121a4d215d6465/attempt-001/resource-profile-raw",
+      "manifest_sha256": "11611a96c7b212d9ff1ea9957b1e0bfdeca729a460c25be7c3ccaa188ef7fb6d",
+      "case": {
+        "study": "F05",
+        "N": 32,
+        "B": 16,
+        "SQP": 1,
+        "PCG": 100,
+        "arm": "first_response",
+        "replicate": 1,
+        "stage_timing": false
+      }
+    },
+    {
+      "path": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/cef07ecb02cd8a97a19a6153e4916cc84018b911c24eafab0ee13fb5e5485295/attempt-001/resource-profile-raw",
+      "manifest_sha256": "24ba60c8192d9f40bfaf9b31e042ecbbfa3c37f6b90b4c4ca2820d6c6457e1dc",
+      "case": {
+        "study": "F04",
+        "arm": "query",
+        "N": 32,
+        "B": 1,
+        "stage_timing": false
+      }
+    },
+    {
+      "path": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/dd6a9dd878ca82abf977b3ea24c0ba293fd7df1f1666c96b2d05cbe711660e16/attempt-001/resource-profile-raw",
+      "manifest_sha256": "e1a0650556182aee37f8cb2aa87a1ea68f1730905ac2c7cf51cb886ebd1e0c68",
+      "case": {
+        "study": "F04",
+        "arm": "query",
+        "N": 128,
+        "B": 1,
+        "stage_timing": false
+      }
+    },
+    {
+      "path": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/ebdff4a14a1d4ad4c6f85ff3d5dd9d9916d1839d20b31a7f61c2bcdaa529d93f/attempt-001/resource-profile-raw",
+      "manifest_sha256": "237176c9660c864894c0d3eecff463afa792e84d1d1fdb33450a6bbdb80299b6",
+      "case": {
+        "study": "F05",
+        "N": 32,
+        "B": 1,
+        "SQP": 5,
+        "PCG": 100,
+        "arm": "sustained",
+        "duration_s": 120,
+        "stage_timing": false
+      }
+    },
+    {
+      "path": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/f7b89f5ff5d2fee4bb5b4ce1666cb07541a407943d06f83b3a17139f94b742b5/attempt-001/resource-profile-raw",
+      "manifest_sha256": "b4da573d07705dc2308adaa62b2113e947610ff138895980af937b740297afc9",
+      "case": {
+        "study": "F04",
+        "arm": "query",
+        "N": 64,
+        "B": 1,
+        "stage_timing": false
+      }
+    }
+  ]
+}

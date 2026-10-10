@@ -1,0 +1,783 @@
+{
+  "source_commit": "4e5301feaea5f2d06530922ba46aa543e1995d47",
+  "science_plan_checkpoint": "714736a",
+  "machine": "gtx1070",
+  "cases": [
+    {
+      "case": {
+        "study": "F05",
+        "N": 32,
+        "B": 1,
+        "SQP": 10,
+        "PCG": 800,
+        "arm": "sustained",
+        "duration_s": 120,
+        "stage_timing": false
+      },
+      "status": "completed",
+      "native_calls": 9010,
+      "completed_calls": 9010,
+      "measured_calls": 9009,
+      "sustained_wall_s": 120.00601854799606,
+      "boundary_overrun_s": 0.006018547996063717,
+      "start": 1791651558.990724,
+      "end": 1791651685.5613694,
+      "raw": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/0a9d00265ab1b96d638fb835261727dfe694f6cd4b806f65d3d6f4c2c910e681/attempt-001/resource-profile-raw"
+    },
+    {
+      "case": {
+        "study": "F04",
+        "arm": "query",
+        "N": 128,
+        "B": 16,
+        "stage_timing": false
+      },
+      "status": "completed",
+      "native_calls": 0,
+      "completed_calls": 0,
+      "measured_calls": 0,
+      "sustained_wall_s": null,
+      "boundary_overrun_s": null,
+      "start": 1791651225.1215515,
+      "end": 1791651225.596281,
+      "raw": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/15d320a04c3834ac04beac23f0775c27432608064979dcea101f7c76d5988af3/attempt-001/resource-profile-raw"
+    },
+    {
+      "case": {
+        "study": "F05",
+        "N": 32,
+        "B": 16,
+        "SQP": 10,
+        "PCG": 800,
+        "arm": "profile",
+        "stage_timing": true
+      },
+      "status": "completed",
+      "native_calls": 2,
+      "completed_calls": 2,
+      "measured_calls": 1,
+      "sustained_wall_s": null,
+      "boundary_overrun_s": null,
+      "start": 1791651282.0550528,
+      "end": 1791651284.6332586,
+      "raw": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/1e99f96e60c458306fec96e49fce3fa0581a43243dabc2c37a91538e5552cdeb/attempt-001/resource-profile-raw"
+    },
+    {
+      "case": {
+        "study": "F05",
+        "N": 32,
+        "B": 16,
+        "SQP": 1,
+        "PCG": 100,
+        "arm": "first_response",
+        "replicate": 0,
+        "stage_timing": false
+      },
+      "status": "completed",
+      "native_calls": 1,
+      "completed_calls": 1,
+      "measured_calls": 1,
+      "sustained_wall_s": null,
+      "boundary_overrun_s": null,
+      "start": 1791651247.8742523,
+      "end": 1791651250.3436527,
+      "raw": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/3da6aa53deeb358abfc930a84c295e23161e3485d1104ed8c440febaf71c1532/attempt-001/resource-profile-raw"
+    },
+    {
+      "case": {
+        "study": "F05",
+        "N": 32,
+        "B": 16,
+        "SQP": 10,
+        "PCG": 800,
+        "arm": "sustained",
+        "duration_s": 120,
+        "stage_timing": false
+      },
+      "status": "completed",
+      "native_calls": 1201,
+      "completed_calls": 1201,
+      "measured_calls": 1200,
+      "sustained_wall_s": 120.03704452900274,
+      "boundary_overrun_s": 0.03704452900274191,
+      "start": 1791651988.8452082,
+      "end": 1791652112.5804486,
+      "raw": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/3db7394a6d691ec73dcd26dac5824779de888eb607c11c19f37cabe207a7bf4e/attempt-001/resource-profile-raw"
+    },
+    {
+      "case": {
+        "study": "F05",
+        "N": 32,
+        "B": 16,
+        "SQP": 1,
+        "PCG": 100,
+        "arm": "sustained",
+        "duration_s": 120,
+        "stage_timing": false
+      },
+      "status": "completed",
+      "native_calls": 5880,
+      "completed_calls": 5880,
+      "measured_calls": 5879,
+      "sustained_wall_s": 120.009244055007,
+      "boundary_overrun_s": 0.009244055007002316,
+      "start": 1791651690.195675,
+      "end": 1791651848.7621434,
+      "raw": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/4456472e994682496c3e2fc657f9af843051d8b12d836afca469180397f291d4/attempt-001/resource-profile-raw"
+    },
+    {
+      "case": {
+        "study": "F05",
+        "N": 32,
+        "B": 16,
+        "SQP": 10,
+        "PCG": 800,
+        "arm": "first_response",
+        "replicate": 0,
+        "stage_timing": false
+      },
+      "status": "completed",
+      "native_calls": 1,
+      "completed_calls": 1,
+      "measured_calls": 1,
+      "sustained_wall_s": null,
+      "boundary_overrun_s": null,
+      "start": 1791651262.4347472,
+      "end": 1791651264.866877,
+      "raw": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/4471d9a1c5e36aa5cbfcc4aaf57e0cce6eeffe6cc45800b7f574e563f0f456ab/attempt-001/resource-profile-raw"
+    },
+    {
+      "case": {
+        "study": "F05",
+        "N": 32,
+        "B": 1,
+        "SQP": 5,
+        "PCG": 100,
+        "arm": "profile",
+        "stage_timing": true
+      },
+      "status": "completed",
+      "native_calls": 2,
+      "completed_calls": 2,
+      "measured_calls": 1,
+      "sustained_wall_s": null,
+      "boundary_overrun_s": null,
+      "start": 1791651272.2980568,
+      "end": 1791651274.7628698,
+      "raw": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/4bde814bebed85216fc5ff075a3484dd70fb16c64d6bc07d56c84a368196f6e3/attempt-001/resource-profile-raw"
+    },
+    {
+      "case": {
+        "study": "F04",
+        "arm": "query",
+        "N": 64,
+        "B": 16,
+        "stage_timing": false
+      },
+      "status": "completed",
+      "native_calls": 0,
+      "completed_calls": 0,
+      "measured_calls": 0,
+      "sustained_wall_s": null,
+      "boundary_overrun_s": null,
+      "start": 1791651224.0901744,
+      "end": 1791651224.5660098,
+      "raw": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/518d43543e361165f8898c22b841d9de1965469e6257742706bf94502fabcbb4/attempt-001/resource-profile-raw"
+    },
+    {
+      "case": {
+        "study": "F04",
+        "arm": "query",
+        "N": 32,
+        "B": 16,
+        "stage_timing": false
+      },
+      "status": "completed",
+      "native_calls": 0,
+      "completed_calls": 0,
+      "measured_calls": 0,
+      "sustained_wall_s": null,
+      "boundary_overrun_s": null,
+      "start": 1791651223.0435412,
+      "end": 1791651223.541099,
+      "raw": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/559be4b63da5322f0d0077802752fd093412cae9dff7e932a0a73345193768d1/attempt-001/resource-profile-raw"
+    },
+    {
+      "case": {
+        "study": "F05",
+        "N": 32,
+        "B": 1,
+        "SQP": 1,
+        "PCG": 100,
+        "arm": "profile",
+        "stage_timing": true
+      },
+      "status": "completed",
+      "native_calls": 2,
+      "completed_calls": 2,
+      "measured_calls": 1,
+      "sustained_wall_s": null,
+      "boundary_overrun_s": null,
+      "start": 1791651269.8873224,
+      "end": 1791651272.2623224,
+      "raw": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/5ecd8550e58ef326edeb6f68a0801eec6fba93b5e5cf0a213e9690d336318a05/attempt-001/resource-profile-raw"
+    },
+    {
+      "case": {
+        "study": "F05",
+        "N": 32,
+        "B": 16,
+        "SQP": 10,
+        "PCG": 800,
+        "arm": "first_response",
+        "replicate": 1,
+        "stage_timing": false
+      },
+      "status": "completed",
+      "native_calls": 1,
+      "completed_calls": 1,
+      "measured_calls": 1,
+      "sustained_wall_s": null,
+      "boundary_overrun_s": null,
+      "start": 1791651264.9041877,
+      "end": 1791651267.3350449,
+      "raw": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/654f0d711fdeba5455048f49156340cb30a4d62fad10c7b877d9e12133a52ce8/attempt-001/resource-profile-raw"
+    },
+    {
+      "case": {
+        "study": "F05",
+        "N": 32,
+        "B": 1,
+        "SQP": 5,
+        "PCG": 100,
+        "arm": "first_response",
+        "replicate": 0,
+        "stage_timing": false
+      },
+      "status": "completed",
+      "native_calls": 1,
+      "completed_calls": 1,
+      "measured_calls": 1,
+      "sustained_wall_s": null,
+      "boundary_overrun_s": null,
+      "start": 1791651232.973367,
+      "end": 1791651235.3258944,
+      "raw": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/69c9e13116ebff05887b46c8d433ebd09b0e7a936d32f22ab2f0f6af429fb7b5/attempt-001/resource-profile-raw"
+    },
+    {
+      "case": {
+        "study": "F04",
+        "arm": "query",
+        "N": 16,
+        "B": 16,
+        "stage_timing": false
+      },
+      "status": "completed",
+      "native_calls": 0,
+      "completed_calls": 0,
+      "measured_calls": 0,
+      "sustained_wall_s": null,
+      "boundary_overrun_s": null,
+      "start": 1791651221.904823,
+      "end": 1791651222.4523318,
+      "raw": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/6a566e86df9b6d1e310a69ea5a74cdc6fc40eb10b237c64c0f6f7659f67f55f7/attempt-001/resource-profile-raw"
+    },
+    {
+      "case": {
+        "study": "F05",
+        "N": 32,
+        "B": 1,
+        "SQP": 1,
+        "PCG": 100,
+        "arm": "first_response",
+        "replicate": 2,
+        "stage_timing": false
+      },
+      "status": "completed",
+      "native_calls": 1,
+      "completed_calls": 1,
+      "measured_calls": 1,
+      "sustained_wall_s": null,
+      "boundary_overrun_s": null,
+      "start": 1791651230.4030056,
+      "end": 1791651232.9381208,
+      "raw": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/6e1ffc1f6721434ba0f02fa3664b49bfb01ca28b09d360de5b17f9634b61421d/attempt-001/resource-profile-raw"
+    },
+    {
+      "case": {
+        "study": "F05",
+        "N": 32,
+        "B": 16,
+        "SQP": 1,
+        "PCG": 100,
+        "arm": "first_response",
+        "replicate": 2,
+        "stage_timing": false
+      },
+      "status": "completed",
+      "native_calls": 1,
+      "completed_calls": 1,
+      "measured_calls": 1,
+      "sustained_wall_s": null,
+      "boundary_overrun_s": null,
+      "start": 1791651252.8417795,
+      "end": 1791651255.2013035,
+      "raw": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/720717e540bc124310b9d955ea273cc6afc47c75ccf2d677d9061dfab8eb829f/attempt-001/resource-profile-raw"
+    },
+    {
+      "case": {
+        "study": "F05",
+        "N": 32,
+        "B": 1,
+        "SQP": 1,
+        "PCG": 100,
+        "arm": "sustained",
+        "duration_s": 120,
+        "stage_timing": false
+      },
+      "status": "completed",
+      "native_calls": 13360,
+      "completed_calls": 13360,
+      "measured_calls": 13359,
+      "sustained_wall_s": 126.16616731999966,
+      "boundary_overrun_s": 6.1661673199996585,
+      "start": 1791651284.6749542,
+      "end": 1791651418.6365695,
+      "raw": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/7d8fb9148cad10a23406a77021807cc6256f346b8cb871d75fa816a44d955aba/attempt-001/resource-profile-raw"
+    },
+    {
+      "case": {
+        "study": "F05",
+        "N": 32,
+        "B": 16,
+        "SQP": 10,
+        "PCG": 800,
+        "arm": "first_response",
+        "replicate": 2,
+        "stage_timing": false
+      },
+      "status": "completed",
+      "native_calls": 1,
+      "completed_calls": 1,
+      "measured_calls": 1,
+      "sustained_wall_s": null,
+      "boundary_overrun_s": null,
+      "start": 1791651267.4090488,
+      "end": 1791651269.8514092,
+      "raw": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/8518470e49d1b9084180042fab833d7c833d931d2dcfd0f77dba9081bdc4d196/attempt-001/resource-profile-raw"
+    },
+    {
+      "case": {
+        "study": "F05",
+        "N": 32,
+        "B": 1,
+        "SQP": 5,
+        "PCG": 100,
+        "arm": "first_response",
+        "replicate": 1,
+        "stage_timing": false
+      },
+      "status": "completed",
+      "native_calls": 1,
+      "completed_calls": 1,
+      "measured_calls": 1,
+      "sustained_wall_s": null,
+      "boundary_overrun_s": null,
+      "start": 1791651235.3613567,
+      "end": 1791651237.896033,
+      "raw": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/8812f92d4a52d235c6d8f7db228314f986a341ebce12270380e84b71e5981f69/attempt-001/resource-profile-raw"
+    },
+    {
+      "case": {
+        "study": "F05",
+        "N": 32,
+        "B": 1,
+        "SQP": 10,
+        "PCG": 800,
+        "arm": "first_response",
+        "replicate": 1,
+        "stage_timing": false
+      },
+      "status": "completed",
+      "native_calls": 1,
+      "completed_calls": 1,
+      "measured_calls": 1,
+      "sustained_wall_s": null,
+      "boundary_overrun_s": null,
+      "start": 1791651242.806896,
+      "end": 1791651245.3146656,
+      "raw": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/91d5100e32b124772f5f1958d8d87fd70e7733782f8c25c31629f9f5bf5f32da/attempt-001/resource-profile-raw"
+    },
+    {
+      "case": {
+        "study": "F05",
+        "N": 32,
+        "B": 16,
+        "SQP": 5,
+        "PCG": 100,
+        "arm": "profile",
+        "stage_timing": true
+      },
+      "status": "completed",
+      "native_calls": 2,
+      "completed_calls": 2,
+      "measured_calls": 1,
+      "sustained_wall_s": null,
+      "boundary_overrun_s": null,
+      "start": 1791651279.6240413,
+      "end": 1791651282.0160549,
+      "raw": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/9c934621b93f7465118dbfd9dfbd209def6e438257d3f5f371e47d9a3a3bcd6c/attempt-001/resource-profile-raw"
+    },
+    {
+      "case": {
+        "study": "F04",
+        "arm": "query",
+        "N": 16,
+        "B": 1,
+        "stage_timing": false
+      },
+      "status": "completed",
+      "native_calls": 0,
+      "completed_calls": 0,
+      "measured_calls": 0,
+      "sustained_wall_s": null,
+      "boundary_overrun_s": null,
+      "start": 1791651220.8738496,
+      "end": 1791651221.853368,
+      "raw": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/9e01d9b1f222232a172138fdc40eb1159110fa18271069a57f9169435a4c1f48/attempt-001/resource-profile-raw"
+    },
+    {
+      "case": {
+        "study": "F05",
+        "N": 32,
+        "B": 16,
+        "SQP": 5,
+        "PCG": 100,
+        "arm": "first_response",
+        "replicate": 1,
+        "stage_timing": false
+      },
+      "status": "completed",
+      "native_calls": 1,
+      "completed_calls": 1,
+      "measured_calls": 1,
+      "sustained_wall_s": null,
+      "boundary_overrun_s": null,
+      "start": 1791651257.6366558,
+      "end": 1791651259.998597,
+      "raw": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/a1b204aa36aa3febcecba1336a14255d0b26ec8ca250ec69495311433a4e6906/attempt-001/resource-profile-raw"
+    },
+    {
+      "case": {
+        "study": "F05",
+        "N": 32,
+        "B": 1,
+        "SQP": 1,
+        "PCG": 100,
+        "arm": "first_response",
+        "replicate": 0,
+        "stage_timing": false
+      },
+      "status": "completed",
+      "native_calls": 1,
+      "completed_calls": 1,
+      "measured_calls": 1,
+      "sustained_wall_s": null,
+      "boundary_overrun_s": null,
+      "start": 1791651225.6322021,
+      "end": 1791651227.979345,
+      "raw": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/a60fd182d97c759d5117e854b7471c5050ac5d8c9fade621a524e1ef1d826e34/attempt-001/resource-profile-raw"
+    },
+    {
+      "case": {
+        "study": "F05",
+        "N": 32,
+        "B": 1,
+        "SQP": 5,
+        "PCG": 100,
+        "arm": "first_response",
+        "replicate": 2,
+        "stage_timing": false
+      },
+      "status": "completed",
+      "native_calls": 1,
+      "completed_calls": 1,
+      "measured_calls": 1,
+      "sustained_wall_s": null,
+      "boundary_overrun_s": null,
+      "start": 1791651237.931394,
+      "end": 1791651240.3345096,
+      "raw": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/ac460f7deae725f4ea33fa6cd3c0e512c8d9126a171d7eb797d697055ed6b8a3/attempt-001/resource-profile-raw"
+    },
+    {
+      "case": {
+        "study": "F05",
+        "N": 32,
+        "B": 1,
+        "SQP": 10,
+        "PCG": 800,
+        "arm": "first_response",
+        "replicate": 0,
+        "stage_timing": false
+      },
+      "status": "completed",
+      "native_calls": 1,
+      "completed_calls": 1,
+      "measured_calls": 1,
+      "sustained_wall_s": null,
+      "boundary_overrun_s": null,
+      "start": 1791651240.371297,
+      "end": 1791651242.7683742,
+      "raw": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/b1d1b5d652237873ba92b3fef7e9b9b4d8afb065d4b5bdcdffc24c62681c609c/attempt-001/resource-profile-raw"
+    },
+    {
+      "case": {
+        "study": "F05",
+        "N": 32,
+        "B": 16,
+        "SQP": 5,
+        "PCG": 100,
+        "arm": "first_response",
+        "replicate": 0,
+        "stage_timing": false
+      },
+      "status": "completed",
+      "native_calls": 1,
+      "completed_calls": 1,
+      "measured_calls": 1,
+      "sustained_wall_s": null,
+      "boundary_overrun_s": null,
+      "start": 1791651255.2389584,
+      "end": 1791651257.6003077,
+      "raw": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/b8208d1f0d5a7d225e42caa95780195ed9a5f078fce893671f86b043176f4fb3/attempt-001/resource-profile-raw"
+    },
+    {
+      "case": {
+        "study": "F05",
+        "N": 32,
+        "B": 16,
+        "SQP": 5,
+        "PCG": 100,
+        "arm": "first_response",
+        "replicate": 2,
+        "stage_timing": false
+      },
+      "status": "completed",
+      "native_calls": 1,
+      "completed_calls": 1,
+      "measured_calls": 1,
+      "sustained_wall_s": null,
+      "boundary_overrun_s": null,
+      "start": 1791651260.0340562,
+      "end": 1791651262.3982995,
+      "raw": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/ba44646248ca9198e9ca7f6c5bcd712a508c95de534899832bbe4311d68d0d96/attempt-001/resource-profile-raw"
+    },
+    {
+      "case": {
+        "study": "F05",
+        "N": 32,
+        "B": 1,
+        "SQP": 1,
+        "PCG": 100,
+        "arm": "first_response",
+        "replicate": 1,
+        "stage_timing": false
+      },
+      "status": "completed",
+      "native_calls": 1,
+      "completed_calls": 1,
+      "measured_calls": 1,
+      "sustained_wall_s": null,
+      "boundary_overrun_s": null,
+      "start": 1791651228.0151107,
+      "end": 1791651230.3674538,
+      "raw": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/befd1bf86119cc0d65f46a40014d5e68be46ab4e44059dab467a50c79cde2213/attempt-001/resource-profile-raw"
+    },
+    {
+      "case": {
+        "study": "F05",
+        "N": 32,
+        "B": 16,
+        "SQP": 1,
+        "PCG": 100,
+        "arm": "profile",
+        "stage_timing": true
+      },
+      "status": "completed",
+      "native_calls": 2,
+      "completed_calls": 2,
+      "measured_calls": 1,
+      "sustained_wall_s": null,
+      "boundary_overrun_s": null,
+      "start": 1791651277.2460809,
+      "end": 1791651279.5869057,
+      "raw": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/c04043587fe7a2d110aeab9190a37a5381cdfbb4bb7840771f75ad4783c04197/attempt-001/resource-profile-raw"
+    },
+    {
+      "case": {
+        "study": "F05",
+        "N": 32,
+        "B": 1,
+        "SQP": 10,
+        "PCG": 800,
+        "arm": "profile",
+        "stage_timing": true
+      },
+      "status": "completed",
+      "native_calls": 2,
+      "completed_calls": 2,
+      "measured_calls": 1,
+      "sustained_wall_s": null,
+      "boundary_overrun_s": null,
+      "start": 1791651274.8016279,
+      "end": 1791651277.2074144,
+      "raw": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/c2abc0c62e574cecaf2238e71f5c5fdf0cb1ba952fbeb93effb13945bc7371a7/attempt-001/resource-profile-raw"
+    },
+    {
+      "case": {
+        "study": "F05",
+        "N": 32,
+        "B": 16,
+        "SQP": 5,
+        "PCG": 100,
+        "arm": "sustained",
+        "duration_s": 120,
+        "stage_timing": false
+      },
+      "status": "completed",
+      "native_calls": 3715,
+      "completed_calls": 3715,
+      "measured_calls": 3714,
+      "sustained_wall_s": 120.02691083699756,
+      "boundary_overrun_s": 0.026910836997558363,
+      "start": 1791651859.0403666,
+      "end": 1791651985.062344,
+      "raw": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/c8170a42708ac0450adc055dfc617352101d7a8fd482e7940852b4511a0aaf87/attempt-001/resource-profile-raw"
+    },
+    {
+      "case": {
+        "study": "F05",
+        "N": 32,
+        "B": 1,
+        "SQP": 10,
+        "PCG": 800,
+        "arm": "first_response",
+        "replicate": 2,
+        "stage_timing": false
+      },
+      "status": "completed",
+      "native_calls": 1,
+      "completed_calls": 1,
+      "measured_calls": 1,
+      "sustained_wall_s": null,
+      "boundary_overrun_s": null,
+      "start": 1791651245.3530867,
+      "end": 1791651247.8391318,
+      "raw": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/cba4817b89f83645683d7b19b6af3e841443c6a88c509cd64491afc6df065065/attempt-001/resource-profile-raw"
+    },
+    {
+      "case": {
+        "study": "F05",
+        "N": 32,
+        "B": 16,
+        "SQP": 1,
+        "PCG": 100,
+        "arm": "first_response",
+        "replicate": 1,
+        "stage_timing": false
+      },
+      "status": "completed",
+      "native_calls": 1,
+      "completed_calls": 1,
+      "measured_calls": 1,
+      "sustained_wall_s": null,
+      "boundary_overrun_s": null,
+      "start": 1791651250.3814979,
+      "end": 1791651252.7999656,
+      "raw": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/cbb671b647a1b98102f05c49ce05c78d286299f13ae4382f82121a4d215d6465/attempt-001/resource-profile-raw"
+    },
+    {
+      "case": {
+        "study": "F04",
+        "arm": "query",
+        "N": 32,
+        "B": 1,
+        "stage_timing": false
+      },
+      "status": "completed",
+      "native_calls": 0,
+      "completed_calls": 0,
+      "measured_calls": 0,
+      "sustained_wall_s": null,
+      "boundary_overrun_s": null,
+      "start": 1791651222.4911003,
+      "end": 1791651223.0087643,
+      "raw": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/cef07ecb02cd8a97a19a6153e4916cc84018b911c24eafab0ee13fb5e5485295/attempt-001/resource-profile-raw"
+    },
+    {
+      "case": {
+        "study": "F04",
+        "arm": "query",
+        "N": 128,
+        "B": 1,
+        "stage_timing": false
+      },
+      "status": "completed",
+      "native_calls": 0,
+      "completed_calls": 0,
+      "measured_calls": 0,
+      "sustained_wall_s": null,
+      "boundary_overrun_s": null,
+      "start": 1791651224.6009552,
+      "end": 1791651225.0817587,
+      "raw": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/dd6a9dd878ca82abf977b3ea24c0ba293fd7df1f1666c96b2d05cbe711660e16/attempt-001/resource-profile-raw"
+    },
+    {
+      "case": {
+        "study": "F05",
+        "N": 32,
+        "B": 1,
+        "SQP": 5,
+        "PCG": 100,
+        "arm": "sustained",
+        "duration_s": 120,
+        "stage_timing": false
+      },
+      "status": "completed",
+      "native_calls": 11189,
+      "completed_calls": 11189,
+      "measured_calls": 11188,
+      "sustained_wall_s": 120.00281255599111,
+      "boundary_overrun_s": 0.002812555991113186,
+      "start": 1791651425.8035312,
+      "end": 1791651553.3309798,
+      "raw": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/ebdff4a14a1d4ad4c6f85ff3d5dd9d9916d1839d20b31a7f61c2bcdaa529d93f/attempt-001/resource-profile-raw"
+    },
+    {
+      "case": {
+        "study": "F04",
+        "arm": "query",
+        "N": 64,
+        "B": 1,
+        "stage_timing": false
+      },
+      "status": "completed",
+      "native_calls": 0,
+      "completed_calls": 0,
+      "measured_calls": 0,
+      "sustained_wall_s": null,
+      "boundary_overrun_s": null,
+      "start": 1791651223.5770838,
+      "end": 1791651224.0551686,
+      "raw": "/home/felix/gato-results/gtx1070/F04-F05-gtx1070/f7b89f5ff5d2fee4bb5b4ce1666cb07541a407943d06f83b3a17139f94b742b5/attempt-001/resource-profile-raw"
+    }
+  ],
+  "total_native_calls": 44385,
+  "execution_failures": 0,
+  "whole_queue_wall_s": 901.4732685089111,
+  "passive_monitor": {
+    "path": "/workspace/gato-campaign-recovery-20261010/f04-f05-passive-monitor-20261010T165400Z/receipt.json",
+    "sha256": "15ff0c0580021352b1c2b7616ad3d613c7b1d04c4c7df54788df26ebb12ca89f"
+  },
+  "plan_sha256": "32480d8e9664937591cee40035f14439fba42229bc1f344d035162436934066c"
+}

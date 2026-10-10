@@ -1,0 +1,110 @@
+{
+  "scope": "saved validated F04/F05 GTX1070 export/report CPU work only; no second manifest/NPZ audit",
+  "source": "4e5301feaea5f2d06530922ba46aa543e1995d47",
+  "science_plan_checkpoint": "714736a",
+  "index": {
+    "path": "/workspace/gato-campaign-recovery-20261010/f04-f05-gtx1070-analysis-index.json",
+    "sha256": "260ed100e64ee1849552c331b0d83d19c331adaa3f5f00c73fa3017bb4170fcf"
+  },
+  "exports": {
+    "path": "/workspace/gato-campaign-recovery-20261010/analysis/f04-f05-gtx1070",
+    "files_sha256": {
+      "calls.csv": "7d19484e037903b527ac695d668689f0c175c391a680d03311c535e485c9b450",
+      "stages.csv": "0882c968d1ad4ebf3710387e0f387744519bc058c2d954682194d34bbdf838de",
+      "resources.csv": "4e83e022cedd3646a0e9f4b6ae37d766c8d0a37c980e942f944f0fc1f4b8f348",
+      "attempts.csv": "f432a2f0c90b24b39a0508fbed72c48c4996a9417a785aa1113aadc605ce4f33",
+      "provenance.json": "ae3a7cfab7189a096030e171c26150ddc53035a5cef5f05fa97a77323ddbf573",
+      "stage_summary.csv": "9be7b694483b61d11f4f0d409bb9217d6b99dc84956b7dcfd4dd1312577a0f3a"
+    },
+    "plot_sha256": "7b486c609fbb376690aac29a39dee55e684ca70d7fc641c6a942741387b7729e"
+  },
+  "coverage": {
+    "path": "/workspace/gato-campaign-recovery-20261010/f04-f05-gtx1070-measured-coverage.json",
+    "sha256": "ffd27a00d33d25941b3ba6d81ea2a15edb5cc81fa94fc5289fa32c86a77202a8"
+  },
+  "derived_sha256": {
+    "REPORT.md": "09bbd6dba406898d5bb29b163eb4a918ea722cc2e33badff9d90a4a47006ddbb",
+    "attempts.csv": "f6050b3b32de14d3c557458421342bd053518c25b969d3148118351a7559c8b7",
+    "first_response_samples.csv": "2445e6f47b9fb3e4cdae46c71f8a8d01e1309c4ba1909a50e4dcddc12a6675af",
+    "kernel_resources.csv": "2818e4b415224302d8a29b2bb1481c576a469055c527086d313093120ae697b0",
+    "latency_summary.csv": "46c89f163b7bc00911c5f78bfda26087eb2defd03dae24b1687505fb3920b7fd",
+    "passive_conditions.csv": "b44d4b5c0e1dcb843a8e2055f73596ffa322ccea124adb1ea26d82331a46d6f3",
+    "profile_totals.csv": "c432baa12947d2a570604fd2ce86bfeaf38697056496bd0212b9fe3e72be7645",
+    "provenance.json": "ad3f95259ec02ab436b7cf884ec83b2e169cff8615412a606daaa56222b719c8",
+    "query_devices.csv": "7ce4cc7ae45d973d07a40d7e195430b80dfb7023f8ad8deb42ea04fa52ecb58f",
+    "stage_windows_summary.csv": "94890fd47ccc145204b1a5ba8e0ec67d2495906ea529578fe3c044ecf21e7d84",
+    "summarize_exports.py": "2b823d392ea74e85fb5fe1fc8050fcd443871de1f4d58334fc816495c7dfd78f",
+    "summary.json": "36939360b49d55f8a36a1bde0c8af958d1bc97f67ccc87ccb983432897397734",
+    "sustained_summary.csv": "d5a21904b8b4d11ef2ce6cf0a26f5a3558f3c316332103259a3edbc99bfaf2ac"
+  },
+  "validation": {
+    "total_native_calls": 44385,
+    "counts": [
+      {
+        "arm": "first_response",
+        "category": "measured",
+        "calls": 18
+      },
+      {
+        "arm": "profile",
+        "category": "measured",
+        "calls": 6
+      },
+      {
+        "arm": "profile",
+        "category": "warmup",
+        "calls": 6
+      },
+      {
+        "arm": "sustained",
+        "category": "measured",
+        "calls": 44349
+      },
+      {
+        "arm": "sustained",
+        "category": "warmup",
+        "calls": 6
+      }
+    ],
+    "execution_failures": 0,
+    "missing_timings": {
+      "native": 0,
+      "wrapper": 0
+    },
+    "query_count": 8,
+    "kernel_query_rows": 56,
+    "resource_api_errors": 0,
+    "predicted_fit_false": 0,
+    "actual_launch_observations": 0,
+    "profile_measured_windows": 236,
+    "profile_measured_missing": 0,
+    "passive_rows": 899,
+    "representative_metadata_checks": 8,
+    "byte_identical_reproduced_files": [
+      "provenance.json",
+      "summary.json",
+      "latency_summary.csv",
+      "first_response_samples.csv",
+      "sustained_summary.csv",
+      "kernel_resources.csv",
+      "stage_windows_summary.csv",
+      "profile_totals.csv",
+      "passive_conditions.csv",
+      "attempts.csv",
+      "query_devices.csv"
+    ]
+  },
+  "repro": "copy summarize_exports.py alone to fresh directory; python3 <freshdir>/summarize_exports.py",
+  "raw_storage": "explicitly unavailable from consumed exports; no filesystem walk/whole manifest recount",
+  "limitations": "first/sustain OFF separate profileON; no causaloverhead/equalquality/thermalsteady/saturation/actuation/solvercertificate/crossGPU inference",
+  "actions": {
+    "native_imports": 0,
+    "GPU_queries_or_calls": 0,
+    "builds": 0,
+    "replays": 0,
+    "tests": 0,
+    "source_changes": 0,
+    "raw_changes": 0,
+    "commits": 0
+  }
+}

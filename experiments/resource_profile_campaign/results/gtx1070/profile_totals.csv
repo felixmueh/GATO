@@ -1,0 +1,7 @@
+B,SQP,PCG,windows,unavailable,sum_observed_window_elapsed_us,native_ms,wrapper_ms,scope
+16,10,800,72,0,72475.74340179563,72.621,72.94308600830846,"sum is diagnostic, not an additive decomposition/native clock identity"
+1,5,100,37,0,2342.3680122941732,2.411,2.6555749936960638,"sum is diagnostic, not an additive decomposition/native clock identity"
+1,1,100,9,0,711.9999858550727,0.73,0.8893619960872456,"sum is diagnostic, not an additive decomposition/native clock identity"
+16,5,100,37,0,15263.679998926818,15.327,15.52395500766579,"sum is diagnostic, not an additive decomposition/native clock identity"
+16,1,100,9,0,3469.727970659733,3.49,3.669197001727298,"sum is diagnostic, not an additive decomposition/native clock identity"
+1,10,800,72,0,3725.5999948829412,3.837,4.039306993945502,"sum is diagnostic, not an additive decomposition/native clock identity"
