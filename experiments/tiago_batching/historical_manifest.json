@@ -1,0 +1,701 @@
+{
+  "schema_version": 1,
+  "created": "2026-09-25T09:44:35.253539+00:00",
+  "pair_ids": [
+    3626,
+    7733,
+    7132,
+    7093,
+    1265,
+    9651,
+    5264,
+    279,
+    8054,
+    8270,
+    2497,
+    2342,
+    6503,
+    6155,
+    1161,
+    1600,
+    6892,
+    5809,
+    3678,
+    9059,
+    2112,
+    9107,
+    870,
+    789,
+    975,
+    7184,
+    7736,
+    9961,
+    1976,
+    6352,
+    7463,
+    2406,
+    6340,
+    3987,
+    9888,
+    6618,
+    4972,
+    8276,
+    3069,
+    320,
+    2295,
+    5995,
+    1273,
+    3012,
+    4663,
+    2696,
+    5681,
+    7601,
+    2641,
+    7221,
+    3284,
+    4007,
+    7443,
+    8369,
+    2289,
+    1934,
+    3110,
+    9801,
+    3239,
+    42,
+    7156,
+    1831,
+    2184,
+    9136,
+    8175,
+    2205,
+    1029,
+    1114,
+    5413,
+    2119,
+    318,
+    3255,
+    7375,
+    1497,
+    4786,
+    2931,
+    9913,
+    2238,
+    2036,
+    7206,
+    2548,
+    7660,
+    5104,
+    9844,
+    2204,
+    3506,
+    6166,
+    5089,
+    47,
+    2161,
+    4656,
+    3377,
+    4466,
+    6921,
+    3974,
+    8607,
+    5510,
+    8981,
+    9288,
+    4434
+  ],
+  "pairs": [
+    {
+      "pair_id": 3626,
+      "start_index": 180,
+      "goal_index": 102
+    },
+    {
+      "pair_id": 7733,
+      "start_index": 984,
+      "goal_index": 111
+    },
+    {
+      "pair_id": 7132,
+      "start_index": 50,
+      "goal_index": 309
+    },
+    {
+      "pair_id": 7093,
+      "start_index": 160,
+      "goal_index": 498
+    },
+    {
+      "pair_id": 1265,
+      "start_index": 594,
+      "goal_index": 548
+    },
+    {
+      "pair_id": 9651,
+      "start_index": 177,
+      "goal_index": 484
+    },
+    {
+      "pair_id": 5264,
+      "start_index": 607,
+      "goal_index": 745
+    },
+    {
+      "pair_id": 279,
+      "start_index": 68,
+      "goal_index": 809
+    },
+    {
+      "pair_id": 8054,
+      "start_index": 299,
+      "goal_index": 688
+    },
+    {
+      "pair_id": 8270,
+      "start_index": 273,
+      "goal_index": 477
+    },
+    {
+      "pair_id": 2497,
+      "start_index": 192,
+      "goal_index": 155
+    },
+    {
+      "pair_id": 2342,
+      "start_index": 897,
+      "goal_index": 75
+    },
+    {
+      "pair_id": 6503,
+      "start_index": 981,
+      "goal_index": 513
+    },
+    {
+      "pair_id": 6155,
+      "start_index": 12,
+      "goal_index": 25
+    },
+    {
+      "pair_id": 1161,
+      "start_index": 120,
+      "goal_index": 356
+    },
+    {
+      "pair_id": 1600,
+      "start_index": 43,
+      "goal_index": 516
+    },
+    {
+      "pair_id": 6892,
+      "start_index": 447,
+      "goal_index": 562
+    },
+    {
+      "pair_id": 5809,
+      "start_index": 654,
+      "goal_index": 512
+    },
+    {
+      "pair_id": 3678,
+      "start_index": 877,
+      "goal_index": 946
+    },
+    {
+      "pair_id": 9059,
+      "start_index": 513,
+      "goal_index": 859
+    },
+    {
+      "pair_id": 2112,
+      "start_index": 256,
+      "goal_index": 922
+    },
+    {
+      "pair_id": 9107,
+      "start_index": 748,
+      "goal_index": 946
+    },
+    {
+      "pair_id": 870,
+      "start_index": 467,
+      "goal_index": 959
+    },
+    {
+      "pair_id": 789,
+      "start_index": 619,
+      "goal_index": 191
+    },
+    {
+      "pair_id": 975,
+      "start_index": 558,
+      "goal_index": 949
+    },
+    {
+      "pair_id": 7184,
+      "start_index": 833,
+      "goal_index": 29
+    },
+    {
+      "pair_id": 7736,
+      "start_index": 310,
+      "goal_index": 42
+    },
+    {
+      "pair_id": 9961,
+      "start_index": 921,
+      "goal_index": 368
+    },
+    {
+      "pair_id": 1976,
+      "start_index": 846,
+      "goal_index": 923
+    },
+    {
+      "pair_id": 6352,
+      "start_index": 137,
+      "goal_index": 495
+    },
+    {
+      "pair_id": 7463,
+      "start_index": 27,
+      "goal_index": 21
+    },
+    {
+      "pair_id": 2406,
+      "start_index": 32,
+      "goal_index": 648
+    },
+    {
+      "pair_id": 6340,
+      "start_index": 810,
+      "goal_index": 921
+    },
+    {
+      "pair_id": 3987,
+      "start_index": 994,
+      "goal_index": 183
+    },
+    {
+      "pair_id": 9888,
+      "start_index": 409,
+      "goal_index": 725
+    },
+    {
+      "pair_id": 6618,
+      "start_index": 913,
+      "goal_index": 528
+    },
+    {
+      "pair_id": 4972,
+      "start_index": 336,
+      "goal_index": 848
+    },
+    {
+      "pair_id": 8276,
+      "start_index": 912,
+      "goal_index": 525
+    },
+    {
+      "pair_id": 3069,
+      "start_index": 77,
+      "goal_index": 701
+    },
+    {
+      "pair_id": 320,
+      "start_index": 109,
+      "goal_index": 880
+    },
+    {
+      "pair_id": 2295,
+      "start_index": 139,
+      "goal_index": 941
+    },
+    {
+      "pair_id": 5995,
+      "start_index": 217,
+      "goal_index": 377
+    },
+    {
+      "pair_id": 1273,
+      "start_index": 291,
+      "goal_index": 532
+    },
+    {
+      "pair_id": 3012,
+      "start_index": 171,
+      "goal_index": 957
+    },
+    {
+      "pair_id": 4663,
+      "start_index": 602,
+      "goal_index": 408
+    },
+    {
+      "pair_id": 2696,
+      "start_index": 692,
+      "goal_index": 906
+    },
+    {
+      "pair_id": 5681,
+      "start_index": 368,
+      "goal_index": 558
+    },
+    {
+      "pair_id": 7601,
+      "start_index": 184,
+      "goal_index": 251
+    },
+    {
+      "pair_id": 2641,
+      "start_index": 22,
+      "goal_index": 367
+    },
+    {
+      "pair_id": 7221,
+      "start_index": 233,
+      "goal_index": 115
+    },
+    {
+      "pair_id": 3284,
+      "start_index": 879,
+      "goal_index": 327
+    },
+    {
+      "pair_id": 4007,
+      "start_index": 429,
+      "goal_index": 10
+    },
+    {
+      "pair_id": 7443,
+      "start_index": 510,
+      "goal_index": 276
+    },
+    {
+      "pair_id": 8369,
+      "start_index": 456,
+      "goal_index": 960
+    },
+    {
+      "pair_id": 2289,
+      "start_index": 654,
+      "goal_index": 735
+    },
+    {
+      "pair_id": 1934,
+      "start_index": 84,
+      "goal_index": 101
+    },
+    {
+      "pair_id": 3110,
+      "start_index": 766,
+      "goal_index": 180
+    },
+    {
+      "pair_id": 9801,
+      "start_index": 594,
+      "goal_index": 32
+    },
+    {
+      "pair_id": 3239,
+      "start_index": 417,
+      "goal_index": 148
+    },
+    {
+      "pair_id": 42,
+      "start_index": 74,
+      "goal_index": 672
+    },
+    {
+      "pair_id": 7156,
+      "start_index": 88,
+      "goal_index": 226
+    },
+    {
+      "pair_id": 1831,
+      "start_index": 628,
+      "goal_index": 247
+    },
+    {
+      "pair_id": 2184,
+      "start_index": 951,
+      "goal_index": 225
+    },
+    {
+      "pair_id": 9136,
+      "start_index": 622,
+      "goal_index": 250
+    },
+    {
+      "pair_id": 8175,
+      "start_index": 175,
+      "goal_index": 139
+    },
+    {
+      "pair_id": 2205,
+      "start_index": 875,
+      "goal_index": 842
+    },
+    {
+      "pair_id": 1029,
+      "start_index": 52,
+      "goal_index": 670
+    },
+    {
+      "pair_id": 1114,
+      "start_index": 729,
+      "goal_index": 450
+    },
+    {
+      "pair_id": 5413,
+      "start_index": 53,
+      "goal_index": 624
+    },
+    {
+      "pair_id": 2119,
+      "start_index": 987,
+      "goal_index": 924
+    },
+    {
+      "pair_id": 318,
+      "start_index": 962,
+      "goal_index": 912
+    },
+    {
+      "pair_id": 3255,
+      "start_index": 41,
+      "goal_index": 991
+    },
+    {
+      "pair_id": 7375,
+      "start_index": 283,
+      "goal_index": 601
+    },
+    {
+      "pair_id": 1497,
+      "start_index": 430,
+      "goal_index": 138
+    },
+    {
+      "pair_id": 4786,
+      "start_index": 290,
+      "goal_index": 979
+    },
+    {
+      "pair_id": 2931,
+      "start_index": 989,
+      "goal_index": 981
+    },
+    {
+      "pair_id": 9913,
+      "start_index": 712,
+      "goal_index": 589
+    },
+    {
+      "pair_id": 2238,
+      "start_index": 442,
+      "goal_index": 285
+    },
+    {
+      "pair_id": 2036,
+      "start_index": 163,
+      "goal_index": 580
+    },
+    {
+      "pair_id": 7206,
+      "start_index": 5,
+      "goal_index": 811
+    },
+    {
+      "pair_id": 2548,
+      "start_index": 825,
+      "goal_index": 416
+    },
+    {
+      "pair_id": 7660,
+      "start_index": 101,
+      "goal_index": 575
+    },
+    {
+      "pair_id": 5104,
+      "start_index": 299,
+      "goal_index": 594
+    },
+    {
+      "pair_id": 9844,
+      "start_index": 35,
+      "goal_index": 644
+    },
+    {
+      "pair_id": 2204,
+      "start_index": 660,
+      "goal_index": 155
+    },
+    {
+      "pair_id": 3506,
+      "start_index": 262,
+      "goal_index": 268
+    },
+    {
+      "pair_id": 6166,
+      "start_index": 457,
+      "goal_index": 830
+    },
+    {
+      "pair_id": 5089,
+      "start_index": 348,
+      "goal_index": 905
+    },
+    {
+      "pair_id": 47,
+      "start_index": 499,
+      "goal_index": 995
+    },
+    {
+      "pair_id": 2161,
+      "start_index": 129,
+      "goal_index": 78
+    },
+    {
+      "pair_id": 4656,
+      "start_index": 58,
+      "goal_index": 960
+    },
+    {
+      "pair_id": 3377,
+      "start_index": 918,
+      "goal_index": 501
+    },
+    {
+      "pair_id": 4466,
+      "start_index": 643,
+      "goal_index": 317
+    },
+    {
+      "pair_id": 6921,
+      "start_index": 394,
+      "goal_index": 712
+    },
+    {
+      "pair_id": 3974,
+      "start_index": 729,
+      "goal_index": 929
+    },
+    {
+      "pair_id": 8607,
+      "start_index": 354,
+      "goal_index": 426
+    },
+    {
+      "pair_id": 5510,
+      "start_index": 516,
+      "goal_index": 354
+    },
+    {
+      "pair_id": 8981,
+      "start_index": 963,
+      "goal_index": 119
+    },
+    {
+      "pair_id": 9288,
+      "start_index": 337,
+      "goal_index": 536
+    },
+    {
+      "pair_id": 4434,
+      "start_index": 425,
+      "goal_index": 611
+    }
+  ],
+  "batches": [
+    1,
+    16
+  ],
+  "count": 100,
+  "sample_seed": 20260926,
+  "episode_seed": 20260925,
+  "excluded_pair_ids": [
+    0,
+    636,
+    1554
+  ],
+  "sampling": "uniform permutation without replacement of existing pair IDs; no IK or task filtering",
+  "source_pool": "/workspace/GATO-reaching-fuzz/experiments/tiago_reaching_mpc/inputs",
+  "source_root": "/workspace/GATO-reaching-fuzz",
+  "python_executable": "/opt/gato-venv/bin/python",
+  "commit": "2239335e73769fd85d2d4bad6a8a958f859d9581",
+  "host": "fedora-2.fritz.box",
+  "platform": "Linux-6.19.11-200.fc43.x86_64-x86_64-with-glibc2.35",
+  "wall_timeout_seconds": 120.0,
+  "N": 64,
+  "knot_dt": 0.03,
+  "prediction_seconds": 1.89,
+  "feedback_seconds": 0.03,
+  "simulation_step": 0.001,
+  "simulation_timeout": 5.0,
+  "goal": "XYZ < .04 m, tool-Z-axis angle < 30 deg, joint velocity L1 < 1 rad/s; no dwell",
+  "physical_limits": "soft optimization penalties; independent executed-prefix checks; no collision checks",
+  "initialization": "existing pilot: identical constant-state/zero-control cold seed; shifted winner, fresh target-independent B16 perturbations thereafter",
+  "source_sha256": {
+    "examples/randomized_multimodal/tiago_reaching_campaign.py": "53a0dfb6859286cd3b32273d024d97368c611fd2ad05f32278ae7ec28e8281a8",
+    "examples/randomized_multimodal/tiago_reaching_batch_pilot.py": "cf8b78fcf304c7d53aa67aff9e0b1622fd1c32cadad26d3491b41ef5731c0fc3",
+    "examples/randomized_multimodal/validate_reaching_mpc.py": "1d04c747e61c4a61e34fc5b29cf1839f40a9b91166fa6e2027a4b47ba2ec5c4a",
+    "tiago_src/gato_tiago/config.py": "cde1939ec1290bc7e0d0c5f56b6577a5d3d292547fb6be8db48450112d82292c",
+    "gato/dynamics/tiago_right/tiago_right_plant.cuh": "cf4d4175bd9fae7a85a366d20c0d03410a3da1d4cfde81f285cdd5a5d85579eb",
+    "gato/dynamics/tiago_right/tiago_right_arm.urdf": "8e1fd973a1d1c3fbddd55039e6eb17b355ebb29f46e1bd8c774b7879c2cdc5bb",
+    "python/bsqp/common.py": "b5047f0b751263f29b44520f82d8a8fb5ddf2d2e7a3debb7d36e3e881c300e8b",
+    "python/bsqp/config.py": "8ed690ed1472d9a650af7510d7fe93bda6375124d6c7e0b2f7a2b7cb435c9699",
+    "python/bsqp/experiment_runner.py": "f4e052a9a9932b008d88ccec461060f9583e1f98d609c97b01d45869c6918430",
+    "python/bsqp/interface.py": "229c61fb6f8e8e6e1d3dccc93747510e5caa0716cd7f4c3d80243d1be9aebff4",
+    "python/bsqp/mpc_controller.py": "9ace8fd99eb7ef487d4c369970ced12bc69063377c9e7e02c18ddff14a769638"
+  },
+  "input_sha256": {
+    "pool.npz": "e3cf5bbd3385eed74a8ccfb6fa341787b0d1b1c5f8514d08437c8640916e98b3",
+    "pairs.npz": "a5fbf2b7897a0e104b98a86d792690e12c29e1b755108548a45aa058eeb26aa7"
+  },
+  "binary_relative_path": "python/bsqp/bsqpN64_tiago_right.cpython-310-x86_64-linux-gnu.so",
+  "binary_sha256": "6abe3d9e0a5d2057736ecb28d0dfbdf9d8207c4eb444cd538306eb4121315d73",
+  "versions": {
+    "python": "3.10.12",
+    "numpy": "2.2.6",
+    "pinocchio": "3.9.0"
+  },
+  "fixed_runner_args": [
+    "--knot-dts",
+    ".03",
+    "--feedback",
+    ".03",
+    "--sim-dt",
+    ".001",
+    "--seconds",
+    "5",
+    "--position-tolerance",
+    ".04",
+    "--tool-axis-tolerance-deg",
+    "30",
+    "--velocity-l1-tolerance",
+    "1",
+    "--seed",
+    "20260925",
+    "--vel-lim-cost",
+    ".3",
+    "--qd-cost",
+    ".01"
+  ],
+  "solver_params": {
+    "max_sqp_iters": 5,
+    "kkt_tol": 0.001,
+    "max_pcg_iters": 120,
+    "pcg_tol": 0.001,
+    "solve_ratio": 1.0,
+    "mu": 1.0,
+    "q_cost": 4.0,
+    "qd_cost": 0.01,
+    "u_cost": 0.0001,
+    "N_cost": 80.0,
+    "ee_orient_cost": 0.1,
+    "ee_orient_N_cost": 2.0,
+    "q_lim_cost": 0.01,
+    "vel_lim_cost": 0.3,
+    "ctrl_lim_cost": 0.003,
+    "rho": 0.01
+  }
+}

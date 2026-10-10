@@ -1,0 +1,13 @@
+{
+  "scope": "Reused100 task PCG B1/B16 current-default ancillary comparison",
+  "source_base": "2db284ca8e11f42f8f3248403b879652966893ed",
+  "solver_core": "16b3371",
+  "cpu_passes": 14,
+  "required_make_task_passes": 3,
+  "native_module_sha256": "5d21dc1d887f24dd66aa2dce77fe0a3606f66b178deea7c9b6148892c227b7b8",
+  "independent_review_sha256": "c4835216b457ac95fab8c24df7581bc8412840fc6d0565dc09519b08e02b0522",
+  "independent_review_receipt": "/workspace/gato-campaign-recovery-20261010/ba-recovery/implementation-review.json",
+  "raw_validation_root": "/workspace/gato-campaign-recovery-20261010/ba-recovery",
+  "preflight_status": "mandatorycurrentApreflight notexecutedyet",
+  "supplemental_BA_and_BB_status": "not implemented/executed by this bounded task check"
+}
