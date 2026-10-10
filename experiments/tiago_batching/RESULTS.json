@@ -1,0 +1,181 @@
+{
+  "status": "reviewed_completed_incidental_comparison",
+  "study": "Incidental GTX1070 historical/current-default paired reaching comparison; not full BA or BB",
+  "collection_source_commit": "2cc7bd9da50bcc1b96b673f9b7e58f901000392a",
+  "analysis_source_commit": "972aa1fa8f80d1a40c3d7f267baa3637732a5645",
+  "source_base": "2db284ca8e11f42f8f3248403b879652966893ed",
+  "solver_core": "16b33719b4f0fd463eec7262c99b16b0b324366f",
+  "native_module_sha256": "5d21dc1d887f24dd66aa2dce77fe0a3606f66b178deea7c9b6148892c227b7b8",
+  "protocol": {
+    "path": "/workspace/GATO-eval-batching/experiments/tiago_batching/protocol.json",
+    "sha256": "535a3d8e6436d2d7861f964ab99752d497da1923c23739dbfb385e7a785c782b"
+  },
+  "raw_root": "/home/felix/gato-results/gtx1070/BA-current-defaults-100-A-20261010T192610Z",
+  "timing_mode": "A",
+  "offline_timing": "controller_dt",
+  "complete_pairs": 100,
+  "complete_episodes": 200,
+  "passes": 1,
+  "technical_failures": 0,
+  "integrity_errors": 0,
+  "elapsed_seconds": 1835.3159534931183,
+  "counts": {
+    "historical": {
+      "goal_only_B1": 37,
+      "bound_valid_reach_B1": 17,
+      "timeout_B1": 59,
+      "scientific_failed_B1": 4,
+      "no_finite_scientific_failed_B1": 4,
+      "goal_only_B16": 51,
+      "bound_valid_reach_B16": 25,
+      "timeout_B16": 48,
+      "scientific_failed_B16": 1,
+      "no_finite_scientific_failed_B16": 1,
+      "B16_bound_valid_rescues": 8,
+      "B16_bound_valid_regressions": 0,
+      "B16_goal_rescues": 18,
+      "B16_goal_regressions": 4
+    },
+    "current": {
+      "goal_only_B1": 51,
+      "bound_valid_reach_B1": 23,
+      "timeout_B1": 44,
+      "scientific_failed_B1": 5,
+      "no_finite_scientific_failed_B1": 5,
+      "goal_only_B16": 62,
+      "bound_valid_reach_B16": 22,
+      "timeout_B16": 36,
+      "scientific_failed_B16": 2,
+      "no_finite_scientific_failed_B16": 2,
+      "B16_bound_valid_rescues": 1,
+      "B16_bound_valid_regressions": 2,
+      "B16_goal_rescues": 13,
+      "B16_goal_regressions": 2
+    }
+  },
+  "conditional_performance": {
+    "historical": {
+      "cost_gain_percent": {
+        "total": 17,
+        "finite": 17,
+        "nan_or_missing": 0,
+        "positive_infinity": 0,
+        "negative_infinity": 0,
+        "minimum": -0.5715819388690379,
+        "median": 0.037078577277668626,
+        "maximum": 0.9319917149061151
+      },
+      "reach_time_gain_percent": {
+        "total": 17,
+        "finite": 17,
+        "nan_or_missing": 0,
+        "positive_infinity": 0,
+        "negative_infinity": 0,
+        "minimum": -3.1249999999998197,
+        "median": 0.0,
+        "maximum": 2.3255813953486375
+      }
+    },
+    "current": {
+      "cost_gain_percent": {
+        "total": 21,
+        "finite": 21,
+        "nan_or_missing": 0,
+        "positive_infinity": 0,
+        "negative_infinity": 0,
+        "minimum": -2.2066916665406464,
+        "median": 0.2710988808721088,
+        "maximum": 3.2288225636803927
+      },
+      "reach_time_gain_percent": {
+        "total": 21,
+        "finite": 21,
+        "nan_or_missing": 0,
+        "positive_infinity": 0,
+        "negative_infinity": 0,
+        "minimum": -20.81218274111714,
+        "median": 0.0,
+        "maximum": 4.838709677419499
+      }
+    }
+  },
+  "configuration_changes_old_new": {
+    "N": [
+      64,
+      32
+    ],
+    "plant_dt_seconds": [
+      0.001,
+      0.003
+    ],
+    "maximum_goal_seconds": [
+      5,
+      8
+    ],
+    "position_tolerance_m": [
+      0.04,
+      0.05
+    ],
+    "qd_cost": [
+      0.01,
+      0.1
+    ],
+    "vel_lim": [
+      0.3,
+      0.1
+    ],
+    "ctrl_lim_cost": [
+      0.003,
+      0.05
+    ]
+  },
+  "limitations": [
+    "Current defaults and solver/core versions both differ; no fix-only causal attribution.",
+    "Same goal-blind smooth seed/selection/RNG algorithm; N32 changes physical horizon from1.89s to.93s, so equal perturbation coefficients do not mean equal physical seeds.",
+    "Executed running-cost weights, task gates and stopping durations differ; do not compare raw costs causally across cohorts.",
+    "Task success and sampled physical validity remain separate; no collision or continuous-time certificate.",
+    "Only GTX1070 current sidecomparison; no matching5060/Jetson claims, no BB timing claim.",
+    "Known SB-001 goal1 reaching failure and SB-002 static lambda/q/r finiteness failure remain recorded, with no solver repair or complete convergence certificate."
+  ],
+  "readiness": "Actual same-loop canonical modeA B1 and B16 rough reach and sampled physical checks passed before collection.",
+  "required_task_suite": "Actual unchanged make test-tiago-tasks: 3/3 passed once before collection; isolated N32 module.",
+  "evidence": {
+    "paired-execution.json": {
+      "path": "/workspace/gato-campaign-recovery-20261010/ba-recovery/paired-execution.json",
+      "sha256": "bf10853d463f7ffd3e39b42a3348370bf055e98b5073ba95f4ffc1250ef80c58"
+    },
+    "preflight-execution.json": {
+      "path": "/workspace/gato-campaign-recovery-20261010/ba-recovery/preflight-execution.json",
+      "sha256": "b0b2057bf3edce9b5ae7899ce97766f55b24c96036aa67c9661da052ff3c57a3"
+    },
+    "current-native-and-suite.json": {
+      "path": "/workspace/gato-campaign-recovery-20261010/ba-recovery/current-native-and-suite.json",
+      "sha256": "0915d194df0d6addb124202d954a9864b639b46ea2069f9b76a8d644f3837efb"
+    },
+    "prediction-duration-review.json": {
+      "path": "/workspace/gato-campaign-recovery-20261010/ba-recovery/prediction-duration-review.json",
+      "sha256": "cb0463e6707d783d11c569df403be5ea03a9745042b9d80d67281a7c683b3df2"
+    },
+    "corrected-analysis-execution.json": {
+      "path": "/workspace/gato-campaign-recovery-20261010/ba-recovery/corrected-analysis-execution.json",
+      "sha256": "6224ed958453e0a50f64dc91c09297038c84ee14823ae1d750b760f1a3166e19"
+    },
+    "current-analysis-v2/summary.json": {
+      "path": "/workspace/gato-campaign-recovery-20261010/ba-recovery/current-analysis-v2/summary.json",
+      "sha256": "8241a0f50cecdfa7b62008ff68a42e1bb680c35bc07dc6d0901dd247d014add7"
+    },
+    "current-statistics-comparison/comparison.json": {
+      "path": "/workspace/gato-campaign-recovery-20261010/ba-recovery/current-statistics-comparison/comparison.json",
+      "sha256": "93e6cce247203bc026f6ab6aeb010d61c7f6c8569c0343ce895509f03bdc7984"
+    }
+  },
+  "failed_analysis_retained": {
+    "path": "/workspace/gato-campaign-recovery-20261010/ba-recovery/current-analysis/summary.json",
+    "sha256": "9029ba2b0854b2eb3ef16e6fefaba521b74cb47c216d6869e3816d7f98eb445e"
+  },
+  "interpretation": "B16 increases goal-only reaching but does not increase sampled bound-valid reaching in the current cohort. Source and defaults both changed; no attribution to fixes alone.",
+  "saved_result_review": {
+    "path": "/workspace/gato-campaign-recovery-20261010/ba-recovery/current-statistics-review.json",
+    "sha256": "bd59466827871c43493ef0280a3b868ce8188de38701c737c31c0f1c117f1607"
+  }
+}

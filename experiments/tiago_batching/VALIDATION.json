@@ -8,6 +8,29 @@
   "independent_review_sha256": "c4835216b457ac95fab8c24df7581bc8412840fc6d0565dc09519b08e02b0522",
   "independent_review_receipt": "/workspace/gato-campaign-recovery-20261010/ba-recovery/implementation-review.json",
   "raw_validation_root": "/workspace/gato-campaign-recovery-20261010/ba-recovery",
-  "preflight_status": "mandatorycurrentApreflight notexecutedyet",
-  "supplemental_BA_and_BB_status": "not implemented/executed by this bounded task check"
+  "preflight_status": "Actual same-loop canonical modeA preflight B1/B16 rough task and sampled physical checks passed once before collection",
+  "supplemental_BA_and_BB_status": "not implemented/executed by this bounded task check",
+  "preflight_receipt": {
+    "path": "/workspace/gato-campaign-recovery-20261010/ba-recovery/preflight-execution.json",
+    "sha256": "b0b2057bf3edce9b5ae7899ce97766f55b24c96036aa67c9661da052ff3c57a3"
+  },
+  "collection_status": "100 pairs /200 episodes completed once; zero technical execution failures",
+  "collection_receipt": {
+    "path": "/workspace/gato-campaign-recovery-20261010/ba-recovery/paired-execution.json",
+    "sha256": "bf10853d463f7ffd3e39b42a3348370bf055e98b5073ba95f4ffc1250ef80c58"
+  },
+  "analysis_status": "Reviewed saved-data analysis includes200episodes,zero integrity errors; incidental comparison complete",
+  "analysis_source_commit": "972aa1fa8f80d1a40c3d7f267baa3637732a5645",
+  "prediction_duration_review": {
+    "path": "/workspace/gato-campaign-recovery-20261010/ba-recovery/prediction-duration-review.json",
+    "sha256": "cb0463e6707d783d11c569df403be5ea03a9745042b9d80d67281a7c683b3df2"
+  },
+  "failed_analysis_retained": {
+    "path": "/workspace/gato-campaign-recovery-20261010/ba-recovery/current-analysis/summary.json",
+    "sha256": "9029ba2b0854b2eb3ef16e6fefaba521b74cb47c216d6869e3816d7f98eb445e"
+  },
+  "saved_result_review": {
+    "path": "/workspace/gato-campaign-recovery-20261010/ba-recovery/current-statistics-review.json",
+    "sha256": "bd59466827871c43493ef0280a3b868ce8188de38701c737c31c0f1c117f1607"
+  }
 }
