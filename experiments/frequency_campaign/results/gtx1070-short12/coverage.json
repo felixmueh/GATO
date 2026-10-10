@@ -1,0 +1,27 @@
+{
+  "source_commit": "502fa29c8b0d649dcb347f9534bf29c6935fa6dd",
+  "machine": "gtx1070",
+  "cells_completed": 64,
+  "execution_failures": 0,
+  "episodes": 768,
+  "native_calls_including_warmups": 15424,
+  "measured_calls": 15360,
+  "excluded_unrelated_warmups": 64,
+  "completed_updates": 15360,
+  "plant_steps": 153600,
+  "sampled_physical_episode_passes": 730,
+  "sampled_physical_episode_failures": 38,
+  "rough_reaching_episode_passes": 0,
+  "rough_reaching_episode_failures": 384,
+  "tracking_task_status_unknown": 384,
+  "task_scope": ".6s timing subsets, two .3s reaching segments; not fullperiod T01 task qualification",
+  "manifest_owned_bytes": 1488039168,
+  "manifest_owned_files": 555840,
+  "analysis_index": {
+    "path": "/workspace/gato-campaign-recovery-20261010/f01-gtx1070-analysis-index.json",
+    "sha256": "ccda341698b8ca55feb68f846b8c36d6ae869409a331def0e1ad65f21bfa825f"
+  },
+  "timing_mode": "A",
+  "offline_timing": "controller_dt",
+  "other_targets": "matching5060/internal andJetson pending; no crossGPU timing result yet"
+}

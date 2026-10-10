@@ -1,0 +1,83 @@
+{
+  "source_commit": "502fa29c8b0d649dcb347f9534bf29c6935fa6dd",
+  "machine": "gtx1070",
+  "cells_completed": 64,
+  "execution_failures": 0,
+  "episodes": 768,
+  "native_calls_including_warmups": 15424,
+  "measured_calls": 15360,
+  "excluded_unrelated_warmups": 64,
+  "completed_updates": 15360,
+  "plant_steps": 153600,
+  "sampled_physical_episode_passes": 730,
+  "sampled_physical_episode_failures": 38,
+  "rough_reaching_episode_passes": 0,
+  "rough_reaching_episode_failures": 384,
+  "tracking_task_status_unknown": 384,
+  "task_scope": ".6s timing subsets, two .3s reaching segments; not fullperiod T01 task qualification",
+  "manifest_owned_bytes": 1488039168,
+  "manifest_owned_files": 555840,
+  "analysis_index": {
+    "path": "/workspace/gato-campaign-recovery-20261010/f01-gtx1070-analysis-index.json",
+    "sha256": "ccda341698b8ca55feb68f846b8c36d6ae869409a331def0e1ad65f21bfa825f"
+  },
+  "timing_mode": "A",
+  "offline_timing": "controller_dt",
+  "other_targets": "matching5060/internal andJetson pending; no crossGPU timing result yet",
+  "review_status": "approved bounded thesis timing evidence",
+  "matrix_plan": {
+    "path": "/workspace/gato-campaign-recovery-20261010/f01-gtx1070-matrix-plan.json",
+    "sha256": "c777d45fe0ac9706d1836f9708408037b226f6a3b3f299b474a5de63dca0663e"
+  },
+  "release_manifest": {
+    "path": "/workspace/gato-campaign-recovery-20261010/f01-gtx1070-release-prepared.json",
+    "sha256": "bcac85125e7ea4a813a4000bb83664680a00e5dff2751a6f82b1224f93980d70"
+  },
+  "whole_matrix_wall_seconds": 722.4164228439331,
+  "whole_matrix_scope": "first runner attempt start through last finish; excludes separate compilation/preflight/plotting; includes plant/controller/recording/process overhead",
+  "started_UTC": "2026-10-10T14:42:48.204153+00:00",
+  "finished_UTC": "2026-10-10T14:54:50.620576+00:00",
+  "sum_measured_native_seconds": 77.67833000000019,
+  "sum_measured_wrapper_wall_seconds": 80.07379204352037,
+  "timing_totals_precision": "sums computed from the pinned per-call CSV",
+  "module_sha256_by_N": {
+    "16": "d18939a60b777e70021b3f942878a47e7519e23a5734426476a95356c1cda2ba",
+    "32": "74a78c97364f81fd2e4fabccdb5afa52e3c76eee5818542d8d286acb04354067",
+    "64": "92a41fbc92898763ee68aaf83c543ba78069f2a269e55b7ae136c9e3e546fb55",
+    "128": "c1e1f72d6e884aba970551001acad9e71e3e5145d0a288b2c03e8bad28189922"
+  },
+  "canonical_readiness_review": {
+    "path": "/workspace/gato-campaign-recovery-20261010/f01-canonicalA-matrix-release-review.json",
+    "sha256": "1d01efde9dd0fd95cfbb5f94ed780f92385d4583c21fb80cd56b0266058caed2"
+  },
+  "plotter_source_sha256": "4d90bad82c85d9e6fcbe57cc3df35f916b732a01a902405c3eadfa8c2172702f",
+  "plot_output": "/workspace/gato-campaign-recovery-20261010/analysis/f01ab-gtx1070",
+  "plot_provenance": {
+    "path": "/workspace/gato-campaign-recovery-20261010/analysis/f01ab-gtx1070/provenance.json",
+    "sha256": "5ec3f59bce2f0092d02d9e0a4dd05c05756c1070b67a9fe05dd616b8d399d200"
+  },
+  "report_original": {
+    "path": "/workspace/gato-campaign-recovery-20261010/f01-gtx1070-report/REPORT.md",
+    "sha256": "9f4fd7da8b7f106feea5f6f62deff60f95059367dd5dbd8e969f45f3a2f5e888"
+  },
+  "report_receipt": {
+    "path": "/workspace/gato-campaign-recovery-20261010/f01-gtx1070-report/receipt.json",
+    "sha256": "ec3145e75a9b3ab0f39464e6fd0e5c452baf47c7f4d9d285f16822bf0b39f89c"
+  },
+  "all_timing_work_samples": {
+    "path": "/workspace/gato-campaign-recovery-20261010/f01-gtx1070-report/samples_timing_work.csv",
+    "sha256": "ccd5eaafa1fcaac735bd14793f18e3dd05eda0185d26d2e16fd51fd0cc45ea8f"
+  },
+  "reviews": {
+    "analysis_review.json": "463582ed3ec6c3a2998ab017c77a5df2721311d22d5bac01f8cfe45963dae9de",
+    "saved_data_review.json": "627e81209b11092c1cc8ca3b2a7a1ccc092c20007b5efe0eade4ad8fb95cf57e",
+    "plotting_lazy_review.json": "5a16520aa0110aa036cd7860a9f88d98ed23f2650ca6f16d1e46a8ede550d568"
+  },
+  "commands": {
+    "measure": "/opt/gato-venv/bin/python3 -B experiments/run.py --plan /workspace/gato-campaign-recovery-20261010/f01-gtx1070-matrix-plan.json --machine gtx1070",
+    "plot": "/opt/gato-venv/bin/python3 -B experiments/analysis/plot_f01ab.py --index /workspace/gato-campaign-recovery-20261010/f01-gtx1070-analysis-index.json --index-sha256 ccda341698b8ca55feb68f846b8c36d6ae869409a331def0e1ad65f21bfa825f --input-root / --output /workspace/gato-campaign-recovery-20261010/analysis/f01ab-gtx1070",
+    "summarize": "/opt/gato-venv/bin/python3 /workspace/gato-campaign-recovery-20261010/f01-gtx1070-report/summarize.py"
+  },
+  "claim_scope": "single GTX 1070 mode A B1 timing and realized work; failed short-task/physical outcomes retained; no cross-machine, task-viability or convergence certification claim",
+  "next_action": "prepare bounded F01c protocol and obtain Felix budget/duration decisions; matching 5060/internal and Jetson F01ab remain required"
+}

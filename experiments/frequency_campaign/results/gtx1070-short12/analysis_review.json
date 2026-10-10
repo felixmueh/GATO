@@ -1,0 +1,272 @@
+{
+  "verdict": "approved_thesis_timing_evidence_gtx1070_only",
+  "checked_artifact_sha256": {
+    "analysis/f01ab-gtx1070/all_samples.csv": "abaee0c85a963fbfba054961d7bd6b1a4ed999ddae5047affe876c289e11f75d",
+    "analysis/f01ab-gtx1070/category_coverage.csv": "b7edb68d9cce8d3fb0255eebe3d3780af409e8ede99a5166288a526ed252419d",
+    "analysis/f01ab-gtx1070/matrix_coverage.csv": "5072b5ab03f9d533af6677296a91640ce1734734b9aec447c37b9801494e8514",
+    "analysis/f01ab-gtx1070/cell_summaries.csv": "5f316102f8766bdcbb58c554c4ea73cd945d796a1c2bc306d55a5620349f84a5",
+    "analysis/f01ab-gtx1070/provenance.json": "5ec3f59bce2f0092d02d9e0a4dd05c05756c1070b67a9fe05dd616b8d399d200",
+    "f01-gtx1070-report/REPORT.md": "9f4fd7da8b7f106feea5f6f62deff60f95059367dd5dbd8e969f45f3a2f5e888",
+    "f01-gtx1070-report/receipt.json": "ec3145e75a9b3ab0f39464e6fd0e5c452baf47c7f4d9d285f16822bf0b39f89c",
+    "f01-gtx1070-report/summarize.py": "c0daf9d046e206ac79c62cd0c618c7e58593b6e12c2e0a4b001ae6e837f8e2d0",
+    "f01-gtx1070-report/samples_timing_work.csv": "ccd5eaafa1fcaac735bd14793f18e3dd05eda0185d26d2e16fd51fd0cc45ea8f",
+    "f01-gtx1070-report/cell_category_summary.csv": "124974a829e93428a6a2bc72ffe59a674db8943f76b0ea37e54b7a369c385c96",
+    "analysis/f01ab-gtx1070/native_ms-N32-solve-time.png": "c4ef843c232966eb4a34d6474d47206666866902870e6ae78ecb742380b58e24",
+    "analysis/f01ab-gtx1070/hist-native_ms-gtx1070-N128-S10-P800-a001.png": "d319b12f3160e768b6012488cfdd6444de24d4600f009e3c56e14199bdce7ee4"
+  },
+  "prior_reviews": {
+    "saved_cohort": "627e81209b11092c1cc8ca3b2a7a1ccc092c20007b5efe0eade4ad8fb95cf57e",
+    "lazy_plot": "5a16520aa0110aa036cd7860a9f88d98ed23f2650ca6f16d1e46a8ede550d568"
+  },
+  "counts": {
+    "all_retained_calls": 15424,
+    "measured_calls": 15360,
+    "cold": 768,
+    "warm": 14208,
+    "goal_switch": 384,
+    "excluded_unrelated_warmups": 64,
+    "summary_category_rows": 256,
+    "native_and_wrapper_summary_rows": 512,
+    "matrix_attempted": 64,
+    "other_machine_cells_pending": 128,
+    "sampled_physical_episode_passes": 730,
+    "sampled_physical_episode_negatives": 38,
+    "rough_reach_subset_negatives": 384,
+    "tracking_task_unknown": 384
+  },
+  "work": {
+    "actual_SQP_iterations": 69120,
+    "PCG_stop_reason_counts": {
+      "iteration_cap": 5976,
+      "absolute_relative_rho": 50947,
+      "initial_absolute_rho": 12197
+    },
+    "numerical_certificate": null,
+    "breakdown": null,
+    "breakdown_reason": "No explicit breakdown stop; anomalies not instrumented"
+  },
+  "timing_totals": {
+    "native_s": 77.67833000000019,
+    "wrapper_s": 80.07379204352037,
+    "median_wrapper_minus_native_ms": 0.1494555027559401
+  },
+  "representative_summary_checks": [
+    {
+      "N": 16,
+      "SQP": 5,
+      "PCG": 100,
+      "category": "cold",
+      "native_mean_ms": 1.7703333333333335,
+      "native_p95_ms": 2.3068,
+      "native_reciprocal_mean_Hz": 564.8653737525889,
+      "mean_total_pcg_iterations": 75.75
+    },
+    {
+      "N": 16,
+      "SQP": 5,
+      "PCG": 100,
+      "category": "warm",
+      "native_mean_ms": 1.3809864864864867,
+      "native_p95_ms": 1.55145,
+      "native_reciprocal_mean_Hz": 724.1200473613651,
+      "mean_total_pcg_iterations": 21.117117117117118
+    },
+    {
+      "N": 16,
+      "SQP": 5,
+      "PCG": 100,
+      "category": "goal_switch",
+      "native_mean_ms": 1.7451666666666668,
+      "native_p95_ms": 1.78625,
+      "native_reciprocal_mean_Hz": 573.0111737178875,
+      "mean_total_pcg_iterations": 81.5
+    },
+    {
+      "N": 32,
+      "SQP": 5,
+      "PCG": 100,
+      "category": "cold",
+      "native_mean_ms": 2.5791666666666666,
+      "native_p95_ms": 3.0682499999999995,
+      "native_reciprocal_mean_Hz": 387.7221324717286,
+      "mean_total_pcg_iterations": 104.33333333333333
+    },
+    {
+      "N": 32,
+      "SQP": 5,
+      "PCG": 100,
+      "category": "warm",
+      "native_mean_ms": 1.9617342342342343,
+      "native_p95_ms": 2.4146,
+      "native_reciprocal_mean_Hz": 509.75304531520874,
+      "mean_total_pcg_iterations": 37.5
+    },
+    {
+      "N": 32,
+      "SQP": 5,
+      "PCG": 100,
+      "category": "goal_switch",
+      "native_mean_ms": 2.7533333333333334,
+      "native_p95_ms": 2.85625,
+      "native_reciprocal_mean_Hz": 363.1961259079903,
+      "mean_total_pcg_iterations": 131.66666666666666
+    },
+    {
+      "N": 64,
+      "SQP": 5,
+      "PCG": 100,
+      "category": "cold",
+      "native_mean_ms": 4.861166666666667,
+      "native_p95_ms": 6.704699999999999,
+      "native_reciprocal_mean_Hz": 205.71193472074606,
+      "mean_total_pcg_iterations": 186.08333333333334
+    },
+    {
+      "N": 64,
+      "SQP": 5,
+      "PCG": 100,
+      "category": "warm",
+      "native_mean_ms": 4.481914414414414,
+      "native_p95_ms": 6.865649999999999,
+      "native_reciprocal_mean_Hz": 223.1189414915803,
+      "mean_total_pcg_iterations": 161.3063063063063
+    },
+    {
+      "N": 64,
+      "SQP": 5,
+      "PCG": 100,
+      "category": "goal_switch",
+      "native_mean_ms": 5.062666666666667,
+      "native_p95_ms": 6.1122499999999995,
+      "native_reciprocal_mean_Hz": 197.52436133789834,
+      "mean_total_pcg_iterations": 205.16666666666666
+    },
+    {
+      "N": 128,
+      "SQP": 5,
+      "PCG": 100,
+      "category": "cold",
+      "native_mean_ms": 7.073083333333333,
+      "native_p95_ms": 10.831499999999998,
+      "native_reciprocal_mean_Hz": 141.38105729467347,
+      "mean_total_pcg_iterations": 195.83333333333334
+    },
+    {
+      "N": 128,
+      "SQP": 5,
+      "PCG": 100,
+      "category": "warm",
+      "native_mean_ms": 7.277747747747747,
+      "native_p95_ms": 11.3047,
+      "native_reciprocal_mean_Hz": 137.40514712253818,
+      "mean_total_pcg_iterations": 210.30180180180182
+    },
+    {
+      "N": 128,
+      "SQP": 5,
+      "PCG": 100,
+      "category": "goal_switch",
+      "native_mean_ms": 8.905333333333333,
+      "native_p95_ms": 9.940999999999999,
+      "native_reciprocal_mean_Hz": 112.29225932025753,
+      "mean_total_pcg_iterations": 296.0
+    },
+    {
+      "N": 32,
+      "SQP": 1,
+      "PCG": 100,
+      "category": "cold",
+      "native_mean_ms": 0.6974999999999999,
+      "native_p95_ms": 0.9856999999999996,
+      "native_reciprocal_mean_Hz": 1433.6917562724016,
+      "mean_total_pcg_iterations": 30.333333333333332
+    },
+    {
+      "N": 32,
+      "SQP": 1,
+      "PCG": 100,
+      "category": "warm",
+      "native_mean_ms": 0.5395765765765765,
+      "native_p95_ms": 0.6359,
+      "native_reciprocal_mean_Hz": 1853.3050606915667,
+      "mean_total_pcg_iterations": 17.37837837837838
+    },
+    {
+      "N": 32,
+      "SQP": 1,
+      "PCG": 100,
+      "category": "goal_switch",
+      "native_mean_ms": 0.6315,
+      "native_p95_ms": 0.6555,
+      "native_reciprocal_mean_Hz": 1583.5312747426763,
+      "mean_total_pcg_iterations": 28.0
+    },
+    {
+      "N": 32,
+      "SQP": 10,
+      "PCG": 800,
+      "category": "cold",
+      "native_mean_ms": 5.56,
+      "native_p95_ms": 11.133249999999991,
+      "native_reciprocal_mean_Hz": 179.8561151079137,
+      "mean_total_pcg_iterations": 277.1666666666667
+    },
+    {
+      "N": 32,
+      "SQP": 10,
+      "PCG": 800,
+      "category": "warm",
+      "native_mean_ms": 4.139873873873873,
+      "native_p95_ms": 10.4165,
+      "native_reciprocal_mean_Hz": 241.55325269952084,
+      "mean_total_pcg_iterations": 111.93243243243244
+    },
+    {
+      "N": 32,
+      "SQP": 10,
+      "PCG": 800,
+      "category": "goal_switch",
+      "native_mean_ms": 4.735500000000001,
+      "native_p95_ms": 5.346500000000001,
+      "native_reciprocal_mean_Hz": 211.17094287825992,
+      "mean_total_pcg_iterations": 182.66666666666666
+    },
+    {
+      "N": 128,
+      "SQP": 10,
+      "PCG": 800,
+      "category": "cold",
+      "native_mean_ms": 46.52883333333333,
+      "native_p95_ms": 97.36724999999998,
+      "native_reciprocal_mean_Hz": 21.492049732603082,
+      "mean_total_pcg_iterations": 2093.4166666666665
+    },
+    {
+      "N": 128,
+      "SQP": 10,
+      "PCG": 800,
+      "category": "warm",
+      "native_mean_ms": 45.16927477477476,
+      "native_p95_ms": 111.58604999999994,
+      "native_reciprocal_mean_Hz": 22.138943009075277,
+      "mean_total_pcg_iterations": 2058.324324324324
+    },
+    {
+      "N": 128,
+      "SQP": 10,
+      "PCG": 800,
+      "category": "goal_switch",
+      "native_mean_ms": 98.38016666666668,
+      "native_p95_ms": 112.9645,
+      "native_reciprocal_mean_Hz": 10.164650395320193,
+      "mean_total_pcg_iterations": 4892.666666666667
+    }
+  ],
+  "visual_review": {
+    "primary": "N32 primary native plot inspected; ms/mean/median/p95 labels and cold/warm/goal_switch perbudget visible. Dense 48 rotated labels readable at full resolution; pending othermachines clearly32/48",
+    "histogram": "N128/SQP10/PCG800 native histogram inspected; ms/count units,12/222/6 category legend, no invalid/missing timing and no bimodality claim. Clear at normal resolution"
+  },
+  "report_review": "Extractor read; selected stats arrays/caps/actual work/stop-reason mapping, CSV units/dedup/retainedoutcome counts and report examples consistent. F01c budgets explicitly proposal only; .6s/evolving inputs/public120vs100/predictionduration/native-vs-wrapper/crossGPU/fulltask/certificate limits explicit. No solver/cause/equivalence claim.",
+  "substantive_issues": [],
+  "reviewer_actions": "CPU read-only CSV/provenance/report/source and two rendered PNGs; no555k-file repeated audit, raw modification, native/GPU/test/build/replay execution"
+}

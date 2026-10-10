@@ -1,0 +1,8 @@
+{
+  "verdict": "approved_lazy_NPZ_analysis_only_correction",
+  "source_sha256": "4d90bad82c85d9e6fcbe57cc3df35f916b732a01a902405c3eadfa8c2172702f",
+  "scope": "One eager full NPZ dictionary replaced by open NpzFile passed to scalar; optional scalar-key resolution remains inside with block; ordinary JSON timings require no array decompression",
+  "independent_validation": "6 bounded CPU plotting tests PASS0skip5.20s; existing hppfcl warning",
+  "unchanged": "Allfilehash verification, call-stage dedup, counts/category/invalid-failure retention, timing units/reciprocal and rendering remain as independently approved prior review",
+  "measurement_source": "502fa29 immutable; no new GPU/native calls, raw changes or measured claims by reviewer"
+}

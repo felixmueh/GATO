@@ -1,0 +1,1106 @@
+{
+  "verdict": "accepted_saved_gtx1070_F01ab_timing_cohort",
+  "analysis_index_sha256": "ccda341698b8ca55feb68f846b8c36d6ae869409a331def0e1ad65f21bfa825f",
+  "source_commit": "502fa29c8b0d649dcb347f9534bf29c6935fa6dd",
+  "counts": {
+    "physical_pass": 730,
+    "episodes": 768,
+    "plant_steps": 153600,
+    "rough_reach_fail": 384,
+    "physical_fail": 38,
+    "tracking_task_unknown": 384
+  },
+  "calls": {
+    "native_including_warmups": 15424,
+    "measured": 15360,
+    "excluded_warmups": 64,
+    "cold": 768,
+    "warm": 14208,
+    "goal_switch": 384
+  },
+  "maximum_recorded_sampled_limit_excess": {
+    "q_rad": 1.0136606104810988,
+    "v_rad_s": 4.043923424066678,
+    "u_Nm": 7.034942626953125
+  },
+  "physical_negative_episode_index": [
+    {
+      "N": 16,
+      "SQP": 1,
+      "PCG": 800,
+      "episode": "start-0-goal-3"
+    },
+    {
+      "N": 16,
+      "SQP": 1,
+      "PCG": 800,
+      "episode": "start-1-goal-3"
+    },
+    {
+      "N": 16,
+      "SQP": 1,
+      "PCG": 400,
+      "episode": "start-0-goal-3"
+    },
+    {
+      "N": 16,
+      "SQP": 5,
+      "PCG": 800,
+      "episode": "start-0-goal-3"
+    },
+    {
+      "N": 16,
+      "SQP": 5,
+      "PCG": 800,
+      "episode": "start-1-goal-3"
+    },
+    {
+      "N": 16,
+      "SQP": 2,
+      "PCG": 100,
+      "episode": "start-0-goal-3"
+    },
+    {
+      "N": 16,
+      "SQP": 2,
+      "PCG": 100,
+      "episode": "start-1-goal-3"
+    },
+    {
+      "N": 16,
+      "SQP": 10,
+      "PCG": 200,
+      "episode": "start-0-goal-3"
+    },
+    {
+      "N": 16,
+      "SQP": 10,
+      "PCG": 200,
+      "episode": "start-1-goal-3"
+    },
+    {
+      "N": 16,
+      "SQP": 5,
+      "PCG": 200,
+      "episode": "start-0-goal-3"
+    },
+    {
+      "N": 16,
+      "SQP": 5,
+      "PCG": 200,
+      "episode": "start-1-goal-3"
+    },
+    {
+      "N": 16,
+      "SQP": 5,
+      "PCG": 100,
+      "episode": "start-0-goal-3"
+    },
+    {
+      "N": 16,
+      "SQP": 5,
+      "PCG": 100,
+      "episode": "start-1-goal-3"
+    },
+    {
+      "N": 16,
+      "SQP": 2,
+      "PCG": 800,
+      "episode": "start-0-goal-3"
+    },
+    {
+      "N": 16,
+      "SQP": 2,
+      "PCG": 800,
+      "episode": "start-1-goal-3"
+    },
+    {
+      "N": 16,
+      "SQP": 2,
+      "PCG": 400,
+      "episode": "start-0-goal-3"
+    },
+    {
+      "N": 16,
+      "SQP": 2,
+      "PCG": 400,
+      "episode": "start-1-goal-3"
+    },
+    {
+      "N": 16,
+      "SQP": 10,
+      "PCG": 400,
+      "episode": "start-0-goal-3"
+    },
+    {
+      "N": 16,
+      "SQP": 10,
+      "PCG": 400,
+      "episode": "start-1-goal-3"
+    },
+    {
+      "N": 16,
+      "SQP": 2,
+      "PCG": 200,
+      "episode": "start-0-goal-3"
+    },
+    {
+      "N": 16,
+      "SQP": 2,
+      "PCG": 200,
+      "episode": "start-1-goal-3"
+    },
+    {
+      "N": 16,
+      "SQP": 10,
+      "PCG": 800,
+      "episode": "start-0-goal-3"
+    },
+    {
+      "N": 16,
+      "SQP": 10,
+      "PCG": 800,
+      "episode": "start-1-goal-3"
+    },
+    {
+      "N": 16,
+      "SQP": 10,
+      "PCG": 100,
+      "episode": "start-0-goal-3"
+    },
+    {
+      "N": 16,
+      "SQP": 10,
+      "PCG": 100,
+      "episode": "start-1-goal-3"
+    },
+    {
+      "N": 16,
+      "SQP": 1,
+      "PCG": 200,
+      "episode": "start-0-goal-3"
+    },
+    {
+      "N": 16,
+      "SQP": 1,
+      "PCG": 200,
+      "episode": "start-1-goal-3"
+    },
+    {
+      "N": 16,
+      "SQP": 5,
+      "PCG": 400,
+      "episode": "start-0-goal-3"
+    },
+    {
+      "N": 16,
+      "SQP": 5,
+      "PCG": 400,
+      "episode": "start-1-goal-3"
+    },
+    {
+      "N": 16,
+      "SQP": 1,
+      "PCG": 100,
+      "episode": "start-0-goal-3"
+    },
+    {
+      "N": 16,
+      "SQP": 1,
+      "PCG": 100,
+      "episode": "start-1-goal-3"
+    },
+    {
+      "N": 64,
+      "SQP": 1,
+      "PCG": 800,
+      "episode": "start-1-goal-2"
+    },
+    {
+      "N": 128,
+      "SQP": 1,
+      "PCG": 800,
+      "episode": "start-0-goal-2"
+    },
+    {
+      "N": 128,
+      "SQP": 1,
+      "PCG": 100,
+      "episode": "start-1-goal-1"
+    },
+    {
+      "N": 128,
+      "SQP": 1,
+      "PCG": 100,
+      "episode": "start-1-tracking-2"
+    },
+    {
+      "N": 128,
+      "SQP": 1,
+      "PCG": 200,
+      "episode": "start-0-goal-3"
+    },
+    {
+      "N": 128,
+      "SQP": 1,
+      "PCG": 400,
+      "episode": "start-0-goal-2"
+    },
+    {
+      "N": 128,
+      "SQP": 1,
+      "PCG": 400,
+      "episode": "start-1-goal-2"
+    }
+  ],
+  "all64_cells": [
+    {
+      "N": 16,
+      "SQP": 1,
+      "PCG": 800,
+      "raw": "/home/felix/gato-results/gtx1070/F01ab-short12-N16/28dd1cee71507c9f1d160744c92380b05c9e522319d7836d5e969677ae85c3b4/attempt-001/f01-raw",
+      "manifest_sha256": "02dac39c8c35003b7a27ace9bd2e3bc9ae0b51339309e82fced8ec9f25a92de0",
+      "module_sha256": "d18939a60b777e70021b3f942878a47e7519e23a5734426476a95356c1cda2ba"
+    },
+    {
+      "N": 16,
+      "SQP": 1,
+      "PCG": 400,
+      "raw": "/home/felix/gato-results/gtx1070/F01ab-short12-N16/2eb6487970040755715c1caf64e33232ce27d09bcf301ec1c095c0691e1bdc2e/attempt-001/f01-raw",
+      "manifest_sha256": "c4f06a8a0d9921f0c7006f2bd4dfec4a89e3d81c64f0d279e43ccb41e0cc52db",
+      "module_sha256": "d18939a60b777e70021b3f942878a47e7519e23a5734426476a95356c1cda2ba"
+    },
+    {
+      "N": 16,
+      "SQP": 5,
+      "PCG": 800,
+      "raw": "/home/felix/gato-results/gtx1070/F01ab-short12-N16/3489b83a0886aeec40e546bb0137bc027f35ce16f88f69e7770d5e188d4aa525/attempt-001/f01-raw",
+      "manifest_sha256": "de793daeaa099128cd7a0d1ab28e7e223f87145d07d3c2307aa55d225c2f1f52",
+      "module_sha256": "d18939a60b777e70021b3f942878a47e7519e23a5734426476a95356c1cda2ba"
+    },
+    {
+      "N": 16,
+      "SQP": 2,
+      "PCG": 100,
+      "raw": "/home/felix/gato-results/gtx1070/F01ab-short12-N16/601a9d187e2ffa3712bfc5720469b13d1a7f598bbef4181324e6b08aa9cf43c8/attempt-001/f01-raw",
+      "manifest_sha256": "842311d54c6edc0cce4789803989138beba7b1415070aa82dcd21ceb01e21110",
+      "module_sha256": "d18939a60b777e70021b3f942878a47e7519e23a5734426476a95356c1cda2ba"
+    },
+    {
+      "N": 16,
+      "SQP": 10,
+      "PCG": 200,
+      "raw": "/home/felix/gato-results/gtx1070/F01ab-short12-N16/6779d2eca902c2f1afcd0e727c68329394124c8eecd693433d14ada37532b82f/attempt-001/f01-raw",
+      "manifest_sha256": "ee9aed52b197ba0519f767870bd14911bd0513f995f8c5b1b8cd5f6942a8ef0e",
+      "module_sha256": "d18939a60b777e70021b3f942878a47e7519e23a5734426476a95356c1cda2ba"
+    },
+    {
+      "N": 16,
+      "SQP": 5,
+      "PCG": 200,
+      "raw": "/home/felix/gato-results/gtx1070/F01ab-short12-N16/6ab20480430a60b4bafc760c6b4f0fdd16d6588a299edb8ae4228e686862db9a/attempt-001/f01-raw",
+      "manifest_sha256": "dd25f3fbc1d7bf3dabc3f65c092c371e02d84a577dd66d1acd17853e2a739969",
+      "module_sha256": "d18939a60b777e70021b3f942878a47e7519e23a5734426476a95356c1cda2ba"
+    },
+    {
+      "N": 16,
+      "SQP": 5,
+      "PCG": 100,
+      "raw": "/home/felix/gato-results/gtx1070/F01ab-short12-N16/6c83ee3be3c325923af6c1f02ab4089e0b3dc4372e56aa25fe491cec18bc19ed/attempt-001/f01-raw",
+      "manifest_sha256": "441615bcc8fabef61c399a0db12d8262777f676813ab9ab5c3886c729ef08634",
+      "module_sha256": "d18939a60b777e70021b3f942878a47e7519e23a5734426476a95356c1cda2ba"
+    },
+    {
+      "N": 16,
+      "SQP": 2,
+      "PCG": 800,
+      "raw": "/home/felix/gato-results/gtx1070/F01ab-short12-N16/779fde90e4ca2aa06d036b6f04755fde46be535d5fa90bcfe7d9b034557cff9a/attempt-001/f01-raw",
+      "manifest_sha256": "0048eeec691620f9b1342430ef93ac0ea41ae77bfb3cd3e8d1e7ffadac1ecda5",
+      "module_sha256": "d18939a60b777e70021b3f942878a47e7519e23a5734426476a95356c1cda2ba"
+    },
+    {
+      "N": 16,
+      "SQP": 2,
+      "PCG": 400,
+      "raw": "/home/felix/gato-results/gtx1070/F01ab-short12-N16/8fe9fb84f96fb068dc54773be739bad5cf9cef0f676d6b76db51afd48effd827/attempt-001/f01-raw",
+      "manifest_sha256": "741e2f3a2a0d01738c5afa0e3880a1f0f72a32f65addb3ce6611593366db460a",
+      "module_sha256": "d18939a60b777e70021b3f942878a47e7519e23a5734426476a95356c1cda2ba"
+    },
+    {
+      "N": 16,
+      "SQP": 10,
+      "PCG": 400,
+      "raw": "/home/felix/gato-results/gtx1070/F01ab-short12-N16/9a22997f8a19877d2ba78cbed0a948d1b092ef76c820dde97474be20c3d4bde6/attempt-001/f01-raw",
+      "manifest_sha256": "5c78d7b85ea853c0e8388796068ab0752a8b433e111a82a4a4aa80f3c2b42f07",
+      "module_sha256": "d18939a60b777e70021b3f942878a47e7519e23a5734426476a95356c1cda2ba"
+    },
+    {
+      "N": 16,
+      "SQP": 2,
+      "PCG": 200,
+      "raw": "/home/felix/gato-results/gtx1070/F01ab-short12-N16/b98a6d5ebfaec9f2758234447ff3335185fd550a5a06cbf9fb897aefc09dfeb6/attempt-001/f01-raw",
+      "manifest_sha256": "f64e249e0690342fa093da22454538eebad5fcb3d1cea8169aa59a6a20e05d00",
+      "module_sha256": "d18939a60b777e70021b3f942878a47e7519e23a5734426476a95356c1cda2ba"
+    },
+    {
+      "N": 16,
+      "SQP": 10,
+      "PCG": 800,
+      "raw": "/home/felix/gato-results/gtx1070/F01ab-short12-N16/d8d8aa7153c48658176e474e54c4b5acdd1b19e3b5781894989b3d0c6439f8f9/attempt-001/f01-raw",
+      "manifest_sha256": "d97c35be9ac957cf30d0f825be7b687bf689e2f4d971a905b4715eb6d53750f8",
+      "module_sha256": "d18939a60b777e70021b3f942878a47e7519e23a5734426476a95356c1cda2ba"
+    },
+    {
+      "N": 16,
+      "SQP": 10,
+      "PCG": 100,
+      "raw": "/home/felix/gato-results/gtx1070/F01ab-short12-N16/eda6635d83f4ef716e4c82d372c167595fe80523268c6fcbda26c801451d585f/attempt-001/f01-raw",
+      "manifest_sha256": "a32aed6bca47b1de009fffcbb4d911467587cef2d2f145c4a963c97d88e28b0d",
+      "module_sha256": "d18939a60b777e70021b3f942878a47e7519e23a5734426476a95356c1cda2ba"
+    },
+    {
+      "N": 16,
+      "SQP": 1,
+      "PCG": 200,
+      "raw": "/home/felix/gato-results/gtx1070/F01ab-short12-N16/f2a8695127654ab8dfb9e85caf9019f93b63de5872edcfb2839b39cc5ea9999e/attempt-001/f01-raw",
+      "manifest_sha256": "7d3eefcbe09bc609adc075d1fdc933177c76198574b6f55e187e2853d50db143",
+      "module_sha256": "d18939a60b777e70021b3f942878a47e7519e23a5734426476a95356c1cda2ba"
+    },
+    {
+      "N": 16,
+      "SQP": 5,
+      "PCG": 400,
+      "raw": "/home/felix/gato-results/gtx1070/F01ab-short12-N16/f959d97cdb116f597a358523237a8a6576a39a4d04c01af2268daac7d61b46ef/attempt-001/f01-raw",
+      "manifest_sha256": "d22508a8e771f05dde3e72c8545be13ad3c8cc396187eb88c882469f06a10613",
+      "module_sha256": "d18939a60b777e70021b3f942878a47e7519e23a5734426476a95356c1cda2ba"
+    },
+    {
+      "N": 16,
+      "SQP": 1,
+      "PCG": 100,
+      "raw": "/home/felix/gato-results/gtx1070/F01ab-short12-N16/fffa46856175ae38a8d31ee051f3ffa1b769fbf62f5b08aa35c27d22a2be3a3e/attempt-001/f01-raw",
+      "manifest_sha256": "e9338c3a732f3b0e55127674699ce24a8bead683d3a3aee2f69e8c337c302587",
+      "module_sha256": "d18939a60b777e70021b3f942878a47e7519e23a5734426476a95356c1cda2ba"
+    },
+    {
+      "N": 32,
+      "SQP": 10,
+      "PCG": 200,
+      "raw": "/home/felix/gato-results/gtx1070/F01ab-short12-N32/04eabd2ea17575051a48750a7b6f5a324c112238e7621ec14dd9e622726b246b/attempt-001/f01-raw",
+      "manifest_sha256": "716bad23b39ed363dfdba05b4a508eba1093fbab44e6bc1ec080e5cb49bf79ca",
+      "module_sha256": "74a78c97364f81fd2e4fabccdb5afa52e3c76eee5818542d8d286acb04354067"
+    },
+    {
+      "N": 32,
+      "SQP": 1,
+      "PCG": 400,
+      "raw": "/home/felix/gato-results/gtx1070/F01ab-short12-N32/15f8c026d5eb7642ecb7ea27e1b355c9f0436b825d553f80ab4bfe03036b3503/attempt-001/f01-raw",
+      "manifest_sha256": "28539e1d4baac9ba8ff0df8d58fb9723f355595d45eec3561ab260982c31e689",
+      "module_sha256": "74a78c97364f81fd2e4fabccdb5afa52e3c76eee5818542d8d286acb04354067"
+    },
+    {
+      "N": 32,
+      "SQP": 10,
+      "PCG": 400,
+      "raw": "/home/felix/gato-results/gtx1070/F01ab-short12-N32/1b39340e664e26d95a70ee3c9096a95198ff8f8c14d657f2f7d9ab86b9a681f3/attempt-001/f01-raw",
+      "manifest_sha256": "9098fcb1936bbed9aaf50d2119bff602514eacd7c0b63698bcbbb69a895ec6e5",
+      "module_sha256": "74a78c97364f81fd2e4fabccdb5afa52e3c76eee5818542d8d286acb04354067"
+    },
+    {
+      "N": 32,
+      "SQP": 1,
+      "PCG": 800,
+      "raw": "/home/felix/gato-results/gtx1070/F01ab-short12-N32/2b129da057195ae1a4bba1a22c792ab220fdea225d4d95645bb05cf330861ea6/attempt-001/f01-raw",
+      "manifest_sha256": "a43d3e87f26d6cebb7e699219ee455f7914241948b126e57bbe47e56b0b09621",
+      "module_sha256": "74a78c97364f81fd2e4fabccdb5afa52e3c76eee5818542d8d286acb04354067"
+    },
+    {
+      "N": 32,
+      "SQP": 10,
+      "PCG": 800,
+      "raw": "/home/felix/gato-results/gtx1070/F01ab-short12-N32/47543511da958cc5b531f8a396f21afcf73ba291fdc9f7421d2f9e6b96b511b0/attempt-001/f01-raw",
+      "manifest_sha256": "f4d9b6cb706056a5d9533563385a8028b7941b4123222ae3fefe54a02832f50e",
+      "module_sha256": "74a78c97364f81fd2e4fabccdb5afa52e3c76eee5818542d8d286acb04354067"
+    },
+    {
+      "N": 32,
+      "SQP": 2,
+      "PCG": 800,
+      "raw": "/home/felix/gato-results/gtx1070/F01ab-short12-N32/66c2dec759f5044519136c56338d7e379a67f9d1dc0f4149b460050b16f6cc27/attempt-001/f01-raw",
+      "manifest_sha256": "7453c82c8fd0d80d9a3bd0f0c8ef20f78b27f15cebe495a0e0bd696f5a4751e3",
+      "module_sha256": "74a78c97364f81fd2e4fabccdb5afa52e3c76eee5818542d8d286acb04354067"
+    },
+    {
+      "N": 32,
+      "SQP": 5,
+      "PCG": 800,
+      "raw": "/home/felix/gato-results/gtx1070/F01ab-short12-N32/7361dde626d3ce36138df2a20b299334b37a00a565a2523cbd078a7c3cb1eb64/attempt-001/f01-raw",
+      "manifest_sha256": "40a6b27bca3a94dcb563dfb5b438f5de178404e7b158046843c6d4b116f1a76c",
+      "module_sha256": "74a78c97364f81fd2e4fabccdb5afa52e3c76eee5818542d8d286acb04354067"
+    },
+    {
+      "N": 32,
+      "SQP": 5,
+      "PCG": 400,
+      "raw": "/home/felix/gato-results/gtx1070/F01ab-short12-N32/76c8ff1065d1cfc576b7d550d43f45162a6f71e7c772f4d105e5127ac7e82abe/attempt-001/f01-raw",
+      "manifest_sha256": "ac2c3a704d0caaaada16faaf269822af624343457ee56a620aaf843484c01c69",
+      "module_sha256": "74a78c97364f81fd2e4fabccdb5afa52e3c76eee5818542d8d286acb04354067"
+    },
+    {
+      "N": 32,
+      "SQP": 2,
+      "PCG": 400,
+      "raw": "/home/felix/gato-results/gtx1070/F01ab-short12-N32/8841c0068d7002ea3164a334a28ba4c46ca8774037f88cf86a8e4222995e969c/attempt-001/f01-raw",
+      "manifest_sha256": "d9e6f9e83531648225094142115e54d1351fb2f042b489291840c0e4512e99a4",
+      "module_sha256": "74a78c97364f81fd2e4fabccdb5afa52e3c76eee5818542d8d286acb04354067"
+    },
+    {
+      "N": 32,
+      "SQP": 2,
+      "PCG": 100,
+      "raw": "/home/felix/gato-results/gtx1070/F01ab-short12-N32/88efaabe037f975782254b208c7e0b6eee875e59cb3c82f68cfa1f218057b10f/attempt-001/f01-raw",
+      "manifest_sha256": "2d4e4945f66b3575454ce2cdf1df34a6d4e5528dd3637605147670f3070cc084",
+      "module_sha256": "74a78c97364f81fd2e4fabccdb5afa52e3c76eee5818542d8d286acb04354067"
+    },
+    {
+      "N": 32,
+      "SQP": 1,
+      "PCG": 200,
+      "raw": "/home/felix/gato-results/gtx1070/F01ab-short12-N32/94a88aec5894fca609cb6fd364129cfd71ea2e3f8c31b50d63d158dfe1ea9af5/attempt-001/f01-raw",
+      "manifest_sha256": "5c46f38c3acdcf8561d7ce41874466671421d77b8e058b4949bef34122bc6f63",
+      "module_sha256": "74a78c97364f81fd2e4fabccdb5afa52e3c76eee5818542d8d286acb04354067"
+    },
+    {
+      "N": 32,
+      "SQP": 5,
+      "PCG": 100,
+      "raw": "/home/felix/gato-results/gtx1070/F01ab-short12-N32/aa7368d15f934e80530c0c9fc1b1513d8f840e05ef4fdd54533112220f2c0689/attempt-001/f01-raw",
+      "manifest_sha256": "16d9eeb5ed0a9f6ad8b64c171316ee5771dbfdb52b94d7cabdedc55d0e5bc13f",
+      "module_sha256": "74a78c97364f81fd2e4fabccdb5afa52e3c76eee5818542d8d286acb04354067"
+    },
+    {
+      "N": 32,
+      "SQP": 10,
+      "PCG": 100,
+      "raw": "/home/felix/gato-results/gtx1070/F01ab-short12-N32/c87c07eff0f8bdfbbebd0e078b8fbd97730d537fb5da541fd9b75c10a44292ea/attempt-001/f01-raw",
+      "manifest_sha256": "c430ea37b75f893c2350e338808557c15b64e616af4271e17f76faa65c10a07e",
+      "module_sha256": "74a78c97364f81fd2e4fabccdb5afa52e3c76eee5818542d8d286acb04354067"
+    },
+    {
+      "N": 32,
+      "SQP": 5,
+      "PCG": 200,
+      "raw": "/home/felix/gato-results/gtx1070/F01ab-short12-N32/df614303e61c8b80d83e80c0db1f08f1c047825819b20d88d6a80ea4879f3cf1/attempt-001/f01-raw",
+      "manifest_sha256": "ae82de09d50147301b36fde65885e246e3a10242977fa5b4f3b0a875772bdd76",
+      "module_sha256": "74a78c97364f81fd2e4fabccdb5afa52e3c76eee5818542d8d286acb04354067"
+    },
+    {
+      "N": 32,
+      "SQP": 2,
+      "PCG": 200,
+      "raw": "/home/felix/gato-results/gtx1070/F01ab-short12-N32/ee1c78747cbe2f8c621f66adc45edcbcde312236c4abbe526bad29e9d1ede242/attempt-001/f01-raw",
+      "manifest_sha256": "24623743e717aecee5ef56a8343b5a45a33a7d9257f44ae09b5e5ae73c650d6b",
+      "module_sha256": "74a78c97364f81fd2e4fabccdb5afa52e3c76eee5818542d8d286acb04354067"
+    },
+    {
+      "N": 32,
+      "SQP": 1,
+      "PCG": 100,
+      "raw": "/home/felix/gato-results/gtx1070/F01ab-short12-N32/f190980ba90c9f0deb21d9cbf3ab5e757162ddb2f849f9fcb722280290cee69e/attempt-001/f01-raw",
+      "manifest_sha256": "7ed833bac71c762733adaac4e2e87cc23872619a8d6e2602becc2d568d22d871",
+      "module_sha256": "74a78c97364f81fd2e4fabccdb5afa52e3c76eee5818542d8d286acb04354067"
+    },
+    {
+      "N": 64,
+      "SQP": 2,
+      "PCG": 800,
+      "raw": "/home/felix/gato-results/gtx1070/F01ab-short12-N64/0d5846f5f3e0d8a980bad6c14e97092df2763235e97704427d0a1e14027156ca/attempt-001/f01-raw",
+      "manifest_sha256": "b84ce98b92cdf00d706a1ca7696e4f8e3de052c61cabf6a586e4bd3c73094455",
+      "module_sha256": "92a41fbc92898763ee68aaf83c543ba78069f2a269e55b7ae136c9e3e546fb55"
+    },
+    {
+      "N": 64,
+      "SQP": 2,
+      "PCG": 400,
+      "raw": "/home/felix/gato-results/gtx1070/F01ab-short12-N64/178d35674c4be086dccc7139fe91b12ceb33b65a602be2f27bb761a8c7bb7f47/attempt-001/f01-raw",
+      "manifest_sha256": "8a065a497081ba7dfa9a4fcdedbbc899de773a767fdd71db8f6bbbc635daf5b8",
+      "module_sha256": "92a41fbc92898763ee68aaf83c543ba78069f2a269e55b7ae136c9e3e546fb55"
+    },
+    {
+      "N": 64,
+      "SQP": 10,
+      "PCG": 800,
+      "raw": "/home/felix/gato-results/gtx1070/F01ab-short12-N64/48f6e327073b13bbd5a9b5928534d31dbf48671a63de55b5b1b98ef561bbccf0/attempt-001/f01-raw",
+      "manifest_sha256": "4dc12f493f461bba8bb16fa8edd9f5dcc344323e1e6bc9d7fc8352446b4afd7d",
+      "module_sha256": "92a41fbc92898763ee68aaf83c543ba78069f2a269e55b7ae136c9e3e546fb55"
+    },
+    {
+      "N": 64,
+      "SQP": 5,
+      "PCG": 800,
+      "raw": "/home/felix/gato-results/gtx1070/F01ab-short12-N64/5544870880b8f3d7cb0862fe36be6fdd0330c79f8c9f953695d30bbf040e3068/attempt-001/f01-raw",
+      "manifest_sha256": "24eb325d347874948d8f3f1d2320f686b80ffa4302ea6eec53b464adf13457d5",
+      "module_sha256": "92a41fbc92898763ee68aaf83c543ba78069f2a269e55b7ae136c9e3e546fb55"
+    },
+    {
+      "N": 64,
+      "SQP": 2,
+      "PCG": 100,
+      "raw": "/home/felix/gato-results/gtx1070/F01ab-short12-N64/641a48a795ab4db858d20772f52b3390d2d6a07b38686b67b26cfeca18719b3a/attempt-001/f01-raw",
+      "manifest_sha256": "7d21150c1ddfb40a56a053950071492eb57b4bc1ed94d05a029d0d3944080e7a",
+      "module_sha256": "92a41fbc92898763ee68aaf83c543ba78069f2a269e55b7ae136c9e3e546fb55"
+    },
+    {
+      "N": 64,
+      "SQP": 5,
+      "PCG": 400,
+      "raw": "/home/felix/gato-results/gtx1070/F01ab-short12-N64/76ddd12082ef751dac2a46eefd3478ddfad5727b72558855dca026d540210042/attempt-001/f01-raw",
+      "manifest_sha256": "0fc6f26733fee0d6ea4143168a7ac65a6985b091e0831c945575971e8490efab",
+      "module_sha256": "92a41fbc92898763ee68aaf83c543ba78069f2a269e55b7ae136c9e3e546fb55"
+    },
+    {
+      "N": 64,
+      "SQP": 10,
+      "PCG": 100,
+      "raw": "/home/felix/gato-results/gtx1070/F01ab-short12-N64/7ae777486f369156b7fd78099ccc64a516226e9efab7a122e0b35d73bc3b1025/attempt-001/f01-raw",
+      "manifest_sha256": "eebf9c92619c63612f5041812d9c3338f1e99c4efefefe1cf001260f582a00b9",
+      "module_sha256": "92a41fbc92898763ee68aaf83c543ba78069f2a269e55b7ae136c9e3e546fb55"
+    },
+    {
+      "N": 64,
+      "SQP": 10,
+      "PCG": 200,
+      "raw": "/home/felix/gato-results/gtx1070/F01ab-short12-N64/8c8699f9d7853f6ab75a3d70b150d01905fda8133ea4f58b72dff74a66a48c8b/attempt-001/f01-raw",
+      "manifest_sha256": "3c065c1635e149d1f8b7e6477bf8386bea92801a60b44bf2b490dda09ddac58e",
+      "module_sha256": "92a41fbc92898763ee68aaf83c543ba78069f2a269e55b7ae136c9e3e546fb55"
+    },
+    {
+      "N": 64,
+      "SQP": 5,
+      "PCG": 100,
+      "raw": "/home/felix/gato-results/gtx1070/F01ab-short12-N64/91836ae191ea20bcd2a470eb2b5d637c7bb709a691cd392909d65355fabe7c1a/attempt-001/f01-raw",
+      "manifest_sha256": "c27b93a143e1e2bf50189383e65469e5718fee374a137f0ad524a8fb50593aa2",
+      "module_sha256": "92a41fbc92898763ee68aaf83c543ba78069f2a269e55b7ae136c9e3e546fb55"
+    },
+    {
+      "N": 64,
+      "SQP": 1,
+      "PCG": 800,
+      "raw": "/home/felix/gato-results/gtx1070/F01ab-short12-N64/97add1e9c786af6691e7c7ca1448af6f9ba5a30d70ac8da5eabdc2af03d1c569/attempt-001/f01-raw",
+      "manifest_sha256": "add570ae014c7424f7bed7d486ca2b3707cb2cd3fa6e8eb247735974e2ba3efe",
+      "module_sha256": "92a41fbc92898763ee68aaf83c543ba78069f2a269e55b7ae136c9e3e546fb55"
+    },
+    {
+      "N": 64,
+      "SQP": 10,
+      "PCG": 400,
+      "raw": "/home/felix/gato-results/gtx1070/F01ab-short12-N64/c4d37cef8a4280bbb2e67751db5abb8486201bdbf459aaacd329312e4821a433/attempt-001/f01-raw",
+      "manifest_sha256": "0a37817be0fad3ca2189c058f248298ee86f4d13a54452a357e0d5fd19ae4d91",
+      "module_sha256": "92a41fbc92898763ee68aaf83c543ba78069f2a269e55b7ae136c9e3e546fb55"
+    },
+    {
+      "N": 64,
+      "SQP": 2,
+      "PCG": 200,
+      "raw": "/home/felix/gato-results/gtx1070/F01ab-short12-N64/d0d58816d903bb98e659fc1cf337e69759593249bf225d3545180d81b55a8e79/attempt-001/f01-raw",
+      "manifest_sha256": "e43c702d6a389aad5153593169275cc6ed0ccc83e0ca9ad76cec0a3dd5b81d00",
+      "module_sha256": "92a41fbc92898763ee68aaf83c543ba78069f2a269e55b7ae136c9e3e546fb55"
+    },
+    {
+      "N": 64,
+      "SQP": 1,
+      "PCG": 100,
+      "raw": "/home/felix/gato-results/gtx1070/F01ab-short12-N64/d2fdc925128d77f7bc6bcba33f08cd42c416b1406bd8814b2e1630971873bc0d/attempt-001/f01-raw",
+      "manifest_sha256": "a97f338680dd8ee4b0ba5f0009dd434def5c8e2169ae0729bb3b8af318b072b8",
+      "module_sha256": "92a41fbc92898763ee68aaf83c543ba78069f2a269e55b7ae136c9e3e546fb55"
+    },
+    {
+      "N": 64,
+      "SQP": 1,
+      "PCG": 400,
+      "raw": "/home/felix/gato-results/gtx1070/F01ab-short12-N64/dcd336ded28ff654930e1de387e571ce7c67c86fda8f2ab029cc5604f2de1f60/attempt-001/f01-raw",
+      "manifest_sha256": "7ffd8c3684745038487c63eb21b233b0336c0e84c41d009592c0e74e131a69f8",
+      "module_sha256": "92a41fbc92898763ee68aaf83c543ba78069f2a269e55b7ae136c9e3e546fb55"
+    },
+    {
+      "N": 64,
+      "SQP": 1,
+      "PCG": 200,
+      "raw": "/home/felix/gato-results/gtx1070/F01ab-short12-N64/ee70a95c5852992bf15bc1be4d9264b0c3dd239a977b4bb2a2bf799db963c979/attempt-001/f01-raw",
+      "manifest_sha256": "578a5a35fbfa9590dee6deec9684a4826ca79162cc3258601a72ee11dc980da9",
+      "module_sha256": "92a41fbc92898763ee68aaf83c543ba78069f2a269e55b7ae136c9e3e546fb55"
+    },
+    {
+      "N": 64,
+      "SQP": 5,
+      "PCG": 200,
+      "raw": "/home/felix/gato-results/gtx1070/F01ab-short12-N64/f68248c0cb4c596ea6ece7c289d3378033e5eeebd853e1bb93071da03a4fe545/attempt-001/f01-raw",
+      "manifest_sha256": "efd7f5b9909c6e3b67db5de98d0ec13f4500b46a8c16860bd5cd6f6554c7679c",
+      "module_sha256": "92a41fbc92898763ee68aaf83c543ba78069f2a269e55b7ae136c9e3e546fb55"
+    },
+    {
+      "N": 128,
+      "SQP": 10,
+      "PCG": 100,
+      "raw": "/home/felix/gato-results/gtx1070/F01ab-short12-N128/023989b7ece667771eef27e4bcfa6fcb0dcfe5fc779b1815694742ef16e4c74c/attempt-001/f01-raw",
+      "manifest_sha256": "fe8443176c27402a3acafad445682527158fa3aea43753a310352eb7e9e6ed63",
+      "module_sha256": "c1e1f72d6e884aba970551001acad9e71e3e5145d0a288b2c03e8bad28189922"
+    },
+    {
+      "N": 128,
+      "SQP": 2,
+      "PCG": 200,
+      "raw": "/home/felix/gato-results/gtx1070/F01ab-short12-N128/0dc01218a7baa03191c0603c12cb1924c65aaa10627e106f3b0b3b93d6e6c61e/attempt-001/f01-raw",
+      "manifest_sha256": "0302880c56d76a2cc2420315ace5285a5724363d8afdf1a3a86786731a8d7404",
+      "module_sha256": "c1e1f72d6e884aba970551001acad9e71e3e5145d0a288b2c03e8bad28189922"
+    },
+    {
+      "N": 128,
+      "SQP": 5,
+      "PCG": 400,
+      "raw": "/home/felix/gato-results/gtx1070/F01ab-short12-N128/12fdb33a52ba5dc7b50ca2242b9081b0f9bfdacb0011dc708c2adf543ed61ce9/attempt-001/f01-raw",
+      "manifest_sha256": "9703c44e4f73fd097619ca3c6edcfec8f4533980ecd442667c3f44b2e60d33c4",
+      "module_sha256": "c1e1f72d6e884aba970551001acad9e71e3e5145d0a288b2c03e8bad28189922"
+    },
+    {
+      "N": 128,
+      "SQP": 1,
+      "PCG": 800,
+      "raw": "/home/felix/gato-results/gtx1070/F01ab-short12-N128/15767c4e2b12dff7871c67bc1ceb9929475906f9f2a6ddae3f3165b7f21a60a8/attempt-001/f01-raw",
+      "manifest_sha256": "af8a772fe8285d73eceb981d43aaba96392001cb3621c4ae5ca6344de483ed11",
+      "module_sha256": "c1e1f72d6e884aba970551001acad9e71e3e5145d0a288b2c03e8bad28189922"
+    },
+    {
+      "N": 128,
+      "SQP": 1,
+      "PCG": 100,
+      "raw": "/home/felix/gato-results/gtx1070/F01ab-short12-N128/17f7854d76a7ab2ec190f609722e1db2647d1a305e8ab0dcd2986d2646066193/attempt-001/f01-raw",
+      "manifest_sha256": "677f9791311d56a2cadf148aa61f1aa0ea5d3aad853cd0b18cac4dd9fd236b37",
+      "module_sha256": "c1e1f72d6e884aba970551001acad9e71e3e5145d0a288b2c03e8bad28189922"
+    },
+    {
+      "N": 128,
+      "SQP": 2,
+      "PCG": 400,
+      "raw": "/home/felix/gato-results/gtx1070/F01ab-short12-N128/1a742a1e80b1a22fc9197e92388b1543318edce69a6c834471a6ef73886ae8e5/attempt-001/f01-raw",
+      "manifest_sha256": "1eadbff4e47f07b418ce72d7a83d137b346ede6fbf240acc9de947093ac1334d",
+      "module_sha256": "c1e1f72d6e884aba970551001acad9e71e3e5145d0a288b2c03e8bad28189922"
+    },
+    {
+      "N": 128,
+      "SQP": 5,
+      "PCG": 100,
+      "raw": "/home/felix/gato-results/gtx1070/F01ab-short12-N128/329011f2d8b0fc7706e2c5bc6bad692150e47375a85ed0a64464de74322af71b/attempt-001/f01-raw",
+      "manifest_sha256": "406a4abda8f8c68861a796ddf8bae92e83a8de79e6a70f0410ccb3febb61e2cc",
+      "module_sha256": "c1e1f72d6e884aba970551001acad9e71e3e5145d0a288b2c03e8bad28189922"
+    },
+    {
+      "N": 128,
+      "SQP": 5,
+      "PCG": 200,
+      "raw": "/home/felix/gato-results/gtx1070/F01ab-short12-N128/38213e0075d1752d4e3894bcce0c2700d9b5662f048c85d2d11905055834a65c/attempt-001/f01-raw",
+      "manifest_sha256": "a8bf0e94f9d608ab276b38c35447899eb8f58300ab2769a686ea3316743f9b5f",
+      "module_sha256": "c1e1f72d6e884aba970551001acad9e71e3e5145d0a288b2c03e8bad28189922"
+    },
+    {
+      "N": 128,
+      "SQP": 1,
+      "PCG": 200,
+      "raw": "/home/felix/gato-results/gtx1070/F01ab-short12-N128/454f4b731f17f33e8e71efb394765485224873ed539a62a080ca20c14fc8ec32/attempt-001/f01-raw",
+      "manifest_sha256": "aac0de4a4f29fdd6009be29719ef68d3906d901cff7d5ad7a103c651c8d6d1e0",
+      "module_sha256": "c1e1f72d6e884aba970551001acad9e71e3e5145d0a288b2c03e8bad28189922"
+    },
+    {
+      "N": 128,
+      "SQP": 1,
+      "PCG": 400,
+      "raw": "/home/felix/gato-results/gtx1070/F01ab-short12-N128/46f98eba1ca7f674558c93715173dc3079cd26f9d7b745906668c9e0c1718580/attempt-001/f01-raw",
+      "manifest_sha256": "fe0f2859353c64781439ec5c1d83a997301947f03866a0b3849431fac90df781",
+      "module_sha256": "c1e1f72d6e884aba970551001acad9e71e3e5145d0a288b2c03e8bad28189922"
+    },
+    {
+      "N": 128,
+      "SQP": 5,
+      "PCG": 800,
+      "raw": "/home/felix/gato-results/gtx1070/F01ab-short12-N128/49d9b37a6a175f10393dcc1e26e9363536c04cbc7734ebedebc6f7659c70fb15/attempt-001/f01-raw",
+      "manifest_sha256": "3a270069dec708f3381ae7a256ad522c5b36846b875ed69a9ad049991adb8264",
+      "module_sha256": "c1e1f72d6e884aba970551001acad9e71e3e5145d0a288b2c03e8bad28189922"
+    },
+    {
+      "N": 128,
+      "SQP": 10,
+      "PCG": 200,
+      "raw": "/home/felix/gato-results/gtx1070/F01ab-short12-N128/7218277013275e233788627c85195b50bcb084c6bb4862f6713847becffe0da2/attempt-001/f01-raw",
+      "manifest_sha256": "57f06993d1a061ead10a80621d66631a45461b08f2487b2399e93210977804a8",
+      "module_sha256": "c1e1f72d6e884aba970551001acad9e71e3e5145d0a288b2c03e8bad28189922"
+    },
+    {
+      "N": 128,
+      "SQP": 2,
+      "PCG": 800,
+      "raw": "/home/felix/gato-results/gtx1070/F01ab-short12-N128/7351a86b67a28b444a827d57798456207b9cc536daa6c7bd1c2c0b4dd801b5b4/attempt-001/f01-raw",
+      "manifest_sha256": "73b3adab574e2ebf4a339c73b1ca66132cd37313c5e09f9bfcd09e6fe60a15e1",
+      "module_sha256": "c1e1f72d6e884aba970551001acad9e71e3e5145d0a288b2c03e8bad28189922"
+    },
+    {
+      "N": 128,
+      "SQP": 2,
+      "PCG": 100,
+      "raw": "/home/felix/gato-results/gtx1070/F01ab-short12-N128/9184b6609b2d6b2db235b06abaf0a7774743527a9eadfa1d8fe3ed1e3cad73b8/attempt-001/f01-raw",
+      "manifest_sha256": "2c02adfb0400ba7c2b284fdd840fe2ed9e31365a796c6f81a39ec4eb0fc41a29",
+      "module_sha256": "c1e1f72d6e884aba970551001acad9e71e3e5145d0a288b2c03e8bad28189922"
+    },
+    {
+      "N": 128,
+      "SQP": 10,
+      "PCG": 800,
+      "raw": "/home/felix/gato-results/gtx1070/F01ab-short12-N128/a277e24f07a0900f55b4b5992f892a7271a77a807ded9fefe1076002942d0e13/attempt-001/f01-raw",
+      "manifest_sha256": "017c941d0ebe1e077e191993fe60d1d657d6e7b3e4914bcb16136bb317b9b4ea",
+      "module_sha256": "c1e1f72d6e884aba970551001acad9e71e3e5145d0a288b2c03e8bad28189922"
+    },
+    {
+      "N": 128,
+      "SQP": 10,
+      "PCG": 400,
+      "raw": "/home/felix/gato-results/gtx1070/F01ab-short12-N128/c82fd41436e3a965a6f30e342b03bf1610ce6060bfaf905718ab45d63a9e5efa/attempt-001/f01-raw",
+      "manifest_sha256": "fa9cc9c3842ebea22a3c1d0976aed1865750d9f9bd10246e0955327a322cb9df",
+      "module_sha256": "c1e1f72d6e884aba970551001acad9e71e3e5145d0a288b2c03e8bad28189922"
+    }
+  ],
+  "representative24_calls": [
+    {
+      "N": 16,
+      "SQP": 10,
+      "PCG": 800,
+      "category": "cold",
+      "slot": 0,
+      "native_ms": 7.727,
+      "wrapper_ms": 7.855504009057768,
+      "PCG_reason_counts": {
+        "4": 1,
+        "3": 6,
+        "2": 3
+      },
+      "SQP_reason_code": 2
+    },
+    {
+      "N": 16,
+      "SQP": 10,
+      "PCG": 800,
+      "category": "warm",
+      "slot": 1,
+      "native_ms": 2.58,
+      "wrapper_ms": 2.7413820062065497,
+      "PCG_reason_counts": {
+        "3": 3,
+        "2": 7
+      },
+      "SQP_reason_code": 2
+    },
+    {
+      "N": 16,
+      "SQP": 10,
+      "PCG": 800,
+      "category": "goal_switch",
+      "slot": 10,
+      "native_ms": 3.004,
+      "wrapper_ms": 3.140626009553671,
+      "PCG_reason_counts": {
+        "3": 7,
+        "2": 3
+      },
+      "SQP_reason_code": 2
+    },
+    {
+      "N": 16,
+      "SQP": 1,
+      "PCG": 100,
+      "category": "cold",
+      "slot": 0,
+      "native_ms": 0.636,
+      "wrapper_ms": 0.7611870096297935,
+      "PCG_reason_counts": {
+        "3": 1
+      },
+      "SQP_reason_code": 2
+    },
+    {
+      "N": 16,
+      "SQP": 1,
+      "PCG": 100,
+      "category": "warm",
+      "slot": 1,
+      "native_ms": 0.376,
+      "wrapper_ms": 0.5085879965918139,
+      "PCG_reason_counts": {
+        "3": 1
+      },
+      "SQP_reason_code": 2
+    },
+    {
+      "N": 16,
+      "SQP": 1,
+      "PCG": 100,
+      "category": "goal_switch",
+      "slot": 10,
+      "native_ms": 0.438,
+      "wrapper_ms": 0.5626160127576441,
+      "PCG_reason_counts": {
+        "3": 1
+      },
+      "SQP_reason_code": 2
+    },
+    {
+      "N": 32,
+      "SQP": 10,
+      "PCG": 800,
+      "category": "cold",
+      "slot": 0,
+      "native_ms": 17.681,
+      "wrapper_ms": 17.816520994529128,
+      "PCG_reason_counts": {
+        "4": 2,
+        "3": 8
+      },
+      "SQP_reason_code": 2
+    },
+    {
+      "N": 32,
+      "SQP": 10,
+      "PCG": 800,
+      "category": "warm",
+      "slot": 1,
+      "native_ms": 10.668,
+      "wrapper_ms": 10.8159439987503,
+      "PCG_reason_counts": {
+        "3": 7,
+        "2": 2,
+        "4": 1
+      },
+      "SQP_reason_code": 2
+    },
+    {
+      "N": 32,
+      "SQP": 10,
+      "PCG": 800,
+      "category": "goal_switch",
+      "slot": 10,
+      "native_ms": 4.48,
+      "wrapper_ms": 4.618000006303191,
+      "PCG_reason_counts": {
+        "3": 9,
+        "2": 1
+      },
+      "SQP_reason_code": 2
+    },
+    {
+      "N": 32,
+      "SQP": 1,
+      "PCG": 100,
+      "category": "cold",
+      "slot": 0,
+      "native_ms": 0.682,
+      "wrapper_ms": 0.8060040127020329,
+      "PCG_reason_counts": {
+        "3": 1
+      },
+      "SQP_reason_code": 2
+    },
+    {
+      "N": 32,
+      "SQP": 1,
+      "PCG": 100,
+      "category": "warm",
+      "slot": 1,
+      "native_ms": 0.521,
+      "wrapper_ms": 0.6483159959316254,
+      "PCG_reason_counts": {
+        "3": 1
+      },
+      "SQP_reason_code": 2
+    },
+    {
+      "N": 32,
+      "SQP": 1,
+      "PCG": 100,
+      "category": "goal_switch",
+      "slot": 10,
+      "native_ms": 0.631,
+      "wrapper_ms": 0.7558530051028356,
+      "PCG_reason_counts": {
+        "3": 1
+      },
+      "SQP_reason_code": 2
+    },
+    {
+      "N": 64,
+      "SQP": 10,
+      "PCG": 800,
+      "category": "cold",
+      "slot": 0,
+      "native_ms": 49.555,
+      "wrapper_ms": 49.74268199293874,
+      "PCG_reason_counts": {
+        "4": 5,
+        "3": 5
+      },
+      "SQP_reason_code": 2
+    },
+    {
+      "N": 64,
+      "SQP": 10,
+      "PCG": 800,
+      "category": "warm",
+      "slot": 1,
+      "native_ms": 14.672,
+      "wrapper_ms": 14.832852990366518,
+      "PCG_reason_counts": {
+        "3": 9,
+        "4": 1
+      },
+      "SQP_reason_code": 2
+    },
+    {
+      "N": 64,
+      "SQP": 10,
+      "PCG": 800,
+      "category": "goal_switch",
+      "slot": 10,
+      "native_ms": 24.72,
+      "wrapper_ms": 24.864938997779973,
+      "PCG_reason_counts": {
+        "3": 8,
+        "4": 2
+      },
+      "SQP_reason_code": 2
+    },
+    {
+      "N": 64,
+      "SQP": 1,
+      "PCG": 100,
+      "category": "cold",
+      "slot": 0,
+      "native_ms": 1.037,
+      "wrapper_ms": 1.185993998660706,
+      "PCG_reason_counts": {
+        "3": 1
+      },
+      "SQP_reason_code": 2
+    },
+    {
+      "N": 64,
+      "SQP": 1,
+      "PCG": 100,
+      "category": "warm",
+      "slot": 1,
+      "native_ms": 0.804,
+      "wrapper_ms": 0.9609230037312955,
+      "PCG_reason_counts": {
+        "3": 1
+      },
+      "SQP_reason_code": 2
+    },
+    {
+      "N": 64,
+      "SQP": 1,
+      "PCG": 100,
+      "category": "goal_switch",
+      "slot": 10,
+      "native_ms": 0.988,
+      "wrapper_ms": 1.1104939912911505,
+      "PCG_reason_counts": {
+        "3": 1
+      },
+      "SQP_reason_code": 2
+    },
+    {
+      "N": 128,
+      "SQP": 1,
+      "PCG": 100,
+      "category": "cold",
+      "slot": 0,
+      "native_ms": 1.275,
+      "wrapper_ms": 1.3961810036562383,
+      "PCG_reason_counts": {
+        "3": 1
+      },
+      "SQP_reason_code": 2
+    },
+    {
+      "N": 128,
+      "SQP": 1,
+      "PCG": 100,
+      "category": "warm",
+      "slot": 1,
+      "native_ms": 1.501,
+      "wrapper_ms": 1.6240979894064367,
+      "PCG_reason_counts": {
+        "3": 1
+      },
+      "SQP_reason_code": 2
+    },
+    {
+      "N": 128,
+      "SQP": 1,
+      "PCG": 100,
+      "category": "goal_switch",
+      "slot": 10,
+      "native_ms": 2.664,
+      "wrapper_ms": 2.8136679902672768,
+      "PCG_reason_counts": {
+        "4": 1
+      },
+      "SQP_reason_code": 2
+    },
+    {
+      "N": 128,
+      "SQP": 10,
+      "PCG": 800,
+      "category": "cold",
+      "slot": 0,
+      "native_ms": 62.999,
+      "wrapper_ms": 63.188208994688466,
+      "PCG_reason_counts": {
+        "3": 7,
+        "4": 3
+      },
+      "SQP_reason_code": 2
+    },
+    {
+      "N": 128,
+      "SQP": 10,
+      "PCG": 800,
+      "category": "warm",
+      "slot": 1,
+      "native_ms": 107.084,
+      "wrapper_ms": 107.27890799171291,
+      "PCG_reason_counts": {
+        "3": 4,
+        "4": 6
+      },
+      "SQP_reason_code": 2
+    },
+    {
+      "N": 128,
+      "SQP": 10,
+      "PCG": 800,
+      "category": "goal_switch",
+      "slot": 10,
+      "native_ms": 112.864,
+      "wrapper_ms": 113.06423800124321,
+      "PCG_reason_counts": {
+        "4": 7,
+        "3": 3
+      },
+      "SQP_reason_code": 2
+    }
+  ],
+  "review_scope": "All64 manifest pins/metrics/protocol/provenance/runner completed status and episode counts/recorded physical outcome consistency; eight cheap/heavy cap cells cover all4N with24cold/warm/switch actual raw samples, timing unit/native mapping/first applied controls/shifted warm checked. Prior-reviewed plot loader performs complete file hashing; reviewer does not repeat all555840file hash/decompression.",
+  "claims": [
+    "64-budget GTX1070 modeA B1 measured timing inputs/outputs preserved",
+    "Finite timing output supports budget/cold-warm/horizon comparisons, not full T01 success or hardware comparisons yet",
+    "730sampledphysicalpasses/38negatives and384rough reaching negatives retained;384tracking success unknown for short.6s subset",
+    "No cause/equivalence/solverdefect/reliability/fullconvergence claim; matching5060/internal andJetson pending"
+  ],
+  "remaining": "Final timing CSV/plots/provenance summary review after render"
+}

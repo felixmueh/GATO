@@ -89,7 +89,8 @@ def load_attempt(entry,root,schedule,index):
             # All event files are hash-verified; decode only solve timing payloads.
             if event['event'] not in ('solve_started','solve_returned','solve_completed','solve_failed'):continue
             with np.load(raw_path,allow_pickle=False) as archive:
-                arrays={name:archive[name] for name in archive.files}
+                # Lazy NPZ access: only nonfinite timing scalars need array bytes.
+                arrays=archive
                 record=event.get('record',{})
                 category=record.get('category');episode=record.get('episode_id');slot=record.get('slot')
                 if category=='process_cuda_warmup':
