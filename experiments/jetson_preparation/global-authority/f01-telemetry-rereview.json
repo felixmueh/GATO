@@ -1,0 +1,96 @@
+{
+  "verdict": "approved",
+  "scope": "Final opt-in observational native diff, corrected fixed70 comparison driver/protocol and static isolated snapshot/build recipe. Actual snapshots/receipts/compilation/ON-OFF outputs/fresh required ON frozen task suite remain pending and require independent identity audit before GPU execution.",
+  "reviewed_file_sha256": {
+    "CMakeLists.txt": "af2c5c0318d0e15fc3332282a360c6c40caeae821f31ff532c356c7127925a6f",
+    "experiments/frequency_campaign/telemetry/CMakeLists.txt": "ac0b5b18362a580b6042191b2f6a4d89a08b536f6a43b0b8bf79fd5a2727e295",
+    "experiments/frequency_campaign/telemetry/README.md": "ba4f5c183f7fc4e9cbbf80848777c66b99f672faf9537e13ea02cfe341f913ae",
+    "experiments/frequency_campaign/telemetry/audit_scope.py": "4188747b516826408ed6fa5c4b0cde9155af027a849328280fa683d62de04c52",
+    "experiments/frequency_campaign/telemetry/build_receipt_schema.json": "63b909c7c46d7b2aa4a23ac3958f67949d240e192082e5da8cbd3fb7b35d4834",
+    "experiments/frequency_campaign/telemetry/compare.py": "4b202d4034571134ea19994b9cefff6f317c0b2dfb4b915c71a5fdd419355a2a",
+    "experiments/frequency_campaign/telemetry/comparison_input_receipt.json": "afb286327314514911db35be98d1721279b86f0123a8137360d477b0c401f551",
+    "experiments/frequency_campaign/telemetry/comparison_inputs.npz": "8f97f834effffb1de30951bd228b258728083b49dd4c5601e0a979d98855db69",
+    "experiments/frequency_campaign/telemetry/comparison_protocol.json": "8eca01b8646a1cd2a56549698575adc077d6b2afe0132a97cb649626daf3c35e",
+    "experiments/frequency_campaign/telemetry/cpu_validation.log": "c400a0ae130222ee4d7c71bad272ce3f2900d6c261c2fdece88155f4426c67a1",
+    "experiments/frequency_campaign/telemetry/direct_pcg.cu": "b2588150997e0a3d1f9dcbd4dab9511be3e2ec378f7b8bf68191a080bf88ca73",
+    "experiments/frequency_campaign/telemetry/implementation_receipt.json": "e5cf1e9d7b8d3983cc81c69246adc3ec06c581544ec9fa4a9c89336f16110ccd",
+    "experiments/frequency_campaign/telemetry/source_scope_audit.json": "1a5882a80a1aa1aa0b097700bd98fddbdc5e76b8ed37a6869f4502a34b1ddbdf",
+    "gato/bsqp/bsqp.cuh": "7da4ce001eb21440fe73ff323d3db4bee9b67172e544cc2ec306a852d579a7d2",
+    "gato/bsqp/kernels/pcg.cuh": "907cc0f97f3bf9d3f8299b8b453bf06c9722c9df2451b9c20a81e530689c4c23",
+    "gato/types.cuh": "45a33f6f86d8a1e3f227abffb968579070a3575efb9b21ef628d9d545e8303a8",
+    "python/bindings.cu": "e117797c1ac59ab721d19ada698e1579f82b5d5524ae76e380e511b6e1a4929c",
+    "python/bsqp/interface.py": "379fd16d5b96bf2cc88ec6a091dcf83ef30694cabc3833092b8e2b6bd2a9951e",
+    "tests/python/test_experiment_telemetry.py": "fa2442d3dc7f30d09c981343ee0766d6351334b7467c0c31bdb734ade3a322e3"
+  },
+  "review_date_UTC": "2026-10-10T12:50:46.251085+00:00",
+  "base_commit": "608c8f72e0a0be322bcfd100a4b1c273c293ab70",
+  "production_core": "16b33719b4f0fd463eec7262c99b16b0b324366f",
+  "initial_review": {
+    "path": "/workspace/gato-campaign-recovery-20261010/f01-telemetry-review.json",
+    "sha256": "16de1cc384ea39c6905a29b6c59a934abd828ffbcfc21558df189e5a9c75b4ad"
+  },
+  "correction_history": [
+    {
+      "path": "/workspace/gato-campaign-recovery-20261010/f01-telemetry-driver-v2-review-receipt.json",
+      "sha256": "dfb45a206c5e326a8cad4088bd7f7ae67cb9f5a4caabdaf7a5aeb85196b228f2"
+    },
+    {
+      "path": "/workspace/gato-campaign-recovery-20261010/f01-telemetry-driver-v3-review-receipt.json",
+      "sha256": "88dd8d164bcf526f1c9cab110b1f9bf99e33cdefa04269f00ed17d2d88d1422b"
+    }
+  ],
+  "resolved_findings": {
+    "FT-R1": "Truthful base_commit plus actual archived candidate patch and externally caller-pinned complete source-manifest digest; uncommitted receipts cannot claim source_commit.",
+    "FT-R2": "Exact full snapshot inventory and all bytes equal authority, including solver/dynamics/wrappers. Extra files/escaping links/pycache/omissions reject before imports; actual compiler depfiles plus local/external dependency receipts retained and checked. Root must independently review completeness/commands, not regard self-hashed SDK entries as external certification.",
+    "FT-R3": "Typed unique exact cache telemetry/Release/architecture/KNOTS32/PLANTtiago_right. Direct cache/options and reviewed hardcoded direct N32; module basename binds N32.",
+    "FT-R4": "Disposable warmup capture and public/native references cleared before measured constructor. Weakref constructor sentinel and stale-return failure tests prove disposal/no misattribution.",
+    "FT-R5": "Raw returns preserved before per-call finite and exact XU(B,665)/initial-final-merit(B,) shape checks; warmup/prefix/measured outputs held immediately on failure. Public decoding correctly inside wall boundary, get_stats/archive/checks outside. v2 finite malformed shape gap returned to author, v3 corrected with eight warmup/prefix mutation checks. Public normalization exceptions retain native failed_call_return.",
+    "FT-R6": "Fixed maximum70 pertains comparison only. Exactly once unchanged ON make test-tiago-tasks separately indexed after comparison passes, before native integration commit; no old suite portrayed as new binary qualification."
+  },
+  "independent_CPU": [
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 /opt/gato-venv/bin/python3 -m pytest tests/python/test_experiment_telemetry.py tests/python/test_interface.py -q -p no:cacheprovider",
+      "result": "58 passed, 0 skipped; one existing hppfcl warning; 3.40s",
+      "scope": "Source projection, fake native, temporary receipts, CPU process/return/exception sentinels; no CUDA/native import or actual native calls."
+    }
+  ],
+  "native_observational_scope": {
+    "OFF": "Guard projection exact baseline tokens on4native files, permitting only equivalent braces around existingbreak; default CMake flagOFF. Existing nativefields/API retained, optionalPythonstats absent and cleared for ordinary replies.",
+    "ON_control_flow": "No arithmetic or existingpredicates/iteration/stopping/order/explicitbarrier/vote/atomic/kernel/copycall changes. Assigns branchcodes onexisting returns/breaks; no anomalytracing or solverremedy.",
+    "PCG_actual_codes": "1kktmaskskip0iterations;2initialabsrho0iterations;3existingabs+relative-rho breakincludingexactlastcap;4loopcapincludingnonzero-rho zero-cap. No explicitbreakdown branch exists; unsupportedfalse/null reason truthful, not proof no numericalbreakdown.",
+    "SQP_actual_codes": "1existingbatchwideKKTratiobreak, evenlastallowediteration;2loopexhaustion/zeroSQPcap. Perlaneconvergenceflags remain separate. LastPCGrow included even no correspondinglinesearch.",
+    "buffer_and_lifetime": "Existing d_iterations growsB->2B uint32; stopsat[B,2B), indices0..B-1 valid, everyactualPCGpath writes thread0 beforestreampublication. +4Bdevicebytes64@B16, no newdeviceallocation/sharedmemory/kernel. New pinnedhost2B buffer128@B16allocatedconstructor/freeddestructor; existingcopy count->2B and sameexistingStreamSynchronize publishescounts/codes beforestd::copy. ZeroSQPhaszeroPCGrows and neverreadsundefinedbuffer.",
+    "publication_limit": "Pageablecountdestination replacedwithpinnedhost buffer. Number/order ofexplicitcopies/synchronizations unchanged; implicitCPUblocking/publication andregister/hostdecode costs may change. Declared instrumentationvariant must be measured; nozero-overhead claim.",
+    "native_Python_ownership": "Native reasonmatrices uint32 shape(PCGrows,B), localvector arrays copied by installedpybind11 numpy.h ptr-withoutbase constructor; no returned localvector lifetime leak. Existing pybindarray pattern retained. Pythondecoder uses rawPCGrow shape ratherthan LSrowcount and handlesempty0xB schema.",
+    "direct_fixtures": "5finite real-spaceSPD systems: real448statecoordinates diagonalI exceptonepositive2 diagonal; zero14leading/trailingpadding, identitypreconditioner; maskskip/zeroinitialrho/nonzerocap0/identitycap1tol/diag1,2cap1 residual>tol expected x2/3. Nativeblockmatrix layout32x14x42, RHSfirstrealindices14/15, statsallocated1or2words. Testharnesspublication is identicalbothvariants and outsideproductioncode."
+  },
+  "frozen_input_and_direct_identity": "Native six files, source scope proof, direct numeric wrapper, frozen original/f32 comparison input NPZ and input receipt bytes unchanged from initial independent audit.",
+  "call_budget": {
+    "direct": 10,
+    "disposable_unrelated_warmups": 24,
+    "cold_prefixes": 12,
+    "measured": 24,
+    "maximum_total": 70,
+    "isolated_workers": 24,
+    "ordering": "OFF1 ON1 ON2 OFF2 OFF3 ON3 per B1/B16 cold/warm group",
+    "failure_policy": "Stop preserved attempt, no retry/replacement/filter; unknown pending submissions separately indexed."
+  },
+  "build_recipe": {
+    "path": "/workspace/gato-campaign-recovery-20261010/prepare_telemetry_build.py",
+    "sha256": "18cf8c829865ebd124d0c5c5c50ca93c70dcf8a4521f8146758514b0e68201bb",
+    "status": "Static preparation accepted conditional on exact independently verified final source authority; no helper execution by reviewer.",
+    "scope": "Fresh608c gitarchive + only reviewed six native/new test/telemetry overlays; unreviewed private F01 collector additions excluded. Distinct OFF/ON root-owned snapshots and builds, one option difference, sm61-real Release/O3 fastmath GCC11/CUDA12.9 resource logs; explicit bsqpN32/direct/smoke build targets only, no device execution.",
+    "guards": "Requires approved independent review and every current overlay hash; verifies copied bytes; rejects archive links/escaping paths and existing roots; preserves complete inventory/patch/flags and immutable comparison caches/dependencies before any later Make.",
+    "pending": "Root creates snapshots then reviewer compares complete archive+overlay identity and manifest pin before builds/imports; actual compiler/toolkit/log flags/dependencies/module/resources need fresh receipts audit."
+  },
+  "limits": [
+    "Static observation proof is not compiled ON branch qualification.",
+    "Three repeats report samples/deltas only; root must assess measured overhead and ptxas/resources, no precise interval or automatic F01 release.",
+    "Pinned complete local source authority is integrity provenance, not a digital signature or full system-header certificate.",
+    "Cold/warm primal replay uses variant-generated persistent dual/rho from exact cold prefix; no fully frozen internal-state equivalence.",
+    "No production installation/core remedy/ROS behavior change, no fullF01 matrix or Jetson execution authorization."
+  ],
+  "native_calls": 0,
+  "gpu_calls": 0,
+  "builds": 0
+}

@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "UTC": "2026-10-10T13:48:50.209457+00:00",
+  "decision": "accept_existing_first_instrumentation_without_equivalence_gate",
+  "user_statements": [
+    "Just accept it like it is. No need for equivalence here.",
+    "Don't overdo it. If it works and is sensible it works."
+  ],
+  "numerical_equivalence_required": false,
+  "accepted_native_patch_sha256": "600fbe7bda2cc9f9736fdc621e6ffc969ef31ec66acbca393741552102d32b5c",
+  "source_authority_sha256": "f055ce546ee90cb0b24038c1554406fb77b033b39f9e234c58ac8242483a686b",
+  "ON_module_sha256": "9a5b436437cafbf1a8e4d5021182a5be8a1a412b5aa92ad46edefb995d884009",
+  "comparison_audit": {
+    "path": "/workspace/gato-campaign-recovery-20261010/telemetry-saved-review.json",
+    "sha256": "0a76906f1d99ccd3c5b753e76979ce00a5bbac9d8a4522352181d204f6f44dfc",
+    "scope": "actual reason/input/source/build audit accepted; failed numerical agreement preserved descriptively"
+  },
+  "packed_replacement": "inactive; uncompiled; no new 70-call comparison",
+  "next_required_check": "one unchanged-fixture ON make test-tiago-tasks, then own-machine canonical F01 mode-A preflight and reviewed explicit plan",
+  "unchanged_constraints": "no solver repairs, no comparison reruns or numerical-equivalence qualification, raw failures retained, matching5060 remains required"
+}

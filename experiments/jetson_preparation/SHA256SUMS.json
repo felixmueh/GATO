@@ -1,0 +1,8 @@
+{
+  "README.md": "6be0b719c2f266fa967a42da2566b4a68d8be3b013ad6e6f95d5fb5aafbcddf8",
+  "check_artifact_retention.py": "90fe1bf68ede3867c3a3c658be9f5cd81cce3475fd5d9823911fe4e29408abef",
+  "global-authority/f01-telemetry-rereview.json": "56db7d00a3a38b91308660f0af1b55bc057a9d69481a9c9d5f0d3258f979574e",
+  "global-authority/telemetry-acceptance-decision.json": "9eea290936604e395ee62e228e0225a8b9129aa65f853c112c64b31df49c3dbb",
+  "global-authority/telemetry-saved-review.json": "0a76906f1d99ccd3c5b753e76979ce00a5bbac9d8a4522352181d204f6f44dfc",
+  "prepare_jetson.py": "643de3961b1050d6ed7cb0531017d72a9ea29366d189b1eb34546eb367ff1996"
+}
