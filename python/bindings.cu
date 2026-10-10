@@ -149,6 +149,27 @@ class PyBSQP {
                 result["experiment_telemetry"] = telemetry;
 #endif
 
+#if defined(GATO_EXPERIMENT_STAGE_TIMING) && GATO_EXPERIMENT_STAGE_TIMING
+                py::dict profile;
+                profile["schema_version"] = 1;
+                profile["units"] = "stream_elapsed_us";
+                profile["scope"] = "Existing-stream windows may include idle gaps from host submission/control; not pure active kernel duration.";
+                profile["cohort"] = "profile_only_overhead_present";
+                profile["pcg_times_us_is_placeholder"] = true;
+                profile["pcg_times_us_unavailable_reason"] = "Existing field is literal zero; use separate experimental PCG stream window.";
+                py::list windows;
+                for (const auto& window : stats.experiment_stage_windows) {
+                        py::dict row;
+                        row["stage"] = window.name;
+                        row["sqp_iteration"] = window.iteration < 0 ? py::object(py::none()) : py::cast(window.iteration);
+                        row["elapsed_us"] = window.measured ? py::cast(window.elapsed_us) : py::object(py::none());
+                        row["unavailable_reason"] = window.measured ? py::object(py::none()) : py::cast(window.unavailable_reason);
+                        windows.append(row);
+                }
+                profile["windows"] = windows;
+                result["experiment_profile_stages"] = profile;
+#endif
+
                 std::vector<float> ls_min_merit;
                 std::vector<float> ls_step_size;
                 ls_min_merit.reserve(num_iters * BatchSize);
@@ -281,9 +302,118 @@ class PyBSQP {
             .def("reset_rho", &PyBSQP<Type, BatchSize>::reset_rho)                                                                                                                                \
             .def("set_rho_adaptation", &PyBSQP<Type, BatchSize>::set_rho_adaptation)
 
+#if defined(GATO_EXPERIMENT_RESOURCE_QUERY) && GATO_EXPERIMENT_RESOURCE_QUERY
+// Queries compiled kernel pointers only. No constructor, launch, opt-in
+// attribute changes, buffer allocation, or synchronization belongs here.
+template<typename T, uint32_t B>
+py::dict experimentResources() {
+        auto status = [](cudaError_t error) {
+                py::dict d; d["code"] = static_cast<int>(error);
+                d["message"] = cudaGetErrorString(error); return d;
+        };
+        py::dict result;
+        result["schema_version"] = 1; result["N"] = KNOT_POINTS; result["batch_size"] = B;
+        result["precision_bytes"] = sizeof(T);
+        result["scope"] = "query-only actual-module resources; occupancy/fit are predictions, not observed launches";
+        int device = -1, driver = 0, runtime = 0;
+        cudaError_t device_error = cudaGetDevice(&device);
+        result["device_status"] = status(device_error);
+        cudaError_t driver_error = cudaDriverGetVersion(&driver), runtime_error = cudaRuntimeGetVersion(&runtime);
+        result["driver_status"] = status(driver_error); result["runtime_status"] = status(runtime_error);
+        result["driver_version"] = driver_error == cudaSuccess ? py::cast(driver) : py::object(py::none());
+        result["runtime_version"] = runtime_error == cudaSuccess ? py::cast(runtime) : py::object(py::none());
+        cudaDeviceProp p{};
+        cudaError_t props_error = device_error == cudaSuccess ? cudaGetDeviceProperties(&p, device) : device_error;
+        result["properties_status"] = status(props_error);
+        py::dict props;
+        if (props_error == cudaSuccess) {
+                props["name"] = p.name; props["device_index"] = device;
+                props["compute_major"] = p.major; props["compute_minor"] = p.minor;
+                props["SM_count"] = p.multiProcessorCount; props["global_memory_bytes"] = p.totalGlobalMem;
+                props["shared_bytes_per_block_default"] = p.sharedMemPerBlock;
+                props["shared_bytes_per_block_optin"] = p.sharedMemPerBlockOptin;
+                props["shared_bytes_per_SM"] = p.sharedMemPerMultiprocessor;
+                props["max_threads_per_block"] = p.maxThreadsPerBlock;
+                props["max_threads_per_SM"] = p.maxThreadsPerMultiProcessor;
+                props["registers_per_block"] = p.regsPerBlock; props["registers_per_SM"] = p.regsPerMultiprocessor;
+        }
+        result["device"] = props_error == cudaSuccess ? py::object(props) : py::object(py::none());
+        py::list kernels;
+        auto emit = [&](const char* name, auto kernel, size_t dynamic_bytes, int threads) {
+                py::dict row; row["kernel"] = name; row["dynamic_shared_bytes"] = dynamic_bytes;
+                row["threads"] = threads;
+                cudaFuncAttributes a{};
+                cudaError_t attr_error = cudaFuncGetAttributes(&a, kernel);
+                row["attributes_status"] = status(attr_error);
+                py::dict attributes;
+                if (attr_error == cudaSuccess) {
+                        attributes["static_shared_bytes"] = a.sharedSizeBytes;
+                        attributes["registers_per_thread"] = a.numRegs;
+                        attributes["local_bytes_per_thread"] = a.localSizeBytes;
+                        attributes["max_threads_per_block"] = a.maxThreadsPerBlock;
+                        attributes["max_dynamic_shared_bytes"] = a.maxDynamicSharedSizeBytes;
+                        attributes["binary_version"] = a.binaryVersion; attributes["ptx_version"] = a.ptxVersion;
+                }
+                row["attributes"] = attr_error == cudaSuccess ? py::object(attributes) : py::object(py::none());
+                row["fits_default_limits_prediction"] = attr_error == cudaSuccess && props_error == cudaSuccess ?
+                    py::cast(dynamic_bytes + a.sharedSizeBytes <= p.sharedMemPerBlock &&
+                        threads <= a.maxThreadsPerBlock && threads <= p.maxThreadsPerBlock) : py::object(py::none());
+                int blocks = 0;
+                cudaError_t occupancy_error = cudaOccupancyMaxActiveBlocksPerMultiprocessor(&blocks, kernel, threads, dynamic_bytes);
+                row["occupancy_status"] = status(occupancy_error);
+                row["theoretical_active_blocks_per_SM"] = occupancy_error == cudaSuccess ? py::cast(blocks) : py::object(py::none());
+                row["observed_launch"] = py::none();
+                row["observed_launch_unavailable_reason"] = "query-only; join separately recorded F01c launch outcomes";
+                kernels.append(row);
+        };
+        emit("setup_kkt", setupKKTSystemBatchedKernel<T, B>, getSetupKKTSystemBatchedSMemSize<T>(), KKT_THREADS);
+        emit("merit", computeMeritBatchedKernel<T, B>, getComputeMeritBatchedSMemSize<T>(), grid::SUGGESTED_THREADS);
+        emit("pcg", solvePCGBatchedKernel<T, B>, getSolvePCGBatchedSMemSize<T>(), PCG_THREADS);
+        emit("schur1", formSchurSystemBatchedKernel1<T, B>, getFormSchurSystemBatched1SMemSize<T>(), SCHUR_THREADS);
+        emit("schur2", formSchurSystemBatchedKernel2<T, B>, getFormSchurSystemBatched2SMemSize<T>(), SCHUR_THREADS);
+        emit("dz", computeDzBatchedKernel<T, B>, getComputeDzBatchedSMemSize<T>(), DZ_THREADS);
+        emit("line_search", lineSearchAndUpdateBatchedKernel<T, B, NUM_ALPHAS>,
+            sizeof(T) * NUM_ALPHAS + sizeof(uint32_t) * NUM_ALPHAS, LINE_SEARCH_THREADS);
+        result["kernels"] = kernels;
+        return result;
+}
+#endif
+
 PYBIND11_MODULE(MODULE_NAME(KNOT_POINTS, PLANT_SUFFIX), m)
 {
         m.attr("KNOT_POINTS") = KNOT_POINTS;  // to check num knots for current module
+#if (defined(GATO_EXPERIMENT_STAGE_TIMING) && GATO_EXPERIMENT_STAGE_TIMING) || (defined(GATO_EXPERIMENT_RESOURCE_QUERY) && GATO_EXPERIMENT_RESOURCE_QUERY)
+        py::dict flags;
+#if defined(GATO_EXPERIMENT_STAGE_TIMING) && GATO_EXPERIMENT_STAGE_TIMING
+        flags["GATO_EXPERIMENT_STAGE_TIMING"] = true;
+#else
+        flags["GATO_EXPERIMENT_STAGE_TIMING"] = false;
+#endif
+#if defined(GATO_EXPERIMENT_RESOURCE_QUERY) && GATO_EXPERIMENT_RESOURCE_QUERY
+        flags["GATO_EXPERIMENT_RESOURCE_QUERY"] = true;
+#else
+        flags["GATO_EXPERIMENT_RESOURCE_QUERY"] = false;
+#endif
+#if defined(GATO_EXPERIMENT_TELEMETRY) && GATO_EXPERIMENT_TELEMETRY
+        flags["GATO_EXPERIMENT_TELEMETRY"] = true;
+#else
+        flags["GATO_EXPERIMENT_TELEMETRY"] = false;
+#endif
+        m.attr("experiment_build_flags") = flags;
+#endif
+#if defined(GATO_EXPERIMENT_RESOURCE_QUERY) && GATO_EXPERIMENT_RESOURCE_QUERY
+        m.def("experiment_resources", [](uint32_t batch_size) {
+#ifdef USE_DOUBLES
+                using ResourceType = double;
+#else
+                using ResourceType = float;
+#endif
+                if (batch_size == 1) return experimentResources<ResourceType, 1>();
+                if (batch_size == 16) return experimentResources<ResourceType, 16>();
+                throw py::value_error("resource study queries only batch sizes 1 and 16");
+        });
+#endif
+
 
 
 #ifdef USE_DOUBLES

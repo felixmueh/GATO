@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "reviewed_at_utc": "2026-10-10T16:35:18.905502+00:00",
+  "verdict": "approved",
+  "scope": "Four isolated CPU saved-data plot/test files; runtime collectors, native sources, protocols and raw artifacts unchanged.",
+  "reviewed_file_sha256": {
+    "/workspace/GATO-eval-batch-timing/experiments/batch_timing_campaign/plot.py": "a7a5d378315e064c5000d731a366ba98b224ede977e3e448c83478b654cb6929",
+    "/workspace/GATO-eval-batch-timing/tests/python/test_batch_timing_plots.py": "2638d5122aa464fc484b93a1185aae736a279620bc02d5e791b972525f5de4a9",
+    "/workspace/GATO-eval-resource-profiles/experiments/resource_profile_campaign/plot.py": "7b486c609fbb376690aac29a39dee55e684ca70d7fc641c6a942741387b7729e",
+    "/workspace/GATO-eval-resource-profiles/tests/python/test_resource_profile_plots.py": "ba6d80a19af90e4d4d45373e0b355ec673100238d41e5acc0fff4075d9c6e41b"
+  },
+  "review_method": "Independent source review of selection, denominators, units, provenance, raw and failure retention, plus narrow re-review of two corrections and their assertions. Earlier independent synthetic reproductions retained. No CUDA, native import, GPU, build, new measurement, or raw edit. No independent heavy rendering/tests during coordinator active F01c timing run.",
+  "validation": {
+    "implementer_reported_existing_cpu_tests": {
+      "batch": 2,
+      "resource": 2,
+      "result": "all passed after narrow corrections; receipt requested"
+    },
+    "independent_saved_reproductions": [
+      "/workspace/gato-campaign-recovery-20261010/f01c-plot-nonfinite-evidence/review-evidence.json",
+      "/workspace/gato-campaign-recovery-20261010/f04-f05-plot-duplicate-evidence/review-evidence.json"
+    ],
+    "source_checked_test_assertions": [
+      "Batch NaN final merit is serialized as JSON null; strict parser rejects illegal literals.",
+      "Resource duplicate case rejected even when path is missing.",
+      "Distinct claimed replicate cannot reuse a resolved artifact alias."
+    ]
+  },
+  "accepted_corrections": [
+    {
+      "finding": "Batch JSON provenance previously emitted nonfinite literals.",
+      "correction": "Uses existing RawRecorder.write_json/json_safe with allow_nan=False. Raw numerical artifacts retained; derived nonfinite metadata represented as null."
+    },
+    {
+      "finding": "Resource plot selection previously allowed double counting an identical artifact.",
+      "correction": "Canonical case keys and resolved raw paths independently checked before parsing or rendering."
+    }
+  ],
+  "scientific_checks": {
+    "F01c": "Pinned mode-A/internal single-machine source/bank/caps cohorts; all 15 approved cells represented including missing; warmup and duplicate/permutation diagnostics retained outside primary timing. Batch-call and complete identical-16-candidate collection denominators distinct. Native and wrapper means/reciprocals and candidate-throughput CSV units sound; no actuation or task-quality claim.",
+    "F04_F05": "Pinned source/machine/case/manifest and stage-build identities; API error/null resources preserved. First-response and sustained OFF solve timing kept separate from ON stream-elapsed stage windows; idle-gap caveat and missing/skipped windows retained. Literal PCG timing zeros explicitly unavailable. Native versus wrapper, per-call reciprocal and whole-loop duration distinguished.",
+    "limitations": "Synthetic tests are visibly marked. Missing/failure counts remain explicit. Actual data and plot readability still need a bounded saved-cohort check after measurements. No equivalence, thermal steady-state, task success, batching-quality or cross-GPU conclusion implied."
+  },
+  "unresolved_blockers": []
+}

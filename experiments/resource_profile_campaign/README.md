@@ -1,0 +1,35 @@
+# Held F04/F05 resource and response workers
+
+This isolated experiment branch adds query-only actual-module resources and a default-OFF stage profile. It has not been compiled or run natively. Execution is held: independent implementation review, root-owned isolated builds/deployment receipts and canonical same-machine/source A readiness remain necessary; the120s duration/coverage choice is settled: one block for each of six arms, with no sustained repeats. The30s/100call alternatives are unselected. F01c budgets1/100,5/100,10/800 and six-input/16-candidate bank are approved and are not reopened.
+
+`protocol.json` and `held_plan_template.json` define eight F04 queries and30 F05 worker processes per GPU (18 first-response,6 profile,6 sustained). Timing/query modules have stageOFF; profile modules alone have stageON. Accepted stop telemetry is ON throughout. Each N/flag variant owns an isolated source archive/build; every case is a fresh worker process. Source identity is the eventual reviewed commit, not the historic502compiled artifact. All template entries are disabled; do not use or edit the default runner queue.
+
+```sh
+python3 -B experiments/resource_profile_campaign/run.py --dry-run
+python3 -B experiments/resource_profile_campaign/build_isolated.py --source "$PWD" --build /fresh/N32-OFF --python /reviewed/python --cuda-arch REVIEWED_ARCH --N 32 --dry-run
+python3 -B experiments/resource_profile_campaign/audit_scope.py
+python3 -B -m pytest -q tests/python/test_resource_profile_campaign.py
+```
+
+Actual root-owned later build commands:
+
+```sh
+python3 -B experiments/resource_profile_campaign/build_isolated.py --source /reviewed/pinned/source --build /fresh/N32-OFF --python /reviewed/python --cuda-arch REVIEWED_ARCH --N 32
+python3 -B experiments/resource_profile_campaign/build_isolated.py --source /reviewed/pinned/source --build /fresh/N32-ON --python /reviewed/python --cuda-arch REVIEWED_ARCH --N 32 --profile
+```
+
+These are separate roots. The adapter uses the existing runner `prepare()` archive, adds explicit telemetry/resource/stage flags, records source/module/cache/commands and archive+configure+compile wall, and refuses to overwrite an earlier build attempt. Build timing is not solve timing. It does not invoke CUDA smoke or solve fixtures. Normal runner entry uses:
+
+```sh
+python3 -B /reviewed/build/campaign-source/experiments/resource_profile_campaign/run.py --case /reviewed/case.json --output /fresh/attempt --inputs /reviewed/F01c-bank --manifest /reviewed/machine-release.json --manifest-sha256 REVIEWED_SHA256 --machine gtx1070 --family-state /reviewed/family-state.json
+```
+
+Root populates the held manifest with hashed approved implementation review/observer acceptance, normal perN/flag build receipts, exact module paths, F01c bank receipt and A-readiness summary (same machine/source and timing-OFF N32 module). Family state starts ready with the manifest hash/canonical fields. A durable running marker is written before native import and preserves those fields; ready is restored only after successful metrics/raw manifest and runner metrics mirror finalization. Ordinary setup/import/query/constructor/solve/export errors set held. Abrupt exit/interruption leaves running, so the next worker blocks before import. No automatic recovery/retry; root handles interrupted evidence. Source-only CPU checks never release execution. Bank loader is aligned with the actual F01c `F01c-six-input-N32-v1` schema and manifestf8a8217982f3fa2b1b4fd2629e8cb45949d372f6d43c6137bbdaa7e52acc7007; it only reads/hashes exact arrays, never generates seeds. Updated bank bytes require an explicitly pinned finalized manifest, not silently regenerated inputs.
+
+First-response has one public solve per each of three fresh processes, no warmup; import and construction are separately recorded. Profile has one retained/excluded unrelated fraction.025/goal3 warmup and one measured start0goal1 call. Sustained has the same disposable warmup and the approved120wallseconds, checked before creating each next fresh owner. Each iteration is one call and records setup/resets, public wrapper/native times, native return before normalization failures, full existing stats and outputs, and closes that owner. B1 schedule is input=floor(i/16)%6,candidate=i%16; B16 is input=i%6,all16 in frozen order. Six single120s arms total720s perGPU before setup/warmup/boundary extras. The release manifest binds Felix approvalaa96ce80280b1580670005ec42dacac41ff5e46ed140e59e805b41e7fb6888a2 and must match the exact120s case; the worker never infers approval from elapsed time. Actual call prefixes and coverage differ and are disclosed; no same-quality/speedup comparison is claimed. Full-cycle wall includes fresh-owner construction, resets, solve and durable recording. Finish current work/recording at the boundary, retain every call, report overrun; no truncation/retry. The public solve interval remains exactly the reviewed wrapper timer; raw recording occurs afterward. Persistent native dual/rho/drho values are unavailable; constructor/reset history is recorded.
+
+Stage profile pairs are preallocated outside solve for configured SQP cap0..10:14*S+4 handles, no explicit solver-device array. Events are recorded on the existing stream, separately indexed periteration and read after existing final synchronization, chrono end and bookkeeping. Skipped windows are null/not_reached; zero cap keeps initial/final windows. Values are stream-elapsed microseconds and may include host-submission/control idle gaps, not pure active kernel durations. CUDA event storage is opaque; overhead is acknowledged in the separate profile cohort. Existing `pcg_times_us` remains literal-zero/unavailable. The public wrapper does not normalize new profile fields; their complete native dictionary is preserved in the already-reviewed `native_return` raw event.
+
+F04 export never constructs a solver, launches a kernel, changes attributes/shared-memory opt-in, or synchronizes. It records API statuses, device limits, seven compiled kernel attributes, requested shared memory/threads and theoretical occupancy. Unsupported occupancy configurations stay recorded; attribute/device API failure holds the worker. Neither fit nor occupancy establishes launch success; join separately retained F01c launches for covered cells. No opt-in/smoke/invalid-launch helper path is reused.
+
+Recorder is existing NPZ+JSONL+SHA256SUMS. Injected CPU builders/queries/clocks label evidence synthetic_test. Resource samples, target thermal/power tooling and Jetson storage calibration are not implemented here; root may wrap workers with a passive target-supported sampler under the reviewed protocol. No thermal steady-state/saturation, numerical equivalence, solver correctness or causal claim is provided. Native compilation/event APIs and output-timing sanity remain root-owned later checks; this CPU-only implementation cannot qualify them.

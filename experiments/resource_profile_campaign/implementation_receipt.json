@@ -1,0 +1,61 @@
+{
+  "status": "CPU_REVIEWABLE_NOT_NATIVE_QUALIFIED",
+  "worktree": "/workspace/GATO-eval-resource-profiles",
+  "basis_commit": "9cbf25721056e5b9dae1a5daf9e24982849b0573",
+  "source_sha256": {
+    "CMakeLists.txt": "a4bc66836ae5e08d4739b453c9bf33b71c1616dbfad9f1e6f484abb839ea3346",
+    "gato/bsqp/bsqp.cuh": "30227b941f55c91a2bb208a4939244aaaf31dae9f4b358972ea189531a0d3c9e",
+    "gato/types.cuh": "2974a3998b574aeced5317fe14e32a3f1e751fb085c1234a3bbe2876a0296349",
+    "gato/experiment_stage_timing.cuh": "91502588e522b5e185a9cb68756e4ada9e4e052a51056e87d2b2be53340807a6",
+    "python/bindings.cu": "0bf481775e5be51d10a0d59034db7e1128c5d8c26f1d51659f1d1346876b738d",
+    "tests/python/test_resource_profile_campaign.py": "7b9387959ac0ded9d197fd3099f91f7d3ec8b13e1e8fb3082a1e94f335dc05c4",
+    "experiments/resource_profile_campaign/audit_scope.py": "08661cb071723ea12e2007e7520574ccce4bd914436329838d0bf38f2beaeb8b",
+    "experiments/resource_profile_campaign/build_isolated.py": "4435287e034381b3acc1ed74cb4870e4e842e5124c5e425276a1357a25e3fcb5",
+    "experiments/resource_profile_campaign/common.py": "8218ae680e0bd10302916fe6b3b9fda0f71f40a1d624d5601bce9346ff36dc11",
+    "experiments/resource_profile_campaign/factory.py": "ff57bd56031f9684d441e7fd993a40784322f6b8088f1999766472cb91be9374",
+    "experiments/resource_profile_campaign/release.py": "f16152d293eddebbfc98970bb9c4ec9c005e5385f2e2bd3eb48db04a3b0d41e6",
+    "experiments/resource_profile_campaign/run.py": "419ca8c345d6432d2587f4d94dbdadbec3c249f6cfa612f01a714c10c228cc1e"
+  },
+  "artifact_sha256": {
+    "experiments/resource_profile_campaign/README.md": "06a8ccd1166c593d38c6201ebfc3f13ab985c1885b21b1d12851340611a482df",
+    "experiments/resource_profile_campaign/build_dry_run_OFF.json": "55607f9e8412d0e1c6be6b4595264b579d41b57504602f4503d779e815479871",
+    "experiments/resource_profile_campaign/build_dry_run_ON.json": "523386a8bfa1fd76a01d7edea4126710594b604685fa52b28c19f87139f6eb1b",
+    "experiments/resource_profile_campaign/cpu_validation.log": "23938f41b93bbbd299b88f87c16ee29fef3c475707c1ff6039d4841925b92175",
+    "experiments/resource_profile_campaign/dry_run.json": "d4d330975bc53c74e1f1a917c2cb9663845c638d981793282822548071fd2ba6",
+    "experiments/resource_profile_campaign/duration_approval.json": "aa96ce80280b1580670005ec42dacac41ff5e46ed140e59e805b41e7fb6888a2",
+    "experiments/resource_profile_campaign/held_plan_template.json": "396f28094fd01f650eb9e211797a08f4210d45305eb9784c687030997701c1f8",
+    "experiments/resource_profile_campaign/protocol.json": "d5adbede3595797b6441fef737f5e1e7fdbaa647d798070a4edaef708dd6d6bc",
+    "experiments/resource_profile_campaign/release_manifest.json": "5562eb4f94011e18c48b365cc87b337c320f2ba927114384cd3ac848d5532829",
+    "experiments/resource_profile_campaign/source_scope_audit.json": "368ce0b15c940cf553f1940275ca07468e5dd3ce24118344e6b165c54ca1a73f"
+  },
+  "validation": {
+    "command": "python3 -B -m pytest -q tests/python/test_resource_profile_campaign.py",
+    "passed": 18,
+    "source_scope_audit": "PASS_CPU_STATIC_ONLY",
+    "worker_and_two_build_dry_runs": "PASS_PLANNING_ONLY",
+    "git_diff_check": "PASS"
+  },
+  "native_imports": 0,
+  "gpu_queries": 0,
+  "native_builds": 0,
+  "native_solves": 0,
+  "commits": 0,
+  "solver_arithmetic_predicate_stopping_changes": 0,
+  "explicit_new_device_arrays": 0,
+  "explicit_new_sync": 0,
+  "stage_storage": "14*S+4 opaque CUDA event handles perowner; host masks/rows only;S0..10",
+  "accepted_observer": "Unchanged firsttelemetry; no numericalequivalencegate",
+  "execution_status": "HELD for reviewedimplementation/nativevalidation/exacttargetplan/build/A-readiness; duration/coverage APPROVED one120sblock per6arms, no sustainedrepeats",
+  "bank_manifest_sha256": "f8a8217982f3fa2b1b4fd2629e8cb45949d372f6d43c6137bbdaa7e52acc7007",
+  "pending": "Root native compilation/event sanity/resources/defaultOFF checks and exact releasedbuild receipts; passive thermalcollector not implemented",
+  "limitation": "Static defaultOFF normalization is proof of source scope only, not compiled/native resource/timing qualification.",
+  "duration_approval": {
+    "path": "experiments/resource_profile_campaign/duration_approval.json",
+    "sha256": "aa96ce80280b1580670005ec42dacac41ff5e46ed140e59e805b41e7fb6888a2"
+  },
+  "review_corrections": [
+    "Runner metrics mirror is finalized inside lifecycle before READY; mirrorfailure preservesraw/executionfailed metrics and HOLDS",
+    "Actual positive pinned release/readiness guard exercised with synthetic receipts and no nativeimports",
+    "Defaultcases120s and immutableFelix approval pinned;30s/100call alternatives unselected"
+  ]
+}

@@ -1,0 +1,740 @@
+{
+  "version": 1,
+  "experiments": [
+    {
+      "id": "F04-F05-N16-stageOFF",
+      "enabled": false,
+      "source_commit": "REVIEWED_FULL_SOURCE_COMMIT",
+      "machines": [
+        "gtx1070",
+        "rtx5060",
+        "jetson"
+      ],
+      "repeats": 1,
+      "build": {
+        "commands": [
+          [
+            "{python}",
+            "-B",
+            "{source}/experiments/resource_profile_campaign/build_isolated.py",
+            "--source",
+            "{source}",
+            "--build",
+            "{build}",
+            "--python",
+            "{python}",
+            "--cuda-arch",
+            "{cuda_arch}",
+            "--N",
+            "16"
+          ]
+        ],
+        "artifacts": [
+          "campaign-source/python/bsqp/bsqpN16_tiago_right*.so",
+          "resource-profile-build.json",
+          "build_source_receipt.json"
+        ]
+      },
+      "command": [
+        "{python}",
+        "-B",
+        "{build}/campaign-source/experiments/resource_profile_campaign/run.py",
+        "--case",
+        "{case}",
+        "--output",
+        "{output}",
+        "--inputs",
+        "{inputs}/batch-bank",
+        "--manifest",
+        "REVIEWED_MACHINE_MANIFEST_PATH",
+        "--manifest-sha256",
+        "REVIEWED_MANIFEST_SHA256",
+        "--family-state",
+        "REVIEWED_MACHINE_FAMILY_STATE_PATH"
+      ],
+      "cases": [
+        {
+          "id": "00-F04-query-B1",
+          "parameters": {
+            "study": "F04",
+            "arm": "query",
+            "N": 16,
+            "B": 1,
+            "stage_timing": false
+          }
+        },
+        {
+          "id": "01-F04-query-B16",
+          "parameters": {
+            "study": "F04",
+            "arm": "query",
+            "N": 16,
+            "B": 16,
+            "stage_timing": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "F04-F05-N32-stageOFF",
+      "enabled": false,
+      "source_commit": "REVIEWED_FULL_SOURCE_COMMIT",
+      "machines": [
+        "gtx1070",
+        "rtx5060",
+        "jetson"
+      ],
+      "repeats": 1,
+      "build": {
+        "commands": [
+          [
+            "{python}",
+            "-B",
+            "{source}/experiments/resource_profile_campaign/build_isolated.py",
+            "--source",
+            "{source}",
+            "--build",
+            "{build}",
+            "--python",
+            "{python}",
+            "--cuda-arch",
+            "{cuda_arch}",
+            "--N",
+            "32"
+          ]
+        ],
+        "artifacts": [
+          "campaign-source/python/bsqp/bsqpN32_tiago_right*.so",
+          "resource-profile-build.json",
+          "build_source_receipt.json"
+        ]
+      },
+      "command": [
+        "{python}",
+        "-B",
+        "{build}/campaign-source/experiments/resource_profile_campaign/run.py",
+        "--case",
+        "{case}",
+        "--output",
+        "{output}",
+        "--inputs",
+        "{inputs}/batch-bank",
+        "--manifest",
+        "REVIEWED_MACHINE_MANIFEST_PATH",
+        "--manifest-sha256",
+        "REVIEWED_MANIFEST_SHA256",
+        "--family-state",
+        "REVIEWED_MACHINE_FAMILY_STATE_PATH"
+      ],
+      "cases": [
+        {
+          "id": "00-F04-query-B1",
+          "parameters": {
+            "study": "F04",
+            "arm": "query",
+            "N": 32,
+            "B": 1,
+            "stage_timing": false
+          }
+        },
+        {
+          "id": "01-F04-query-B16",
+          "parameters": {
+            "study": "F04",
+            "arm": "query",
+            "N": 32,
+            "B": 16,
+            "stage_timing": false
+          }
+        },
+        {
+          "id": "02-F05-first_response-B1",
+          "parameters": {
+            "study": "F05",
+            "N": 32,
+            "B": 1,
+            "SQP": 1,
+            "PCG": 100,
+            "arm": "first_response",
+            "replicate": 0,
+            "stage_timing": false
+          }
+        },
+        {
+          "id": "03-F05-first_response-B1",
+          "parameters": {
+            "study": "F05",
+            "N": 32,
+            "B": 1,
+            "SQP": 1,
+            "PCG": 100,
+            "arm": "first_response",
+            "replicate": 1,
+            "stage_timing": false
+          }
+        },
+        {
+          "id": "04-F05-first_response-B1",
+          "parameters": {
+            "study": "F05",
+            "N": 32,
+            "B": 1,
+            "SQP": 1,
+            "PCG": 100,
+            "arm": "first_response",
+            "replicate": 2,
+            "stage_timing": false
+          }
+        },
+        {
+          "id": "05-F05-sustained-B1",
+          "parameters": {
+            "study": "F05",
+            "N": 32,
+            "B": 1,
+            "SQP": 1,
+            "PCG": 100,
+            "arm": "sustained",
+            "duration_s": 120,
+            "stage_timing": false
+          }
+        },
+        {
+          "id": "06-F05-first_response-B16",
+          "parameters": {
+            "study": "F05",
+            "N": 32,
+            "B": 16,
+            "SQP": 1,
+            "PCG": 100,
+            "arm": "first_response",
+            "replicate": 0,
+            "stage_timing": false
+          }
+        },
+        {
+          "id": "07-F05-first_response-B16",
+          "parameters": {
+            "study": "F05",
+            "N": 32,
+            "B": 16,
+            "SQP": 1,
+            "PCG": 100,
+            "arm": "first_response",
+            "replicate": 1,
+            "stage_timing": false
+          }
+        },
+        {
+          "id": "08-F05-first_response-B16",
+          "parameters": {
+            "study": "F05",
+            "N": 32,
+            "B": 16,
+            "SQP": 1,
+            "PCG": 100,
+            "arm": "first_response",
+            "replicate": 2,
+            "stage_timing": false
+          }
+        },
+        {
+          "id": "09-F05-sustained-B16",
+          "parameters": {
+            "study": "F05",
+            "N": 32,
+            "B": 16,
+            "SQP": 1,
+            "PCG": 100,
+            "arm": "sustained",
+            "duration_s": 120,
+            "stage_timing": false
+          }
+        },
+        {
+          "id": "10-F05-first_response-B1",
+          "parameters": {
+            "study": "F05",
+            "N": 32,
+            "B": 1,
+            "SQP": 5,
+            "PCG": 100,
+            "arm": "first_response",
+            "replicate": 0,
+            "stage_timing": false
+          }
+        },
+        {
+          "id": "11-F05-first_response-B1",
+          "parameters": {
+            "study": "F05",
+            "N": 32,
+            "B": 1,
+            "SQP": 5,
+            "PCG": 100,
+            "arm": "first_response",
+            "replicate": 1,
+            "stage_timing": false
+          }
+        },
+        {
+          "id": "12-F05-first_response-B1",
+          "parameters": {
+            "study": "F05",
+            "N": 32,
+            "B": 1,
+            "SQP": 5,
+            "PCG": 100,
+            "arm": "first_response",
+            "replicate": 2,
+            "stage_timing": false
+          }
+        },
+        {
+          "id": "13-F05-sustained-B1",
+          "parameters": {
+            "study": "F05",
+            "N": 32,
+            "B": 1,
+            "SQP": 5,
+            "PCG": 100,
+            "arm": "sustained",
+            "duration_s": 120,
+            "stage_timing": false
+          }
+        },
+        {
+          "id": "14-F05-first_response-B16",
+          "parameters": {
+            "study": "F05",
+            "N": 32,
+            "B": 16,
+            "SQP": 5,
+            "PCG": 100,
+            "arm": "first_response",
+            "replicate": 0,
+            "stage_timing": false
+          }
+        },
+        {
+          "id": "15-F05-first_response-B16",
+          "parameters": {
+            "study": "F05",
+            "N": 32,
+            "B": 16,
+            "SQP": 5,
+            "PCG": 100,
+            "arm": "first_response",
+            "replicate": 1,
+            "stage_timing": false
+          }
+        },
+        {
+          "id": "16-F05-first_response-B16",
+          "parameters": {
+            "study": "F05",
+            "N": 32,
+            "B": 16,
+            "SQP": 5,
+            "PCG": 100,
+            "arm": "first_response",
+            "replicate": 2,
+            "stage_timing": false
+          }
+        },
+        {
+          "id": "17-F05-sustained-B16",
+          "parameters": {
+            "study": "F05",
+            "N": 32,
+            "B": 16,
+            "SQP": 5,
+            "PCG": 100,
+            "arm": "sustained",
+            "duration_s": 120,
+            "stage_timing": false
+          }
+        },
+        {
+          "id": "18-F05-first_response-B1",
+          "parameters": {
+            "study": "F05",
+            "N": 32,
+            "B": 1,
+            "SQP": 10,
+            "PCG": 800,
+            "arm": "first_response",
+            "replicate": 0,
+            "stage_timing": false
+          }
+        },
+        {
+          "id": "19-F05-first_response-B1",
+          "parameters": {
+            "study": "F05",
+            "N": 32,
+            "B": 1,
+            "SQP": 10,
+            "PCG": 800,
+            "arm": "first_response",
+            "replicate": 1,
+            "stage_timing": false
+          }
+        },
+        {
+          "id": "20-F05-first_response-B1",
+          "parameters": {
+            "study": "F05",
+            "N": 32,
+            "B": 1,
+            "SQP": 10,
+            "PCG": 800,
+            "arm": "first_response",
+            "replicate": 2,
+            "stage_timing": false
+          }
+        },
+        {
+          "id": "21-F05-sustained-B1",
+          "parameters": {
+            "study": "F05",
+            "N": 32,
+            "B": 1,
+            "SQP": 10,
+            "PCG": 800,
+            "arm": "sustained",
+            "duration_s": 120,
+            "stage_timing": false
+          }
+        },
+        {
+          "id": "22-F05-first_response-B16",
+          "parameters": {
+            "study": "F05",
+            "N": 32,
+            "B": 16,
+            "SQP": 10,
+            "PCG": 800,
+            "arm": "first_response",
+            "replicate": 0,
+            "stage_timing": false
+          }
+        },
+        {
+          "id": "23-F05-first_response-B16",
+          "parameters": {
+            "study": "F05",
+            "N": 32,
+            "B": 16,
+            "SQP": 10,
+            "PCG": 800,
+            "arm": "first_response",
+            "replicate": 1,
+            "stage_timing": false
+          }
+        },
+        {
+          "id": "24-F05-first_response-B16",
+          "parameters": {
+            "study": "F05",
+            "N": 32,
+            "B": 16,
+            "SQP": 10,
+            "PCG": 800,
+            "arm": "first_response",
+            "replicate": 2,
+            "stage_timing": false
+          }
+        },
+        {
+          "id": "25-F05-sustained-B16",
+          "parameters": {
+            "study": "F05",
+            "N": 32,
+            "B": 16,
+            "SQP": 10,
+            "PCG": 800,
+            "arm": "sustained",
+            "duration_s": 120,
+            "stage_timing": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "F04-F05-N64-stageOFF",
+      "enabled": false,
+      "source_commit": "REVIEWED_FULL_SOURCE_COMMIT",
+      "machines": [
+        "gtx1070",
+        "rtx5060",
+        "jetson"
+      ],
+      "repeats": 1,
+      "build": {
+        "commands": [
+          [
+            "{python}",
+            "-B",
+            "{source}/experiments/resource_profile_campaign/build_isolated.py",
+            "--source",
+            "{source}",
+            "--build",
+            "{build}",
+            "--python",
+            "{python}",
+            "--cuda-arch",
+            "{cuda_arch}",
+            "--N",
+            "64"
+          ]
+        ],
+        "artifacts": [
+          "campaign-source/python/bsqp/bsqpN64_tiago_right*.so",
+          "resource-profile-build.json",
+          "build_source_receipt.json"
+        ]
+      },
+      "command": [
+        "{python}",
+        "-B",
+        "{build}/campaign-source/experiments/resource_profile_campaign/run.py",
+        "--case",
+        "{case}",
+        "--output",
+        "{output}",
+        "--inputs",
+        "{inputs}/batch-bank",
+        "--manifest",
+        "REVIEWED_MACHINE_MANIFEST_PATH",
+        "--manifest-sha256",
+        "REVIEWED_MANIFEST_SHA256",
+        "--family-state",
+        "REVIEWED_MACHINE_FAMILY_STATE_PATH"
+      ],
+      "cases": [
+        {
+          "id": "00-F04-query-B1",
+          "parameters": {
+            "study": "F04",
+            "arm": "query",
+            "N": 64,
+            "B": 1,
+            "stage_timing": false
+          }
+        },
+        {
+          "id": "01-F04-query-B16",
+          "parameters": {
+            "study": "F04",
+            "arm": "query",
+            "N": 64,
+            "B": 16,
+            "stage_timing": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "F04-F05-N128-stageOFF",
+      "enabled": false,
+      "source_commit": "REVIEWED_FULL_SOURCE_COMMIT",
+      "machines": [
+        "gtx1070",
+        "rtx5060",
+        "jetson"
+      ],
+      "repeats": 1,
+      "build": {
+        "commands": [
+          [
+            "{python}",
+            "-B",
+            "{source}/experiments/resource_profile_campaign/build_isolated.py",
+            "--source",
+            "{source}",
+            "--build",
+            "{build}",
+            "--python",
+            "{python}",
+            "--cuda-arch",
+            "{cuda_arch}",
+            "--N",
+            "128"
+          ]
+        ],
+        "artifacts": [
+          "campaign-source/python/bsqp/bsqpN128_tiago_right*.so",
+          "resource-profile-build.json",
+          "build_source_receipt.json"
+        ]
+      },
+      "command": [
+        "{python}",
+        "-B",
+        "{build}/campaign-source/experiments/resource_profile_campaign/run.py",
+        "--case",
+        "{case}",
+        "--output",
+        "{output}",
+        "--inputs",
+        "{inputs}/batch-bank",
+        "--manifest",
+        "REVIEWED_MACHINE_MANIFEST_PATH",
+        "--manifest-sha256",
+        "REVIEWED_MANIFEST_SHA256",
+        "--family-state",
+        "REVIEWED_MACHINE_FAMILY_STATE_PATH"
+      ],
+      "cases": [
+        {
+          "id": "00-F04-query-B1",
+          "parameters": {
+            "study": "F04",
+            "arm": "query",
+            "N": 128,
+            "B": 1,
+            "stage_timing": false
+          }
+        },
+        {
+          "id": "01-F04-query-B16",
+          "parameters": {
+            "study": "F04",
+            "arm": "query",
+            "N": 128,
+            "B": 16,
+            "stage_timing": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "F04-F05-N32-stageON",
+      "enabled": false,
+      "source_commit": "REVIEWED_FULL_SOURCE_COMMIT",
+      "machines": [
+        "gtx1070",
+        "rtx5060",
+        "jetson"
+      ],
+      "repeats": 1,
+      "build": {
+        "commands": [
+          [
+            "{python}",
+            "-B",
+            "{source}/experiments/resource_profile_campaign/build_isolated.py",
+            "--source",
+            "{source}",
+            "--build",
+            "{build}",
+            "--python",
+            "{python}",
+            "--cuda-arch",
+            "{cuda_arch}",
+            "--N",
+            "32",
+            "--profile"
+          ]
+        ],
+        "artifacts": [
+          "campaign-source/python/bsqp/bsqpN32_tiago_right*.so",
+          "resource-profile-build.json",
+          "build_source_receipt.json"
+        ]
+      },
+      "command": [
+        "{python}",
+        "-B",
+        "{build}/campaign-source/experiments/resource_profile_campaign/run.py",
+        "--case",
+        "{case}",
+        "--output",
+        "{output}",
+        "--inputs",
+        "{inputs}/batch-bank",
+        "--manifest",
+        "REVIEWED_MACHINE_MANIFEST_PATH",
+        "--manifest-sha256",
+        "REVIEWED_MANIFEST_SHA256",
+        "--family-state",
+        "REVIEWED_MACHINE_FAMILY_STATE_PATH"
+      ],
+      "cases": [
+        {
+          "id": "00-F05-profile-B1",
+          "parameters": {
+            "study": "F05",
+            "N": 32,
+            "B": 1,
+            "SQP": 1,
+            "PCG": 100,
+            "arm": "profile",
+            "stage_timing": true
+          }
+        },
+        {
+          "id": "01-F05-profile-B16",
+          "parameters": {
+            "study": "F05",
+            "N": 32,
+            "B": 16,
+            "SQP": 1,
+            "PCG": 100,
+            "arm": "profile",
+            "stage_timing": true
+          }
+        },
+        {
+          "id": "02-F05-profile-B1",
+          "parameters": {
+            "study": "F05",
+            "N": 32,
+            "B": 1,
+            "SQP": 5,
+            "PCG": 100,
+            "arm": "profile",
+            "stage_timing": true
+          }
+        },
+        {
+          "id": "03-F05-profile-B16",
+          "parameters": {
+            "study": "F05",
+            "N": 32,
+            "B": 16,
+            "SQP": 5,
+            "PCG": 100,
+            "arm": "profile",
+            "stage_timing": true
+          }
+        },
+        {
+          "id": "04-F05-profile-B1",
+          "parameters": {
+            "study": "F05",
+            "N": 32,
+            "B": 1,
+            "SQP": 10,
+            "PCG": 800,
+            "arm": "profile",
+            "stage_timing": true
+          }
+        },
+        {
+          "id": "05-F05-profile-B16",
+          "parameters": {
+            "study": "F05",
+            "N": 32,
+            "B": 16,
+            "SQP": 10,
+            "PCG": 800,
+            "arm": "profile",
+            "stage_timing": true
+          }
+        }
+      ]
+    }
+  ]
+}

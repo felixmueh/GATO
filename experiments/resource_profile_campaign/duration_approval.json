@@ -1,0 +1,39 @@
+{
+  "decision": "use_120_seconds_single_sustained_block_per_arm",
+  "approved_by": "Felix",
+  "recorded_UTC": "2026-10-10T16:11:05.212750+00:00",
+  "response": "Ah I see. No use120 but we do not need a lot of runs right?",
+  "sustained_seconds_per_arm": 120,
+  "sustained_blocks_per_budget_batch": 1,
+  "sustained_repeats": 1,
+  "budgets": [
+    [
+      1,
+      100
+    ],
+    [
+      5,
+      100
+    ],
+    [
+      10,
+      800
+    ]
+  ],
+  "B": [
+    1,
+    16
+  ],
+  "sustained_blocks_per_machine": 6,
+  "sustained_seconds_per_machine": 720,
+  "first_response_fresh_process_calls_per_arm": 3,
+  "profile_measured_calls_per_arm": 1,
+  "profile_warmups_per_arm": 1,
+  "sustained_warmups_per_arm": 1,
+  "fixed_calls_per_machine": 36,
+  "sustained_calls": "variable from actual whole application-loop time; retain everycall, finish currentcall at boundary",
+  "proposal_sha256": "53c7aed17bc4dff702622a46df8d8fa337350ed8f51147e6a44a485192152fd2",
+  "design_review_sha256": "956cb0b2ed24dba5b1a240b924dab8af3026a908d2681556321296c07fed6939",
+  "interpretation": "Felix chooses120s rather than revised30s and asks forfewruns; coordinator confirms one sustainedblock perarm, no sustainedrepeats, existing smallupfrontchecks. No duration/coverage approval remains pending for thisprotocol.",
+  "scope": "protocol duration/coverage choice; source review/native validation and exact targetplans still required; no thermalsteady/saturation guarantee"
+}

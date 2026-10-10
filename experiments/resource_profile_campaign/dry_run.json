@@ -1,0 +1,382 @@
+{
+  "status": "held_planning_only",
+  "cases": [
+    {
+      "study": "F04",
+      "arm": "query",
+      "N": 16,
+      "B": 1,
+      "stage_timing": false
+    },
+    {
+      "study": "F04",
+      "arm": "query",
+      "N": 16,
+      "B": 16,
+      "stage_timing": false
+    },
+    {
+      "study": "F04",
+      "arm": "query",
+      "N": 32,
+      "B": 1,
+      "stage_timing": false
+    },
+    {
+      "study": "F04",
+      "arm": "query",
+      "N": 32,
+      "B": 16,
+      "stage_timing": false
+    },
+    {
+      "study": "F04",
+      "arm": "query",
+      "N": 64,
+      "B": 1,
+      "stage_timing": false
+    },
+    {
+      "study": "F04",
+      "arm": "query",
+      "N": 64,
+      "B": 16,
+      "stage_timing": false
+    },
+    {
+      "study": "F04",
+      "arm": "query",
+      "N": 128,
+      "B": 1,
+      "stage_timing": false
+    },
+    {
+      "study": "F04",
+      "arm": "query",
+      "N": 128,
+      "B": 16,
+      "stage_timing": false
+    },
+    {
+      "study": "F05",
+      "N": 32,
+      "B": 1,
+      "SQP": 1,
+      "PCG": 100,
+      "arm": "first_response",
+      "replicate": 0,
+      "stage_timing": false
+    },
+    {
+      "study": "F05",
+      "N": 32,
+      "B": 1,
+      "SQP": 1,
+      "PCG": 100,
+      "arm": "first_response",
+      "replicate": 1,
+      "stage_timing": false
+    },
+    {
+      "study": "F05",
+      "N": 32,
+      "B": 1,
+      "SQP": 1,
+      "PCG": 100,
+      "arm": "first_response",
+      "replicate": 2,
+      "stage_timing": false
+    },
+    {
+      "study": "F05",
+      "N": 32,
+      "B": 1,
+      "SQP": 1,
+      "PCG": 100,
+      "arm": "profile",
+      "stage_timing": true
+    },
+    {
+      "study": "F05",
+      "N": 32,
+      "B": 1,
+      "SQP": 1,
+      "PCG": 100,
+      "arm": "sustained",
+      "duration_s": 120,
+      "stage_timing": false
+    },
+    {
+      "study": "F05",
+      "N": 32,
+      "B": 16,
+      "SQP": 1,
+      "PCG": 100,
+      "arm": "first_response",
+      "replicate": 0,
+      "stage_timing": false
+    },
+    {
+      "study": "F05",
+      "N": 32,
+      "B": 16,
+      "SQP": 1,
+      "PCG": 100,
+      "arm": "first_response",
+      "replicate": 1,
+      "stage_timing": false
+    },
+    {
+      "study": "F05",
+      "N": 32,
+      "B": 16,
+      "SQP": 1,
+      "PCG": 100,
+      "arm": "first_response",
+      "replicate": 2,
+      "stage_timing": false
+    },
+    {
+      "study": "F05",
+      "N": 32,
+      "B": 16,
+      "SQP": 1,
+      "PCG": 100,
+      "arm": "profile",
+      "stage_timing": true
+    },
+    {
+      "study": "F05",
+      "N": 32,
+      "B": 16,
+      "SQP": 1,
+      "PCG": 100,
+      "arm": "sustained",
+      "duration_s": 120,
+      "stage_timing": false
+    },
+    {
+      "study": "F05",
+      "N": 32,
+      "B": 1,
+      "SQP": 5,
+      "PCG": 100,
+      "arm": "first_response",
+      "replicate": 0,
+      "stage_timing": false
+    },
+    {
+      "study": "F05",
+      "N": 32,
+      "B": 1,
+      "SQP": 5,
+      "PCG": 100,
+      "arm": "first_response",
+      "replicate": 1,
+      "stage_timing": false
+    },
+    {
+      "study": "F05",
+      "N": 32,
+      "B": 1,
+      "SQP": 5,
+      "PCG": 100,
+      "arm": "first_response",
+      "replicate": 2,
+      "stage_timing": false
+    },
+    {
+      "study": "F05",
+      "N": 32,
+      "B": 1,
+      "SQP": 5,
+      "PCG": 100,
+      "arm": "profile",
+      "stage_timing": true
+    },
+    {
+      "study": "F05",
+      "N": 32,
+      "B": 1,
+      "SQP": 5,
+      "PCG": 100,
+      "arm": "sustained",
+      "duration_s": 120,
+      "stage_timing": false
+    },
+    {
+      "study": "F05",
+      "N": 32,
+      "B": 16,
+      "SQP": 5,
+      "PCG": 100,
+      "arm": "first_response",
+      "replicate": 0,
+      "stage_timing": false
+    },
+    {
+      "study": "F05",
+      "N": 32,
+      "B": 16,
+      "SQP": 5,
+      "PCG": 100,
+      "arm": "first_response",
+      "replicate": 1,
+      "stage_timing": false
+    },
+    {
+      "study": "F05",
+      "N": 32,
+      "B": 16,
+      "SQP": 5,
+      "PCG": 100,
+      "arm": "first_response",
+      "replicate": 2,
+      "stage_timing": false
+    },
+    {
+      "study": "F05",
+      "N": 32,
+      "B": 16,
+      "SQP": 5,
+      "PCG": 100,
+      "arm": "profile",
+      "stage_timing": true
+    },
+    {
+      "study": "F05",
+      "N": 32,
+      "B": 16,
+      "SQP": 5,
+      "PCG": 100,
+      "arm": "sustained",
+      "duration_s": 120,
+      "stage_timing": false
+    },
+    {
+      "study": "F05",
+      "N": 32,
+      "B": 1,
+      "SQP": 10,
+      "PCG": 800,
+      "arm": "first_response",
+      "replicate": 0,
+      "stage_timing": false
+    },
+    {
+      "study": "F05",
+      "N": 32,
+      "B": 1,
+      "SQP": 10,
+      "PCG": 800,
+      "arm": "first_response",
+      "replicate": 1,
+      "stage_timing": false
+    },
+    {
+      "study": "F05",
+      "N": 32,
+      "B": 1,
+      "SQP": 10,
+      "PCG": 800,
+      "arm": "first_response",
+      "replicate": 2,
+      "stage_timing": false
+    },
+    {
+      "study": "F05",
+      "N": 32,
+      "B": 1,
+      "SQP": 10,
+      "PCG": 800,
+      "arm": "profile",
+      "stage_timing": true
+    },
+    {
+      "study": "F05",
+      "N": 32,
+      "B": 1,
+      "SQP": 10,
+      "PCG": 800,
+      "arm": "sustained",
+      "duration_s": 120,
+      "stage_timing": false
+    },
+    {
+      "study": "F05",
+      "N": 32,
+      "B": 16,
+      "SQP": 10,
+      "PCG": 800,
+      "arm": "first_response",
+      "replicate": 0,
+      "stage_timing": false
+    },
+    {
+      "study": "F05",
+      "N": 32,
+      "B": 16,
+      "SQP": 10,
+      "PCG": 800,
+      "arm": "first_response",
+      "replicate": 1,
+      "stage_timing": false
+    },
+    {
+      "study": "F05",
+      "N": 32,
+      "B": 16,
+      "SQP": 10,
+      "PCG": 800,
+      "arm": "first_response",
+      "replicate": 2,
+      "stage_timing": false
+    },
+    {
+      "study": "F05",
+      "N": 32,
+      "B": 16,
+      "SQP": 10,
+      "PCG": 800,
+      "arm": "profile",
+      "stage_timing": true
+    },
+    {
+      "study": "F05",
+      "N": 32,
+      "B": 16,
+      "SQP": 10,
+      "PCG": 800,
+      "arm": "sustained",
+      "duration_s": 120,
+      "stage_timing": false
+    }
+  ],
+  "queries": 8,
+  "first_response_calls": 18,
+  "profile_calls_including_warmups": 12,
+  "sustained_warmups": 6,
+  "approved_sustained_wall_s": 720,
+  "duration_approval_sha256": "aa96ce80280b1580670005ec42dacac41ff5e46ed140e59e805b41e7fb6888a2",
+  "measured_sustained_calls": "variable; allraw retained",
+  "release": {
+    "status": "held",
+    "reason": "Deployment remains held pending implementationreview/nativebuild/A-readiness/exacttargetplan;120s duration/coverage and F01c choices approved.",
+    "machine": null,
+    "source_commit": null,
+    "implementation_review": null,
+    "observer_acceptance": null,
+    "canonical_A_readiness": null,
+    "sustained_duration_approved": true,
+    "bank": {
+      "path": "REVIEWED_F01c_INPUT_DIRECTORY",
+      "sha256": "f8a8217982f3fa2b1b4fd2629e8cb45949d372f6d43c6137bbdaa7e52acc7007"
+    },
+    "modules": {},
+    "sustained_duration_s": 120,
+    "duration_approval": {
+      "path": "REVIEWED_SOURCE/experiments/resource_profile_campaign/duration_approval.json",
+      "sha256": "aa96ce80280b1580670005ec42dacac41ff5e46ed140e59e805b41e7fb6888a2"
+    }
+  }
+}

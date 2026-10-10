@@ -1,0 +1,27 @@
+[
+  [
+    "cmake",
+    "-S",
+    "/fresh/NOT-EXECUTED-N32-ON/campaign-source",
+    "-B",
+    "/fresh/NOT-EXECUTED-N32-ON/campaign-native",
+    "-DPLANT=tiago_right",
+    "-DKNOTS=32",
+    "-DCMAKE_BUILD_TYPE=Release",
+    "-DBUILD_TESTING=ON",
+    "-DGATO_EXPERIMENT_TELEMETRY=ON",
+    "-DGATO_EXPERIMENT_RESOURCE_QUERY=ON",
+    "-DGATO_EXPERIMENT_STAGE_TIMING=ON",
+    "-DCMAKE_CUDA_ARCHITECTURES=REVIEWED_ARCH",
+    "-DPython3_EXECUTABLE=REVIEWED_PYTHON"
+  ],
+  [
+    "cmake",
+    "--build",
+    "/fresh/NOT-EXECUTED-N32-ON/campaign-native",
+    "--parallel",
+    "2",
+    "--target",
+    "bsqpN32_tiago_right"
+  ]
+]

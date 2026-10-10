@@ -102,6 +102,9 @@ class BSQP {
         // Change the next solve's effort without resetting persistent MPC state.
         void set_max_sqp_iters(uint32_t max_sqp_iters)
         {
+#if defined(GATO_EXPERIMENT_STAGE_TIMING) && GATO_EXPERIMENT_STAGE_TIMING
+                stage_timing_.configure(max_sqp_iters);
+#endif
                 max_sqp_iters_ = max_sqp_iters;
         }
 
@@ -133,8 +136,14 @@ class BSQP {
                 PCGStats<BatchSize>           pcg_stats;
                 LineSearchStats<T, BatchSize> ls_stats;
 
+#if defined(GATO_EXPERIMENT_STAGE_TIMING) && GATO_EXPERIMENT_STAGE_TIMING
+                stage_timing_.reset();
+#endif
                 auto sqp_start_time = std::chrono::high_resolution_clock::now();
 
+#if defined(GATO_EXPERIMENT_STAGE_TIMING) && GATO_EXPERIMENT_STAGE_TIMING
+                stage_timing_.begin(stage_timing_.initial(), stream_);
+#endif
                 // set d_dz_batch_ to zero
                 gpuErrchk(cudaMemsetAsync(d_dz_batch_, 0, TRAJ_SIZE * BatchSize * sizeof(T), stream_));
                 gpuErrchk(cudaMemsetAsync(d_pcg_iterations_, 0, sizeof(uint32_t) * BatchSize, stream_));
@@ -144,18 +153,40 @@ class BSQP {
                     d_merit_initial_batch_, d_dz_batch_, d_xu_traj_batch, d_f_ext_batch_, inputs, d_mu_batch_, d_GRiD_mem_, q_cost_, qd_cost_, u_cost_, N_cost_, ee_orient_cost_, ee_orient_N_cost_, q_lim_cost_, vel_lim_cost_, ctrl_lim_cost_, stream_);
                 gpuErrchk(cudaMemcpyAsync(d_merit_initial0_batch_, d_merit_initial_batch_, BatchSize * sizeof(T), cudaMemcpyDeviceToDevice, stream_));
 
+#if defined(GATO_EXPERIMENT_STAGE_TIMING) && GATO_EXPERIMENT_STAGE_TIMING
+                stage_timing_.end(stage_timing_.initial(), stream_);
+#endif
                 // SQP Loop
                 for (uint32_t i = 0; i < max_sqp_iters_; i++) {
+#if defined(GATO_EXPERIMENT_STAGE_TIMING) && GATO_EXPERIMENT_STAGE_TIMING
+                        stage_timing_.begin(stage_timing_.iteration(i, 0), stream_);
+#endif
                         setupKKTSystemBatched<T, BatchSize>(kkt_system_batch_, inputs, d_xu_traj_batch, d_f_ext_batch_, d_GRiD_mem_, q_cost_, qd_cost_, u_cost_, N_cost_, ee_orient_cost_, ee_orient_N_cost_, q_lim_cost_, vel_lim_cost_, ctrl_lim_cost_, stream_);
+#if defined(GATO_EXPERIMENT_STAGE_TIMING) && GATO_EXPERIMENT_STAGE_TIMING
+                        stage_timing_.end(stage_timing_.iteration(i, 0), stream_);
+                        stage_timing_.begin(stage_timing_.iteration(i, 1), stream_);
+#endif
                         formSchurSystemBatched<T, BatchSize>(schur_system_batch_, kkt_system_batch_, d_rho_penalty_batch_, stream_);
 
+#if defined(GATO_EXPERIMENT_STAGE_TIMING) && GATO_EXPERIMENT_STAGE_TIMING
+                        stage_timing_.end(stage_timing_.iteration(i, 1), stream_);
+                        stage_timing_.begin(stage_timing_.iteration(i, 2), stream_);
+#endif
                         // gpuErrchk(cudaEventRecord(pcg_start_event_));
                         solvePCGBatched<T, BatchSize>(d_lambda_batch_, schur_system_batch_, d_pcg_tol_batch_, max_pcg_iters_, d_kkt_converged_batch_, d_pcg_iterations_, stream_);
                         // gpuErrchk(cudaEventRecord(pcg_stop_event_));
                         // gpuErrchk(cudaEventSynchronize(pcg_stop_event_));
 
+#if defined(GATO_EXPERIMENT_STAGE_TIMING) && GATO_EXPERIMENT_STAGE_TIMING
+                        stage_timing_.end(stage_timing_.iteration(i, 2), stream_);
+                        stage_timing_.begin(stage_timing_.iteration(i, 3), stream_);
+#endif
                         computeDzBatched<T, BatchSize>(d_dz_batch_, d_lambda_batch_, kkt_system_batch_, stream_);
 
+#if defined(GATO_EXPERIMENT_STAGE_TIMING) && GATO_EXPERIMENT_STAGE_TIMING
+                        stage_timing_.end(stage_timing_.iteration(i, 3), stream_);
+                        stage_timing_.begin(stage_timing_.iteration(i, 4), stream_);
+#endif
                         // d_q_batch, d_r_batch contain the KKT residuals after computeDzBatched
                         gpuErrchk(cudaMemcpyAsync(h_q_batch_, kkt_system_batch_.d_q_batch, STATE_P_KNOTS * BatchSize * sizeof(T), cudaMemcpyDeviceToHost, stream_));
                         gpuErrchk(cudaMemcpyAsync(h_r_batch_, kkt_system_batch_.d_r_batch, CONTROL_P_KNOTS * BatchSize * sizeof(T), cudaMemcpyDeviceToHost, stream_));
@@ -166,6 +197,9 @@ class BSQP {
                         gpuErrchk(cudaMemcpyAsync(h_pcg_iterations_and_stop_, d_pcg_iterations_, 2 * sizeof(uint32_t) * BatchSize, cudaMemcpyDeviceToHost, stream_));
 #else
                         gpuErrchk(cudaMemcpyAsync(pcg_stats.num_iterations.data(), d_pcg_iterations_, sizeof(uint32_t) * BatchSize, cudaMemcpyDeviceToHost, stream_));
+#endif
+#if defined(GATO_EXPERIMENT_STAGE_TIMING) && GATO_EXPERIMENT_STAGE_TIMING
+                        stage_timing_.end(stage_timing_.iteration(i, 4), stream_);
 #endif
                         pcg_stats.solve_time_us = 0;
                         // The residual copies target pinned host memory. Enqueueing
@@ -203,13 +237,23 @@ class BSQP {
                                 break;
                         }
 
+#if defined(GATO_EXPERIMENT_STAGE_TIMING) && GATO_EXPERIMENT_STAGE_TIMING
+                        stage_timing_.begin(stage_timing_.iteration(i, 5), stream_);
+#endif
                         computeMeritBatched<T, BatchSize, NUM_ALPHAS>(
                             d_merit_batch_, d_dz_batch_, d_xu_traj_batch, d_f_ext_batch_, inputs, d_mu_batch_, d_GRiD_mem_, q_cost_, qd_cost_, u_cost_, N_cost_, ee_orient_cost_, ee_orient_N_cost_, q_lim_cost_, vel_lim_cost_, ctrl_lim_cost_, stream_);
+#if defined(GATO_EXPERIMENT_STAGE_TIMING) && GATO_EXPERIMENT_STAGE_TIMING
+                        stage_timing_.end(stage_timing_.iteration(i, 5), stream_);
+                        stage_timing_.begin(stage_timing_.iteration(i, 6), stream_);
+#endif
                         lineSearchAndUpdateBatched<T, BatchSize, NUM_ALPHAS>(
                             d_xu_traj_batch, d_dz_batch_, d_merit_batch_, d_merit_initial_batch_, d_step_size_batch_, d_rho_penalty_batch_, d_drho_batch_, adapt_rho_ ? 1 : 0, stream_);
 
                         gpuErrchk(cudaMemcpyAsync(ls_stats.min_merit.data(), d_merit_initial_batch_, BatchSize * sizeof(T), cudaMemcpyDeviceToHost, stream_));
                         gpuErrchk(cudaMemcpyAsync(ls_stats.step_size.data(), d_step_size_batch_, BatchSize * sizeof(T), cudaMemcpyDeviceToHost, stream_));
+#if defined(GATO_EXPERIMENT_STAGE_TIMING) && GATO_EXPERIMENT_STAGE_TIMING
+                        stage_timing_.end(stage_timing_.iteration(i, 6), stream_);
+#endif
                         sqp_stats.line_search_stats.push_back(ls_stats);
                         // Line search can update every lane, including a lane
                         // certified above while its peers were unfinished. Only
@@ -217,11 +261,17 @@ class BSQP {
                         std::fill(h_kkt_converged_batch_, h_kkt_converged_batch_ + BatchSize, 0);
                 }
 
+#if defined(GATO_EXPERIMENT_STAGE_TIMING) && GATO_EXPERIMENT_STAGE_TIMING
+                stage_timing_.begin(stage_timing_.final(), stream_);
+#endif
                 // Final merit on updated trajectory for selection
                 gpuErrchk(cudaMemsetAsync(d_dz_batch_, 0, TRAJ_SIZE * BatchSize * sizeof(T), stream_));
                 computeMeritBatched<T, BatchSize, 1>(
                     d_merit_initial_batch_, d_dz_batch_, d_xu_traj_batch, d_f_ext_batch_, inputs, d_mu_batch_, d_GRiD_mem_, q_cost_, qd_cost_, u_cost_, N_cost_, ee_orient_cost_, ee_orient_N_cost_, q_lim_cost_, vel_lim_cost_, ctrl_lim_cost_, stream_);
 
+#if defined(GATO_EXPERIMENT_STAGE_TIMING) && GATO_EXPERIMENT_STAGE_TIMING
+                stage_timing_.end(stage_timing_.final(), stream_);
+#endif
                 gpuErrchk(cudaStreamSynchronize(stream_));
                 auto sqp_end_time = std::chrono::high_resolution_clock::now();
                 gpuErrchk(cudaMemsetAsync(d_sqp_iters_B_, 0, BatchSize * sizeof(uint32_t), stream_));
@@ -234,12 +284,23 @@ class BSQP {
                 memset(h_kkt_converged_batch_, 0, BatchSize * sizeof(int32_t));
                 memset(h_sqp_iters_B_, 0, BatchSize * sizeof(uint32_t));
 
+#if defined(GATO_EXPERIMENT_STAGE_TIMING) && GATO_EXPERIMENT_STAGE_TIMING
+                // Every recorded event precedes the EXISTING final stream wait.
+                // Export follows the existing chrono end and bookkeeping.
+                sqp_stats.experiment_stage_windows = stage_timing_.completed_windows();
+#endif
                 return sqp_stats;
         }
 
       private:
+#if defined(GATO_EXPERIMENT_STAGE_TIMING) && GATO_EXPERIMENT_STAGE_TIMING
+        ExperimentStageTiming stage_timing_;
+#endif
         void allocateMemory()
         {
+#if defined(GATO_EXPERIMENT_STAGE_TIMING) && GATO_EXPERIMENT_STAGE_TIMING
+                stage_timing_.configure(max_sqp_iters_);
+#endif
                 size_t BT = BatchSize * sizeof(T);
                 size_t BI = BatchSize * sizeof(uint32_t);
 

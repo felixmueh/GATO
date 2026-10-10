@@ -5,6 +5,10 @@
 #include "constants.h"
 #include "utils/cuda.cuh"
 
+#if defined(GATO_EXPERIMENT_STAGE_TIMING) && GATO_EXPERIMENT_STAGE_TIMING
+#include "experiment_stage_timing.cuh"
+#endif
+
 using namespace sqp;
 using namespace gato::constants;
 
@@ -74,6 +78,9 @@ struct SQPStats {
 
 #if defined(GATO_EXPERIMENT_TELEMETRY) && GATO_EXPERIMENT_TELEMETRY
         ExperimentSQPStop stop_reason = ExperimentSQPStop::IterationCap;
+#endif
+#if defined(GATO_EXPERIMENT_STAGE_TIMING) && GATO_EXPERIMENT_STAGE_TIMING
+        std::vector<ExperimentStageWindow> experiment_stage_windows;
 #endif
         SQPStats() : sqp_iterations(BatchSize, 0), kkt_converged(BatchSize, 0) {}
 };

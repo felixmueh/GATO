@@ -1,0 +1,25 @@
+{
+  "status": "PASS_CPU_STATIC_ONLY",
+  "baseline": "9cbf257",
+  "checks": {
+    "gato/types.cuh_default_OFF_same": true,
+    "gato/types.cuh_cudaStreamSynchronize(count_same": true,
+    "gato/types.cuh_cudaDeviceSynchronize(count_same": true,
+    "gato/types.cuh_cudaEventSynchronize(count_same": true,
+    "gato/bsqp/bsqp.cuh_default_OFF_same": true,
+    "gato/bsqp/bsqp.cuh_cudaStreamSynchronize(count_same": true,
+    "gato/bsqp/bsqp.cuh_cudaDeviceSynchronize(count_same": true,
+    "gato/bsqp/bsqp.cuh_cudaEventSynchronize(count_same": true,
+    "python/bindings.cu_default_OFF_same": true,
+    "python/bindings.cu_cudaStreamSynchronize(count_same": true,
+    "python/bindings.cu_cudaDeviceSynchronize(count_same": true,
+    "python/bindings.cu_cudaEventSynchronize(count_same": true,
+    "helper_no_sync_or_kernel_or_device_buffer": true,
+    "query_no_launch_sync_attribute_or_allocation": true,
+    "read_after_chrono_and_existing_bookkeeping": true,
+    "existing_PCG_zero_placeholder_preserved": true
+  },
+  "explicit_new_synchronizations": 0,
+  "explicit_new_device_arrays": 0,
+  "native_compile_and_timing": "NOT_RUN_HELD"
+}

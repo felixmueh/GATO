@@ -1,0 +1,20 @@
+{
+  "status": "held",
+  "reason": "Deployment remains held pending implementationreview/nativebuild/A-readiness/exacttargetplan;120s duration/coverage and F01c choices approved.",
+  "machine": null,
+  "source_commit": null,
+  "implementation_review": null,
+  "observer_acceptance": null,
+  "canonical_A_readiness": null,
+  "sustained_duration_approved": true,
+  "bank": {
+    "path": "REVIEWED_F01c_INPUT_DIRECTORY",
+    "sha256": "f8a8217982f3fa2b1b4fd2629e8cb45949d372f6d43c6137bbdaa7e52acc7007"
+  },
+  "modules": {},
+  "sustained_duration_s": 120,
+  "duration_approval": {
+    "path": "REVIEWED_SOURCE/experiments/resource_profile_campaign/duration_approval.json",
+    "sha256": "aa96ce80280b1580670005ec42dacac41ff5e46ed140e59e805b41e7fb6888a2"
+  }
+}

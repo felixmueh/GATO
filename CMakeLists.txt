@@ -13,6 +13,16 @@ if(GATO_EXPERIMENT_TELEMETRY)
   add_compile_definitions(GATO_EXPERIMENT_TELEMETRY=1)
 endif()
 
+# Optional query/profile cohorts; normal solver builds expose neither API.
+option(GATO_EXPERIMENT_STAGE_TIMING "Record existing-stream elapsed stage windows" OFF)
+option(GATO_EXPERIMENT_RESOURCE_QUERY "Export read-only compiled-kernel resource queries" OFF)
+if(GATO_EXPERIMENT_STAGE_TIMING)
+  add_compile_definitions(GATO_EXPERIMENT_STAGE_TIMING=1)
+endif()
+if(GATO_EXPERIMENT_RESOURCE_QUERY)
+  add_compile_definitions(GATO_EXPERIMENT_RESOURCE_QUERY=1)
+endif()
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_CUDA_STANDARD 17)

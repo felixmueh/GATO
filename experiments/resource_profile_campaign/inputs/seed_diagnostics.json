@@ -1,0 +1,2412 @@
+{
+  "scope": "predicted knot diagnostics only; not filtered, not dynamically feasible witnesses",
+  "lanes": [
+    {
+      "input_id": "start-0-goal-1",
+      "start_index": 0,
+      "candidate_id": 0,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "terminal_position_error_m": 0.10063626533739466,
+      "partial_running_diagnostic": 1.2558295797312542,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-0-goal-1",
+      "start_index": 0,
+      "candidate_id": 1,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        0.009514881297945976,
+        -0.011660338379442692,
+        -0.008629594929516315,
+        -0.005414042621850967,
+        -0.0005858024233020842,
+        -0.0018874909728765488,
+        5.370746657717973e-05
+      ],
+      "terminal_position_error_m": 0.10055084936308292,
+      "partial_running_diagnostic": 1.268340038562027,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-0-goal-1",
+      "start_index": 0,
+      "candidate_id": 2,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        0.0009110365062952042,
+        0.010284609161317348,
+        0.0037201489321887493,
+        -0.0037842083256691694,
+        0.0011988558107987046,
+        0.0014448509318754077,
+        -2.8332335205050185e-05
+      ],
+      "terminal_position_error_m": 0.10050021499917497,
+      "partial_running_diagnostic": 1.267142847762875,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-0-goal-1",
+      "start_index": 0,
+      "candidate_id": 3,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        -0.019803611561655998,
+        -0.003603928256779909,
+        0.006659671664237976,
+        -0.006721755489706993,
+        0.0006722560501657426,
+        -0.0009245481342077255,
+        2.041652078332845e-05
+      ],
+      "terminal_position_error_m": 0.10215589431330231,
+      "partial_running_diagnostic": 1.292610007630124,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-0-goal-1",
+      "start_index": 0,
+      "candidate_id": 4,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        0.014245998114347458,
+        0.012847048230469227,
+        -0.004610347095876932,
+        0.009950263425707817,
+        -0.00012761951074935496,
+        0.0023191405925899744,
+        6.233371095731854e-05
+      ],
+      "terminal_position_error_m": 0.09855487938070882,
+      "partial_running_diagnostic": 1.2789511925360597,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-0-goal-1",
+      "start_index": 0,
+      "candidate_id": 5,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        -0.0018783110426738858,
+        0.003445388749241829,
+        0.0023483801633119583,
+        -0.0016321113798767328,
+        9.281713573727757e-05,
+        0.00010394354467280209,
+        -1.2714503100141883e-05
+      ],
+      "terminal_position_error_m": 0.09880658472745611,
+      "partial_running_diagnostic": 1.2632356145541568,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-0-goal-1",
+      "start_index": 0,
+      "candidate_id": 6,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        0.023760125041007996,
+        -0.04597540199756622,
+        -0.03269540145993233,
+        0.005359378177672625,
+        -0.004853359889239073,
+        -0.0006973817944526672,
+        0.00011571401410037652
+      ],
+      "terminal_position_error_m": 0.09309585245474758,
+      "partial_running_diagnostic": 1.5294813985261593,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-0-goal-1",
+      "start_index": 0,
+      "candidate_id": 7,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        0.04309191554784775,
+        0.0502711683511734,
+        -0.006757121533155441,
+        -0.04803067073225975,
+        -0.0013962078373879194,
+        0.005342344753444195,
+        2.9252121748868376e-05
+      ],
+      "terminal_position_error_m": 0.10948494278380334,
+      "partial_running_diagnostic": 1.4311495397641785,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-0-goal-1",
+      "start_index": 0,
+      "candidate_id": 8,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        -0.03223976492881775,
+        -0.009100855328142643,
+        0.0053748758509755135,
+        0.016448449343442917,
+        -0.00140246597584337,
+        -0.00409210380166769,
+        2.791534825519193e-05
+      ],
+      "terminal_position_error_m": 0.10562622572172108,
+      "partial_running_diagnostic": 1.3875164515891487,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-0-goal-1",
+      "start_index": 0,
+      "candidate_id": 9,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        -0.02574940212070942,
+        -0.023448390886187553,
+        0.009324985556304455,
+        0.0334494486451149,
+        -0.0012471253285184503,
+        -0.0009721723035909235,
+        -7.815011485945433e-05
+      ],
+      "terminal_position_error_m": 0.09289191568720438,
+      "partial_running_diagnostic": 1.316893990435825,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-0-goal-1",
+      "start_index": 0,
+      "candidate_id": 10,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        -0.007566226180642843,
+        0.017625540494918823,
+        0.007901723496615887,
+        -0.00275640026666224,
+        0.0015321805840358138,
+        0.0006224565440788865,
+        2.1740253941970877e-05
+      ],
+      "terminal_position_error_m": 0.09663694537215332,
+      "partial_running_diagnostic": 1.4048686246885775,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-0-goal-1",
+      "start_index": 0,
+      "candidate_id": 11,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        -0.020242467522621155,
+        -0.08735233545303345,
+        0.01819930225610733,
+        0.038361601531505585,
+        0.006289495620876551,
+        -0.006014310754835606,
+        -0.00017301057232543826
+      ],
+      "terminal_position_error_m": 0.10234897470896274,
+      "partial_running_diagnostic": 1.622754315543587,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-0-goal-1",
+      "start_index": 0,
+      "candidate_id": 12,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        0.09444627910852432,
+        0.041308000683784485,
+        -0.05034169927239418,
+        -0.005623555742204189,
+        -0.006285377312451601,
+        0.0009383254800923169,
+        0.0002768329286482185
+      ],
+      "terminal_position_error_m": 0.11759699035650496,
+      "partial_running_diagnostic": 2.1727208897787884,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-0-goal-1",
+      "start_index": 0,
+      "candidate_id": 13,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        -0.0679738000035286,
+        -0.08081592619419098,
+        0.0005289788241498172,
+        -0.021076850593090057,
+        -0.0036318155471235514,
+        -0.0053817336447536945,
+        -7.20791140338406e-05
+      ],
+      "terminal_position_error_m": 0.10447050870980719,
+      "partial_running_diagnostic": 1.6744528114823265,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-0-goal-1",
+      "start_index": 0,
+      "candidate_id": 14,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        0.023356100544333458,
+        0.017483728006482124,
+        -0.017500273883342743,
+        -0.057500701397657394,
+        -0.004717068746685982,
+        -0.0031025146599859,
+        5.373083331505768e-05
+      ],
+      "terminal_position_error_m": 0.10879431507794465,
+      "partial_running_diagnostic": 1.970078081618829,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-0-goal-1",
+      "start_index": 0,
+      "candidate_id": 15,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        0.012752989307045937,
+        0.020762113854289055,
+        -0.008669464848935604,
+        0.016902973875403404,
+        -0.0024871581699699163,
+        0.003197478363290429,
+        8.632019307697192e-05
+      ],
+      "terminal_position_error_m": 0.11924161930288323,
+      "partial_running_diagnostic": 1.6680210864850737,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-0-goal-2",
+      "start_index": 0,
+      "candidate_id": 0,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "terminal_position_error_m": 0.20793351887492212,
+      "partial_running_diagnostic": 5.361307185691741,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-0-goal-2",
+      "start_index": 0,
+      "candidate_id": 1,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        0.009514881297945976,
+        -0.011660338379442692,
+        -0.008629594929516315,
+        -0.005414042621850967,
+        -0.0005858024233020842,
+        -0.0018874909728765488,
+        5.370746657717973e-05
+      ],
+      "terminal_position_error_m": 0.20788646606813796,
+      "partial_running_diagnostic": 5.363838184097564,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-0-goal-2",
+      "start_index": 0,
+      "candidate_id": 2,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        0.0009110365062952042,
+        0.010284609161317348,
+        0.0037201489321887493,
+        -0.0037842083256691694,
+        0.0011988558107987046,
+        0.0014448509318754077,
+        -2.8332335205050185e-05
+      ],
+      "terminal_position_error_m": 0.20780775168057872,
+      "partial_running_diagnostic": 5.368380796211914,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-0-goal-2",
+      "start_index": 0,
+      "candidate_id": 3,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        -0.019803611561655998,
+        -0.003603928256779909,
+        0.006659671664237976,
+        -0.006721755489706993,
+        0.0006722560501657426,
+        -0.0009245481342077255,
+        2.041652078332845e-05
+      ],
+      "terminal_position_error_m": 0.20801419759048048,
+      "partial_running_diagnostic": 5.410379797331705,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-0-goal-2",
+      "start_index": 0,
+      "candidate_id": 4,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        0.014245998114347458,
+        0.012847048230469227,
+        -0.004610347095876932,
+        0.009950263425707817,
+        -0.00012761951074935496,
+        0.0023191405925899744,
+        6.233371095731854e-05
+      ],
+      "terminal_position_error_m": 0.20573378723341532,
+      "partial_running_diagnostic": 5.3856988309382,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-0-goal-2",
+      "start_index": 0,
+      "candidate_id": 5,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        -0.0018783110426738858,
+        0.003445388749241829,
+        0.0023483801633119583,
+        -0.0016321113798767328,
+        9.281713573727757e-05,
+        0.00010394354467280209,
+        -1.2714503100141883e-05
+      ],
+      "terminal_position_error_m": 0.20637015722567958,
+      "partial_running_diagnostic": 5.361089144166147,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-0-goal-2",
+      "start_index": 0,
+      "candidate_id": 6,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        0.023760125041007996,
+        -0.04597540199756622,
+        -0.03269540145993233,
+        0.005359378177672625,
+        -0.004853359889239073,
+        -0.0006973817944526672,
+        0.00011571401410037652
+      ],
+      "terminal_position_error_m": 0.20232063738633593,
+      "partial_running_diagnostic": 5.6022703666266285,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-0-goal-2",
+      "start_index": 0,
+      "candidate_id": 7,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        0.04309191554784775,
+        0.0502711683511734,
+        -0.006757121533155441,
+        -0.04803067073225975,
+        -0.0013962078373879194,
+        0.005342344753444195,
+        2.9252121748868376e-05
+      ],
+      "terminal_position_error_m": 0.2195679106528725,
+      "partial_running_diagnostic": 5.610378675675429,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-0-goal-2",
+      "start_index": 0,
+      "candidate_id": 8,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        -0.03223976492881775,
+        -0.009100855328142643,
+        0.0053748758509755135,
+        0.016448449343442917,
+        -0.00140246597584337,
+        -0.00409210380166769,
+        2.791534825519193e-05
+      ],
+      "terminal_position_error_m": 0.21337967310325345,
+      "partial_running_diagnostic": 5.518985615516386,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-0-goal-2",
+      "start_index": 0,
+      "candidate_id": 9,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        -0.02574940212070942,
+        -0.023448390886187553,
+        0.009324985556304455,
+        0.0334494486451149,
+        -0.0012471253285184503,
+        -0.0009721723035909235,
+        -7.815011485945433e-05
+      ],
+      "terminal_position_error_m": 0.19844463915763189,
+      "partial_running_diagnostic": 5.392724465671209,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-0-goal-2",
+      "start_index": 0,
+      "candidate_id": 10,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        -0.007566226180642843,
+        0.017625540494918823,
+        0.007901723496615887,
+        -0.00275640026666224,
+        0.0015321805840358138,
+        0.0006224565440788865,
+        2.1740253941970877e-05
+      ],
+      "terminal_position_error_m": 0.20218436774689796,
+      "partial_running_diagnostic": 5.5072664268967,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-0-goal-2",
+      "start_index": 0,
+      "candidate_id": 11,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        -0.020242467522621155,
+        -0.08735233545303345,
+        0.01819930225610733,
+        0.038361601531505585,
+        0.006289495620876551,
+        -0.006014310754835606,
+        -0.00017301057232543826
+      ],
+      "terminal_position_error_m": 0.21213714301327627,
+      "partial_running_diagnostic": 5.732969028448697,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-0-goal-2",
+      "start_index": 0,
+      "candidate_id": 12,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        0.09444627910852432,
+        0.041308000683784485,
+        -0.05034169927239418,
+        -0.005623555742204189,
+        -0.006285377312451601,
+        0.0009383254800923169,
+        0.0002768329286482185
+      ],
+      "terminal_position_error_m": 0.22876512086408077,
+      "partial_running_diagnostic": 6.325525165945754,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-0-goal-2",
+      "start_index": 0,
+      "candidate_id": 13,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        -0.0679738000035286,
+        -0.08081592619419098,
+        0.0005289788241498172,
+        -0.021076850593090057,
+        -0.0036318155471235514,
+        -0.0053817336447536945,
+        -7.20791140338406e-05
+      ],
+      "terminal_position_error_m": 0.21379465560043812,
+      "partial_running_diagnostic": 5.710705624226859,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-0-goal-2",
+      "start_index": 0,
+      "candidate_id": 14,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        0.023356100544333458,
+        0.017483728006482124,
+        -0.017500273883342743,
+        -0.057500701397657394,
+        -0.004717068746685982,
+        -0.0031025146599859,
+        5.373083331505768e-05
+      ],
+      "terminal_position_error_m": 0.22054992951594518,
+      "partial_running_diagnostic": 6.127362506886574,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-0-goal-2",
+      "start_index": 0,
+      "candidate_id": 15,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        0.012752989307045937,
+        0.020762113854289055,
+        -0.008669464848935604,
+        0.016902973875403404,
+        -0.0024871581699699163,
+        0.003197478363290429,
+        8.632019307697192e-05
+      ],
+      "terminal_position_error_m": 0.22674584290976696,
+      "partial_running_diagnostic": 5.804462770170679,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-0-goal-3",
+      "start_index": 0,
+      "candidate_id": 0,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "terminal_position_error_m": 0.3170519091524841,
+      "partial_running_diagnostic": 12.464717224057154,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-0-goal-3",
+      "start_index": 0,
+      "candidate_id": 1,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        0.009514881297945976,
+        -0.011660338379442692,
+        -0.008629594929516315,
+        -0.005414042621850967,
+        -0.0005858024233020842,
+        -0.0018874909728765488,
+        5.370746657717973e-05
+      ],
+      "terminal_position_error_m": 0.3170348429790065,
+      "partial_running_diagnostic": 12.458880428015593,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-0-goal-3",
+      "start_index": 0,
+      "candidate_id": 2,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        0.0009110365062952042,
+        0.010284609161317348,
+        0.0037201489321887493,
+        -0.0037842083256691694,
+        0.0011988558107987046,
+        0.0014448509318754077,
+        -2.8332335205050185e-05
+      ],
+      "terminal_position_error_m": 0.31695292247592843,
+      "partial_running_diagnostic": 12.467838678570006,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-0-goal-3",
+      "start_index": 0,
+      "candidate_id": 3,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        -0.019803611561655998,
+        -0.003603928256779909,
+        0.006659671664237976,
+        -0.006721755489706993,
+        0.0006722560501657426,
+        -0.0009245481342077255,
+        2.041652078332845e-05
+      ],
+      "terminal_position_error_m": 0.3157402718040763,
+      "partial_running_diagnostic": 12.522590307856731,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-0-goal-3",
+      "start_index": 0,
+      "candidate_id": 4,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        0.014245998114347458,
+        0.012847048230469227,
+        -0.004610347095876932,
+        0.009950263425707817,
+        -0.00012761951074935496,
+        0.0023191405925899744,
+        6.233371095731854e-05
+      ],
+      "terminal_position_error_m": 0.3148594480360242,
+      "partial_running_diagnostic": 12.48339390037489,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-0-goal-3",
+      "start_index": 0,
+      "candidate_id": 5,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        -0.0018783110426738858,
+        0.003445388749241829,
+        0.0023483801633119583,
+        -0.0016321113798767328,
+        9.281713573727757e-05,
+        0.00010394354467280209,
+        -1.2714503100141883e-05
+      ],
+      "terminal_position_error_m": 0.31583545653759887,
+      "partial_running_diagnostic": 12.45498956426201,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-0-goal-3",
+      "start_index": 0,
+      "candidate_id": 6,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        0.023760125041007996,
+        -0.04597540199756622,
+        -0.03269540145993233,
+        0.005359378177672625,
+        -0.004853359889239073,
+        -0.0006973817944526672,
+        0.00011571401410037652
+      ],
+      "terminal_position_error_m": 0.3137948475094662,
+      "partial_running_diagnostic": 12.661112531454991,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-0-goal-3",
+      "start_index": 0,
+      "candidate_id": 7,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        0.04309191554784775,
+        0.0502711683511734,
+        -0.006757121533155441,
+        -0.04803067073225975,
+        -0.0013962078373879194,
+        0.005342344753444195,
+        2.9252121748868376e-05
+      ],
+      "terminal_position_error_m": 0.33136415525765106,
+      "partial_running_diagnostic": 12.80265448378284,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-0-goal-3",
+      "start_index": 0,
+      "candidate_id": 8,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        -0.03223976492881775,
+        -0.009100855328142643,
+        0.0053748758509755135,
+        0.016448449343442917,
+        -0.00140246597584337,
+        -0.00409210380166769,
+        2.791534825519193e-05
+      ],
+      "terminal_position_error_m": 0.32277709564918095,
+      "partial_running_diagnostic": 12.65387813974243,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-0-goal-3",
+      "start_index": 0,
+      "candidate_id": 9,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        -0.02574940212070942,
+        -0.023448390886187553,
+        0.009324985556304455,
+        0.0334494486451149,
+        -0.0012471253285184503,
+        -0.0009721723035909235,
+        -7.815011485945433e-05
+      ],
+      "terminal_position_error_m": 0.3065208840283948,
+      "partial_running_diagnostic": 12.458324862555918,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-0-goal-3",
+      "start_index": 0,
+      "candidate_id": 10,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        -0.007566226180642843,
+        0.017625540494918823,
+        0.007901723496615887,
+        -0.00275640026666224,
+        0.0015321805840358138,
+        0.0006224565440788865,
+        2.1740253941970877e-05
+      ],
+      "terminal_position_error_m": 0.31033215060035624,
+      "partial_running_diagnostic": 12.591973929827986,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-0-goal-3",
+      "start_index": 0,
+      "candidate_id": 11,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        -0.020242467522621155,
+        -0.08735233545303345,
+        0.01819930225610733,
+        0.038361601531505585,
+        0.006289495620876551,
+        -0.006014310754835606,
+        -0.00017301057232543826
+      ],
+      "terminal_position_error_m": 0.32484224211881374,
+      "partial_running_diagnostic": 12.89218256644125,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-0-goal-3",
+      "start_index": 0,
+      "candidate_id": 12,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        0.09444627910852432,
+        0.041308000683784485,
+        -0.05034169927239418,
+        -0.005623555742204189,
+        -0.006285377312451601,
+        0.0009383254800923169,
+        0.0002768329286482185
+      ],
+      "terminal_position_error_m": 0.34235399995981713,
+      "partial_running_diagnostic": 13.490783072385444,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-0-goal-3",
+      "start_index": 0,
+      "candidate_id": 13,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        -0.0679738000035286,
+        -0.08081592619419098,
+        0.0005289788241498172,
+        -0.021076850593090057,
+        -0.0036318155471235514,
+        -0.0053817336447536945,
+        -7.20791140338406e-05
+      ],
+      "terminal_position_error_m": 0.3248839903557615,
+      "partial_running_diagnostic": 12.757864314166865,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-0-goal-3",
+      "start_index": 0,
+      "candidate_id": 14,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        0.023356100544333458,
+        0.017483728006482124,
+        -0.017500273883342743,
+        -0.057500701397657394,
+        -0.004717068746685982,
+        -0.0031025146599859,
+        5.373083331505768e-05
+      ],
+      "terminal_position_error_m": 0.33614790546392487,
+      "partial_running_diagnostic": 13.30565905664026,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-0-goal-3",
+      "start_index": 0,
+      "candidate_id": 15,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        0.012752989307045937,
+        0.020762113854289055,
+        -0.008669464848935604,
+        0.016902973875403404,
+        -0.0024871581699699163,
+        0.003197478363290429,
+        8.632019307697192e-05
+      ],
+      "terminal_position_error_m": 0.33581273960056945,
+      "partial_running_diagnostic": 12.917649501003702,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-1-goal-1",
+      "start_index": 1,
+      "candidate_id": 0,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "terminal_position_error_m": 0.09595851202732693,
+      "partial_running_diagnostic": 1.1417964677818313,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-1-goal-1",
+      "start_index": 1,
+      "candidate_id": 1,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        0.009043987840414047,
+        0.0035145189613103867,
+        -0.005455251783132553,
+        -0.005053567234426737,
+        -0.0009194750455208123,
+        -0.00015497076674364507,
+        9.3442695288104e-06
+      ],
+      "terminal_position_error_m": 0.09643168104342979,
+      "partial_running_diagnostic": 1.150569003461448,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-1-goal-1",
+      "start_index": 1,
+      "candidate_id": 2,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        -0.007185822352766991,
+        0.012508606538176537,
+        0.011284326203167439,
+        -0.020282266661524773,
+        0.0005852406029589474,
+        0.000932240451220423,
+        -9.314289491157979e-05
+      ],
+      "terminal_position_error_m": 0.09459388629460738,
+      "partial_running_diagnostic": 1.1805750465336318,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-1-goal-1",
+      "start_index": 1,
+      "candidate_id": 3,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        0.001391950761899352,
+        -0.014648103155195713,
+        -0.0009122980991378427,
+        0.009409141726791859,
+        0.000660390651319176,
+        -7.358085713349283e-05,
+        -5.822974708280526e-05
+      ],
+      "terminal_position_error_m": 0.09553527893330627,
+      "partial_running_diagnostic": 1.1833188952615719,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-1-goal-1",
+      "start_index": 1,
+      "candidate_id": 4,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        0.0011514963116496801,
+        7.745585025986657e-05,
+        2.8625929189729504e-05,
+        0.006828355137258768,
+        0.00018057387205772102,
+        -0.0003462718450464308,
+        7.471910976164509e-06
+      ],
+      "terminal_position_error_m": 0.09296665728788021,
+      "partial_running_diagnostic": 1.1497220595234834,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-1-goal-1",
+      "start_index": 1,
+      "candidate_id": 5,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        0.003133774036541581,
+        -0.02215883880853653,
+        -0.003800296224653721,
+        -0.003441670211032033,
+        0.0001850211847340688,
+        -0.0018839213298633695,
+        3.828178159892559e-05
+      ],
+      "terminal_position_error_m": 0.09190851079932394,
+      "partial_running_diagnostic": 1.1485129687299456,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-1-goal-1",
+      "start_index": 1,
+      "candidate_id": 6,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        0.018493764102458954,
+        -0.03707290068268776,
+        -0.013410167768597603,
+        0.009516372345387936,
+        -0.0011626204941421747,
+        -0.0020533562637865543,
+        -5.052694177720696e-06
+      ],
+      "terminal_position_error_m": 0.09654213321956381,
+      "partial_running_diagnostic": 1.3358681377329185,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-1-goal-1",
+      "start_index": 1,
+      "candidate_id": 7,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        -0.051204778254032135,
+        -0.005905790254473686,
+        0.018240807577967644,
+        -0.005588276777416468,
+        -0.0006896280101500452,
+        -0.0010958065977320075,
+        -8.957089448813349e-05
+      ],
+      "terminal_position_error_m": 0.09798712216315163,
+      "partial_running_diagnostic": 1.2498016478410148,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-1-goal-1",
+      "start_index": 1,
+      "candidate_id": 8,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        0.027305113151669502,
+        -0.005300057586282492,
+        -0.016494562849402428,
+        0.008897211402654648,
+        -0.0018409305484965444,
+        0.002542210975661874,
+        1.3012280760449357e-05
+      ],
+      "terminal_position_error_m": 0.10424044706880971,
+      "partial_running_diagnostic": 1.3054744948404744,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-1-goal-1",
+      "start_index": 1,
+      "candidate_id": 9,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        -0.012019066140055656,
+        0.024040885269641876,
+        0.0007876465679146349,
+        -0.005783386528491974,
+        -0.0012093486730009317,
+        0.0014137604739516973,
+        9.261014201911166e-05
+      ],
+      "terminal_position_error_m": 0.09780652127944713,
+      "partial_running_diagnostic": 1.2401459141056101,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-1-goal-1",
+      "start_index": 1,
+      "candidate_id": 10,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        -0.01218672376126051,
+        0.021825244650244713,
+        0.013401714153587818,
+        0.011366763152182102,
+        0.00342685729265213,
+        0.0032513472251594067,
+        -3.560824552550912e-06
+      ],
+      "terminal_position_error_m": 0.10217433324922022,
+      "partial_running_diagnostic": 1.3013736718627806,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-1-goal-1",
+      "start_index": 1,
+      "candidate_id": 11,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        -0.016140062361955643,
+        0.0370277538895607,
+        0.015032348223030567,
+        0.011832988820970058,
+        0.0018356548389419913,
+        0.005114076193422079,
+        0.00012875054380856454
+      ],
+      "terminal_position_error_m": 0.10495771826165488,
+      "partial_running_diagnostic": 1.495311268097034,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-1-goal-1",
+      "start_index": 1,
+      "candidate_id": 12,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        -0.0017623562598600984,
+        0.0029165311716496944,
+        -0.016345178708434105,
+        -0.003812954528257251,
+        -0.006427195854485035,
+        -0.0015106849605217576,
+        -0.00014365781680680811
+      ],
+      "terminal_position_error_m": 0.09736015673979798,
+      "partial_running_diagnostic": 1.6718632545263814,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-1-goal-1",
+      "start_index": 1,
+      "candidate_id": 13,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        0.04429352283477783,
+        0.003375240368768573,
+        -0.008703839033842087,
+        0.03644595295190811,
+        -0.0008476017392240465,
+        0.00014581695722881705,
+        -3.9137717976700515e-05
+      ],
+      "terminal_position_error_m": 0.10044664483239987,
+      "partial_running_diagnostic": 1.805474392532864,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-1-goal-1",
+      "start_index": 1,
+      "candidate_id": 14,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        0.17018485069274902,
+        -0.17172756791114807,
+        -0.15011748671531677,
+        0.07635959982872009,
+        -0.024430425837635994,
+        0.00444504851475358,
+        9.082132237381302e-06
+      ],
+      "terminal_position_error_m": 0.09144310921082091,
+      "partial_running_diagnostic": 2.577171419888006,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-1-goal-1",
+      "start_index": 1,
+      "candidate_id": 15,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        0.010818027891218662,
+        0.043406423181295395,
+        0.014836307615041733,
+        -0.0475616455078125,
+        0.004849248565733433,
+        0.004337791819125414,
+        -8.574643288739026e-05
+      ],
+      "terminal_position_error_m": 0.12128124880335958,
+      "partial_running_diagnostic": 1.6526394070026915,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-1-goal-2",
+      "start_index": 1,
+      "candidate_id": 0,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "terminal_position_error_m": 0.20363608389379526,
+      "partial_running_diagnostic": 5.141989178286501,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-1-goal-2",
+      "start_index": 1,
+      "candidate_id": 1,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        0.009043987840414047,
+        0.0035145189613103867,
+        -0.005455251783132553,
+        -0.005053567234426737,
+        -0.0009194750455208123,
+        -0.00015497076674364507,
+        9.3442695288104e-06
+      ],
+      "terminal_position_error_m": 0.20457206132527134,
+      "partial_running_diagnostic": 5.144066359068712,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-1-goal-2",
+      "start_index": 1,
+      "candidate_id": 2,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        -0.007185822352766991,
+        0.012508606538176537,
+        0.011284326203167439,
+        -0.020282266661524773,
+        0.0005852406029589474,
+        0.000932240451220423,
+        -9.314289491157979e-05
+      ],
+      "terminal_position_error_m": 0.20201347591929456,
+      "partial_running_diagnostic": 5.181843428796606,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-1-goal-2",
+      "start_index": 1,
+      "candidate_id": 3,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        0.001391950761899352,
+        -0.014648103155195713,
+        -0.0009122980991378427,
+        0.009409141726791859,
+        0.000660390651319176,
+        -7.358085713349283e-05,
+        -5.822974708280526e-05
+      ],
+      "terminal_position_error_m": 0.20392070917761926,
+      "partial_running_diagnostic": 5.1987816886867755,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-1-goal-2",
+      "start_index": 1,
+      "candidate_id": 4,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        0.0011514963116496801,
+        7.745585025986657e-05,
+        2.8625929189729504e-05,
+        0.006828355137258768,
+        0.00018057387205772102,
+        -0.0003462718450464308,
+        7.471910976164509e-06
+      ],
+      "terminal_position_error_m": 0.20089341467661204,
+      "partial_running_diagnostic": 5.142157173109027,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-1-goal-2",
+      "start_index": 1,
+      "candidate_id": 5,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        0.003133774036541581,
+        -0.02215883880853653,
+        -0.003800296224653721,
+        -0.003441670211032033,
+        0.0001850211847340688,
+        -0.0018839213298633695,
+        3.828178159892559e-05
+      ],
+      "terminal_position_error_m": 0.20037525008842064,
+      "partial_running_diagnostic": 5.13693404125687,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-1-goal-2",
+      "start_index": 1,
+      "candidate_id": 6,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        0.018493764102458954,
+        -0.03707290068268776,
+        -0.013410167768597603,
+        0.009516372345387936,
+        -0.0011626204941421747,
+        -0.0020533562637865543,
+        -5.052694177720696e-06
+      ],
+      "terminal_position_error_m": 0.19947917225970735,
+      "partial_running_diagnostic": 5.3391450659114446,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-1-goal-2",
+      "start_index": 1,
+      "candidate_id": 7,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        -0.051204778254032135,
+        -0.005905790254473686,
+        0.018240807577967644,
+        -0.005588276777416468,
+        -0.0006896280101500452,
+        -0.0010958065977320075,
+        -8.957089448813349e-05
+      ],
+      "terminal_position_error_m": 0.20387629467215615,
+      "partial_running_diagnostic": 5.218502227732808,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-1-goal-2",
+      "start_index": 1,
+      "candidate_id": 8,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        0.027305113151669502,
+        -0.005300057586282492,
+        -0.016494562849402428,
+        0.008897211402654648,
+        -0.0018409305484965444,
+        0.002542210975661874,
+        1.3012280760449357e-05
+      ],
+      "terminal_position_error_m": 0.20896897062241057,
+      "partial_running_diagnostic": 5.3189462131468686,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-1-goal-2",
+      "start_index": 1,
+      "candidate_id": 9,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        -0.012019066140055656,
+        0.024040885269641876,
+        0.0007876465679146349,
+        -0.005783386528491974,
+        -0.0012093486730009317,
+        0.0014137604739516973,
+        9.261014201911166e-05
+      ],
+      "terminal_position_error_m": 0.20749336432496432,
+      "partial_running_diagnostic": 5.244523456841528,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-1-goal-2",
+      "start_index": 1,
+      "candidate_id": 10,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        -0.01218672376126051,
+        0.021825244650244713,
+        0.013401714153587818,
+        0.011366763152182102,
+        0.00342685729265213,
+        0.0032513472251594067,
+        -3.560824552550912e-06
+      ],
+      "terminal_position_error_m": 0.2119099413181284,
+      "partial_running_diagnostic": 5.310162841389498,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-1-goal-2",
+      "start_index": 1,
+      "candidate_id": 11,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        -0.016140062361955643,
+        0.0370277538895607,
+        0.015032348223030567,
+        0.011832988820970058,
+        0.0018356548389419913,
+        0.005114076193422079,
+        0.00012875054380856454
+      ],
+      "terminal_position_error_m": 0.20419243034616819,
+      "partial_running_diagnostic": 5.510789351533539,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-1-goal-2",
+      "start_index": 1,
+      "candidate_id": 12,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        -0.0017623562598600984,
+        0.0029165311716496944,
+        -0.016345178708434105,
+        -0.003812954528257251,
+        -0.006427195854485035,
+        -0.0015106849605217576,
+        -0.00014365781680680811
+      ],
+      "terminal_position_error_m": 0.1992542204078888,
+      "partial_running_diagnostic": 5.684036115403765,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-1-goal-2",
+      "start_index": 1,
+      "candidate_id": 13,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        0.04429352283477783,
+        0.003375240368768573,
+        -0.008703839033842087,
+        0.03644595295190811,
+        -0.0008476017392240465,
+        0.00014581695722881705,
+        -3.9137717976700515e-05
+      ],
+      "terminal_position_error_m": 0.20385394418479078,
+      "partial_running_diagnostic": 5.754558661487506,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-1-goal-2",
+      "start_index": 1,
+      "candidate_id": 14,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        0.17018485069274902,
+        -0.17172756791114807,
+        -0.15011748671531677,
+        0.07635959982872009,
+        -0.024430425837635994,
+        0.00444504851475358,
+        9.082132237381302e-06
+      ],
+      "terminal_position_error_m": 0.19995228074720636,
+      "partial_running_diagnostic": 6.478852447810324,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-1-goal-2",
+      "start_index": 1,
+      "candidate_id": 15,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        0.010818027891218662,
+        0.043406423181295395,
+        0.014836307615041733,
+        -0.0475616455078125,
+        0.004849248565733433,
+        0.004337791819125414,
+        -8.574643288739026e-05
+      ],
+      "terminal_position_error_m": 0.22924024225999676,
+      "partial_running_diagnostic": 5.725357054847124,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-1-goal-3",
+      "start_index": 1,
+      "candidate_id": 0,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "terminal_position_error_m": 0.31338004776024575,
+      "partial_running_diagnostic": 12.177674737442528,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-1-goal-3",
+      "start_index": 1,
+      "candidate_id": 1,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        0.009043987840414047,
+        0.0035145189613103867,
+        -0.005455251783132553,
+        -0.005053567234426737,
+        -0.0009194750455208123,
+        -0.00015497076674364507,
+        9.3442695288104e-06
+      ],
+      "terminal_position_error_m": 0.3147288263217916,
+      "partial_running_diagnostic": 12.172684424422457,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-1-goal-3",
+      "start_index": 1,
+      "candidate_id": 2,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        -0.007185822352766991,
+        0.012508606538176537,
+        0.011284326203167439,
+        -0.020282266661524773,
+        0.0005852406029589474,
+        0.000932240451220423,
+        -9.314289491157979e-05
+      ],
+      "terminal_position_error_m": 0.31169870746807954,
+      "partial_running_diagnostic": 12.22512786333323,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-1-goal-3",
+      "start_index": 1,
+      "candidate_id": 3,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        0.001391950761899352,
+        -0.014648103155195713,
+        -0.0009122980991378427,
+        0.009409141726791859,
+        0.000660390651319176,
+        -7.358085713349283e-05,
+        -5.822974708280526e-05
+      ],
+      "terminal_position_error_m": 0.3143894857730602,
+      "partial_running_diagnostic": 12.255350549947725,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-1-goal-3",
+      "start_index": 1,
+      "candidate_id": 4,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        0.0011514963116496801,
+        7.745585025986657e-05,
+        2.8625929189729504e-05,
+        0.006828355137258768,
+        0.00018057387205772102,
+        -0.0003462718450464308,
+        7.471910976164509e-06
+      ],
+      "terminal_position_error_m": 0.31104025977583244,
+      "partial_running_diagnostic": 12.174386755634707,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-1-goal-3",
+      "start_index": 1,
+      "candidate_id": 5,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        0.003133774036541581,
+        -0.02215883880853653,
+        -0.003800296224653721,
+        -0.003441670211032033,
+        0.0001850211847340688,
+        -0.0018839213298633695,
+        3.828178159892559e-05
+      ],
+      "terminal_position_error_m": 0.31112825850110143,
+      "partial_running_diagnostic": 12.17122146696864,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-1-goal-3",
+      "start_index": 1,
+      "candidate_id": 6,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        0.018493764102458954,
+        -0.03707290068268776,
+        -0.013410167768597603,
+        0.009516372345387936,
+        -0.0011626204941421747,
+        -0.0020533562637865543,
+        -5.052694177720696e-06
+      ],
+      "terminal_position_error_m": 0.30522046535871883,
+      "partial_running_diagnostic": 12.37040140337805,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-1-goal-3",
+      "start_index": 1,
+      "candidate_id": 7,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        -0.051204778254032135,
+        -0.005905790254473686,
+        0.018240807577967644,
+        -0.005588276777416468,
+        -0.0006896280101500452,
+        -0.0010958065977320075,
+        -8.957089448813349e-05
+      ],
+      "terminal_position_error_m": 0.3119820309008379,
+      "partial_running_diagnostic": 12.207965757495723,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-1-goal-3",
+      "start_index": 1,
+      "candidate_id": 8,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        0.027305113151669502,
+        -0.005300057586282492,
+        -0.016494562849402428,
+        0.008897211402654648,
+        -0.0018409305484965444,
+        0.002542210975661874,
+        1.3012280760449357e-05
+      ],
+      "terminal_position_error_m": 0.31561695413283486,
+      "partial_running_diagnostic": 12.358837254610144,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-1-goal-3",
+      "start_index": 1,
+      "candidate_id": 9,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        -0.012019066140055656,
+        0.024040885269641876,
+        0.0007876465679146349,
+        -0.005783386528491974,
+        -0.0012093486730009317,
+        0.0014137604739516973,
+        9.261014201911166e-05
+      ],
+      "terminal_position_error_m": 0.31943660850463945,
+      "partial_running_diagnostic": 12.300325767743814,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-1-goal-3",
+      "start_index": 1,
+      "candidate_id": 10,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        -0.01218672376126051,
+        0.021825244650244713,
+        0.013401714153587818,
+        0.011366763152182102,
+        0.00342685729265213,
+        0.0032513472251594067,
+        -3.560824552550912e-06
+      ],
+      "terminal_position_error_m": 0.3237420690332768,
+      "partial_running_diagnostic": 12.350312914237172,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-1-goal-3",
+      "start_index": 1,
+      "candidate_id": 11,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        -0.016140062361955643,
+        0.0370277538895607,
+        0.015032348223030567,
+        0.011832988820970058,
+        0.0018356548389419913,
+        0.005114076193422079,
+        0.00012875054380856454
+      ],
+      "terminal_position_error_m": 0.30680163143037004,
+      "partial_running_diagnostic": 12.547746650281493,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-1-goal-3",
+      "start_index": 1,
+      "candidate_id": 12,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        -0.0017623562598600984,
+        0.0029165311716496944,
+        -0.016345178708434105,
+        -0.003812954528257251,
+        -0.006427195854485035,
+        -0.0015106849605217576,
+        -0.00014365781680680811
+      ],
+      "terminal_position_error_m": 0.30426422389034885,
+      "partial_running_diagnostic": 12.716257887295704,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-1-goal-3",
+      "start_index": 1,
+      "candidate_id": 13,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        0.04429352283477783,
+        0.003375240368768573,
+        -0.008703839033842087,
+        0.03644595295190811,
+        -0.0008476017392240465,
+        0.00014581695722881705,
+        -3.9137717976700515e-05
+      ],
+      "terminal_position_error_m": 0.30966971770458457,
+      "partial_running_diagnostic": 12.749894519202634,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-1-goal-3",
+      "start_index": 1,
+      "candidate_id": 14,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        0.17018485069274902,
+        -0.17172756791114807,
+        -0.15011748671531677,
+        0.07635959982872009,
+        -0.024430425837635994,
+        0.00444504851475358,
+        9.082132237381302e-06
+      ],
+      "terminal_position_error_m": 0.3133212541806526,
+      "partial_running_diagnostic": 13.35201263060117,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    },
+    {
+      "input_id": "start-1-goal-3",
+      "start_index": 1,
+      "candidate_id": 15,
+      "finite": true,
+      "physical_knots_pass": true,
+      "limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "first_control": [
+        0.010818027891218662,
+        0.043406423181295395,
+        0.014836307615041733,
+        -0.0475616455078125,
+        0.004849248565733433,
+        0.004337791819125414,
+        -8.574643288739026e-05
+      ],
+      "terminal_position_error_m": 0.3391851159367072,
+      "partial_running_diagnostic": 12.835939004437833,
+      "objective_scope": "weighted position/velocity/control squared knot sums only; orientation,terminal,bounds,dynamics,dual merit excluded; not native objective",
+      "task_success": null
+    }
+  ],
+  "unqualified": [
+    "collision",
+    "modeled dynamics defect",
+    "betweenknot compliance",
+    "terminal arrival",
+    "closedloop success"
+  ]
+}
