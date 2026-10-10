@@ -1,0 +1,64 @@
+{
+  "status": "scenario estimates, not measured new runtime",
+  "historical_csv": "/workspace/GATO/example_artifacts/results_solver_limits_jetson_c3po_1070/analysis_20260925_three_systems/mpc_stages.csv",
+  "historical_sha256": "628728abe0496020d93d1b9416d2b05170532493dd539c20e5e64c4d956e52ef",
+  "filter": {
+    "run_id": "jetson_n128",
+    "study": "mpc-interval"
+  },
+  "stages": 300,
+  "episodes": 16,
+  "solve_stage_sum_s": 2076.331668738989,
+  "mean_s": 6.921105562463296,
+  "median_s": 9.905284598004073,
+  "maximum_s": 12.40985333599383,
+  "old_settings": "two200-SQP passes; PCG1000; historicalcylinder source/model/task, not newTIAGo setup; no linear effort/N scaling assumed",
+  "scenarios": [
+    {
+      "episodes_per_cell": 24,
+      "calls_per_machine_including64warmups": 30784,
+      "solve_only_hours_for_assumed_mean_s": {
+        "0.01": 0.08551111111111112,
+        "0.1": 0.8551111111111112,
+        "1.0": 8.551111111111112,
+        "6.921105562463296": 59.18314267635281
+      },
+      "storage_assumption": "1MiB per solve event group including all telemetry+128KiB per10-RK4-step update; assumed archival budget, not measured upper bound",
+      "archive_budget_GiB": 33.8203125,
+      "space_with_second_copy_GiB": 67.640625
+    },
+    {
+      "episodes_per_cell": 12,
+      "calls_per_machine_including64warmups": 15424,
+      "solve_only_hours_for_assumed_mean_s": {
+        "0.01": 0.04284444444444445,
+        "0.1": 0.42844444444444446,
+        "1.0": 4.2844444444444445,
+        "6.921105562463296": 29.653092276509412
+      },
+      "storage_assumption": "1MiB per solve event group including all telemetry+128KiB per10-RK4-step update; assumed archival budget, not measured upper bound",
+      "archive_budget_GiB": 16.9453125,
+      "space_with_second_copy_GiB": 33.890625
+    }
+  ],
+  "not_in_solve_estimates": [
+    "four native N-module builds and identity/import/qualification",
+    "64fresh process startup/imports",
+    "1536 or768 fresh episode controller initializations",
+    "ten RK4substeps perupdate",
+    "uncompressed/compressed raw serialization and hash/index creation",
+    "readiness/preflight",
+    "thermal effects and sustained power profile",
+    "copy/upload time"
+  ],
+  "CSV_N_counts": {
+    "64": 300
+  },
+  "CSV_B_counts": {
+    "1": 300
+  },
+  "native_identity_limit": "run_id is a label; N64/B1 are retained CSV/config fields, not established native module identity. Selected rows have blank binary/source hashes. No new historical execution.",
+  "budget_column_meaning": "CSV pcg_iters1000 is configured iteration budget; pcg_cap is an event count, not configured budget; summary config confirms pcg_iters1000.",
+  "historical_summary": "/workspace/GATO/example_artifacts/results_solver_limits_jetson_c3po_1070/jetson_n128/mpc-interval/mpc_task0_clock0.03_cold/summary.json",
+  "historical_summary_sha256": "4f4f8a16cf39ce7ab9ada3ce74ac14d10b99af124798a1508690252de09ff0e7"
+}

@@ -1,0 +1,65 @@
+{
+  "disposition": "Accept frozen CPU input bank and generator/tests for reviewed checkpoint. Held protocol only; not execution release.",
+  "scope": [
+    "experiments/frequency_campaign/freeze_inputs.py",
+    "experiments/frequency_campaign/inputs/*",
+    "tests/python/test_frequency_inputs.py",
+    "Author-controlled README/protocol bank scope updates"
+  ],
+  "excluded": "Native telemetry six-file implementation not reviewed. No controller/solver/native imports, optimizer, IK, plant task, GPU/build/measurement, solver repair, repository edits or commit.",
+  "manifest_sha256": "29f8ccdff73d36c339e50ea7153a46fb6ecd22b32da786b74f16cb9e1a61f609",
+  "source_sha256": {
+    "experiments/frequency_campaign/freeze_inputs.py": "9e1b911888fa6c0588dcada8819a3a4b50783d18dec2c3c61e04013b2b6c300e",
+    "tests/python/test_frequency_inputs.py": "d787fae92895156736daf782944054026f1661157afe660dc39456e7078ffe3f"
+  },
+  "verified_inputs": [
+    "All9 manifest artifacts hash exactly; generator/model/sourceT01/endpoints identities independently checked against current frozen authoritative source inputs by validation.",
+    "starts and warmup state little-endianfloat32; original goals/endpoints/reference arrays little-endianfloat64. All three reference byte hashes match approvedT01geometry; referenceglobalanchor preserved across starts.",
+    "Full24episodes20updates has24cold444warm12switch; short12 is first12episodes using firsttwo0/.05starts with12cold222warm6switch. No categorypooling, successrescue or samplefill.",
+    "Frozen warmupfraction.025 state differs from every episode coldstate and uses originalgoal3; category exclusion/standardguess explicit.",
+    "N16/32/64/128SQP1/2/5/10PCG100/200/400/800,B1,modeA/.03dt/.003plant,publicpresets remain explicit. N128at latestsolve.57s previews to4.38s, inside every frozen reference array.",
+    "Fresh-directory refusal preserves originalbytes. Sourcepreparationfailure retains failureJSON and manifest; any reattempt into same directory refusesoverwrite. Validation rejects independently rehashed schedule,cap,reference,model,witness,andfalse-screen mutations.",
+    "All new starts outside5cm and inside jointposition/velocity limits; below-originalT01.1m starts explicitly separate timing subset. No canonical/fulltask/fulltracking/collision qualification asserted."
+  ],
+  "independent_cpu_witness_audit": {
+    "method": "Loaded frozenURDF directly throughPinocchio3.9.0. Independently computed quintic polynomial with Horner polynomial evaluation and derivative coefficients; recomputed PinocchioRNEA every stored sample and checked actual model-limit margins. No integration/optimizer/native call.",
+    "routes": 15,
+    "samples_per_route": 2668,
+    "total_torque_samples": 40020,
+    "maximum_torque_difference_Nm": 0.0,
+    "maximum_polynomial_difference": 4.6629367034256575e-15,
+    "minimum_sampled_margins": {
+      "q_rad": 0.09346104815949285,
+      "v_rad_s": 2.218750074611438,
+      "u_Nm": 17.397576687026067
+    },
+    "notes": "Initial reviewer 3e-15 polynomial comparison encountered3.1086e-15 discrepancy. This was reviewer-only overlystrict floating-operation equivalence; independent polynomial error fully measured<=4.663e-15 under meaningful1e-12 CPU comparison. No source/protocol/test tolerance changed and no task retry.",
+    "limits": "8s sampled quintic endpoint witnesses only. Switch witnesses start from goal endpoints, not actual shortloop switch state. Do not infer .3s reaches/.6s behavior, tracking transient feasibility, collision clearance, between-sample or acceleration-limit compliance."
+  },
+  "validation": {
+    "command_method": "Fresh python3 process imported test_frequency_inputs.py directly and invoked all12test cases against frozenbank and temporary independent mutation/failure copies; avoided repositorypytestconftest which importsbsqp. Source freshprocess import audit also invoked.",
+    "test_cases_passed": 12,
+    "native_imports": 0,
+    "gpu_calls": 0,
+    "checks": [
+      "full/shortschedulecounts",
+      "exactarrays/globalrefs",
+      "positive sampledwitnessscope",
+      "overwrite refusal",
+      "six independently rehashed mutations rejected",
+      "failed sourceinputpreparation preserved",
+      "freshprocess no native/controller imports"
+    ]
+  },
+  "required_corrections": [],
+  "nonblocking_note": "Validator checks authoritative content/hash/geometry but not every descriptive provenance field. Execution integration must pin the reviewed SHA256SUMS manifest itself and not accept an arbitrary self-rehashed manifest as authority; validate execution-relevant policy/metadata at worker/runner release review.",
+  "remaining_holds": [
+    "Variant selection/Jetson duration discussion",
+    "Implementation and independent timingloop/rawfailure review",
+    "Separate native telemetry correctness/performance comparison review",
+    "Exact build/source/plan hashes and pinnedmanifest dryrun",
+    "Canonical same-machine modeA readiness before F01family measurements"
+  ],
+  "historical_metadata": "Prior design review confirms CSV/configN64B1 under jetson_n128 label; native identity unknown. CPU bank does not adopt historical source/module baseline.",
+  "gpu_calls": 0
+}

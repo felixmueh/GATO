@@ -1,0 +1,437 @@
+{
+  "schema": "held-design-v1",
+  "campaign_id": "F01ab",
+  "release_status": "held frozenCPUbank: sampled dynamic screening complete; independent bank/implementation review and exact plan required; Jetson duration/24vs12 discussion required before execution",
+  "production_core": "16b33719b4f0fd463eec7262c99b16b0b324366f",
+  "source_checkpoint": "12dc7cc",
+  "source_task_input": "experiments/campaign/inputs/t01.json",
+  "source_task_input_sha256": "aec47cfa3819de5adbb8633b637f5bd9bcd327cb3afc5043a856b323af5aac41",
+  "machines": [
+    "gtx1070",
+    "rtx5060",
+    "jetson"
+  ],
+  "backend": "internal",
+  "timing_mode": "A",
+  "offline_timing": "controller_dt",
+  "N": [
+    16,
+    32,
+    64,
+    128
+  ],
+  "max_sqp_iters": [
+    1,
+    2,
+    5,
+    10
+  ],
+  "max_pcg_iters": [
+    100,
+    200,
+    400,
+    800
+  ],
+  "batch_size": 1,
+  "dt_s": 0.03,
+  "sim_dt_s": 0.003,
+  "feedback_s": 0.03,
+  "prediction_duration_s_by_N": {
+    "16": 0.44999999999999996,
+    "32": 0.9299999999999999,
+    "64": 1.89,
+    "128": 3.81
+  },
+  "solver_presets": {
+    "reaching": {
+      "max_sqp_iters": 5,
+      "kkt_tol": 0.001,
+      "max_pcg_iters": 120,
+      "pcg_tol": 0.001,
+      "solve_ratio": 1.0,
+      "mu": 1.0,
+      "q_cost": 4.0,
+      "qd_cost": 0.1,
+      "u_cost": 0.0001,
+      "N_cost": 80.0,
+      "ee_orient_cost": 0.1,
+      "ee_orient_N_cost": 2.0,
+      "q_lim_cost": 0.01,
+      "vel_lim_cost": 0.1,
+      "ctrl_lim_cost": 0.05,
+      "rho": 0.01
+    },
+    "tracking": {
+      "max_sqp_iters": 5,
+      "kkt_tol": 0.001,
+      "max_pcg_iters": 120,
+      "pcg_tol": 0.001,
+      "solve_ratio": 1.0,
+      "mu": 1.0,
+      "q_cost": 4.0,
+      "qd_cost": 0.01,
+      "u_cost": 0.0001,
+      "N_cost": 80.0,
+      "ee_orient_cost": 0.0,
+      "ee_orient_N_cost": 0.0,
+      "q_lim_cost": 0.01,
+      "vel_lim_cost": 0.001,
+      "ctrl_lim_cost": 0.003,
+      "rho": 0.01
+    }
+  },
+  "only_solver_overrides": [
+    "max_sqp_iters",
+    "max_pcg_iters"
+  ],
+  "starts": [
+    {
+      "id": "witness-fraction-0.00",
+      "witness_fraction": 0.0,
+      "initial_state": [
+        -0.38999998569488525,
+        -1.7300000190734863,
+        -0.3799999952316284,
+        -2.3499999046325684,
+        0.0,
+        -1.2100000381469727,
+        0.03999999910593033,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "status": "frozenlittle-endianfloat32; independentFK/jointlimitpass and15 sampled8sRNEAwitnesses positive; bankimplementationreviewpending"
+    },
+    {
+      "id": "witness-fraction-0.05",
+      "witness_fraction": 0.05,
+      "initial_state": [
+        -0.3839999735355377,
+        -1.7100000381469727,
+        -0.3799999952316284,
+        -2.3424999713897705,
+        0.0,
+        -1.2074999809265137,
+        0.03999999910593033,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "status": "frozenlittle-endianfloat32; independentFK/jointlimitpass and15 sampled8sRNEAwitnesses positive; bankimplementationreviewpending"
+    },
+    {
+      "id": "witness-fraction-0.10",
+      "witness_fraction": 0.1,
+      "initial_state": [
+        -0.3779999911785126,
+        -1.690000057220459,
+        -0.3799999952316284,
+        -2.3349997997283936,
+        0.0,
+        -1.2050000429153442,
+        0.03999999910593033,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "status": "frozenlittle-endianfloat32; independentFK/jointlimitpass and15 sampled8sRNEAwitnesses positive; bankimplementationreviewpending"
+    },
+    {
+      "id": "witness-fraction-0.15",
+      "witness_fraction": 0.15,
+      "initial_state": [
+        -0.37199997901916504,
+        -1.6700000762939453,
+        -0.3799999952316284,
+        -2.3274998664855957,
+        0.0,
+        -1.2024999856948853,
+        0.03999999910593033,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "status": "frozenlittle-endianfloat32; independentFK/jointlimitpass and15 sampled8sRNEAwitnesses positive; bankimplementationreviewpending"
+    }
+  ],
+  "episodes": [
+    {
+      "id": "witness-fraction-0.00-goal-1",
+      "kind": "reaching",
+      "start_id": "witness-fraction-0.00",
+      "goal_task_ids": [
+        "goal-1",
+        "goal-2"
+      ],
+      "goal_switch_before_update": 10,
+      "updates": 20
+    },
+    {
+      "id": "witness-fraction-0.00-goal-2",
+      "kind": "reaching",
+      "start_id": "witness-fraction-0.00",
+      "goal_task_ids": [
+        "goal-2",
+        "goal-3"
+      ],
+      "goal_switch_before_update": 10,
+      "updates": 20
+    },
+    {
+      "id": "witness-fraction-0.00-goal-3",
+      "kind": "reaching",
+      "start_id": "witness-fraction-0.00",
+      "goal_task_ids": [
+        "goal-3",
+        "goal-1"
+      ],
+      "goal_switch_before_update": 10,
+      "updates": 20
+    },
+    {
+      "id": "witness-fraction-0.00-figure8-24s",
+      "kind": "tracking",
+      "start_id": "witness-fraction-0.00",
+      "source_task_id": "figure8-24s",
+      "reference_origin_s": 0.0,
+      "updates": 20
+    },
+    {
+      "id": "witness-fraction-0.00-figure8-18s",
+      "kind": "tracking",
+      "start_id": "witness-fraction-0.00",
+      "source_task_id": "figure8-18s",
+      "reference_origin_s": 0.0,
+      "updates": 20
+    },
+    {
+      "id": "witness-fraction-0.00-figure8-12s",
+      "kind": "tracking",
+      "start_id": "witness-fraction-0.00",
+      "source_task_id": "figure8-12s",
+      "reference_origin_s": 0.0,
+      "updates": 20
+    },
+    {
+      "id": "witness-fraction-0.05-goal-1",
+      "kind": "reaching",
+      "start_id": "witness-fraction-0.05",
+      "goal_task_ids": [
+        "goal-1",
+        "goal-2"
+      ],
+      "goal_switch_before_update": 10,
+      "updates": 20
+    },
+    {
+      "id": "witness-fraction-0.05-goal-2",
+      "kind": "reaching",
+      "start_id": "witness-fraction-0.05",
+      "goal_task_ids": [
+        "goal-2",
+        "goal-3"
+      ],
+      "goal_switch_before_update": 10,
+      "updates": 20
+    },
+    {
+      "id": "witness-fraction-0.05-goal-3",
+      "kind": "reaching",
+      "start_id": "witness-fraction-0.05",
+      "goal_task_ids": [
+        "goal-3",
+        "goal-1"
+      ],
+      "goal_switch_before_update": 10,
+      "updates": 20
+    },
+    {
+      "id": "witness-fraction-0.05-figure8-24s",
+      "kind": "tracking",
+      "start_id": "witness-fraction-0.05",
+      "source_task_id": "figure8-24s",
+      "reference_origin_s": 0.0,
+      "updates": 20
+    },
+    {
+      "id": "witness-fraction-0.05-figure8-18s",
+      "kind": "tracking",
+      "start_id": "witness-fraction-0.05",
+      "source_task_id": "figure8-18s",
+      "reference_origin_s": 0.0,
+      "updates": 20
+    },
+    {
+      "id": "witness-fraction-0.05-figure8-12s",
+      "kind": "tracking",
+      "start_id": "witness-fraction-0.05",
+      "source_task_id": "figure8-12s",
+      "reference_origin_s": 0.0,
+      "updates": 20
+    },
+    {
+      "id": "witness-fraction-0.10-goal-1",
+      "kind": "reaching",
+      "start_id": "witness-fraction-0.10",
+      "goal_task_ids": [
+        "goal-1",
+        "goal-2"
+      ],
+      "goal_switch_before_update": 10,
+      "updates": 20
+    },
+    {
+      "id": "witness-fraction-0.10-goal-2",
+      "kind": "reaching",
+      "start_id": "witness-fraction-0.10",
+      "goal_task_ids": [
+        "goal-2",
+        "goal-3"
+      ],
+      "goal_switch_before_update": 10,
+      "updates": 20
+    },
+    {
+      "id": "witness-fraction-0.10-goal-3",
+      "kind": "reaching",
+      "start_id": "witness-fraction-0.10",
+      "goal_task_ids": [
+        "goal-3",
+        "goal-1"
+      ],
+      "goal_switch_before_update": 10,
+      "updates": 20
+    },
+    {
+      "id": "witness-fraction-0.10-figure8-24s",
+      "kind": "tracking",
+      "start_id": "witness-fraction-0.10",
+      "source_task_id": "figure8-24s",
+      "reference_origin_s": 0.0,
+      "updates": 20
+    },
+    {
+      "id": "witness-fraction-0.10-figure8-18s",
+      "kind": "tracking",
+      "start_id": "witness-fraction-0.10",
+      "source_task_id": "figure8-18s",
+      "reference_origin_s": 0.0,
+      "updates": 20
+    },
+    {
+      "id": "witness-fraction-0.10-figure8-12s",
+      "kind": "tracking",
+      "start_id": "witness-fraction-0.10",
+      "source_task_id": "figure8-12s",
+      "reference_origin_s": 0.0,
+      "updates": 20
+    },
+    {
+      "id": "witness-fraction-0.15-goal-1",
+      "kind": "reaching",
+      "start_id": "witness-fraction-0.15",
+      "goal_task_ids": [
+        "goal-1",
+        "goal-2"
+      ],
+      "goal_switch_before_update": 10,
+      "updates": 20
+    },
+    {
+      "id": "witness-fraction-0.15-goal-2",
+      "kind": "reaching",
+      "start_id": "witness-fraction-0.15",
+      "goal_task_ids": [
+        "goal-2",
+        "goal-3"
+      ],
+      "goal_switch_before_update": 10,
+      "updates": 20
+    },
+    {
+      "id": "witness-fraction-0.15-goal-3",
+      "kind": "reaching",
+      "start_id": "witness-fraction-0.15",
+      "goal_task_ids": [
+        "goal-3",
+        "goal-1"
+      ],
+      "goal_switch_before_update": 10,
+      "updates": 20
+    },
+    {
+      "id": "witness-fraction-0.15-figure8-24s",
+      "kind": "tracking",
+      "start_id": "witness-fraction-0.15",
+      "source_task_id": "figure8-24s",
+      "reference_origin_s": 0.0,
+      "updates": 20
+    },
+    {
+      "id": "witness-fraction-0.15-figure8-18s",
+      "kind": "tracking",
+      "start_id": "witness-fraction-0.15",
+      "source_task_id": "figure8-18s",
+      "reference_origin_s": 0.0,
+      "updates": 20
+    },
+    {
+      "id": "witness-fraction-0.15-figure8-12s",
+      "kind": "tracking",
+      "start_id": "witness-fraction-0.15",
+      "source_task_id": "figure8-12s",
+      "reference_origin_s": 0.0,
+      "updates": 20
+    }
+  ],
+  "counts_per_cell_if_no_execution_failure": {
+    "episodes": 24,
+    "cold": 24,
+    "warm": 444,
+    "goal_switch": 12,
+    "measured_calls": 480,
+    "unrelated_process_cuda_warmup": 1
+  },
+  "process_policy": "one fresh process per cell; one unrelated warmup then fresh controller/solver state per episode; no extra repeats",
+  "stopping_proposal": "20 fixed updates per episode; reaching success observed each RK4/feedback check but does not stop or advance goal; switch after10updates; nonfinite plant/exception failure terminates episode and holds cell/family pending root review; missing slots retained without replacements",
+  "shorter_option": "12episodes using firsttwo serializedstarts fractions0/.05, exact subset of maximal24bank; same20updates/all64cells/machine;12cold/222warm/6switch. Concrete Jetson coverage/runtime discussion required; identical selecteddesign on all3machines.",
+  "approved_T01_scope": "Exact approved goals/periods and public presets reused; .6s windows/four starts define new F01timing subset. New starts are outside5cm but three are below original T01 .1m minimum; no T01/canonical task qualification.",
+  "known_limitations": [
+    "SB-001: retained P01 goal1 failure; no cause claim",
+    "SB-002: retained static lambda/q/r finiteness failure; no full KKT certificate",
+    "Q02: original frozen h=.004 derivative protocol remains FAILED2/560; saved-input independent CPU same-coarse-step FD reproduces both negatives while native analytic versus finer references is much closer (~4e-4/~3.6e-5 max); native-vs-independent and scalar/batch subchecks pass; bounded method-negative explanation, no full model/KKT certificate, no rerun/tolerance change"
+  ],
+  "campaign_name": "F01ab-.6s-fixed-slot-timing-subset-four-starts",
+  "native_stop_reason": null,
+  "native_breakdown": null,
+  "unmeasured": {
+    "native_stop_reason": "current public native API does not report an explicit reason; exact available stats retained",
+    "native_breakdown": "current public native API reports no explicit breakdown field/mechanism; cannot infer cause from KKT flag or cap counts"
+  },
+  "frozen_input_bank": {
+    "path": "experiments/frequency_campaign/inputs",
+    "manifest_sha256": "29f8ccdff73d36c339e50ea7153a46fb6ecd22b32da786b74f16cb9e1a61f609",
+    "screening_sha256": "77da5956c8ed72839340e7612319ae422888983c9e06ac247983d651962fd3df",
+    "variants": [
+      "full24",
+      "short12"
+    ],
+    "selection": "held pending root Jetson coverage/runtime discussion"
+  }
+}

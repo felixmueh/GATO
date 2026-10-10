@@ -1,0 +1,13 @@
+{
+  "source_commit": "12dc7ccdc6acf700235e5cd35cf2ed09328b7962",
+  "production_core": "16b33719b4f0fd463eec7262c99b16b0b324366f",
+  "source_sha256": {
+    "experiments/campaign/inputs/t01.json": "aec47cfa3819de5adbb8633b637f5bd9bcd327cb3afc5043a856b323af5aac41",
+    "experiments/campaign/inputs/t01_proposal.json": "48728c3e4ea9c3b67f4202ebda7ea943811d9c6cd904c32f75616326fc80bbe9",
+    "gato/dynamics/tiago_right/tiago_right_arm.urdf": "8e1fd973a1d1c3fbddd55039e6eb17b355ebb29f46e1bd8c774b7879c2cdc5bb"
+  },
+  "generator_sha256": "9e1b911888fa6c0588dcada8819a3a4b50783d18dec2c3c61e04013b2b6c300e",
+  "generator_command": "python3 experiments/frequency_campaign/freeze_inputs.py --output <fresh-directory>",
+  "cpu_only": true,
+  "gpu_calls": 0
+}

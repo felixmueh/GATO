@@ -1,0 +1,208 @@
+{
+  "scope": "CPU sampled8s quintic/RNEA witnesses only; not optimizer seeds or executed prefixes",
+  "start_goal_distance_m": [
+    [
+      0.10063625507645003,
+      0.20793349686944923,
+      0.31705193058841824
+    ],
+    [
+      0.09595850183509548,
+      0.20363606207340976,
+      0.3133800691001044
+    ],
+    [
+      0.09124028043462878,
+      0.19928643756831874,
+      0.30964603515385836
+    ],
+    [
+      0.08648208816195885,
+      0.19488498768461965,
+      0.3058500149691159
+    ]
+  ],
+  "all_starts_outside5cm": true,
+  "all_start_q_qd_limits_pass": true,
+  "full_T01_minimum_initial_distance_m": 0.1,
+  "qualifies_T01_or_canonical": false,
+  "routes": [
+    {
+      "id": "start_0_goal_0",
+      "positive_sampled_margins": true,
+      "margins": {
+        "q_rad": 0.09346104815949285,
+        "v_rad_s": 2.406250021890248,
+        "u_Nm": 17.397576687026067
+      },
+      "necessary_velocity_time_bound_s": 0.1600000076293945,
+      "duration_s": 8.0
+    },
+    {
+      "id": "start_0_goal_1",
+      "positive_sampled_margins": true,
+      "margins": {
+        "q_rad": 0.09346104815949285,
+        "v_rad_s": 2.312500048250843,
+        "u_Nm": 17.397576687026067
+      },
+      "necessary_velocity_time_bound_s": 0.32000000762939457,
+      "duration_s": 8.0
+    },
+    {
+      "id": "start_0_goal_2",
+      "positive_sampled_margins": true,
+      "margins": {
+        "q_rad": 0.09346104815949285,
+        "v_rad_s": 2.218750074611438,
+        "u_Nm": 17.397576687026067
+      },
+      "necessary_velocity_time_bound_s": 0.4800000076293946,
+      "duration_s": 8.0
+    },
+    {
+      "id": "start_1_goal_0",
+      "positive_sampled_margins": true,
+      "margins": {
+        "q_rad": 0.1009609814022907,
+        "v_rad_s": 2.410937516101871,
+        "u_Nm": 17.40732574268643
+      },
+      "necessary_velocity_time_bound_s": 0.15200001525878903,
+      "duration_s": 8.0
+    },
+    {
+      "id": "start_1_goal_1",
+      "positive_sampled_margins": true,
+      "margins": {
+        "q_rad": 0.1009609814022907,
+        "v_rad_s": 2.317187542462466,
+        "u_Nm": 17.40732574268643
+      },
+      "necessary_velocity_time_bound_s": 0.31200001525878907,
+      "duration_s": 8.0
+    },
+    {
+      "id": "start_1_goal_2",
+      "positive_sampled_margins": true,
+      "margins": {
+        "q_rad": 0.1009609814022907,
+        "v_rad_s": 2.223437568823061,
+        "u_Nm": 17.40732574268643
+      },
+      "necessary_velocity_time_bound_s": 0.47200001525878915,
+      "duration_s": 8.0
+    },
+    {
+      "id": "start_2_goal_0",
+      "positive_sampled_margins": true,
+      "margins": {
+        "q_rad": 0.10846115306366766,
+        "v_rad_s": 2.4156250103134944,
+        "u_Nm": 17.4186894403846
+      },
+      "necessary_velocity_time_bound_s": 0.14400002288818356,
+      "duration_s": 8.0
+    },
+    {
+      "id": "start_2_goal_1",
+      "positive_sampled_margins": true,
+      "margins": {
+        "q_rad": 0.10846115306366766,
+        "v_rad_s": 2.321875036674089,
+        "u_Nm": 17.4186894403846
+      },
+      "necessary_velocity_time_bound_s": 0.3040000228881836,
+      "duration_s": 8.0
+    },
+    {
+      "id": "start_2_goal_2",
+      "positive_sampled_margins": true,
+      "margins": {
+        "q_rad": 0.10846115306366766,
+        "v_rad_s": 2.228125063034684,
+        "u_Nm": 17.4186894403846
+      },
+      "necessary_velocity_time_bound_s": 0.46400002288818365,
+      "duration_s": 8.0
+    },
+    {
+      "id": "start_3_goal_0",
+      "positive_sampled_margins": true,
+      "margins": {
+        "q_rad": 0.11596108630646551,
+        "v_rad_s": 2.4203125045251173,
+        "u_Nm": 17.431671057752528
+      },
+      "necessary_velocity_time_bound_s": 0.13600003051757809,
+      "duration_s": 8.0
+    },
+    {
+      "id": "start_3_goal_1",
+      "positive_sampled_margins": true,
+      "margins": {
+        "q_rad": 0.11596108630646551,
+        "v_rad_s": 2.3265625308857123,
+        "u_Nm": 17.431671057752528
+      },
+      "necessary_velocity_time_bound_s": 0.29600003051757817,
+      "duration_s": 8.0
+    },
+    {
+      "id": "start_3_goal_2",
+      "positive_sampled_margins": true,
+      "margins": {
+        "q_rad": 0.11596108630646551,
+        "v_rad_s": 2.2328125572463073,
+        "u_Nm": 17.431671057752528
+      },
+      "necessary_velocity_time_bound_s": 0.4560000305175782,
+      "duration_s": 8.0
+    },
+    {
+      "id": "switch_goal_0_to_1",
+      "positive_sampled_margins": true,
+      "margins": {
+        "q_rad": 0.24346095279206104,
+        "v_rad_s": 2.406250026360595,
+        "u_Nm": 17.90056445958532
+      },
+      "necessary_velocity_time_bound_s": 0.16000000000000006,
+      "duration_s": 8.0
+    },
+    {
+      "id": "switch_goal_1_to_2",
+      "positive_sampled_margins": true,
+      "margins": {
+        "q_rad": 0.39346095279206095,
+        "v_rad_s": 2.406250026360595,
+        "u_Nm": 19.032419604182557
+      },
+      "necessary_velocity_time_bound_s": 0.16000000000000006,
+      "duration_s": 8.0
+    },
+    {
+      "id": "switch_goal_2_to_0",
+      "positive_sampled_margins": true,
+      "margins": {
+        "q_rad": 0.24346095279206104,
+        "v_rad_s": 2.31250005272119,
+        "u_Nm": 17.90055547119899
+      },
+      "necessary_velocity_time_bound_s": 0.3200000000000001,
+      "duration_s": 8.0
+    }
+  ],
+  "sample_count": 2668,
+  "maximum_sample_step_s": 0.0029996250468693475,
+  "all_routes_pass": true,
+  "unqualified": [
+    "collision",
+    "acceleration-limit compliance (no model acceleration bound)",
+    "between-sample compliance",
+    "tracking transient/dynamic feasibility",
+    "short .3s/.6s closed-loop performance"
+  ],
+  "numpy_version": "2.2.6",
+  "pinocchio_version": "3.9.0"
+}
