@@ -1,0 +1,16 @@
+{
+  "experiments/campaign/README.md": "25813be1567b20e1f3a43a63280cd6f30665220695c2317fa6b2469493d097e7",
+  "experiments/campaign/build_isolated.py": "961004880e8d7ff23faa568283652057bd8ea7f2ab9cc0a9d5ec00a32d107907",
+  "experiments/campaign/cpu_validation.json": "fec0eb9cf0bba386aee820ad355fcd148dd6e68edf568af0b7888e098a83d930",
+  "experiments/campaign/evaluate.py": "871fb16d5f6541d0a0099b521269ff77e5d6bfc99d788a8add5164ff5e1e1377",
+  "experiments/campaign/input_hashes.json": "d2c093140f1ab9a9f9fea9c10f775afe36b2abb9211b4dbef063bc19b2bb76ad",
+  "experiments/campaign/inputs/t01_proposal.json": "48728c3e4ea9c3b67f4202ebda7ea943811d9c6cd904c32f75616326fc80bbe9",
+  "experiments/campaign/inputs/t01_witness.npz": "ec53a3b71feb81d54dc0ff469be000f40d6daa09cff7814153d9472468a9577c",
+  "experiments/campaign/inputs/v01.json": "20920040853786cf3d96f13ba240f82918a9f0f5020270fbe67715666477cc81",
+  "experiments/campaign/make_plan.py": "1011a7beda4cb594db11e28cc8c3695bdc4b855bb92f3f1d9bf9ea78db2151a5",
+  "experiments/campaign/planning_estimates.json": "ed9c80aec16bf6bd44525bc550c8e3b4568c78750938f05a594be437d4b1e45e",
+  "experiments/campaign/propose_t01.py": "78cd5c9c21846204650d052b391729dca88de8dc90973e9c71c56caed84041df",
+  "experiments/campaign/raw.py": "5c8bbcbe02f060bacdde4ab8294965040204ca95b4c00bb3f45ef1c28235ed17",
+  "experiments/campaign/run_v01.py": "3a1e77a6ed7a49df6248950dcbe57471486876b0b09131092d92af9793c9c71f",
+  "tests/python/test_campaign_harness.py": "8311fba9bbb75f59af3590276d50acf6a5dec27109aa9631196c585fc944b589"
+}

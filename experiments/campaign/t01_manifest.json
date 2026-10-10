@@ -1,0 +1,18 @@
+{
+  "experiments/campaign/run_t01.py": "28347b6a4fd1bfc9681cceb962eea569962107c6b257f83a5135a818447ac83f",
+  "experiments/campaign/t01_protocol.py": "4585d4aaf1508fde7e56d6320802813120efaf3651b7517048851fa7b2420288",
+  "experiments/campaign/raw.py": "5c8bbcbe02f060bacdde4ab8294965040204ca95b4c00bb3f45ef1c28235ed17",
+  "experiments/campaign/evaluate.py": "871fb16d5f6541d0a0099b521269ff77e5d6bfc99d788a8add5164ff5e1e1377",
+  "experiments/campaign/make_task_plan.py": "ff6ff26c6c9a649ba6cbac8bd5fc7c66f4b9457de7a80f76dff4359dd0fd0c8f",
+  "experiments/campaign/build_isolated.py": "961004880e8d7ff23faa568283652057bd8ea7f2ab9cc0a9d5ec00a32d107907",
+  "experiments/campaign/inputs/t01.json": "aec47cfa3819de5adbb8633b637f5bd9bcd327cb3afc5043a856b323af5aac41",
+  "experiments/campaign/inputs/t01_1ms.json": "e53204dc01f5e65ca22757b11fdbbdd7db20ae5a611e6a50eab54559051586c5",
+  "experiments/campaign/inputs/v01_1ms.json": "6b8a119d5f0b1c85c0e4d7faffaced98c5c3762b8a521cc07b9d909f2dac4483",
+  "experiments/campaign/README.md": "62bdfa41156ad3c8b2da038400e6fe8f94067feaabd842a900454eceddadf6e0",
+  "tests/python/test_t01_harness.py": "5b67243d366f58784ff491516a927a3f93a5fbd6473d3bbcb62ae17397c91b80",
+  "experiments/campaign/t01_cpu_validation.json": "387b509a1613de98325254c8fc00b600e1201eea1c0fe90b7d8cb124f5b86020",
+  "experiments/campaign/run_v01.py": "93e3cd99120643e86399e53944dc7af30a4e659f06678aba6ad88a198b24cc1a",
+  "experiments/campaign/make_plan.py": "ee7e1e66c5686aa32d95f8b4ff0f80dc5bfe5df3e4d552a2a801945fc38456f2",
+  "tests/python/test_campaign_harness.py": "1ca576f6e2fa905a53823fe132ce9f0e932c36d1490e342aaf7722b161b2d26d",
+  "experiments/campaign/a_metadata_correction.json": "bc29d52f1f2b6530a5e42dc6736d3d5294a51594a61fea7c53bf43b9a2713722"
+}

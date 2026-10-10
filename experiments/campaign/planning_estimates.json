@@ -1,0 +1,155 @@
+{
+  "status": "unmeasured planning estimates; not permission to execute",
+  "V01_ready": "desktop release protocol prepared after accepted trueB103CPU/original-modeMake3/3 saved-array audit; final release review/checkpoint/exactplan dryrun before root measurement; Q02overallFAILED retained",
+  "T01_ready": "separate task_harness worker/protocol release and matching canonical V01 preflight remain required; approved3ms-first and distinct conditional1ms cohorts; provisional gates frozen for simulation-result review beforeD01/D02; Jetson discussion/repeats remain required",
+  "assumptions": [
+    "V01 worst simulated8s, not predicted completion time; T01 three8s goals plus24/18/12s tracking=78s per full proposed set",
+    "B solve/update count depends on actual solve wall duration, never inferred from nominal30ms feedback",
+    "Scenarios assume constant feedback wall time, true old-plan-during-current-solve convention, ignore startup and terminal edge effects and include entire durations",
+    "Allow60kB per solve for started/completed/selected/activated-or-discarded events plus final snapshots and telemetry,5kB per plant step for paired NPZ/JSONL events; actual compression/data and filesystem IO are unmeasured",
+    "One record event IO/compression cost1\u20135ms is an unmeasured planning scenario; final snapshots/imports/build/Pinocchio RK4/native telemetry access/thermal conditions may add time",
+    "Small intervals produce a plant step at each update; larger intervals requireceil(interval/3ms) steps, plus possible knot cuts; storage can exceed scenarios if solves are faster or telemetry larger",
+    "T01 raw storage/runtime assumes new shared raw tracking instrumentation, not a released T01 worker or completed task evidence",
+    "Current recorder emits up to4 solve events plus1 interval event per update,2 step events per plant step, and final snapshots; event-count/runtime estimates use5*solves+2*steps+1; samples and IO costs remain unmeasured"
+  ],
+  "required_measurement_before_Jetson": "Root-owned desktop V01 must measure actual wall/native solve distribution, elapsed recorder/process time and raw bytes/event counts after implementation/review/validation of approved old-plan clock; inspect retained Jetson bottlenecks, then discuss estimated duration/storage and shorter protocol with Felix before execution",
+  "retained_Jetson_context": "Prior N128/200-SQP/two-pass/PCG1000 protocol had2076.33s cumulative stage solve wall in300 stages over16 episodes; mean6.921s, median9.905s, max12.410s. DifferentN32/5-SQP public V01 is not predicted from it.",
+  "scenarios": [
+    {
+      "assumed_wall_solve_ms": 0.8,
+      "measurement_status": "unmeasured scenario, not hardware prediction",
+      "V01_maximum": {
+        "nominal_simulated_task_budget_s": 8.0,
+        "estimated_solves": 10000,
+        "estimated_steps": 10000,
+        "estimated_event_files": 70001,
+        "estimated_raw_storage_MB": 650.0,
+        "estimated_recorder_wall_s_range_assuming_1_to_5_ms_per_event": [
+          70.0,
+          350.0
+        ],
+        "estimated_process_wall_s_range_excluding_imports_build_RK4": [
+          78.0,
+          358.0
+        ]
+      },
+      "T01_proposed_all_tasks": {
+        "nominal_simulated_task_budget_s": 78.0,
+        "estimated_solves": 97500,
+        "estimated_steps": 97500,
+        "estimated_event_files": 682501,
+        "estimated_raw_storage_MB": 6337.5,
+        "estimated_recorder_wall_s_range_assuming_1_to_5_ms_per_event": [
+          682.5,
+          3412.5
+        ],
+        "estimated_process_wall_s_range_excluding_imports_build_RK4": [
+          760.5,
+          3490.5
+        ]
+      }
+    },
+    {
+      "assumed_wall_solve_ms": 2.0,
+      "measurement_status": "unmeasured scenario, not hardware prediction",
+      "V01_maximum": {
+        "nominal_simulated_task_budget_s": 8.0,
+        "estimated_solves": 4000,
+        "estimated_steps": 4000,
+        "estimated_event_files": 28001,
+        "estimated_raw_storage_MB": 260.0,
+        "estimated_recorder_wall_s_range_assuming_1_to_5_ms_per_event": [
+          28.0,
+          140.0
+        ],
+        "estimated_process_wall_s_range_excluding_imports_build_RK4": [
+          36.0,
+          148.0
+        ]
+      },
+      "T01_proposed_all_tasks": {
+        "nominal_simulated_task_budget_s": 78.0,
+        "estimated_solves": 39000,
+        "estimated_steps": 39000,
+        "estimated_event_files": 273001,
+        "estimated_raw_storage_MB": 2535.0,
+        "estimated_recorder_wall_s_range_assuming_1_to_5_ms_per_event": [
+          273.0,
+          1365.0
+        ],
+        "estimated_process_wall_s_range_excluding_imports_build_RK4": [
+          351.0,
+          1443.0
+        ]
+      }
+    },
+    {
+      "assumed_wall_solve_ms": 10.0,
+      "measurement_status": "unmeasured scenario, not hardware prediction",
+      "V01_maximum": {
+        "nominal_simulated_task_budget_s": 8.0,
+        "estimated_solves": 800,
+        "estimated_steps": 3200,
+        "estimated_event_files": 10401,
+        "estimated_raw_storage_MB": 64.0,
+        "estimated_recorder_wall_s_range_assuming_1_to_5_ms_per_event": [
+          10.4,
+          52.0
+        ],
+        "estimated_process_wall_s_range_excluding_imports_build_RK4": [
+          18.4,
+          60.0
+        ]
+      },
+      "T01_proposed_all_tasks": {
+        "nominal_simulated_task_budget_s": 78.0,
+        "estimated_solves": 7800,
+        "estimated_steps": 31200,
+        "estimated_event_files": 101401,
+        "estimated_raw_storage_MB": 624.0,
+        "estimated_recorder_wall_s_range_assuming_1_to_5_ms_per_event": [
+          101.4,
+          507.0
+        ],
+        "estimated_process_wall_s_range_excluding_imports_build_RK4": [
+          179.4,
+          585.0
+        ]
+      }
+    },
+    {
+      "assumed_wall_solve_ms": 30.0,
+      "measurement_status": "unmeasured scenario, not hardware prediction",
+      "V01_maximum": {
+        "nominal_simulated_task_budget_s": 8.0,
+        "estimated_solves": 267,
+        "estimated_steps": 2670,
+        "estimated_event_files": 6676,
+        "estimated_raw_storage_MB": 29.4,
+        "estimated_recorder_wall_s_range_assuming_1_to_5_ms_per_event": [
+          6.7,
+          33.4
+        ],
+        "estimated_process_wall_s_range_excluding_imports_build_RK4": [
+          14.7,
+          41.4
+        ]
+      },
+      "T01_proposed_all_tasks": {
+        "nominal_simulated_task_budget_s": 78.0,
+        "estimated_solves": 2600,
+        "estimated_steps": 26000,
+        "estimated_event_files": 65001,
+        "estimated_raw_storage_MB": 286.0,
+        "estimated_recorder_wall_s_range_assuming_1_to_5_ms_per_event": [
+          65.0,
+          325.0
+        ],
+        "estimated_process_wall_s_range_excluding_imports_build_RK4": [
+          143.0,
+          403.0
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,148 @@
+{
+  "review_date_UTC": "2026-10-10",
+  "reviewer": "independent delegated reviewer",
+  "scope": "Static harness/protocol/evaluator/recording/build-isolation/plan/T01-screen review; CPU tests, temporary committed archives and runner dry-run only. No native build, GPU solver construction/solve, V01/T01 task execution or edits outside this receipt.",
+  "production_core": "16b33719b4f0fd463eec7262c99b16b0b324366f",
+  "actual_source_head": "9b69fd605bad87cabffcd0d9af4f7c9135b0a271",
+  "acceptance": "V01desktopreleasepreparation ACCEPTED after38CPU/source/evidenceguardreview; coordinator must commit exactreviewedbytes andrecordexplicitplan dryrun beforeonefixed1070/5060internalBattempt. NoBtask success claim.",
+  "final_batch_manifest_sha256": "5ad6b66cf703937a73309a90cad21d6da1f78afaf8a4a8c66f0f2f0eafbfa2ee",
+  "all_14_manifest_hashes_match": true,
+  "reviewed_file_sha256": {
+    "experiments/campaign/README.md": "25813be1567b20e1f3a43a63280cd6f30665220695c2317fa6b2469493d097e7",
+    "experiments/campaign/build_isolated.py": "961004880e8d7ff23faa568283652057bd8ea7f2ab9cc0a9d5ec00a32d107907",
+    "experiments/campaign/cpu_validation.json": "fec0eb9cf0bba386aee820ad355fcd148dd6e68edf568af0b7888e098a83d930",
+    "experiments/campaign/evaluate.py": "871fb16d5f6541d0a0099b521269ff77e5d6bfc99d788a8add5164ff5e1e1377",
+    "experiments/campaign/input_hashes.json": "d2c093140f1ab9a9f9fea9c10f775afe36b2abb9211b4dbef063bc19b2bb76ad",
+    "experiments/campaign/inputs/t01_proposal.json": "48728c3e4ea9c3b67f4202ebda7ea943811d9c6cd904c32f75616326fc80bbe9",
+    "experiments/campaign/inputs/t01_witness.npz": "ec53a3b71feb81d54dc0ff469be000f40d6daa09cff7814153d9472468a9577c",
+    "experiments/campaign/inputs/v01.json": "20920040853786cf3d96f13ba240f82918a9f0f5020270fbe67715666477cc81",
+    "experiments/campaign/make_plan.py": "1011a7beda4cb594db11e28cc8c3695bdc4b855bb92f3f1d9bf9ea78db2151a5",
+    "experiments/campaign/planning_estimates.json": "ed9c80aec16bf6bd44525bc550c8e3b4568c78750938f05a594be437d4b1e45e",
+    "experiments/campaign/propose_t01.py": "78cd5c9c21846204650d052b391729dca88de8dc90973e9c71c56caed84041df",
+    "experiments/campaign/raw.py": "5c8bbcbe02f060bacdde4ab8294965040204ca95b4c00bb3f45ef1c28235ed17",
+    "experiments/campaign/run_v01.py": "3a1e77a6ed7a49df6248950dcbe57471486876b0b09131092d92af9793c9c71f",
+    "tests/python/test_campaign_harness.py": "8311fba9bbb75f59af3590276d50acf6a5dec27109aa9631196c585fc944b589"
+  },
+  "initial_review": {
+    "CPU_result": "11 passed; one existing hppfcl-to-coal import warning",
+    "preserved_implementation_findings": [
+      "prepare rejected an existing campaign-source, blocking runner failed-build retry and stale-artifact rebuild for the same identity",
+      "direct run_v01 worker lacked a frozen release-status guard",
+      "documentation incorrectly required prior Felix tracking-gate approval"
+    ],
+    "temporary_review_root": "/tmp/gato-harness-review-k0u3cl5q",
+    "evidence_scope": "CPU preparation failures, not scientific task failures or GPU outcomes"
+  },
+  "corrected_review": {
+    "independent_CPU_command": "PYTHONDONTWRITEBYTECODE=1 /opt/gato-venv/bin/python3 -m pytest -q -p no:cacheprovider tests/python/test_campaign_harness.py",
+    "independent_CPU_result": "14 passed; one existing hppfcl-to-coal import warning;0.50s",
+    "temporary_review_root": "/tmp/gato-harness-corrected-review-kydbop2w",
+    "corrected_blockers": [
+      "Archive prepare is idempotent after validating commit/archive identity and every archived source byte; source drift fails with evidence preserved",
+      "Interrupted extraction is retained before same-commit reconstruction",
+      "Failed configure/build attempts, old module bytes/receipts and diagnostics are preserved; subsequent clean-first forces stale artifact rebuild",
+      "Direct worker now rejects held release_status before dependency/native/controller work and output creation",
+      "Tracking gates are agent-frozen proposals; Felix reviews simulation results before D01/D02 rather than giving an extra prior gate approval"
+    ],
+    "corrected_tests": "Synthetic failed-configure/retry/stale-artifact rebuild; interrupted extraction; source drift; held direct-worker rejection; released synthetic worker partial/nonfinite events and late lane selection; task/physical separation; exact input hashes and plan pinning",
+    "archive_real_current_HEAD_reuse_pass": true,
+    "archive_cached_source_status_unchanged": true,
+    "held_direct_worker_rejected_with_no_output": true,
+    "held_plan_enable_rejected": true
+  },
+  "V01": {
+    "protocol_sha256": "20920040853786cf3d96f13ba240f82918a9f0f5020270fbe67715666477cc81",
+    "canonical_parameters": "N32/.03s knots and nominal feedback/.003s maximum plant/8s/.05m/30deg/speedL1<=1/zero dwell/orientation on/final approach off;B1",
+    "effective_settings": "Reaching preset qd=.1/vel-limit=.1 plus public pose CLI orientation=.1/2 and control-limit=.05;SQP5/PCG120;remaining frozen effective public weights match sources.",
+    "variant_provenance": "Exact original short fixture/goal/initial state retained; original1ms fixture immutable; this is explicit3ms B variant, not historical qualification.",
+    "initial_screen": "FK endpoint/initial limits/necessary endpoint velocity-time bound checked before solver construction; separate8s sampled RNEA witness retained; collision clearance unassessed.",
+    "clock_status": "CorrectedtrueBsource103CPU andrequiredoriginal-modeSuite3/3independentlyaccepted;V01releasepreparation38CPUaccepted. Exactsourcecommit/explicitplan dryrun andactualcanonicalBpreflightstillpending.",
+    "timing_scope": "Wall around BSQP.solve wrapper only; recorder/input-output snapshots/native telemetry access/controller bookkeeping/RK4 excluded. Bootstrap retained/unpaid nominal30ms;oldplan activation age continues duringcurrent solve;newu0 activatesafterward;feedback/reference andactivation clocks distinct;terminal/goal-transition resultsdiscarded. Controller validation separate.",
+    "raw_preservation": "Started/completed/failedsolve andplant NPZ+JSONL retain inputs/output/telemetry/nonfinitebytes;generic recorder also persists selection/activation/discard/intervalcompleted events;final/partialsolve snapshot preserveslate fields.",
+    "partial_failure_scope": "Available controller last_run_stats and returned RK4 states are finalized on propagated errors; raw attempted/failed steps remain events. SIGKILL may leave only the current write incomplete; no power-loss or disk-failure completeness guarantee claimed.",
+    "metrics": "Task and sampled q/v/u physical compliance separate; numerical pass unknown with reason; timing distributions retain all samples and null nonfinite summaries with reasons; interval above-nominal share descriptive; physical failure holds family even when rough task passes.",
+    "diagnostic_A": "KnowncompletedBscientificroughFalse ORphysicalFalse;bothgatebooleans,noexecutionerror,exactsamemachine/internal/config/hash;bothpass/unknown/nonboolean/error/interruption reject."
+  },
+  "runner_preparation": {
+    "isolated_build": "Committed git archive under build/campaign-source; CMake output stays in build-owned archive; native build directory separate. No runner-private source edits, shared binaries, generated-code edits or submodule regeneration.",
+    "provenance": "Pinned full source commit, archive/source-file hashes, build commands/cache/module/readiness hashes and worker source/protocol/config/module receipts retained; raw manifests exclude still-changing runner logs.",
+    "plan": "Defaultdisabled;one desktopcase/repeat1070/5060internal;exactcommittedruntime/helper/input bytes required;legacy/Jetsonautomatic deployment reject;T01/Gazebo/robotnotqueued.",
+    "real_runner_dry_run": "Temporary committed archive containing final harness bytes:disabled plan returned0/noqueue; synthetic enabled PARSE-ONLY plan returned0 with pending campaign-V01-internal-B/rough-reaching/0. No plan execution or native build occurred.",
+    "dry_run_limit": "Synthetic commit proves runner/schema/input parsing feasibility only. Exact final reviewed campaign commit and matching dry-run remain required before deployment.",
+    "readiness": "Worker invokes isolated cuda_access_smoke and retains command/hash/exit0 rather than treating a build as execution readiness; not executed by reviewer.",
+    "runtime_storage": "Explicitly unmeasured scenarios; retained Jetson timings and actual desktop recording duration/storage must inform discussion beforeJetson. No budget pruning or selected-sample filtering."
+  },
+  "T01": {
+    "proposal_sha256": "48728c3e4ea9c3b67f4202ebda7ea943811d9c6cd904c32f75616326fc80bbe9",
+    "witness_sha256": "ec53a3b71feb81d54dc0ff469be000f40d6daa09cff7814153d9472468a9577c",
+    "approval_status": "Coordinator conveyed Felix approval of goals/speeds and3ms-first protocol, with separately preserved conditional1ms cohort if3ms fails. No automatic fallback worker implemented; preserve/report3ms first. Jetson repeat/discussion requirements remain.",
+    "reaching_screen": "Three FK targets100.636/207.933/317.052mm outside5cm. Independently read all2668 samples per8s witness;finiteq/v/a/u;maxdt=.002999625s;endpointFK exact;terminalv0;recomputed Pinocchio RNEA torques match every retained value.",
+    "minimum_sampled_margins": {
+      "q_rad": 0.09346095279206112,
+      "velocity_rad_s": 2.218750079081785,
+      "effort_Nm": 17.3975767412866
+    },
+    "screening_limits": "Sampled inverse-dynamics witness only; no between-sample/acceleration/collision-clearance or closed-loop/tracking-feasibility certificate. Public constant-state/zero-control initialization deliberately retained and justified; witness is neither optimizer seed nor tracking reference.",
+    "tracking_proposal": "Public.32m xspan/.08m yamplitude/.02m edgeclearance;periods24/18/12s;analytic maximum speeds.059238/.078985/.118477m/s verified against public geometry. Provisional RMS/max gates20/40,25/50,30/60mm frozen with rationale;Felix simulation-result review required beforeD01/D02.",
+    "qualification_limit": "Historicalfixedclock1mstracking doesnotqualifynew30ms/3ms/B/fasterperiods. Current sharedhelpertracking observer behavior awaits separatecontrollerreview;releasedT01worker absent."
+  },
+  "remaining_release_gates": [
+    "CoordinatorcommitexactreviewedV01/controller/helper/inputbytes,generatefull40commitexplicitdesktopplan andmatchingdryrun beforeenabling/execution",
+    "ActualcanonicalV01modeBpreflightoneattempt on eachtargetdesktopmachine;preserve/reportfailureandholdfamily;nooriginalmodeAreplay orQ02partialsubcheck replaces it",
+    "SeparateT01worker/protocol/source/preflight review and release;approvedgoals/speeds3msfirst;conditional1msdistinctifeligible;simulationresultreviewbeforeexternaltasks",
+    "Jetsonretainedbottlenecks/duration/storage/shorterprotocol/repeatsdiscussion remainsrequired; noJetsonautomaticreleasehere",
+    "Q02originalFAILEDprotocol/numericalcertificateunknownretained;noQ02rerun/protocolchange authorised"
+  ],
+  "out_of_scope": "Q02 source inventory/probe, existing review_g0 receipt, Q04 controllers/mode_b_protocol and test-transplant receipt are separate owners/snapshots; final harness manifest excludes them. Q02 incomplete/source-head metadata correction remains separately coordinated.",
+  "no_measurement_claims": "This receipt certifies inspected preparation/CPU contract checks only; no new task success, mode B hardware viability, solver convergence, force support or physical robot claim.",
+  "historical_review_note": "Initial14CPU held-preparation acceptance preceded coordinator discovery that physical-only B failure was excluded from A diagnostic. Finding preserved below; no affected measurement executed.",
+  "H1_correction_review": {
+    "finding": "task_failed-only A guard rejected completed rough=True/physical=False B runs whose outcome=task_passed",
+    "fixed_eligibility": "Known boolean rough and physical gates; completed scientific task_passed/task_failed outcome; execution_errorNone; either roughFalse orphysicalFalse;exact same B/internal/machine/configuration/input hash. Bothpass,unknown/null/nonboolean,error/interrupted outcomes rejected.",
+    "independent_CPU_command": "PYTHONDONTWRITEBYTECODE=1 /opt/gato-venv/bin/python3 -m pytest -q -p no:cacheprovider tests/python/test_campaign_harness.py",
+    "independent_CPU_result": "30 passed; one existing hppfcl import warning;0.52s",
+    "implementer_CPU_log_sha256_match": true,
+    "additional_checks": "All4 solve_selected/plan_activated/plan_discarded/interval_completed lifecycle observer events durable with nonfinite raw arrays; released synthetic worker continues preserving late selection and failed execution; heldworker still beforeimports.",
+    "helper_provenance": "run_v01 hashes python/bsqp/offline_mpc.py andmake_plan requires exact committed helper bytes. Helper/controller behavior is separately reviewed; not accepted by this metadata-only review.",
+    "helper_snapshot_sha256": "abb56c696d5cd5d1223661553f3d9f41b8d4a2021cfefb12a6c0a339b6fb9538",
+    "status": "ACCEPT; held preparation only"
+  },
+  "pre_release_preparation_acceptance": "H1 A-diagnostic and trueB metadata correction re-reviewed: accepted as held preparation checkpoint; current controller independent review/native suite still pending.",
+  "V01_release_preparation_review": {
+    "independent_CPU_command": "PYTHONDONTWRITEBYTECODE=1 /opt/gato-venv/bin/python3 -m pytest -q -p no:cacheprovider tests/python/test_campaign_harness.py",
+    "independent_CPU_result": "38 passed; one existing hppfcl import warning;0.60s",
+    "all14manifest_hashes_match": true,
+    "release_protocol_sha256": "20920040853786cf3d96f13ba240f82918a9f0f5020270fbe67715666477cc81",
+    "worker_sha256": "3a1e77a6ed7a49df6248950dcbe57471486876b0b09131092d92af9793c9c71f",
+    "approved_scope": "OnefixedcanonicalV01/internal/Battempt perdesktopGTX1070/RTX5060 only; noJetson/Gazebo/robot.",
+    "pre_native_guards": "Releasedprotocol marker required;GATO_MACHINE in frozen2desktopset;all3controller/helper reviewedhashes checkedbeforeimports/outputcreation. Missing/unreleasedmachine andsourcechange failclosed.",
+    "evidence_hashes_verified": {
+      "timing_v2_review": {
+        "path": "/workspace/GATO-eval-ordinary/experiments/campaign/review_timing_v2.json",
+        "sha256": "50acfcd2bbd10189238aad8307e0f1bd35e5db694779193d5678d7d5ce9c30bd"
+      },
+      "required_suite_source_receipt": {
+        "path": "/workspace/gato-campaign-g0-20261010/suite-current-b-source-receipt.json",
+        "sha256": "18a96c7456d6f7323d9b6497a47a13a743f1a5df0b80aeef04d0b97d33194c02"
+      },
+      "required_suite_log": {
+        "path": "/workspace/gato-campaign-g0-20261010/suite-current-b-once.log",
+        "sha256": "03f805821eea5aec5a5955a5e7d744d7d99812d5ed97840ea39e72860f4b81a7"
+      },
+      "required_suite_summary": {
+        "path": "/workspace/gato-campaign-g0-20261010/suite-current-b-summary.json",
+        "sha256": "b9b7585f2f76c93adab0050f471fd4d29a24da94ba38878e6d6924e83273533d"
+      },
+      "Q02_saved_data_audit": {
+        "path": "/workspace/gato-campaign-q02-20261010/audit-once.json",
+        "sha256": "a8c7888e60d30596537f9d8015226596a71b9aab3a28c3f4a9315477058bd4a7"
+      }
+    },
+    "canonical_parameters_unchanged": true,
+    "source_and_safety_limit": "Offline harness/sourceguard only; noROSoverrun/solver/physicalrobot modification.",
+    "known_method_negative": "Q02originalfrozenh=.004 remainsFAILED2/560. SamehCPUcostFD reproducesselectednegatives;nativefine-reference/scalarBsubcheckspass, but notfullQ02/KKT/modelpass. Solver numerical passnull/SB001/SB002 retained.",
+    "latest_direction": "Coordinator conveyed Felix Continue authorizing boundedV01 preparation/execution independently while preservingQ02negative; noQ02newprotocol/h/tolerance/rerun authorized.",
+    "required_next": "Rootcommitsreviewedsource+inputs, generatesexactfull40commit explicitplan andmatchingdryrun, verifies source/module/build receipts, thenrunsonefixeddesktopV01attempt. Scientificrough/physicalfailurepreservedandholdsfamily;separateAeligibleonlymatchingcompletednegative.",
+    "no_measurement": "Reviewerandimplementer noV01/nativeconstruction/GPU/build; requiredfrozenmodeAsuite3/3 isregressionevidence, notcanonicalBqualification."
+  }
+}

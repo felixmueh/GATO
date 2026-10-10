@@ -1,0 +1,31 @@
+{
+  "status": "CPU_RECORDING_CORRECTIONS_PASS_NATIVE_EXECUTION_PENDING",
+  "command": "PYTHONDONTWRITEBYTECODE=1 /opt/gato-venv/bin/python3 -m pytest -q -p no:cacheprovider tests/python/test_q02_protocol.py",
+  "outcome": "28 passed; 1 existing hppfcl-to-coal import warning; no skips",
+  "test_log": "experiments/campaign/q02/validation-correction/pytest.log",
+  "test_log_sha256": "435446f6d790a4c705de51341a4fe977e9a00b0aa42b95c96ff956c532ccae31",
+  "cpu_reference_command": "/opt/gato-venv/bin/python3 experiments/campaign/q02/run.py --output experiments/campaign/q02/cpu-reference-recording-correction",
+  "cpu_reference_status": {
+    "status": "CPU_REFERENCE_READY",
+    "native_executed": false,
+    "qualification": "PENDING_NATIVE"
+  },
+  "historical_cpu_reference": "experiments/campaign/q02/cpu-reference (original source manifest/reference evidence retained unchanged)",
+  "new_source_manifest_sha256": "242455afff138f6678a3862fad3454561b6eeb271dc93756eef0e798372df230",
+  "protocol_sha256": "a35889fe9a6a7e63a4b7de8c21e1571ca5856a1a9059d4e81ff49ba8ddefc91d",
+  "native": "Coordinator compiled unchanged probe only; no native import, construction, evaluation, build or GPU execution by implementation agent. Corrected Python recording pending independent re-review.",
+  "recording_validation": [
+    "Fake CPU accessor fails at FD call17; started exact float32 input/goal/index/category archived before invocation; failed event/error/elapsed/null reasons preserved; no retry; prior outputs/traceback/final manifest retained",
+    "Fake CPU accessor completes all351 calls with float32 NaN payload0x7fc01234 and float64 Inf timing; original scalar bytes/dtypes retained; strict valid JSON null+reason",
+    "Fake native import and constructor failures preserve complete frozen attempted cohort, setup events, traceback and final raw manifest",
+    "Manifest refresh excludes independently mutable review.json and source_manifest.json; changing review receipt preserves source verification"
+  ],
+  "unchanged": [
+    "probe.cu",
+    "CMakeLists.txt",
+    "protocol.json",
+    "protocol.py",
+    "all production sources"
+  ],
+  "stopping_point": "Independent recording/source receipt re-review before root-only native execution; no commit"
+}

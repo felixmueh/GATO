@@ -1,0 +1,53 @@
+{
+  "scope": "CPU-only synthetic T01 contract validation; no native or task execution and no scientific qualification",
+  "source_checkpoint": "9b69fd605bad87cabffcd0d9af4f7c9135b0a271",
+  "production_native_core": "16b33719b4f0fd463eec7262c99b16b0b324366f",
+  "command": "python3 -m pytest -q tests/python/test_t01_harness.py",
+  "result": {
+    "passed": 34,
+    "t01_passed": 34,
+    "failed": 0,
+    "skipped": 0,
+    "warning": "Pinocchio hppfcl deprecation only"
+  },
+  "GPU_calls": 0,
+  "release": "T01/T01-1ms/V01-1ms remain held pending separate independent review and release checkpoint",
+  "source_sha256": {
+    "experiments/campaign/run_t01.py": "28347b6a4fd1bfc9681cceb962eea569962107c6b257f83a5135a818447ac83f",
+    "experiments/campaign/t01_protocol.py": "c216bb196eefd8cdb2f5f56118d12099aaf2eba037b38b87b5745e3e327bfe06",
+    "experiments/campaign/raw.py": "5c8bbcbe02f060bacdde4ab8294965040204ca95b4c00bb3f45ef1c28235ed17",
+    "experiments/campaign/evaluate.py": "871fb16d5f6541d0a0099b521269ff77e5d6bfc99d788a8add5164ff5e1e1377",
+    "experiments/campaign/make_task_plan.py": "ff6ff26c6c9a649ba6cbac8bd5fc7c66f4b9457de7a80f76dff4359dd0fd0c8f",
+    "experiments/campaign/build_isolated.py": "961004880e8d7ff23faa568283652057bd8ea7f2ab9cc0a9d5ec00a32d107907",
+    "experiments/campaign/inputs/t01.json": "330be034daab99a747af09d1d0473560100742992e0f110baf3794f6bfe636e0",
+    "experiments/campaign/inputs/t01_1ms.json": "a0b881eae772e72136c8957f72db648aa0ec40b086bd59b27d06601f7efe7022",
+    "experiments/campaign/inputs/v01_1ms.json": "1c3c75e32d1ae2d4ddd1abbb39341bea57661a207121c27258a51f80cf089c8f",
+    "experiments/campaign/README.md": "fa234bbe73f361c3bd0cbcaba840de80a9f240792eea22ed25bd13a3588c0e9f",
+    "tests/python/test_t01_harness.py": "9419450ac2cc14eaa734fb85745895eb3a94564a144ef6f2e0fb7a7a4c1d2912"
+  },
+  "prerequisite_sha256": {
+    "experiments/campaign/inputs/v01.json": "20920040853786cf3d96f13ba240f82918a9f0f5020270fbe67715666477cc81"
+  },
+  "checks": [
+    "exact six matched fallback targets/reference arrays/presets/gates and dispatch",
+    "reference byte hashes and durable NPZ array bytes",
+    "hashed machine/source/module/config preflight evidence",
+    "all six completed3ms receipts or failed3ms preflight plus completed A diagnostic before fallback",
+    "all3 held direct-worker and enabled-planner guards before native identity",
+    "matched desktop disabled plan cases/input hashes/build isolation and reviewed-byte mismatch rejection",
+    "actual-time tracking RMS and completed-period gates separate from physical compliance",
+    "warm failure raw nonfinite bytes retained; no filtering",
+    "R1 desktop/controller/task harness frozen guards before identity/import",
+    "R2 exact build/source/module/sharedsource/smoke validated before imports/constructor with fake sentinel rejection/success/partial failure finalization",
+    "Actual shared/native import path mismatches rejected before constructor",
+    "Missing Pinocchio fails with preserved raw receipt; no importorskip",
+    "Real temporary Git committed-source enabled plan generation; per-machine1070 enabled and matched5060 pending; skipped suite rejected",
+    "Held-worker tests use explicit synthetic held protocol copies, independent of final released metadata"
+  ],
+  "execution_stopping_points": [
+    "No GPU, Jetson, Gazebo or physical robot execution in this batch",
+    "Task release requires independent review and exact campaign deployment plan/dryrun",
+    "Same-machine parameterization preflight failure holds dependent family",
+    "Execution errors do not authorize scientific fallback; preserve evidence for review"
+  ]
+}

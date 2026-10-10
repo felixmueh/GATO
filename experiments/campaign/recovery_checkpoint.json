@@ -1,0 +1,29 @@
+{
+  "production_core": "16b33719b4f0fd463eec7262c99b16b0b324366f",
+  "timing_checkpoint": "2ebd448ca7a2bc6feb18ca4345a40627d34d6cf3",
+  "scope": "Reviewed desktop V01 and prerequisite-gated six-task T01/conditional1ms release; current-source bounded Q02 original negative preserved",
+  "reviewed_runtime_status": "accepted",
+  "task_measurements_at_checkpoint": "not yet executed",
+  "CPU_checks": {
+    "timing_controller": 103,
+    "final_V01_T01_contracts": 76,
+    "Q02_recording": 28
+  },
+  "required_task_suite": {
+    "command": "GATO_BUILD_DIR=/workspace/gato-campaign-g0-20261010/build make test-tiago-tasks",
+    "outcome": "3 passed, no skips",
+    "mode": "original frozen replay",
+    "raw": "/workspace/gato-campaign-g0-20261010/suite-current-b-raw",
+    "module_sha256": "9d8e666e4204c50d692dd2bcb72808a42956d7082055352dbf039a80a60b4c0f",
+    "limit": "Review and required suite covered exact controller/fixture/native-core source bytes before these commits; no canonical B or full solver certificate inferred."
+  },
+  "Q02_original_outcome": "FAILED 2/560 after exactly351 native accessor calls; no rerun or tolerance/input/protocol changes",
+  "external_evidence": {
+    "/workspace/gato-campaign-g0-20261010/recovery-release-review.json": "16d1a1da1d29d471cffd13bef8dfc8e35b17f0d10f8a70752cc25f6ba448ed1b",
+    "/workspace/gato-campaign-g0-20261010/recovery_t01_review.json": "647b473bdbfd1eca6210eefc6ad336ae058ba6b9be53564ec36f902ea8628447",
+    "/workspace/gato-campaign-g0-20261010/final-A-metadata-review.json": "08d630ac4e1cfc721ecabf3a3a66d78280d28cc7974f8033fd9f6cd0d39db5aa",
+    "/workspace/gato-campaign-q02-20261010/recovery-audit/receipt.json": "ff2218cdf10177a7546da4ff98bd7237790b630cbda34c6192542a07609af1fd"
+  },
+  "historical_snapshots": "final_batch_manifest.json/t01_manifest.json/cpu_validation.json/t01_cpu_validation.json and prior reviews retain intermediate accepted snapshots. release_manifest.json governs final release bytes.",
+  "pending": "Exact pinned plan/dryrun/build/one canonical preflight per desktop; then same-source/module prerequisite-gated T01. Jetson discussion and external simulation review requirements remain."
+}

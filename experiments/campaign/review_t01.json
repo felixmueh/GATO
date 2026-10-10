@@ -1,0 +1,95 @@
+{
+  "review_date_UTC": "2026-10-10",
+  "reviewer": "independent delegated campaign reviewer",
+  "scope": "Eight new T01 worker/protocol/plan/input/documentation/CPU-test files only. No GPU jobs, native import/construction, builds, source/core edits, solver investigation, protocol changes or task measurements by reviewer.",
+  "source_base_checkpoint": "9b69fd605bad87cabffcd0d9af4f7c9135b0a271",
+  "production_core": "16b33719b4f0fd463eec7262c99b16b0b324366f",
+  "status": "BLOCKED for T01 release; preparation math/protocol checks accepted subject to concrete guard corrections and independent re-review",
+  "verdict": "changes_required",
+  "initial_reviewed_file_sha256": {
+    "experiments/campaign/run_t01.py": "c520bee0ba949e9c3d1b2636af425825502929454bd3b69f980ae67d61d4cd39",
+    "experiments/campaign/t01_protocol.py": "c216bb196eefd8cdb2f5f56118d12099aaf2eba037b38b87b5745e3e327bfe06",
+    "experiments/campaign/make_task_plan.py": "b90ae00fbea9ea67f7303a61b64262750fe90e624b4d960bce5f516174696c05",
+    "experiments/campaign/inputs/t01.json": "d8557fb25611a51f1371ccd9591b0dfd2f5e5e959c0ef7bc65ee2ddcbd8e1463",
+    "experiments/campaign/inputs/t01_1ms.json": "bd426e1ab607389072ea71faa71146678487725f2ec4d2037f9a4c9aa6db6176",
+    "experiments/campaign/inputs/v01_1ms.json": "d0420b7c4037a9b385b502fc0cb8b49c51f8b8b2995b6b1ccff19b6a399f1d81",
+    "experiments/campaign/T01_README.md": "3e432a100c7f04f91f89d536ec4bd39102a5ed71fd432a5d1774d8af9c94eb48",
+    "tests/python/test_t01_harness.py": "a00ec3cdb9b31b7dd74e52cf1e3d8babe9f1e47ac12a3f2441f3d52f6f0f6a51"
+  },
+  "independent_CPU_validation": {
+    "command": "/opt/gato-venv/bin/python3 -m pytest tests/python/test_t01_harness.py -q",
+    "result": "8 passed; one existing hppfcl import warning; 0.33s",
+    "additional_checks": [
+      "CPU source-independent public geometry reconstruction for all three frozen references, full-period+0.93s preview coverage, finite values, zero orientation and exact identical 1ms reference bytes",
+      "Synthetic released run_case with mocked native/controller and bypassed prerequisite gate: missing build receipt still reached controller constructor; unsupported Jetson identity likewise reached fake constructor. No native code executed. Failure finalized raw/execution/metrics/manifest with physical_pass=null.",
+      "Synthetic nonfinite executed state: task_success=false, physical_pass=false, tracking RMS/maximum=null; CSV/raw nonfinite values remain available."
+    ],
+    "reference_checks": [
+      {
+        "task": "figure8-24s",
+        "samples": 833,
+        "preview_end_s": 24.96,
+        "minimum_preview_end_s": 24.93
+      },
+      {
+        "task": "figure8-18s",
+        "samples": 633,
+        "preview_end_s": 18.96,
+        "minimum_preview_end_s": 18.93
+      },
+      {
+        "task": "figure8-12s",
+        "samples": 433,
+        "preview_end_s": 12.96,
+        "minimum_preview_end_s": 12.93
+      }
+    ],
+    "geometry_reconstruction_max_abs_m": 3.095051470669574e-08,
+    "geometry_rounding_scope": "Reference uses approved proposal FK anchor; reconstruction from float32-rounded frozen initial state differs by this small anchor-rounding amount, not a material geometry discrepancy."
+  },
+  "blockers": [
+    {
+      "id": "T01-R1",
+      "file": "experiments/campaign/run_t01.py",
+      "finding": "After a release_status update, direct worker has no release_machines membership guard and no frozen reviewed-controller SHA guard before current_identity/imports. Plan limits desktops but direct worker accepts arbitrary same-machine evidence identity.",
+      "required_correction": "Carry desktop release_machines and reviewed controller hashes into frozen T01/1ms inputs, verify them before native/controller imports/construction; add meaningful positive/rejection worker tests for missing/Jetson/Gazebo machine and changed controller bytes."
+    },
+    {
+      "id": "T01-R2",
+      "file": "experiments/campaign/run_t01.py",
+      "finding": "Exact isolated build receipt, module/build-source receipt/commit hashes and readiness-executable identity are checked only after MPC_GATO constructor. Missing or mismatched receipts therefore do not prevent native/controller setup.",
+      "required_correction": "Validate existing module/build/source/readiness artifact identities before native/controller import/construction; preserve setup failure evidence and add fake-constructor sentinel rejection tests. Verify actual imported module paths and shared source hashes on the released worker path."
+    },
+    {
+      "id": "T01-R3",
+      "file": "experiments/campaign/inputs/t01.json",
+      "finding": "Current canonical preflight_protocol_sha256=a0213ca7e5d166572af8601ad5c1a09ca7bebcccf58f3ca2b62043c86a2d3af3 is stale against reviewed released V01 SHA20920040853786cf3d96f13ba240f82918a9f0f5020270fbe67715666477cc81; all three inputs retain old held release metadata and omit retained Q02 method-negative from known_limitations.",
+      "required_correction": "After guard corrections, regenerate exact reviewed release metadata and canonical/1ms preflight hashes together; retain Q02 FAILED2/560 and numerical certification unknown alongside SB-001/SB-002. Preserve separate 1ms cohort and its conditional authorization."
+    }
+  ],
+  "accepted_static_findings": {
+    "public_effective_settings": "Canonical reaching N32/.03/.003/qd.1/velocity penalty.1/orientation enabled/final approach off; tracking retains separate public qd.01/velocity penalty.001/control penalty.003/orientation off. No solver or native core changes.",
+    "reference_and_tracking_gates": "Frozen little-endian float64 arrays hash-checked and saved as raw event; complete-period preview coverage; controller samples at actual feedback plus prediction knots and evaluator at executed plant timestamps. RMS is explicitly trapezoidal time-weighted position-error squared over all samples including startup; max error/full period/recording clock/state/exception gates separate from physical compliance.",
+    "preflight_receipts": "Exact machine/internal/mode/config serialized bytes/source commit/module/shared source hashes and completed known boolean task+physical gates required. Shared source list is compatible with V01 provenance, rather than requiring T01-only scripts in V01 receipts.",
+    "fallback": "Either completed negative3ms preflight plus completed exact A diagnostic, or all six completed exact3ms tasks with at least one task/physical negative; unknown gates, execution errors, partial/selective/all-pass cohorts rejected. Separate successful1ms V01 preflight additionally required before six1ms tasks.",
+    "raw_failures": "Existing recorder preserves started/completed/failed solver/plant arrays and nonfinite payloads outside solve timing. T01 finalizer retains partial execution NPZ, lifecycle events, final solve snapshots, controller stats, task/physical/numerical results, trace CSV and hashes. Missing initial applied control stays NaN in CSV; no manufactured zero control.",
+    "scope_and_authorization": "Goals/speeds approved for3ms first and conditional separate1ms. Gates are agent-frozen provisional choices for Felix simulation review before D01/D02. No tracking IK/dynamic/collision feasibility claim; reaching witness is sampled inverse-dynamics screening, not optimizer seed. No Jetson/Gazebo/robot measurement authorized by this batch."
+  },
+  "test_coverage_limitations": [
+    "Eight tests do not execute released run_case, enabled plan generation, actual source-hash branches or native/build/module mismatch failure finalization. Add bounded fake released-worker and temporary committed-source plan cases before acceptance.",
+    "Pinocchio contract test currently importorskip: explicitly requested verification with missing dependency must fail rather than claim a successful skip."
+  ],
+  "pending_before_measurement": [
+    "Correct and re-review only this bounded worker/protocol/plan/test scope; no GPU or task reruns requested.",
+    "Root must checkpoint reviewed source and create compatible compact exact-source review/suite attestations: make_task_plan expects review.source_commit/verdict=approved and task_suite.source_commit/command/exit_code/skips. Existing historical timing review is hash-linked evidence and has a different schema; preserve it rather than rewrite it.",
+    "Use a newly reviewed explicit source-pinned deployment plan and matching real --dry-run before desktop measurement. Exact future preflight/source/module identity requires V01 and dependent T01 scheduling to use the same reviewed committed source/build identity.",
+    "Actual B V01/T01/1ms measurements remain unperformed by reviewer; no full numerical qualification or task success inferred. Frozen Q02 originalFAIL2/560 is retained without h/tolerance changes or native reruns."
+  ],
+  "history": [
+    {
+      "event": "initial independent T01 review",
+      "status": "blocked",
+      "measurements_performed": false
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+............................                                             [100%]
+=============================== warnings summary ===============================
+../../opt/gato-venv/lib/python3.10/site-packages/cmeel.prefix/lib/python3.10/site-packages/hppfcl/__init__.py:3
+  Warning: Please update your 'hppfcl' imports to 'coal'
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+28 passed, 1 warning in 1.19s

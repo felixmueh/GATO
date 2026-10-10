@@ -1,0 +1,69 @@
+{
+  "scope": "CPU synthetic harness contracts and CPU FK/inverse-dynamics screening only; no CUDA/native build/solve/B/V01/T01 task execution",
+  "command": "/opt/gato-venv/bin/python3 -m pytest tests/python/test_campaign_harness.py -q",
+  "exit_code": 0,
+  "result": "38 passed, 1 existing Pinocchio import deprecation warning",
+  "stdout_log": "/tmp/gato-campaign-harness-cpu-release-prep-20261010.log",
+  "stdout_sha256": "826ebdf312d55ed6694a7624db4076d93ec7aee4e56b024b5879dea59298201a",
+  "stdout": "......................................                                   [100%]\n=============================== warnings summary ===============================\n../../opt/gato-venv/lib/python3.10/site-packages/cmeel.prefix/lib/python3.10/site-packages/hppfcl/__init__.py:3\n  Warning: Please update your 'hppfcl' imports to 'coal'\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n38 passed, 1 warning in 0.65s\n",
+  "worktree": "/workspace/GATO-eval-ordinary",
+  "actual_source_head": "9b69fd605bad87cabffcd0d9af4f7c9135b0a271",
+  "approved_production_core": "16b33719b4f0fd463eec7262c99b16b0b324366f",
+  "pre_correction_evidence": {
+    "prior_CPU_result": "11 passed, 1 existing Pinocchio hppfcl-to-coal import deprecation warning",
+    "prior_stdout": "...........                                                              [100%]\n=============================== warnings summary ===============================\n../../opt/gato-venv/lib/python3.10/site-packages/cmeel.prefix/lib/python3.10/site-packages/hppfcl/__init__.py:3\n  Warning: Please update your 'hppfcl' imports to 'coal'\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n11 passed, 1 warning in 0.42s\n",
+    "prior_stdout_log": "/tmp/gato-campaign-harness-cpu-final-20261010.log",
+    "prior_stdout_sha256": "3281e86187576218fe0bbe0ae9d9916b1f812d92bc6921eac3c2be545cf9d31f",
+    "implementation_findings": [
+      "Independent reviewer reproduced repeatedprepare ValueError: Isolated source already exists; use a fresh build recipe/cache identity",
+      "Independent reviewer confirmed held B protocol accepted by load_protocol and absence of direct-worker release-status guard"
+    ],
+    "interpretation": "Bounded harness implementation findings; no scientific/GPU task failure or changed task protocol"
+  },
+  "correction_checks": [
+    "Exact pinned archive idempotent reuse and preserved source-drift rejection",
+    "Interrupted extraction snapshots preserve partial source/native diagnostics then reconstruct same commit",
+    "Synthetic failed configure followed by same-build retry; stale module bytes retained before forced clean rebuild",
+    "Direct held B worker refuses before dependency imports/native constructor/output creation",
+    "Released-protocol synthetic worker preserves partial/nonfinite raw events and final lane selection",
+    "T01 generator/input hashes checked; exact approval text and separate conditional1ms authorization recorded",
+    "12 A eligibility cases cover physical-only negative,rough-only negative,bothnegative,bothpass,unknown/null gates,nonboolean flags,error/interruption/incomplete outcomes",
+    "All4 new lifecycle events durably retained including nonfinite NPZ outputs",
+    "worker provenance hashes shared python/bsqp/offline_mpc.py; timing metadata matches current OLDplan-prefix during solve then activation"
+  ],
+  "screening_command": "/opt/gato-venv/bin/python3 experiments/campaign/propose_t01.py --output /tmp/gato-t01-proposal-h1-20261010",
+  "screening_result": "3 FK goals outside5cm; all sampled8s quintic q/v/u margins positive; collision unassessed; same numerical witnesses preserved",
+  "release_status": "desktop-only V01 release preparation after accepted trueBcontroller/source103CPU and required original-modeMake3/3 saved-array audit; final independent release review/checkpoint/explicitplan dryrun before root measurement",
+  "latest_steering": {
+    "T01": "goals/speeds approved3ms-first; conditional1ms separate cohort, no fallback worker/task execution in this batch",
+    "clock_exact_text": "Implement old-plan execution during solve",
+    "tracking_gates": "agent-frozen provisional gates; Felix simulation-result review before D01/D02"
+  },
+  "previous_corrected_result": {
+    "result": "14 passed, 1 existing Pinocchio hppfcl-to-coal import deprecation warning",
+    "stdout_log": "/tmp/gato-campaign-harness-cpu-corrected-20261010.log",
+    "stdout_sha256": "ca3bea6be0705e7505242caf5cd44c240799e7db86835578336c5887ec90485f",
+    "stdout": "..............                                                           [100%]\n=============================== warnings summary ===============================\n../../opt/gato-venv/lib/python3.10/site-packages/cmeel.prefix/lib/python3.10/site-packages/hppfcl/__init__.py:3\n  Warning: Please update your 'hppfcl' imports to 'coal'\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n14 passed, 1 warning in 0.49s\n"
+  },
+  "h1_review_finding": {
+    "finding": "A eligibility rejected completed rough=True/physical=False B runs because outcome=task_passed",
+    "impact": "physical failures must qualify separately from rough-reaching failures",
+    "status": "fixed with completed scientific-negative outcome, known boolean gates and null execution_error;same config/machine/backend/hash retained"
+  },
+  "validation_history": [
+    {
+      "result": "30 passed, 1 existing Pinocchio import deprecation warning",
+      "stdout_log": "/tmp/gato-campaign-harness-cpu-h1-20261010.log",
+      "stdout_sha256": "5de26569c5db3dd7ca782b1492da4932aea1696da00a08366326f13ed19054f8"
+    }
+  ],
+  "release_preparation_checks": [
+    "Held temp protocol rejects before imports/output creation even though canonical protocol is now released",
+    "Both released desktop machine identities tested with synthetic successful/partial-error workers and retained raw arrays",
+    "Jetson/local/Gazebo/missing machine identities rejected before native import",
+    "Changed reviewed controller source rejected before native import",
+    "CanonicalN32/.03/.003/qd.1/vel_lim.1/orientation.1/2/no-finalapproach/oneattempt policy unchanged; Q02FAILED2/560 and numerical certificate null retained"
+  ],
+  "release_scope": "No GPU/native build/native solve/V01/T01 execution by harness implementer; root owns all retained measurements/builds and release execution",
+  "T01_coordination": "T01 inputs not edited; task_harness notified preflight hash changes and root will queue regeneration after final V01 release review"
+}

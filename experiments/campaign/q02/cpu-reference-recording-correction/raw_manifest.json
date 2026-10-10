@@ -1,0 +1,16 @@
+{
+  "cpu_setup.json": "648c9cfefdad18b9fda21db4bf5a5a7fa86b7deb78188208c38578847905a13f",
+  "inputs.npz": "d91cbd403ce2dd6ddc6c87784d4966903414cf9f354fca4f9e8bbec1c1e02722",
+  "protocol.json": "a35889fe9a6a7e63a4b7de8c21e1571ca5856a1a9059d4e81ff49ba8ddefc91d",
+  "reference-00.npz": "0223afb25c82280b5c778db75fd21f181209d8431558f536f941ca03adfa499e",
+  "reference-01.npz": "44c7c1f091dac0313cff98c27e2b78ee1061cc18d33577eb5d4804cf00d1a326",
+  "reference-02.npz": "edbbf086eba66ecd80c7e1b3307af7d9bb29579b8fe429bbaed9c246f7b1053e",
+  "reference-03.npz": "51131681dfaeb9ecf68b68d9131d19dc01ca05a4feba4dd1b4f29b657f98b94b",
+  "reference-04.npz": "985b13b6c4f6b9d2a0c4ccc753420c4b009883196741d124012d879df4585177",
+  "reference-05.npz": "eefece720e457afbc74e338d45590d5318b740ba24ac1e78ae4d8ec3bac89b65",
+  "reference-06.npz": "b4d51e6518423750582565066d288d692d3edadfea06edd1467e356d61124079",
+  "reference-07.npz": "d269d0c0a9d4a6cf2fb18ee0c8cd1c548e65c9c8db73b5495a7714fdf101e9bd",
+  "source_manifest.json": "242455afff138f6678a3862fad3454561b6eeb271dc93756eef0e798372df230",
+  "summary.json": "56a1b67b4512d9864d40ee96fab03950cceaa989786a5bc5e582b7d332dc3920",
+  "tiago_right_arm.urdf": "8e1fd973a1d1c3fbddd55039e6eb17b355ebb29f46e1bd8c774b7879c2cdc5bb"
+}

@@ -1,0 +1,22 @@
+{
+  "study": "Q02",
+  "production_core": "16b33719b4f0fd463eec7262c99b16b0b324366f",
+  "outcome": "validation_failed",
+  "original_protocol_pass": false,
+  "checks_passed": 558,
+  "checks_total": 560,
+  "native_calls": 351,
+  "raw_root": "/workspace/gato-campaign-q02-20261010/native-once",
+  "module_sha256": "36e4ddeb39accf54ee0e4429b82858b703a86811d5592c85a20a78958b3511db",
+  "protocol_sha256": "a35889fe9a6a7e63a4b7de8c21e1571ca5856a1a9059d4e81ff49ba8ddefc91d",
+  "scope": "Eight interior states, normal TIAGo dynamics/pose/cost accessors and B1/B4 duplicate/permuted lanes; no optimizer/solver task or full numerical certificate",
+  "interpretation": "Independent saved-input CPU audit reproduces selected coarse-stencil discrepancies, dominated by orientation cost; original finite-difference protocol remains failed. No established solver defect, retuning or native rerun. Felix authorized bounded V01 independently.",
+  "audits": {
+    "/workspace/gato-campaign-q02-20261010/audit-once.json": {
+      "sha256": "a8c7888e60d30596537f9d8015226596a71b9aab3a28c3f4a9315477058bd4a7"
+    },
+    "/workspace/gato-campaign-q02-20261010/recovery-audit/receipt.json": {
+      "sha256": "ff2218cdf10177a7546da4ff98bd7237790b630cbda34c6192542a07609af1fd"
+    }
+  }
+}

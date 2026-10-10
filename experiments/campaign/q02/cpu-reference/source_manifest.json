@@ -1,0 +1,22 @@
+{
+  "source_head": "9b69fd605bad87cabffcd0d9af4f7c9135b0a271",
+  "approved_core": "16b33719b4f0fd463eec7262c99b16b0b324366f",
+  "files": {
+    "gato/settings.h": "8fbff6c2b76a9fe4bd46082fc3bc3c8610c58b51d8e9848451f27556765ccffc",
+    "gato/constants.h": "9a5eabee52a433d7bcc001bde4bbea4d969d3f339182c15e63f5478864da6290",
+    "gato/dynamics/integrator.cuh": "8f89456edbe860d04e9525ae33b9b9d2444d822ee43b4c981cb3f3d993d60ca6",
+    "gato/dynamics/tiago_right/tiago_right_plant.cuh": "27ac9c979d54a8f4661368bedf2e6c9cc081579542bad1ca917e6cde3930a887",
+    "gato/dynamics/tiago_right/tiago_right_grid.cuh": "22eb6dcb37cca46e84a9c839f459479d63668d401eac7cbafe004e4c8692fcf4",
+    "gato/dynamics/tiago_right/tiago_right_limits.cuh": "c23c92abb35e0b9163fb21a6d2eb899da6de9e52d5bed00ad490e90c08a13232",
+    "gato/dynamics/tiago_right/tiago_right_arm.urdf": "8e1fd973a1d1c3fbddd55039e6eb17b355ebb29f46e1bd8c774b7879c2cdc5bb",
+    "gato/utils/linalg.cuh": "eee7d13f4fd7c773225bc3ae403262d88ca075228ff5432541d3a1333dbe629c",
+    "experiments/campaign/q02/CMakeLists.txt": "e91fd9dbf4d05079cfb85ed07424e0da9fcf719b6449dd0a43b2eb3f07cd3192",
+    "experiments/campaign/q02/README.md": "7f35c77b59877e87d46ecc878c3364e3b7e84461bca303c04cc3222ea8c24101",
+    "experiments/campaign/q02/freeze.py": "50dc9c35be7e1682f072a4284e8a2aeb06005389d2e40d6933d6f486df170014",
+    "experiments/campaign/q02/probe.cu": "6df4a6c6dc507cfeae69eac0378056f2dd39dfa3e76bc88ad5660d7201b65405",
+    "experiments/campaign/q02/protocol.json": "a35889fe9a6a7e63a4b7de8c21e1571ca5856a1a9059d4e81ff49ba8ddefc91d",
+    "experiments/campaign/q02/protocol.py": "51d7a0a0f39a744beca1f15809ab34f3d6b0ab09d433d97ff15323fa3f45129d",
+    "experiments/campaign/q02/run.py": "9ca43bb64574142b1c6047ff154fd3ae306379449f7661a71bc5448b142a5eea",
+    "tests/python/test_q02_protocol.py": "580f06bd8243b8643e031a117b68714e799100c865721e3a6aaec839cafd16cc"
+  }
+}

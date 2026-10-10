@@ -1,0 +1,209 @@
+{
+  "review_date_UTC": "2026-10-10",
+  "reviewer": "independent delegated source/CPU reviewer",
+  "actual_source_head": "9b69fd605bad87cabffcd0d9af4f7c9135b0a271",
+  "approved_core": "16b33719b4f0fd463eec7262c99b16b0b324366f",
+  "scope": "Q02 new current-normal-plant accessor/oracle/protocol/recording/static build review plus CPU tests and retained-file hash audit. No native compile, module import, Probe construction, GPU accessor call or solver/task execution.",
+  "status": "NativeoriginalQ02protocol remainsFAILED2/560; scientificnegative/audit preserved. Coordinator conveyed authorized boundedV01 independently with numerical-method limitation carried; noQ02rerun/protocolchange/fullqualification.",
+  "native_status": "Coordinator executed exactlyone351-call budget;all declaredoutputs/timings finite;558/560checks pass;two nativeFDterminalgradientchecks fail. Reviewer noGPU/import/nativeconstruction/evaluate/build.",
+  "protocol_sha256": "a35889fe9a6a7e63a4b7de8c21e1571ca5856a1a9059d4e81ff49ba8ddefc91d",
+  "source_manifest_sha256": "242455afff138f6678a3862fad3454561b6eeb271dc93756eef0e798372df230",
+  "reviewed_source_hashes": {
+    "gato/settings.h": "8fbff6c2b76a9fe4bd46082fc3bc3c8610c58b51d8e9848451f27556765ccffc",
+    "gato/constants.h": "9a5eabee52a433d7bcc001bde4bbea4d969d3f339182c15e63f5478864da6290",
+    "gato/dynamics/integrator.cuh": "8f89456edbe860d04e9525ae33b9b9d2444d822ee43b4c981cb3f3d993d60ca6",
+    "gato/dynamics/tiago_right/tiago_right_plant.cuh": "27ac9c979d54a8f4661368bedf2e6c9cc081579542bad1ca917e6cde3930a887",
+    "gato/dynamics/tiago_right/tiago_right_grid.cuh": "22eb6dcb37cca46e84a9c839f459479d63668d401eac7cbafe004e4c8692fcf4",
+    "gato/dynamics/tiago_right/tiago_right_limits.cuh": "c23c92abb35e0b9163fb21a6d2eb899da6de9e52d5bed00ad490e90c08a13232",
+    "gato/dynamics/tiago_right/tiago_right_arm.urdf": "8e1fd973a1d1c3fbddd55039e6eb17b355ebb29f46e1bd8c774b7879c2cdc5bb",
+    "gato/utils/linalg.cuh": "eee7d13f4fd7c773225bc3ae403262d88ca075228ff5432541d3a1333dbe629c",
+    "experiments/campaign/q02/CMakeLists.txt": "e91fd9dbf4d05079cfb85ed07424e0da9fcf719b6449dd0a43b2eb3f07cd3192",
+    "experiments/campaign/q02/README.md": "a028f78bfb339cea85f85d07e6d63242abd06400af2f85871dd0aed6f0539bca",
+    "experiments/campaign/q02/freeze.py": "c2396b3a49aaae76c312042eed384ffb4a5a215ada7047f949e317a741cc0cda",
+    "experiments/campaign/q02/probe.cu": "6df4a6c6dc507cfeae69eac0378056f2dd39dfa3e76bc88ad5660d7201b65405",
+    "experiments/campaign/q02/protocol.json": "a35889fe9a6a7e63a4b7de8c21e1571ca5856a1a9059d4e81ff49ba8ddefc91d",
+    "experiments/campaign/q02/protocol.py": "51d7a0a0f39a744beca1f15809ab34f3d6b0ab09d433d97ff15323fa3f45129d",
+    "experiments/campaign/q02/run.py": "30eb6c909d95218699ba657f1f732138d01e0d84a0a15f0cc244749ef16cad6a",
+    "tests/python/test_q02_protocol.py": "b113b0d1593c0d0720f7bccec452f665e0f3ade48a2c28fbfbdc54e9aab4e1f5"
+  },
+  "all_16_source_hashes_match": true,
+  "all_8_declared_core_sources_match_16b3371": true,
+  "production_native_diff": "gato/ and python/bindings.cu unchanged from16b3371",
+  "independent_CPU_validation": {
+    "command": "PYTHONDONTWRITEBYTECODE=1 /opt/gato-venv/bin/python3 -m pytest -q -p no:cacheprovider tests/python/test_q02_protocol.py",
+    "result": "23 passed; one existing hppfcl-to-coal import warning;0.34s",
+    "retained_CPU_raw_manifest": "experiments/campaign/q02/cpu-reference/raw_manifest.json",
+    "all_14_retained_CPU_raw_hashes_match": true,
+    "scope": "Known-function FD oracle, column-major decoding, all declared perturbations interior, Pinocchio references finite, GN PSD/symmetry/regularizers, terminal control independence, angular wrapping, shape/nonfinite rejection. CPU success is not native qualification."
+  },
+  "accepted_static_findings": {
+    "inputs": "Exactly8 float32-rounded native-coordinate interior xu21/goal6 samples; +/-h=.004 native offsets and1e-5 float64 independent reference; joint6 -0.35/+0.35 cases. Nativeq/v/u domains and independently evaluated perturbed nextq/v remain interior; pitch nonsingular at declared states.",
+    "frames_gravity": "Current7DoF lumped arm, torso_lift_link root, arm_right_tool_link, explicitgravity[0,0,-9.81], native joint6 -Z sign mapping to generated+Z. ABA/GRiD omit URDF damping/friction; no external wrench.",
+    "accessor": "Calls unchanged normal-plant forwardDynamics, forwardDynamicsAndGradient, integrator2/noanglewrap, toolPoseAndGradient, trackingcost/running gradient-GN and actual lastblock helper. No SQP/KKT/binding/solver fix or outside-bound path.",
+    "CUDA_layout": "995 declared outputs with contiguous non-overlapping ranges; xu35=[x14,u7,nextx14], ref12=[goal6,nextgoal6];32 knot blocks select0/30/31, lane usesgridy. Correct terminal promotion and state-only terminal slices; running control gradient7 and terminal gradient14 distinct.",
+    "CUDA_memory_sync": "Each active block owns shared scratch and disjoint output slices. Block-uniform earlyreturn avoids partial-block barrier.4096floats scratch exceeds declared FD_DU2977 and pose-gradient688 needs; barriers separate returned helper values and scratch reuse. Correct dimensions/qdd outputs/dj147/A196/B98/poseJac42/Q196/R49/terminalQ196. Actual compiled resource/readiness still pending.",
+    "native_coordinate_derivatives": "q mapped by current tiagoJointSign; pose Jacobian columns remapped by i/6; current dynamics helper performs native mapping. Column-major decoding verified by meaningful tests.",
+    "oracle": "Independent Pinocchio ABA/FK and float64 centered differences produce value/Jacobian/scalar cost-gradient reference. Running/terminal cost references match interior regularization/barrier/pose formulas. GN curvature uses independentFDJ^T W J plus analytic regularizer/barrier curvature, not exact nonlinear pose Hessian.",
+    "batch_scope": "B1/B4 helper calls include distinct states, duplicate lanes and permutations at practical tolerances. They do not qualify production batch-wide SQP stopping or higher batch sizes; no determinism/repeat investigation.",
+    "fixed_budget": "351=1 retained warmup+8scalar+6B4group+8*21*2nativeFD calls;one repeat. Completed comparison failures/nonfinite outputs continue fixed budget and remain negative; execution errors stop. No threshold refitting/retry-until-green.",
+    "build": "Standalone Release/-O3/-use_fast_math/N32/normalPLANT_TIAGO_RIGHT accessor; explicit architecture required; module output only in isolatedbuild/modules. Root must review exact cache/compile commands/toolkit/module identity before construction/execution."
+  },
+  "nonblocking_limit": "CUDA event handles are not RAII-cleaned after intermediate event errors. Process is stopped on execution failure; this is not a solver repair or reason to broaden tests. Optional narrow accessor cleanup may be reviewed if changed.",
+  "qualification_limits": [
+    "Accessor compiled by coordinator; not imported/constructed/evaluated; native qualification pending",
+    "Eight interior samples andB1/B4 only",
+    "No exact nonlinear Hessian/fullKKT/NaN-cause investigation/solver convergence/task reliability certificate",
+    "New protocol does not recover missing historical debug pack",
+    "Existing static finiteness/P01 limitations remain record-only"
+  ],
+  "next_validation": "STOP noQ02rerun/newGPU/newprotocol/thresholdchange/solverfix. Preserve failedprotocol and independentaudit. Felixdecisionrequired before partialqualification/downstreamBexecution or separatelyfrozenfollowupprotocol.",
+  "H1_separate_issue": "A-diagnosticphysical-onlyfailuregap correctedandindependentlyre-reviewed inreview_harness.json (30CPU);heldpreparationuntilnewcurrentcontrollerreview/suite/release. Timingv2multi-goaldebt correctedandre-reviewed separately;historicalfinding retained.",
+  "initial_review_history": "At initial review delivery the accessor was uncompiled and reviewer reported compilation held. Coordinator subsequently performed independent compile-only readiness after source/math static pass; recording blocker continues to hold execution.",
+  "coordinator_compile_only_audit": {
+    "receipt": "/workspace/gato-campaign-q02-20261010/build_receipt.json",
+    "receipt_sha256": "ee19f7c9c686baa9bde56ca046f1bb7f17b77064886c0f8fe5d48f4482b5dfb4",
+    "module_path": "/workspace/gato-campaign-q02-20261010/build/modules/q02_probe.cpython-310-x86_64-linux-gnu.so",
+    "module_sha256": "36e4ddeb39accf54ee0e4429b82858b703a86811d5592c85a20a78958b3511db",
+    "module_bytes": 1771024,
+    "all_10_declared_input_hashes_and_two_log_hashes_match": true,
+    "all_8_local_compiled_dependencies_hashed": true,
+    "compiled_core_sources_match_16b3371": true,
+    "flags_exact_receipt": true,
+    "configuration": "Release/sm61/N32/normalPLANT_TIAGO_RIGHT; /opt/gato-venv/bin/python3;GCC11.4/CUDA12.9.86/pybind11 3.0.4",
+    "build_log": "Fresh probe.cu compile then isolated module link; no execution output.",
+    "reviewer_execution": "Read-only hash/cache/flags/dependency/log audit only; no build/native import/constructor/evaluate/GPU."
+  },
+  "initial_recording_review_status": "RECORDING REVIEW BLOCKED; coordinator compile-only readiness audited; native execution held pending correction and re-review",
+  "initial_reviewed_source_hashes": {
+    "gato/settings.h": "8fbff6c2b76a9fe4bd46082fc3bc3c8610c58b51d8e9848451f27556765ccffc",
+    "gato/constants.h": "9a5eabee52a433d7bcc001bde4bbea4d969d3f339182c15e63f5478864da6290",
+    "gato/dynamics/integrator.cuh": "8f89456edbe860d04e9525ae33b9b9d2444d822ee43b4c981cb3f3d993d60ca6",
+    "gato/dynamics/tiago_right/tiago_right_plant.cuh": "27ac9c979d54a8f4661368bedf2e6c9cc081579542bad1ca917e6cde3930a887",
+    "gato/dynamics/tiago_right/tiago_right_grid.cuh": "22eb6dcb37cca46e84a9c839f459479d63668d401eac7cbafe004e4c8692fcf4",
+    "gato/dynamics/tiago_right/tiago_right_limits.cuh": "c23c92abb35e0b9163fb21a6d2eb899da6de9e52d5bed00ad490e90c08a13232",
+    "gato/dynamics/tiago_right/tiago_right_arm.urdf": "8e1fd973a1d1c3fbddd55039e6eb17b355ebb29f46e1bd8c774b7879c2cdc5bb",
+    "gato/utils/linalg.cuh": "eee7d13f4fd7c773225bc3ae403262d88ca075228ff5432541d3a1333dbe629c",
+    "experiments/campaign/q02/CMakeLists.txt": "e91fd9dbf4d05079cfb85ed07424e0da9fcf719b6449dd0a43b2eb3f07cd3192",
+    "experiments/campaign/q02/README.md": "7f35c77b59877e87d46ecc878c3364e3b7e84461bca303c04cc3222ea8c24101",
+    "experiments/campaign/q02/freeze.py": "50dc9c35be7e1682f072a4284e8a2aeb06005389d2e40d6933d6f486df170014",
+    "experiments/campaign/q02/probe.cu": "6df4a6c6dc507cfeae69eac0378056f2dd39dfa3e76bc88ad5660d7201b65405",
+    "experiments/campaign/q02/protocol.json": "a35889fe9a6a7e63a4b7de8c21e1571ca5856a1a9059d4e81ff49ba8ddefc91d",
+    "experiments/campaign/q02/protocol.py": "51d7a0a0f39a744beca1f15809ab34f3d6b0ab09d433d97ff15323fa3f45129d",
+    "experiments/campaign/q02/run.py": "9ca43bb64574142b1c6047ff154fd3ae306379449f7661a71bc5448b142a5eea",
+    "tests/python/test_q02_protocol.py": "580f06bd8243b8643e031a117b68714e799100c865721e3a6aaec839cafd16cc"
+  },
+  "initial_required_corrections": [
+    {
+      "severity": "BLOCKER",
+      "finding": "run_native.call invokes probe.evaluate before archiving attempted input, goal, call index/category. Failed native FD call therefore loses exact attempted input and per-call failure evidence.",
+      "required_change": "Persist started-call metadata and exact input/goal NPZ before invocation; on exception record failure category/index/error and total wrapper elapsed, with explicit reasons for unavailable output/native timing. Preserve global traceback and partial all-file manifest; do not fabricate outputs.",
+      "required_CPU_validation": "Use a fake accessor to inject an exception at a non-startup/FD call and verify started input/goal/index/category and failed timing/error survive, previous outputs remain, and exception stops rather than skips/retries."
+    },
+    {
+      "severity": "BLOCKER",
+      "finding": "native_calls JSONL uses permissive json.dumps for float timings, allowing NaN/Infinity tokens; native timing summaries lack explicit unknown reasons.",
+      "required_change": "Use valid JSON null plus reason for nonfinite/unavailable scalar timing; retain original scalar bytes in NPZ. Keep all samples and avoid filtered timing estimates.",
+      "required_CPU_validation": "Fake accessor with nonfinite timing verifies valid JSON, reasons and unchanged raw nonfinite scalar bytes."
+    },
+    {
+      "severity": "MANIFEST_HYGIENE",
+      "finding": "freeze.py refresh includes every top-level q02 file except source_manifest/cpu_validation; adding this independent review.json then refreshing would hash a mutable review receipt and invalidate frozen source verification after re-review.",
+      "required_change": "Exclude independently owned review.json from source-manifest generation; scientific source/inputs remain exact and immutable."
+    }
+  ],
+  "initial_source_manifest_sha256": "bef8effd6fca758816305b6178b96f41cf5ce446cdb28a613b8536bcc68c3e88",
+  "all_16_corrected_source_hashes_match": true,
+  "recording_correction_re_review": {
+    "independent_CPU_command": "PYTHONDONTWRITEBYTECODE=1 /opt/gato-venv/bin/python3 -m pytest -q -p no:cacheprovider tests/python/test_q02_protocol.py",
+    "result": "28 passed; one existing hppfcl import warning;1.21s",
+    "pre_call_archival": "Completefrozenbank savedbeforemodule import/Probeconstructor; everycall exactfloat32input/goal/index/category NPZ+startedJSONL flushedbeforeevaluate.",
+    "failure_evidence": "FailedFDcall17 retainsitsattempt/expectedperturbation anderror/wrapperelapsed/no-output/native-clockunknownreasons;earlieroutputs retained;failure rethrows/globaltraceback+allfilemanifest. Failednativeimportandconstructor preservebank/setupstarted+failedrecords.",
+    "nonfinite_timing": "JSONLallow_nanFalse;null+explicitreasonforbad/unavailableclockvalues. RawNPZoriginaldtype/NaNpayload0x7fc01234/float64Infbytes verified byfake351-calltest;nosamplefiltering.",
+    "manifest_hygiene": "freeze excludes independentreview.json; refreshingmanifestdoesnotcreate mutable-reviewhashcycle. Oldcpu-reference and newcpu-reference-recording-correction14-filemanifests independentlypass; oldevidence preserved.",
+    "frozen_numerics": "Protocola35889fe\u2026sameeightstates/weights/FDsteps/tolerances/Bgroups/warmup1/repeat1/budget351;probe.cu/CMake/protocol.py unchanged;noGPU-driventhresholdchanges.",
+    "compiled_identity": "All10compileinputs and actualmodule36e4ddeb39accf54ee0e4429b82858b703a86811d5592c85a20a78958b3511db stillmatchauditedcoordinatorreceipt;Pythonrecordingcorrections donotrequire anewnativebuild.",
+    "timing_scope_limit": "kernel_ms CUDA-eventscope;wall_s C++wrapperalloc/copybodyclock;outerwrapper_elapsed_s Pythoninvocationclock also coversreturn/deallocation. Initialization separatelyrecorded;distinctscopesnotpooled.",
+    "acceptance": "No remainingstaticrecordingblocker;root alone canexecute exactly one frozen351-call budget after final identity check. Completeddiscrepancies/nonfinite outputs remain scientificnegative;executionfailurestops;norescue/retry/tolerancefitting."
+  },
+  "pre_native_execution_status": "Corrected source/recording/CPU review ACCEPTED; audited coordinator-compiled module ready for exactly one351-call native run; native qualification pending",
+  "actual_native_once_audit": {
+    "audit_path": "/workspace/gato-campaign-q02-20261010/audit-once.json",
+    "audit_sha256": "a8c7888e60d30596537f9d8015226596a71b9aab3a28c3f4a9315477058bd4a7",
+    "raw_root": "/workspace/gato-campaign-q02-20261010/native-once",
+    "raw_manifest_sha256": "a01e5e32fb3c1d7ce4edde2bb59a4ee743d4bf4967e4054c4b305d3a83a52dc7",
+    "module_sha256": "36e4ddeb39accf54ee0e4429b82858b703a86811d5592c85a20a78958b3511db",
+    "protocol_sha256": "a35889fe9a6a7e63a4b7de8c21e1571ca5856a1a9059d4e81ff49ba8ddefc91d",
+    "source_manifest_sha256": "242455afff138f6678a3862fad3454561b6eeb271dc93756eef0e798372df230",
+    "manifest_files": 738,
+    "all738_hashes_and_inventory_match": true,
+    "all16_source_hashes_match": true,
+    "live_module_matches_reviewed_compilation": true,
+    "all351_planned_input_goal_category_index_order_matches": true,
+    "calls": {
+      "started": 351,
+      "completed": 351,
+      "failed": 0,
+      "count_matches_fixed351": true,
+      "indices_sequential": true,
+      "warmup_categories": [
+        0
+      ],
+      "all_inputs_outputs_native_timings_finite": true,
+      "started_completed_input_bytes_match": true,
+      "raw_native_shapes_all995": true
+    },
+    "all560_checks_recomputed_match": true,
+    "saved_FD_arrays_rederived_from_raw_calls_match": true,
+    "native_vs_independent_reference_all_fields_pass": true,
+    "scalarB1_B4_duplicate_permutation_all_fields_pass": true,
+    "failed_checks": [
+      {
+        "label": "sample-1-native-fd",
+        "field": "terminal_gradient",
+        "tolerance": "native_fd_gradient",
+        "pass": false,
+        "finite": true,
+        "max_abs_error": 0.10262727737426758,
+        "max_allowed_ratio": 5.313026603114859
+      },
+      {
+        "label": "sample-3-native-fd",
+        "field": "terminal_gradient",
+        "tolerance": "native_fd_gradient",
+        "pass": false,
+        "finite": true,
+        "max_abs_error": 0.01859349012374878,
+        "max_allowed_ratio": 1.3478334589382606
+      }
+    ],
+    "timing_scope": "All351kernel/C++call/outerwrapper timings finite/nonnegative,includingoneflaggedwarmup;distinctscopes retained;notactuationfrequency/taskevidence."
+  },
+  "setup_first_saved_array_CPU_comparison": {
+    "method": "Use exactretainedplus/minusfloat32xu/goalrows andoriginalh=.004 to evaluate independent Pinocchioterminalcost inCPUfloat64,compare samehFD toretainedCPUfineh1e-5reference/nativeanalytic/nativecoarseFD. No newGPU/h/tolerance/protocol.",
+    "sample1": {
+      "native_analytic_vs_fine_max_abs": 0.0004047516337912782,
+      "CPU_same_h_FD_vs_fine_max_abs": 0.10275184893375622,
+      "native_FD_vs_CPU_same_h_FD_max_abs": 0.00035238155610284316,
+      "frozen_failed_native_analytic_vs_native_FD_max_abs": 0.10262727737426758
+    },
+    "sample3": {
+      "native_analytic_vs_fine_max_abs": 3.5834338042661784e-05,
+      "CPU_same_h_FD_vs_fine_max_abs": 0.018645881731416042,
+      "native_FD_vs_CPU_same_h_FD_max_abs": 7.507189094391187e-05,
+      "frozen_failed_native_analytic_vs_native_FD_max_abs": 0.01859349012374878
+    },
+    "interpretation": "CPUcoarse-stepapproximation relativefineFD reproduces nearlyallselectedfailure;nativeanalytic/fineCPUreference andsamecoarseCPU/nativecostFD differencesmuchsmaller. Evidence supports coarseFD approximation dominatingselectedchecks,notmaterialnative-independent discrepancyonthese8points.",
+    "uncertainty": "FineCPUFD isstill anapproximation;noexactderivativeproof. Smallnative-vsCPUresidual mayinclude float32/fastmath/value differences;thisauditdoesnotisolateinternal causes. No globalmodel/solvercertificate ornewNaN/P01/B01investigation."
+  },
+  "decision_options": [
+    "Retain FAIL2/560 and accept only the bounded passing subchecks/CPU approximation explanation as partial model evidence; any decision to proceed with downstream tasks is explicit and does not relabel Q02 complete.",
+    "Authorize a separately named/frozen follow-up with finite-difference setup calibrated on independent CPU references before any new native run. Keep original h/tolerances/inputs/results immutable; agree its concrete question/budget/gates first.",
+    "Keep Q02/downstream tasks held without new protocol work. No solver repair or internal tracing is indicated by this audit."
+  ],
+  "original_post_negative_hold_status": "Native frozen Q02 protocol FAILED2/560; independent738-file/351-call audit confirms exact cohort; Q02 overall acceptance and downstreamB tasks held pendingFelixdecision.",
+  "post_audit_direction": {
+    "source": "Coordinator instruction conveying Felix Continue",
+    "direction": "ProceedboundedV01independently;retainQ02failedprotocol/coarseFDmethodnegative/unknownnumericalcertificate; no h/tolerance/sourcechange ornewQ02run.",
+    "scope_limit": "Permissiontoevaluateboundedtaskbehavior doesnotrelabelfrozenQ02PASSorcertifysolver/modelglobally."
+  }
+}

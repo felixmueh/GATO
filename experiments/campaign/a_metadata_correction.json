@@ -1,0 +1,27 @@
+{
+  "scope": "Final A diagnostic descriptive metadata correction only; controller/numerical protocol/goals/settings/actualAexecution unchanged",
+  "command": "python3 -m pytest -q tests/python/test_campaign_harness.py tests/python/test_t01_harness.py",
+  "passed": 76,
+  "failed": 0,
+  "skipped": 0,
+  "GPU_calls": 0,
+  "V01_sha256": "20920040853786cf3d96f13ba240f82918a9f0f5020270fbe67715666477cc81",
+  "source_sha256": {
+    "experiments/campaign/run_v01.py": "93e3cd99120643e86399e53944dc7af30a4e659f06678aba6ad88a198b24cc1a",
+    "experiments/campaign/t01_protocol.py": "4585d4aaf1508fde7e56d6320802813120efaf3651b7517048851fa7b2420288",
+    "experiments/campaign/make_plan.py": "ee7e1e66c5686aa32d95f8b4ff0f80dc5bfe5df3e4d552a2a801945fc38456f2",
+    "experiments/campaign/inputs/t01.json": "aec47cfa3819de5adbb8633b637f5bd9bcd327cb3afc5043a856b323af5aac41",
+    "experiments/campaign/inputs/t01_1ms.json": "e53204dc01f5e65ca22757b11fdbbdd7db20ae5a611e6a50eab54559051586c5",
+    "experiments/campaign/inputs/v01_1ms.json": "6b8a119d5f0b1c85c0e4d7faffaced98c5c3762b8a521cc07b9d909f2dac4483",
+    "tests/python/test_campaign_harness.py": "1ca576f6e2fa905a53823fe132ce9f0e932c36d1490e342aaf7722b161b2d26d",
+    "tests/python/test_t01_harness.py": "5b67243d366f58784ff491516a927a3f93a5fbd6473d3bbcb62ae17397c91b80"
+  },
+  "checks": [
+    "Single diagnostic_protocol helper derives actual fixed-feedbackA convention for worker/fallback",
+    "Released synthetic A workers validate mode dispatch, derivedeffectiveprotocol, unpaidsolve clock metadata, separatewall/native timings, rawsuccess/partialfailure retention onboth desktops",
+    "Fallback accepts newderivedAreceipt and rejects obsolete Bclock metadata; Binput remains unchanged",
+    "make_plan REQUIRED pins newhelper; workerprovenance records helper hash",
+    "A terminal convention states full nominal intervals followed by success/timeout checks, possible overshoot, and unpaid solve wall time; no clipping claim"
+  ],
+  "original_receipts": "Existing accepted reviews and t01_cpu_validation retained unchanged; this is a separate final correction receipt"
+}

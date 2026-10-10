@@ -1,0 +1,120 @@
+{
+  "inventory_date": "2026-10-10",
+  "worktree": "/workspace/GATO-eval-ordinary",
+  "branch": "experiment/eval-ordinary",
+  "scope": "Read-only source recovery. No builds, GPU/solver execution, source edits except this inventory, or test execution. Production probe bytes cited match the approved core; the controller-only harness checkpoint is recorded separately.",
+  "verdict": {
+    "status": "partial; current probes cover selected model and dynamics/terminal behaviors, not the historical full Q02 pack",
+    "summary": "Current sources provide Pinocchio-only model reduction/gripper-lumping checks, an opt-in CUDA rollout plus independent Pinocchio dynamics-defect check for the multimodal Tiago variant, and a batch-1 terminal-weight behavior test. The historical examples/tiago_debug_checks.py and complete CUDA/Pinocchio finite-difference derivative plus scalar/batch terminal debug pack are absent. The named script has no path history in available refs and d153f48 is unresolvable.",
+    "missing_categories": [
+      "current GRiD/CUDA versus independent Pinocchio mapping across axis/joint-6 cases",
+      "finite-difference CUDA rollout and tracking-cost derivatives",
+      "normal-tiago_right scalar versus batch terminal cost/gradient/Hessian parity",
+      "historical source, fixtures, exact tolerances, module/build identity, outputs and complete passing receipt"
+    ],
+    "interpretation_limit": "A probe that retrieves public dynamics/cost values and compares them with independent Pinocchio/cost references can establish agreement or discrepancy only for those outputs. It cannot identify an internal NaN cause or which CUDA term produced a value without an instrumented debug interface. Do not turn a public finite/nonfinite result into a root-cause claim.",
+    "next_bounded_action": "Treat the historical pack as unavailable unless Felix supplies a concrete archive/worktree/build receipt. Otherwise propose a separately reviewed minimal current-source Q02 protocol with explicit derivative and scalar/batch test design; stop before implementation or execution in this source-recovery task."
+  },
+  "candidates": [
+    {
+      "id": "pinocchio-reduction-check",
+      "path": "/workspace/GATO-eval-ordinary/tiago_tools/check_tiago_reduction.py",
+      "source_commit": "13eb78f75be509325d09b57654998ff5202ee27a",
+      "sha256": "7950e96242c694c40f611aaba26cc06ce0bab3f0aad1c8e1e64843ed925f0f88",
+      "status": "current source, tracked at production_core; no transplant",
+      "coverage": "Loads the original full URDF, locks non-arm joints in Pinocchio, and compares against the extracted/lumped 7-DoF arm model: joint order/limits, poses, mass matrix, gravity, nonlinear effects, RNEA and ABA across 1000 seeded states plus 7 fixed/joint-6 probes (1007 total), and three 100-step rollouts. SESSION.md 2026-09-24 records pass at atol=1e-8/rtol=1e-9.",
+      "limits": "Pinocchio versus Pinocchio only. Does not exercise GRiD/CUDA mapping, wrapper derivatives, scalar/batch behavior or solver terminal blocks. Local URDF and Pinocchio runtime are needed."
+    },
+    {
+      "id": "gripper-lumping-check",
+      "path": "/workspace/GATO-eval-ordinary/tiago_tools/check_tiago_gripper_lump.py",
+      "source_commit": "a1ac2a5d91d3063f6a31b4356af3aa45db5c7735 (move; original implementation 3303eafcd393a74dcb26fb031d0815e84511e540)",
+      "sha256": "209970455059115f040814ccabc86049f4e8221828981becb714af75d735e7bd",
+      "status": "current source, tracked at production_core; no transplant",
+      "coverage": "Compares summed-gripper 7-DoF and explicit-gripper 13-DoF Pinocchio models with gripper joints frozen at zero. Three cases check arm M, gravity, nonlinear effects, COM and tool frame. SESSION.md 2026-09-24 records all three passing at tolerance 1e-8; max M error 2.78e-17, gravity 3.55e-15, nonlinear effects 1.78e-15, COM/tool errors zero.",
+      "limits": "Pinocchio model-reduction check only; not GRiD axis conversion or CUDA dynamics. Total mass is printed, not asserted."
+    },
+    {
+      "id": "multimodal-cuda-rollout-probe",
+      "paths": [
+        "/workspace/GATO-eval-ordinary/tests/python/test_tiago_multimodal_pillar_cuda.py",
+        "/workspace/GATO-eval-ordinary/tiago_examples/tiago_multimodal_pillar.py",
+        "/workspace/GATO-eval-ordinary/tiago_src/gato_tiago/multimodal_pillar.py"
+      ],
+      "source_commit": "7ccfc71f48343eaa1bd3c862347c66188fd6762e",
+      "sha256": {
+        "test": "4afd861f9dfab4a35690884e4bb3a5a1f2aca7da7dca812884c2fa51b9c78631",
+        "runner": "7bdf2b9d073d6ff9f5d0c835436569f121dfaef8a805ab35e604704242dabf06",
+        "pin_reference": "a9c481a0ced10000d249e0776fea569caf96c1181b91782d5bbf169d08aacb58"
+      },
+      "status": "current source, tracked; no transplant; requires built N32 tiago_right_multimodal CUDA extension and GATO_RUN_MULTIMODAL_TESTS=1",
+      "coverage": "For easy seed 30/budget 8 in the special multimodal plant, calls CUDA sim_forward for one-step planned defects and exact rollouts. The benchmark independently computes discrete Pinocchio ABA shooting defects and checks CUDA defect, rollout, reconstructed objective and task gates. Strongest current source lead for CUDA dynamics against an independent Pinocchio reference.",
+      "limits": "Special multimodal variant, not normal tiago_right. No finite-difference wrapper A/B or tracking-cost derivatives, scalar/batch terminal parity, or internal debug buffers. Only the named case is gated. Source presence is not a new execution receipt."
+    },
+    {
+      "id": "normal-terminal-weight-behavior",
+      "path": "/workspace/GATO-eval-ordinary/tests/python/test_tiago_terminal_cost.py",
+      "source_commit": "4b3aaf82c8f63b1948f4017a8c906f304c5bd47e",
+      "sha256": "aa67d2b54840beb20f0d47df8d26b0f2d6bbf053a5594a6eeee9308b69e5c077",
+      "status": "current source, tracked; no transplant; needs N16 tiago_right extension, CUDA and GATO_RUN_TRACKING_TESTS=1",
+      "coverage": "Batch-1 task solve compares N_cost 0 versus 300 and asserts the higher weight improves terminal position below 1 cm and by at least 2x.",
+      "limits": "Behavioral terminal-cost response only. No terminal gradient/Hessian oracle, finite difference, B>1 or scalar/batch comparison. Test is opt-in and may skip without setup; skip is not Q02 completion."
+    },
+    {
+      "id": "public-interface-debug-boundary",
+      "paths": [
+        "/workspace/GATO-eval-ordinary/python/bsqp/interface.py:265-268",
+        "/workspace/GATO-eval-ordinary/python/bindings.cu:200-239"
+      ],
+      "source_commit": "16b33719b4f0fd463eec7262c99b16b0b324366f",
+      "sha256": {
+        "interface": "7caa7781a98126646f3f50e7569b34db1f01339331a2341e4e37ebebba3a3770",
+        "binding": "1a899a79a7c0b6273d7a62025b72be773d97f257b10de8ccdf80e57ce803c19f"
+      },
+      "coverage": "Public sim_forward copies/broadcasts x/u inputs, calls forward simulation and returns states.",
+      "limits": "No public overlay returns rollout Jacobians, per-term cost derivatives or terminal Q/q/R/r blocks. Independent references can check returned values, not localize internal NaN causes."
+    },
+    {
+      "id": "missing-historical-debug-pack",
+      "paths": [
+        "examples/tiago_debug_checks.py (not found in worktree or Git path history)",
+        "gato/bsqp/kernels/debug.cuh (not found in worktree or available refs)"
+      ],
+      "claimed_commit": "d153f48 (unresolvable; git cat-file reports invalid object name)",
+      "source_notes": [
+        "felixnotes/BUGFIXES.md section 7",
+        "felixnotes/IMPL_TIAGO.md Steps 6/8",
+        "felixnotes/SESSION.md 2026-09-24 audit"
+      ],
+      "availability": "not recovered; filename scan of visible /workspace found no copy",
+      "documented_coverage": "Historical notes claim rollout linearization and tracking gradients versus finite differences plus SQP/PCG/line-search diagnostics.",
+      "limits": "Documentation is not executable evidence. Source bytes, inputs, build/module identity, tolerances, raw outputs and a confirmed complete passing run are unavailable. Do not reconstruct code from prose or transplant an unrelated historical solver baseline."
+    }
+  ],
+  "transplant_assessment": {
+    "existing_candidates": "No test-only source transplant is required for the four tracked candidate files above. CUDA candidates require their stated independently built module(s), not a test-only transplant.",
+    "historical_debug_pack": "No transplant source or resolvable commit exists in inspected refs. Do not copy from another branch or infer implementation from documentation.",
+    "baseline_rule": "Any future transplant must be audited against source_head 16b3371 and exclude B01-containing 8aedcce/test branch. This inventory identifies no necessary transplant."
+  },
+  "unresolved_setup_and_proof": [
+    "Pinocchio reduction passes are recorded in SESSION.md, but exact Pinocchio version/runtime receipt is not preserved with the scripts.",
+    "CUDA rollout lead uses tiago_right_multimodal; that module is distinct from normal tiago_right and must not be presented as the normal plant.",
+    "Terminal behavior source is N16 and opt-in; a collection skip is neither a pass nor full Q02.",
+    "No present probe covers normal-plant CUDA wrapper finite differences or scalar/batch terminal cost/gradient/Hessian parity.",
+    "Public-output comparisons cannot establish internal NaN cause."
+  ],
+  "acceptance_and_stop": {
+    "source_recovery_acceptance": "Inventory identifies exact tracked sources, provenance, coverage, limits and confirms Q02 remains partial. It does not qualify missing categories.",
+    "future_q02_acceptance": "Before calling Q02 complete, require receipts/outcomes for (a) current Pinocchio reduction and gripper references, (b) normal tiago_right CUDA versus independent Pinocchio one-step dynamics/kinematics including joint-6 mapping, (c) wrapper derivative finite differences for declared outputs, and (d) scalar/B>1 terminal cost and block-gradient/Hessian parity. Do not infer internal NaN cause from public values.",
+    "stopping_point": "No solver/native/debug-overlay implementation, build, GPU probe or causal diagnosis in this task. Further recovery requires a concrete historical archive/path from Felix or a separately reviewed bounded new-probe proposal."
+  },
+  "read_only_commands": [
+    "cd /workspace/GATO-eval-ordinary && git rev-parse HEAD",
+    "cd /workspace/GATO-eval-ordinary && rg --files /workspace | rg '(^|/)tiago_debug_checks\\.py$|debug\\.cuh$|debug.*tiago'",
+    "cd /workspace/GATO-eval-ordinary && git log --all --full-history --oneline -- examples/tiago_debug_checks.py",
+    "cd /workspace/GATO-eval-ordinary && git cat-file -t d153f48",
+    "cd /workspace/GATO-eval-ordinary && sha256sum tiago_tools/check_tiago_reduction.py tiago_tools/check_tiago_gripper_lump.py tests/python/test_tiago_terminal_cost.py tests/python/test_tiago_multimodal_pillar_cuda.py tiago_examples/tiago_multimodal_pillar.py tiago_src/gato_tiago/multimodal_pillar.py python/bindings.cu python/bsqp/interface.py"
+  ],
+  "production_core": "16b33719b4f0fd463eec7262c99b16b0b324366f",
+  "worktree_checkpoint_at_inventory_review": "9b69fd605bad87cabffcd0d9af4f7c9135b0a271"
+}
