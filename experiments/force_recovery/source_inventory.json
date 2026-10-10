@@ -1,0 +1,115 @@
+{
+  "inventory_date": "2026-10-10",
+  "worktree": "/workspace/GATO-eval-force",
+  "branch": "experiment/eval-force",
+  "base_commit": "16b33719b4f0fd463eec7262c99b16b0b324366f",
+  "scope": "Read-only CPU source/artifact discovery. No estimator implementation, tests, GPU runs, robot runs, or protocol changes.",
+  "verdict": {
+    "status": "estimator algorithm recovered; intended adapted-experiment provenance and results not recovered",
+    "summary": "The historical generic ImprovedForceEstimator and current ForceEstimator have identical executable Python ASTs after renaming the class and removing docstrings. The estimator algorithm itself is recovered. The current TIAGo controller contains a separate adaptation/integration layer, including world-to-GATO wrench-frame conversion and TIAGo-specific parameters. What remains unknown is which controller/model/frame revision the intended adapted result used, and which exact hypotheses and raw results go with it. No such adapted-specific receipts were found in the inspected workspace and available repository history.",
+    "impact": "The algorithm implementation is not the recovery blocker. The blocker is provenance and evidence for the intended adapted experiment: exact adaptation revision/configuration, model and hypothesis inputs, and linked raw outputs are not established. E01/E02/E03 must not treat generic source or unrelated artifacts as a faithful adapted comparison.",
+    "next_bounded_action": "Ask Felix for the original adaptation checkout/archive or the workstation/Jetson result directory name. Search only that concrete lead read-only, recording file hashes and commit provenance. If none exists, preserve the gap and present a recovery-versus-explicit-new-baseline choice before implementing or running a substitute."
+  },
+  "sources": [
+    {
+      "id": "current-adapted-estimator-class",
+      "path": "/workspace/GATO-eval-force/examples/force_estimator.py",
+      "commit": "16b33719b4f0fd463eec7262c99b16b0b324366f",
+      "sha256": "797782e7508fb8abfc541c40bd78141b15266950ec8923ab3d0a635dd96a2dd4",
+      "role": "Current estimator class. Class is named ForceEstimator. Implements 6D estimate state, three exploitation candidates plus force-only Fibonacci-sphere exploration, momentum/smoothing, adaptive radius and random rotation.",
+      "relevance": "Direct algorithm source available in the assigned evaluation worktree.",
+      "limitations": "Does not define the plant/model, applied disturbance, hypothesis truth, data collection, or frame by itself. Its existence does not prove execution or performance. The controller imports this module opportunistically; batch size must exceed 3 when constructing it."
+    },
+    {
+      "id": "historical-generic-original-candidate",
+      "path": "Git object 2a5d9027546aaf56bab0e8dc2d2029e09d8b4ce8:examples/force_estimator.py (also 0b0e9d90294654fc5495af40be8f03849ae29dcf)",
+      "commit": "2a5d9027546aaf56bab0e8dc2d2029e09d8b4ce8",
+      "file_sha256": "d2b0190f4bba827ad818684978f4e428f60c0f4f05d82f79f8aa2e36225a4676",
+      "role": "Historical class named ImprovedForceEstimator; Git history dates it to the August 2025 disturbance work.",
+      "relevance": "The executable AST is identical to the current ForceEstimator after class rename and docstring removal. This directly recovers the estimator algorithm implementation and its lineage.",
+      "limitations": "This does not establish which specific experiment/run was intended as the original baseline for E01/E03, nor the provenance of the separate TIAGo integration layer. No canonical source/config/raw-result receipt for the intended adapted experiment was found."
+    },
+    {
+      "id": "current-tiago-controller-adaptation",
+      "path": "/workspace/GATO-eval-force/tiago_src/gato_tiago/tiago_mpc_controller.py",
+      "commit": "16b33719b4f0fd463eec7262c99b16b0b324366f",
+      "sha256": "b5e1ce41c855046949eec08fe18403adfbb43d2337a458924313b62b2f14af1c",
+      "role": "Adaptation/integration lead. Constructs estimator for batch >1 with radius 5/2/20 and smoothing .5; generates hypotheses, transforms each wrench from world through end-effector to GATO frame, sets the solver batch wrench, chooses the best lane by one-step state prediction error, then updates estimator with alpha=.6 and beta=.5.",
+      "relevance": "Identifies the local adapted control flow, parameters and stated frame conversion needed for a correspondence protocol.",
+      "limitations": "No retained provenance says this exact controller revision was the adaptation originally measured. Frame conversion has not been independently qualified here. The Python interface and compiled CUDA binding explicitly reject nonzero wrench for TIAGo (see hashed entries below), so this tree does not establish an executable nonzero-wrench TIAGo solver experiment."
+    },
+    {
+      "id": "older-generic-controller-path",
+      "path": "Git object 8c6a49d2337cf28991209ebcabe599d46f374b10:python/bsqp/mpc_controller.py",
+      "commit": "8c6a49d2337cf28991209ebcabe599d46f374b10",
+      "role": "Historical controller copy imports ForceEstimator, initializes it for batched runs, generates/transforms hypotheses, selects best lane from prediction error and calls update.",
+      "relevance": "Shows estimator/controller coupling predates the current TIAGo controller copy; useful for distinguishing upstream/generic mechanics from later TIAGo adaptation.",
+      "limitations": "Generic controller copy is not an original-versus-adapted record and does not establish a specific original thesis implementation or result."
+    },
+    {
+      "id": "generic-disturbance-notebook",
+      "path": "/workspace/GATO-eval-force/examples/gato_fig8_tracking.ipynb",
+      "commit": "16b33719b4f0fd463eec7262c99b16b0b324366f",
+      "sha256": "87bf589c8c1b486534d0b1dddccb9355b02dc6f2bb8ce6cc5d0afa8a0d58c642",
+      "role": "Notebook source configures batch sizes [1, 32, 128] and a constant wrench [0, 0, -60, 0, 0, 0], labeled as force in N. It has no embedded outputs (empty `outputs`, null execution counts). The imported controller defaults to `plant_type='indy7'` in `python/bsqp/mpc_controller.py`.",
+      "relevance": "Concrete generic Indy7 disturbance/hypothesis configuration lead; historical context only, not adapted TIAGo evidence.",
+      "limitations": "The source is the default Indy7 example, not the TIAGo adaptation. No corresponding output or raw receipt was found with it."
+    },
+    {
+      "id": "tiago-host-interface-wrench-guard",
+      "path": "/workspace/GATO-eval-force/python/bsqp/interface.py:270-277",
+      "commit": "16b33719b4f0fd463eec7262c99b16b0b324366f",
+      "sha256": "7caa7781a98126646f3f50e7569b34db1f01339331a2341e4e37ebebba3a3770",
+      "role": "Host-side `set_f_ext_B` rejects any nonzero wrench for `plant_type == 'tiago_right'` by raising NotImplementedError before calling the solver.",
+      "relevance": "Direct active Python API restriction on nonzero wrench hypotheses through the current TIAGo solver interface.",
+      "limitations": "Source inspection only; no runtime probe performed."
+    },
+    {
+      "id": "tiago-cuda-binding-wrench-guard",
+      "path": "/workspace/GATO-eval-force/python/bindings.cu:153-164",
+      "commit": "16b33719b4f0fd463eec7262c99b16b0b324366f",
+      "sha256": "1a899a79a7c0b6273d7a62025b72be773d97f257b10de8ccdf80e57ce803c19f",
+      "role": "Under PLANT_TIAGO_RIGHT, the pybind setter scans the wrench array and throws py::value_error on nonzero elements before forwarding to the solver.",
+      "relevance": "Compiled host binding enforces the restriction independently of device assert behavior, including builds with NDEBUG.",
+      "limitations": "Source inspection only; no build or runtime probe performed."
+    },
+    {
+      "id": "tiago-native-wrench-limit",
+      "path": "/workspace/GATO-eval-force/gato/dynamics/tiago_right/tiago_right_plant.cuh",
+      "commit": "16b33719b4f0fd463eec7262c99b16b0b324366f",
+      "sha256": "27ac9c979d54a8f4661368bedf2e6c9cc081579542bad1ca917e6cde3930a887",
+      "role": "Device-side assertion requires external wrench values to be zero; comments state generated GRiD Tiago header lacks external-force kernels.",
+      "relevance": "Additional native limitation; host-side Python and binding guards above are decisive even when device assertions are disabled.",
+      "limitations": "Source inspection only; does not exclude a separate physical, Pinocchio-only, or private implementation."
+    },
+    {
+      "id": "generic-batched-results-pickle",
+      "path": "/workspace/GATO-eval-force/examples/gato_hparam_batch_results.pkl",
+      "commit": "16b33719b4f0fd463eec7262c99b16b0b324366f",
+      "sha256": "926248e52d1fa532c317e37da24ed652ae64110f8219cb5e061668bd3091f048",
+      "role": "Current file is exactly 5 bytes (`80 04 7d 94 2e`), a pickle protocol-4 empty dictionary; it is an empty placeholder, not measured results.",
+      "relevance": "None as result evidence. Git history contains a different 84,114-byte object at commit `bbd7f15`; its blob SHA-256 is `07f3b601a7ebb9906dc46b9a6409a9dce5d413beaa8c2c2423ce5db1e7f2d19c`, but it remains an unverified historical lead only.",
+      "limitations": "Neither object was deserialized or executed. The historical object has no established relation to the adapted TIAGo estimator, exact model/hypotheses, or raw result contract."
+    }
+  ],
+  "search_record": {
+    "read_only_commands": [
+      "rg --files /workspace /mnt /tmp | rg -i '(force.?estimator|wrench|force.*(csv|json|npz|yaml)|estimator.*force)'",
+      "rg -n -i 'force|wrench|estimate|fibonacci|sphere_dirs|smoothed_estimate|momentum' . --glob '!**/.git/**' --glob '!build/**' --glob '!*.so' --glob '!*.o'",
+      "rg -n -i 'force|wrench|estimator|hypoth' felixnotes --glob '*.md'",
+      "git log --all --format='%h %ad %s' --date=short -- examples/force_estimator.py",
+      "git log --all --format='%h %ad %s' --date=short -- tiago_src/gato_tiago/tiago_mpc_controller.py",
+      "git ls-tree -r --name-only <historical commit>"
+    ],
+      "outcome": "Found exact estimator algorithm lineage, current controller integration, an Indy7 notebook configuration with no outputs, an empty current pickle placeholder and a distinct unverified historical pickle object. Workspace scans found no adapted-specific source/config/raw cohort. No private runner source, Jetson account or network search was used.",
+    "coverage_limit": "The filesystem scan was bounded to visible workspace/mount candidates and repository history. It cannot rule out unmounted archives, Felix's private source checkout, or Jetson-only files."
+  },
+  "reproduction_read_only_commands": [
+    "cd /workspace/GATO-eval-force && git show 2a5d9027546aaf56bab0e8dc2d2029e09d8b4ce8:examples/force_estimator.py",
+    "cd /workspace/GATO-eval-force && git show 8c6a49d2337cf28991209ebcabe599d46f374b10:python/bsqp/mpc_controller.py",
+    "cd /workspace/GATO-eval-force && sha256sum examples/force_estimator.py tiago_src/gato_tiago/tiago_mpc_controller.py examples/gato_fig8_tracking.ipynb examples/gato_hparam_batch_results.pkl",
+    "cd /workspace/GATO-eval-force && git cat-file -s bbd7f15:examples/gato_hparam_batch_results.pkl && git cat-file blob bbd7f15:examples/gato_hparam_batch_results.pkl | sha256sum",
+    "cd /workspace/GATO-eval-force && sha256sum python/bsqp/interface.py python/bindings.cu gato/dynamics/tiago_right/tiago_right_plant.cuh",
+    "cd /workspace/GATO-eval-force && rg -n 'assertNoExternalWrench|External wrench dynamics are not implemented' gato/dynamics/tiago_right/tiago_right_plant.cuh tiago_src/gato_tiago/tiago_mpc_controller.py"
+  ]
+}
