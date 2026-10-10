@@ -10,7 +10,7 @@ import pytest
 
 from gato_tiago.config import TIAGO_REACHING_SOLVER_PARAMS
 from gato_tiago.final_approach import FinalApproachSwitch
-from gato_tiago.tiago_mpc_controller import MPC_GATO
+from gato_tiago.tiago_mpc_controller import ForceEstimator, MPC_GATO
 
 
 class RecordingSolver:
@@ -146,3 +146,25 @@ def test_zero_elapsed_preserves_selected_force_lane_and_estimator():
     assert len(mpc.force_estimator.updates) == 1
     np.testing.assert_array_equal(mpc.force_estimator.updates[0][1], previous_errors)
     assert mpc.solver.prediction_intervals == [.001]
+
+
+def test_zero_elapsed_leaves_real_force_hypotheses_unchanged():
+    assert ForceEstimator is not None
+    mpc = MPC_GATO.__new__(MPC_GATO)
+    mpc.batch_size = 4
+    mpc.solver = RecordingSolver(4)
+    mpc.force_estimator = ForceEstimator(4)
+    mpc._last_best_trajectory_id = 3
+    mpc.force_estimator.smoothed_estimate[:] = [1, 2, 3, .1, .2, .3]
+    mpc.force_estimator.momentum[:] = [.4, .5, .6, 0, 0, 0]
+    before_hypotheses = mpc.force_estimator.generate_batch().copy()
+    before_rotation = mpc.force_estimator.current_rotation.copy()
+    before_radius = mpc.force_estimator.radius
+    before_confidence = mpc.force_estimator.confidence
+    assert mpc.evaluate_best_trajectory(np.zeros(2), np.zeros(1), np.zeros(2), 0) == 3
+    np.testing.assert_array_equal(mpc.force_estimator.generate_batch(), before_hypotheses)
+    np.testing.assert_array_equal(mpc.force_estimator.current_rotation, before_rotation)
+    assert mpc.force_estimator.radius == before_radius
+    assert mpc.force_estimator.confidence == before_confidence
+    assert mpc.force_estimator.error_history == []
+    assert mpc.solver.prediction_intervals == []
