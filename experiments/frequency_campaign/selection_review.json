@@ -1,0 +1,48 @@
+{
+  "verdict": "approved",
+  "scope": "Read-only common F01 episode selection metadata versus frozen bank and root-provided actual Felix response; no runtime/native/worker changes or execution release.",
+  "decision_authority": "Root latest received Felix response explicitly selected 12 episodes; two starts, common allthreeGPU64cells, and accepted T01 frozen tracking gates20/40,25/50,30/60mm for D01/D02planning. Reviewer does not infer additional execution/repeat/physical-robot authorization.",
+  "selection": {
+    "path": "/workspace/GATO-eval-frequency/experiments/frequency_campaign/selected_variant.json",
+    "sha256": "b74822de5eba17ef7141a8502b0133f40b556314064996fdae9c41752e7911a6"
+  },
+  "external_same_bytes": {
+    "path": "/workspace/gato-campaign-recovery-20261010/f01-coverage-decision.json",
+    "sha256": "b74822de5eba17ef7141a8502b0133f40b556314064996fdae9c41752e7911a6"
+  },
+  "unchanged_bank_manifest_sha256": "29f8ccdff73d36c339e50ea7153a46fb6ecd22b32da786b74f16cb9e1a61f609",
+  "independent_counts": {
+    "episodes": 12,
+    "start_indices": [
+      0,
+      1
+    ],
+    "start_fractions": [
+      0.0,
+      0.05
+    ],
+    "reaching": 6,
+    "tracking": 6,
+    "solves_per_episode": 20,
+    "cells_per_machine": 64,
+    "category_counts": {
+      "cold": 12,
+      "warm": 222,
+      "goal_switch": 6
+    },
+    "excluded_unrelated_warmup_per_cell": 1,
+    "all_calls_per_cell": 241,
+    "all_calls_per_machine": 15424,
+    "all_three_machines_total": 46272
+  },
+  "duration_planning": "Solve-only0.4284\u20134.2844hours per15424calls atassumed0.1\u20131s; excludes builds/imports/plant/recording/thermal/copy. Historical6.9211s cylinder timing explicitly NOTTIAGopredictor;16.945GiB unmeasured conservative allowance, actual calibrationstillpending.",
+  "interpretation": [
+    "All64budgetcells and allthreeGPUs preserved; selected same firsttwo starts and six taskepisodes each, full24 superset remains immutable historicalproposal.",
+    "Per revision F01ab each budgetcell generates its own modeA trajectory, so state/warm/reference inputs differ acrosscells; later report must state this limitation. CrossGPU tasksets/startsbanks match up to numerical variation, no bitdeterminism/fullpersistent-state guarantee.",
+    "Cold/warm/goal-switch stay distinct; unrelated processwarmup retained excluded. Eachcell has20updates lastintervalincluded.",
+    "Hardheld worker, own-machine canonicalA preflight, nativefactory/build/runner review and exactplan/dryrun still pending; shortvariant decision alone does not executeJetson.",
+    "Accepted trackinggates apply D01/D02planning only; standalone safety/manualrobot scripts and Felixmanual review/run requirements remain."
+  ],
+  "gpu_calls": 0,
+  "native_calls": 0
+}

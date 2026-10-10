@@ -1,0 +1,69 @@
+{
+  "verdict": "approved_CPU_F01_runner_integration_for_checkpoint",
+  "source_base_commit": "3b4d6abbcb0e7d1acb15606b81f76f214c8fd1e6",
+  "reviewed_file_sha256": {
+    "experiments/frequency_campaign/factory.py": "dd9446ad12c843c647c0ada08f99be0eeafc94a124fd355e9afab388a015ecfe",
+    "experiments/frequency_campaign/release.py": "055f2541350276599d402dd691335867de36d0c447b4443f19c287dbe9f77b8f",
+    "experiments/frequency_campaign/readiness.py": "83cadb3379319fb343b9b837366c4d63f4e245e8010b8efeabdfd04afab274b2",
+    "experiments/frequency_campaign/build_isolated.py": "bcd68141023350bf8226788ddeb52ca787aaacecb08729e202c8f85b22947617",
+    "experiments/frequency_campaign/run.py": "cd14246d1d09ef32ba17399fca3d500f5869efdd1ab888bc94e5e37a58049907",
+    "experiments/frequency_campaign/protocol.py": "ada30fa9713485911b78acc3e17ad573e5f4fcff20032ddc24ee4362823d5741",
+    "experiments/frequency_campaign/release_manifest.json": "bd52608dba6ba18697e1ddb95064aa1988d5afbd8cd2fcb44eff053f2e68787f",
+    "experiments/frequency_campaign/held_plan_template.json": "cd9474d3f7588aa57faf3dfcec07cf135463d264717db7e3fe7de747c22370cb",
+    "experiments/frequency_campaign/README.md": "5e4217f8681151d91401679ec35df29a98b19baa102620a3f97e44c40753f3e6",
+    "experiments/frequency_campaign/RUNNER_README.md": "dec4688becba01b72331a8d47d2afc58d140b2d7946ff46ecb20721835255cd3",
+    "tests/python/test_frequency_release.py": "c97e6f70fcfe45c2165a22b172857cbc9306796de0f8c1f1e3632899aebff052"
+  },
+  "unchanged_collector_sha256": {
+    "experiments/frequency_campaign/episode.py": "4e9698d14f424539ad895ec48b58d7f2a13e4970c1cd27ebf7b4420fe9b0e8d0",
+    "experiments/frequency_campaign/record_bank.py": "b7779771a0d6ef680a773e9a67c8e5318fb1014777778f2e05de5d65837413d1",
+    "tests/python/test_frequency_episode.py": "3a52321d09b4f4e04b23d73826a35c31024de45acc4a8e33357cad13dac8a5cd",
+    "experiments/frequency_campaign/selected_variant.json": "b74822de5eba17ef7141a8502b0133f40b556314064996fdae9c41752e7911a6",
+    "experiments/frequency_campaign/inputs/SHA256SUMS.json": "29f8ccdff73d36c339e50ea7153a46fb6ecd22b32da786b74f16cb9e1a61f609"
+  },
+  "implementation_receipt": {
+    "path": "/workspace/gato-campaign-recovery-20261010/f01-runner-integration-cpu.json",
+    "sha256": "fb2ab253dff3fa81370c6390e3555856fcce602d6099d42e429328e1ef33202c"
+  },
+  "independent_CPU_validation": {
+    "command": "/opt/gato-venv/bin/python3 -B -m pytest tests/python/test_frequency_release.py tests/python/test_frequency_episode.py -q",
+    "outcome": "34 passed, zero skips,13.74s; existing hppfcl warning",
+    "prior_snapshot": "Initial33 passed12.51s before native-raise correction"
+  },
+  "findings": [
+    {
+      "id": "F01-RUN-R1",
+      "status": "corrected_and_rereviewed",
+      "problem": "Native solve raises discarded normalized actual argument arrays at owner close; wrapper precall bytes alone could differ dtype",
+      "correction": "Capture sequence with absent reply emits native_call_failed outside wrapper timer, actual argument arrays at failure retained before close, explicit absent reply, then standard failure event",
+      "validation": "Meaningful injected actual public BSQP normalizer + raising fake native; f32 native arguments match saved arrays, one call, family hold prevents next worker"
+    }
+  ],
+  "accepted_behavior": [
+    "Full public wrapper timing includes telemetry decode; raw serialization and stats access outside timer; lightweight native proxy retains references only",
+    "Public presets overridden only by selected SQP/PCG caps; one horizon per fresh worker, disposable unrelated warmup and fresh owner per episode; unchanged cold precision, sampled controls and shifted warm starts",
+    "Pinned release/source/build/module/input/selection guards precede native imports; canonical public modeA N32/.03/.003/qd.1/PCG120 preflight is separate from B diagnostic and required before timing cells",
+    "Exact short12 two starts,64 budget cells and three required machines retained in disabled template; no extra retries/pruning or numerical equivalence requirement",
+    "Native reply survives public normalization error; actual native exception arguments retained; partial execution/missing slots kept; execution failure holds family while completed scientific negatives remain evidence",
+    "Normal runner case/output/input entry saves full f01-raw payload and root metrics; build-owned archive/target adapter does not edit private runner source"
+  ],
+  "remaining_execution_requirements": [
+    "Root checkpoint exact reviewed source; normal isolated per-N builds and real reviewed manifest/module identities",
+    "Build all four horizons before freezing manifest and single canonical modeA readiness, avoiding manifest changes that invalidate readiness",
+    "Own-machine canonical modeA rough/physical preflight once; failure preserved and family held",
+    "Exact explicit reviewed plan and dry-run; matching5060/internal and Jetson machine releases remain separate; commonshort12 Jetson duration decision already approved, target calibration/storage recorded"
+  ],
+  "limitations": [
+    "CPU implementation review, not actual canonical readiness or F01 timing measurement",
+    "User accepted first observer version as-is; original numerical comparison negative preserved, no equivalence/cause/full convergence claim",
+    "Persistent native dual/rho/drho replay state unavailable; configured presets and episode/reset/primal inputs recorded",
+    "Raw native argument references are labeled at return/failure, not immutable native presubmission snapshots"
+  ],
+  "reviewer_actions": {
+    "native_imports": 0,
+    "native_constructors": 0,
+    "GPU_calls": 0,
+    "builds": 0,
+    "commits": 0
+  }
+}

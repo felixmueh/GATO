@@ -1,0 +1,12 @@
+{
+  "schema": 1,
+  "status": "held",
+  "reason": "CPU runner integration only; accepted first telemetry version requires actual ON suite, pinned committed source/normal builds, own-machine canonical A preflight and reviewed explicit plan. Matching 5060/internal and Jetson machine-specific releases pending.",
+  "telemetry_acceptance": {
+    "path": "/workspace/gato-campaign-recovery-20261010/telemetry-acceptance-decision.json",
+    "sha256": "9eea290936604e395ee62e228e0225a8b9129aa65f853c112c64b31df49c3dbb"
+  },
+  "accepted_observer_patch_sha256": "600fbe7bda2cc9f9736fdc621e6ffc969ef31ec66acbca393741552102d32b5c",
+  "numerical_equivalence_required": false,
+  "packed_alternative": "inactive and uncompiled; no further paired comparison"
+}

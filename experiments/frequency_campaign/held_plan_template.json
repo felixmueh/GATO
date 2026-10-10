@@ -1,0 +1,991 @@
+{
+  "version": 1,
+  "experiments": [
+    {
+      "id": "F01-A-readiness",
+      "enabled": false,
+      "source_commit": "REVIEWED_FULL_SOURCE_COMMIT",
+      "machines": [
+        "gtx1070",
+        "rtx5060",
+        "jetson"
+      ],
+      "repeats": 1,
+      "build": {
+        "commands": [
+          [
+            "{python}",
+            "-B",
+            "{source}/experiments/frequency_campaign/build_isolated.py",
+            "--source",
+            "{source}",
+            "--build",
+            "{build}",
+            "--python",
+            "{python}",
+            "--cuda-arch",
+            "{cuda_arch}",
+            "--N",
+            "32"
+          ]
+        ],
+        "artifacts": [
+          "campaign-source/python/bsqp/bsqpN32_tiago_right*.so",
+          "f01-build-N32.json",
+          "build_source_receipt.json"
+        ]
+      },
+      "command": [
+        "{python}",
+        "-B",
+        "{build}/campaign-source/experiments/frequency_campaign/run.py",
+        "--case",
+        "{case}",
+        "--output",
+        "{output}",
+        "--inputs",
+        "{inputs}",
+        "--manifest",
+        "REVIEWED_MACHINE_MANIFEST_PATH",
+        "--manifest-sha256",
+        "REVIEWED_MANIFEST_SHA256",
+        "--family-state",
+        "REVIEWED_MACHINE_FAMILY_STATE_PATH",
+        "--readiness"
+      ],
+      "cases": [
+        {
+          "id": "canonical-A",
+          "parameters": {
+            "N": 32,
+            "SQP": 5,
+            "PCG": 120,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        }
+      ]
+    },
+    {
+      "id": "F01ab-short12-N16",
+      "enabled": false,
+      "source_commit": "REVIEWED_FULL_SOURCE_COMMIT",
+      "machines": [
+        "gtx1070",
+        "rtx5060",
+        "jetson"
+      ],
+      "repeats": 1,
+      "build": {
+        "commands": [
+          [
+            "{python}",
+            "-B",
+            "{source}/experiments/frequency_campaign/build_isolated.py",
+            "--source",
+            "{source}",
+            "--build",
+            "{build}",
+            "--python",
+            "{python}",
+            "--cuda-arch",
+            "{cuda_arch}",
+            "--N",
+            "16"
+          ]
+        ],
+        "artifacts": [
+          "campaign-source/python/bsqp/bsqpN16_tiago_right*.so",
+          "f01-build-N16.json",
+          "build_source_receipt.json"
+        ]
+      },
+      "command": [
+        "{python}",
+        "-B",
+        "{build}/campaign-source/experiments/frequency_campaign/run.py",
+        "--case",
+        "{case}",
+        "--output",
+        "{output}",
+        "--inputs",
+        "{inputs}",
+        "--manifest",
+        "REVIEWED_MACHINE_MANIFEST_PATH",
+        "--manifest-sha256",
+        "REVIEWED_MANIFEST_SHA256",
+        "--family-state",
+        "REVIEWED_MACHINE_FAMILY_STATE_PATH"
+      ],
+      "cases": [
+        {
+          "id": "N16-SQP1-PCG100",
+          "parameters": {
+            "variant": "short12",
+            "N": 16,
+            "SQP": 1,
+            "PCG": 100,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N16-SQP1-PCG200",
+          "parameters": {
+            "variant": "short12",
+            "N": 16,
+            "SQP": 1,
+            "PCG": 200,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N16-SQP1-PCG400",
+          "parameters": {
+            "variant": "short12",
+            "N": 16,
+            "SQP": 1,
+            "PCG": 400,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N16-SQP1-PCG800",
+          "parameters": {
+            "variant": "short12",
+            "N": 16,
+            "SQP": 1,
+            "PCG": 800,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N16-SQP2-PCG100",
+          "parameters": {
+            "variant": "short12",
+            "N": 16,
+            "SQP": 2,
+            "PCG": 100,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N16-SQP2-PCG200",
+          "parameters": {
+            "variant": "short12",
+            "N": 16,
+            "SQP": 2,
+            "PCG": 200,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N16-SQP2-PCG400",
+          "parameters": {
+            "variant": "short12",
+            "N": 16,
+            "SQP": 2,
+            "PCG": 400,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N16-SQP2-PCG800",
+          "parameters": {
+            "variant": "short12",
+            "N": 16,
+            "SQP": 2,
+            "PCG": 800,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N16-SQP5-PCG100",
+          "parameters": {
+            "variant": "short12",
+            "N": 16,
+            "SQP": 5,
+            "PCG": 100,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N16-SQP5-PCG200",
+          "parameters": {
+            "variant": "short12",
+            "N": 16,
+            "SQP": 5,
+            "PCG": 200,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N16-SQP5-PCG400",
+          "parameters": {
+            "variant": "short12",
+            "N": 16,
+            "SQP": 5,
+            "PCG": 400,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N16-SQP5-PCG800",
+          "parameters": {
+            "variant": "short12",
+            "N": 16,
+            "SQP": 5,
+            "PCG": 800,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N16-SQP10-PCG100",
+          "parameters": {
+            "variant": "short12",
+            "N": 16,
+            "SQP": 10,
+            "PCG": 100,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N16-SQP10-PCG200",
+          "parameters": {
+            "variant": "short12",
+            "N": 16,
+            "SQP": 10,
+            "PCG": 200,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N16-SQP10-PCG400",
+          "parameters": {
+            "variant": "short12",
+            "N": 16,
+            "SQP": 10,
+            "PCG": 400,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N16-SQP10-PCG800",
+          "parameters": {
+            "variant": "short12",
+            "N": 16,
+            "SQP": 10,
+            "PCG": 800,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        }
+      ]
+    },
+    {
+      "id": "F01ab-short12-N32",
+      "enabled": false,
+      "source_commit": "REVIEWED_FULL_SOURCE_COMMIT",
+      "machines": [
+        "gtx1070",
+        "rtx5060",
+        "jetson"
+      ],
+      "repeats": 1,
+      "build": {
+        "commands": [
+          [
+            "{python}",
+            "-B",
+            "{source}/experiments/frequency_campaign/build_isolated.py",
+            "--source",
+            "{source}",
+            "--build",
+            "{build}",
+            "--python",
+            "{python}",
+            "--cuda-arch",
+            "{cuda_arch}",
+            "--N",
+            "32"
+          ]
+        ],
+        "artifacts": [
+          "campaign-source/python/bsqp/bsqpN32_tiago_right*.so",
+          "f01-build-N32.json",
+          "build_source_receipt.json"
+        ]
+      },
+      "command": [
+        "{python}",
+        "-B",
+        "{build}/campaign-source/experiments/frequency_campaign/run.py",
+        "--case",
+        "{case}",
+        "--output",
+        "{output}",
+        "--inputs",
+        "{inputs}",
+        "--manifest",
+        "REVIEWED_MACHINE_MANIFEST_PATH",
+        "--manifest-sha256",
+        "REVIEWED_MANIFEST_SHA256",
+        "--family-state",
+        "REVIEWED_MACHINE_FAMILY_STATE_PATH"
+      ],
+      "cases": [
+        {
+          "id": "N32-SQP1-PCG100",
+          "parameters": {
+            "variant": "short12",
+            "N": 32,
+            "SQP": 1,
+            "PCG": 100,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-SQP1-PCG200",
+          "parameters": {
+            "variant": "short12",
+            "N": 32,
+            "SQP": 1,
+            "PCG": 200,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-SQP1-PCG400",
+          "parameters": {
+            "variant": "short12",
+            "N": 32,
+            "SQP": 1,
+            "PCG": 400,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-SQP1-PCG800",
+          "parameters": {
+            "variant": "short12",
+            "N": 32,
+            "SQP": 1,
+            "PCG": 800,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-SQP2-PCG100",
+          "parameters": {
+            "variant": "short12",
+            "N": 32,
+            "SQP": 2,
+            "PCG": 100,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-SQP2-PCG200",
+          "parameters": {
+            "variant": "short12",
+            "N": 32,
+            "SQP": 2,
+            "PCG": 200,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-SQP2-PCG400",
+          "parameters": {
+            "variant": "short12",
+            "N": 32,
+            "SQP": 2,
+            "PCG": 400,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-SQP2-PCG800",
+          "parameters": {
+            "variant": "short12",
+            "N": 32,
+            "SQP": 2,
+            "PCG": 800,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-SQP5-PCG100",
+          "parameters": {
+            "variant": "short12",
+            "N": 32,
+            "SQP": 5,
+            "PCG": 100,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-SQP5-PCG200",
+          "parameters": {
+            "variant": "short12",
+            "N": 32,
+            "SQP": 5,
+            "PCG": 200,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-SQP5-PCG400",
+          "parameters": {
+            "variant": "short12",
+            "N": 32,
+            "SQP": 5,
+            "PCG": 400,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-SQP5-PCG800",
+          "parameters": {
+            "variant": "short12",
+            "N": 32,
+            "SQP": 5,
+            "PCG": 800,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-SQP10-PCG100",
+          "parameters": {
+            "variant": "short12",
+            "N": 32,
+            "SQP": 10,
+            "PCG": 100,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-SQP10-PCG200",
+          "parameters": {
+            "variant": "short12",
+            "N": 32,
+            "SQP": 10,
+            "PCG": 200,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-SQP10-PCG400",
+          "parameters": {
+            "variant": "short12",
+            "N": 32,
+            "SQP": 10,
+            "PCG": 400,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-SQP10-PCG800",
+          "parameters": {
+            "variant": "short12",
+            "N": 32,
+            "SQP": 10,
+            "PCG": 800,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        }
+      ]
+    },
+    {
+      "id": "F01ab-short12-N64",
+      "enabled": false,
+      "source_commit": "REVIEWED_FULL_SOURCE_COMMIT",
+      "machines": [
+        "gtx1070",
+        "rtx5060",
+        "jetson"
+      ],
+      "repeats": 1,
+      "build": {
+        "commands": [
+          [
+            "{python}",
+            "-B",
+            "{source}/experiments/frequency_campaign/build_isolated.py",
+            "--source",
+            "{source}",
+            "--build",
+            "{build}",
+            "--python",
+            "{python}",
+            "--cuda-arch",
+            "{cuda_arch}",
+            "--N",
+            "64"
+          ]
+        ],
+        "artifacts": [
+          "campaign-source/python/bsqp/bsqpN64_tiago_right*.so",
+          "f01-build-N64.json",
+          "build_source_receipt.json"
+        ]
+      },
+      "command": [
+        "{python}",
+        "-B",
+        "{build}/campaign-source/experiments/frequency_campaign/run.py",
+        "--case",
+        "{case}",
+        "--output",
+        "{output}",
+        "--inputs",
+        "{inputs}",
+        "--manifest",
+        "REVIEWED_MACHINE_MANIFEST_PATH",
+        "--manifest-sha256",
+        "REVIEWED_MANIFEST_SHA256",
+        "--family-state",
+        "REVIEWED_MACHINE_FAMILY_STATE_PATH"
+      ],
+      "cases": [
+        {
+          "id": "N64-SQP1-PCG100",
+          "parameters": {
+            "variant": "short12",
+            "N": 64,
+            "SQP": 1,
+            "PCG": 100,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N64-SQP1-PCG200",
+          "parameters": {
+            "variant": "short12",
+            "N": 64,
+            "SQP": 1,
+            "PCG": 200,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N64-SQP1-PCG400",
+          "parameters": {
+            "variant": "short12",
+            "N": 64,
+            "SQP": 1,
+            "PCG": 400,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N64-SQP1-PCG800",
+          "parameters": {
+            "variant": "short12",
+            "N": 64,
+            "SQP": 1,
+            "PCG": 800,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N64-SQP2-PCG100",
+          "parameters": {
+            "variant": "short12",
+            "N": 64,
+            "SQP": 2,
+            "PCG": 100,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N64-SQP2-PCG200",
+          "parameters": {
+            "variant": "short12",
+            "N": 64,
+            "SQP": 2,
+            "PCG": 200,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N64-SQP2-PCG400",
+          "parameters": {
+            "variant": "short12",
+            "N": 64,
+            "SQP": 2,
+            "PCG": 400,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N64-SQP2-PCG800",
+          "parameters": {
+            "variant": "short12",
+            "N": 64,
+            "SQP": 2,
+            "PCG": 800,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N64-SQP5-PCG100",
+          "parameters": {
+            "variant": "short12",
+            "N": 64,
+            "SQP": 5,
+            "PCG": 100,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N64-SQP5-PCG200",
+          "parameters": {
+            "variant": "short12",
+            "N": 64,
+            "SQP": 5,
+            "PCG": 200,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N64-SQP5-PCG400",
+          "parameters": {
+            "variant": "short12",
+            "N": 64,
+            "SQP": 5,
+            "PCG": 400,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N64-SQP5-PCG800",
+          "parameters": {
+            "variant": "short12",
+            "N": 64,
+            "SQP": 5,
+            "PCG": 800,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N64-SQP10-PCG100",
+          "parameters": {
+            "variant": "short12",
+            "N": 64,
+            "SQP": 10,
+            "PCG": 100,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N64-SQP10-PCG200",
+          "parameters": {
+            "variant": "short12",
+            "N": 64,
+            "SQP": 10,
+            "PCG": 200,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N64-SQP10-PCG400",
+          "parameters": {
+            "variant": "short12",
+            "N": 64,
+            "SQP": 10,
+            "PCG": 400,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N64-SQP10-PCG800",
+          "parameters": {
+            "variant": "short12",
+            "N": 64,
+            "SQP": 10,
+            "PCG": 800,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        }
+      ]
+    },
+    {
+      "id": "F01ab-short12-N128",
+      "enabled": false,
+      "source_commit": "REVIEWED_FULL_SOURCE_COMMIT",
+      "machines": [
+        "gtx1070",
+        "rtx5060",
+        "jetson"
+      ],
+      "repeats": 1,
+      "build": {
+        "commands": [
+          [
+            "{python}",
+            "-B",
+            "{source}/experiments/frequency_campaign/build_isolated.py",
+            "--source",
+            "{source}",
+            "--build",
+            "{build}",
+            "--python",
+            "{python}",
+            "--cuda-arch",
+            "{cuda_arch}",
+            "--N",
+            "128"
+          ]
+        ],
+        "artifacts": [
+          "campaign-source/python/bsqp/bsqpN128_tiago_right*.so",
+          "f01-build-N128.json",
+          "build_source_receipt.json"
+        ]
+      },
+      "command": [
+        "{python}",
+        "-B",
+        "{build}/campaign-source/experiments/frequency_campaign/run.py",
+        "--case",
+        "{case}",
+        "--output",
+        "{output}",
+        "--inputs",
+        "{inputs}",
+        "--manifest",
+        "REVIEWED_MACHINE_MANIFEST_PATH",
+        "--manifest-sha256",
+        "REVIEWED_MANIFEST_SHA256",
+        "--family-state",
+        "REVIEWED_MACHINE_FAMILY_STATE_PATH"
+      ],
+      "cases": [
+        {
+          "id": "N128-SQP1-PCG100",
+          "parameters": {
+            "variant": "short12",
+            "N": 128,
+            "SQP": 1,
+            "PCG": 100,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N128-SQP1-PCG200",
+          "parameters": {
+            "variant": "short12",
+            "N": 128,
+            "SQP": 1,
+            "PCG": 200,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N128-SQP1-PCG400",
+          "parameters": {
+            "variant": "short12",
+            "N": 128,
+            "SQP": 1,
+            "PCG": 400,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N128-SQP1-PCG800",
+          "parameters": {
+            "variant": "short12",
+            "N": 128,
+            "SQP": 1,
+            "PCG": 800,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N128-SQP2-PCG100",
+          "parameters": {
+            "variant": "short12",
+            "N": 128,
+            "SQP": 2,
+            "PCG": 100,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N128-SQP2-PCG200",
+          "parameters": {
+            "variant": "short12",
+            "N": 128,
+            "SQP": 2,
+            "PCG": 200,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N128-SQP2-PCG400",
+          "parameters": {
+            "variant": "short12",
+            "N": 128,
+            "SQP": 2,
+            "PCG": 400,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N128-SQP2-PCG800",
+          "parameters": {
+            "variant": "short12",
+            "N": 128,
+            "SQP": 2,
+            "PCG": 800,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N128-SQP5-PCG100",
+          "parameters": {
+            "variant": "short12",
+            "N": 128,
+            "SQP": 5,
+            "PCG": 100,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N128-SQP5-PCG200",
+          "parameters": {
+            "variant": "short12",
+            "N": 128,
+            "SQP": 5,
+            "PCG": 200,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N128-SQP5-PCG400",
+          "parameters": {
+            "variant": "short12",
+            "N": 128,
+            "SQP": 5,
+            "PCG": 400,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N128-SQP5-PCG800",
+          "parameters": {
+            "variant": "short12",
+            "N": 128,
+            "SQP": 5,
+            "PCG": 800,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N128-SQP10-PCG100",
+          "parameters": {
+            "variant": "short12",
+            "N": 128,
+            "SQP": 10,
+            "PCG": 100,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N128-SQP10-PCG200",
+          "parameters": {
+            "variant": "short12",
+            "N": 128,
+            "SQP": 10,
+            "PCG": 200,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N128-SQP10-PCG400",
+          "parameters": {
+            "variant": "short12",
+            "N": 128,
+            "SQP": 10,
+            "PCG": 400,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N128-SQP10-PCG800",
+          "parameters": {
+            "variant": "short12",
+            "N": 128,
+            "SQP": 10,
+            "PCG": 800,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        }
+      ]
+    }
+  ],
+  "release_notes": "HELD template; no active runner plan. Root pins exact reviewed commit/receipts/hash/family path after canonical readiness; no numeric equivalence gate/retry/pruning. Commonshort12/twostart coverage andJetsondurationdiscussion alreadyapproved; all64cells+threeGPUs retained. Targetactualruntime/storagecalibration andmachine-specific release pending; JetsonT01/BB repeats are separate."
+}

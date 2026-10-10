@@ -1,4 +1,18 @@
-# F01ab held protocol proposal
+# F01ab — frozen short12 protocol and held runner integration
+
+Current implementation: the reviewed mode-A collector now has a lazy native
+factory, same-mode canonical A readiness worker, normal isolated build adapter
+and single-cell runner entry. Felix accepted the FIRST telemetry implementation
+without a numerical-equivalence gate; its earlier negative comparison remains
+descriptive evidence. The real deployment manifest and all queued entries remain
+held pending reviewed committed source/build receipts, own-machine canonical A
+readiness and exact plan. No native execution was performed by this CPU batch.
+Use [RUNNER_README.md](RUNNER_README.md) for bounded receipt/command details and
+`python3 -B experiments/frequency_campaign/run.py --dry-run` for the exact64-cell
+short12 coverage. [held_plan_template.json](held_plan_template.json) contains
+readiness plus all64 cells with every entry disabled; it never changes the
+legacy default queue. Matching5060/internal and Jetson-specific release gates
+remain separate.
 
 This directory contains design only. No runner plan, worker, build, GPU command,
 measurement or execution permission is supplied. `protocol_proposal.json` is an
@@ -9,8 +23,10 @@ The independent initial design review is
 `/workspace/gato-campaign-recovery-20261010/f01_design_review.json`; original
 proposal bytes remain in external `f01-design-initial-proposal/`.
 The authoritative revision is `/workspace/GATO/EXPERIMENT_PLAN_REVISION_2026-10-10.md`,
-section4. This is a new `.6s fixed-slot/four-start` timing subset. It requires serialized
-input freeze/dynamic screening, implementation review, and Jetson discussion.
+section4. The frozen `.6s fixed-slot/four-start` bank remains a preserved
+superset; Felix selected common short12/two-start coverage after the Jetson
+runtime/coverage discussion. Source/input review and actual machine release
+remain required; that F01 coverage decision is not reopened.
 Fixed-slot collection is a routine design choice within the revision; the exact
 approved goal/speed set does not need approval again.
 
@@ -59,13 +75,12 @@ from its short window as well as optimizer behavior; do not attribute it to
 inadequate budget or infer full-period tracking quality. Never hide this
 difference in labels.
 
-Offer a shorter option for Jetson discussion: use12 episodes, the firsttwo0/.05 witness
-starts only, same20updates and all64cells. Counts12cold/222warm/6switch percell.
-After the required Jetson coverage/runtime discussion, freeze the same selected
-design on all three GPUs for matching counts. It reduces cold
-coverage and supports only bounded histogram interpretation; no budget cell is
-removed. The coordinator presents these concrete choices with calibrated
-duration/storage estimates for the required Jetson discussion. Fixed slots
+Felix approved the shorter common design:12 episodes, the firsttwo0/.05 witness
+starts only, same20updates and all64cells on allthreeGPUs. Counts are
+12cold/222warm/6switch percell. The Jetson coverage/runtime discussion is already
+complete for this F01 choice. Reduced cold coverage supports only bounded
+histogram interpretation; no budget cell is removed. Actual target runtime/
+storage calibration and machine-specific release remain pending. Fixed slots
 resolve cap-dependent public success-stop counts without altered tolerances or
 replacement samples. No success-driven replan/extra-sample arm is proposed.
 
@@ -119,16 +134,18 @@ raw file; a later hashed replay bank supplements these actual percell episodes,
 and never replaces them. Use existing NPZ/JSONL recorder with all nonfinite
 array/scalar bytes retained and raw copying/telemetry/IO outside solve timer.
 
-Current `BSQP.get_stats` retains SQP/PCG counts/times, KKT flag, merits, step
-size and line-search count. No explicit stop_reason or PCGbreakdown field exists
-in current public interface. Preserve all telemetry; derived cap-hit/early-return
-labels must be marked derived and cannot identify a breakdown. This is an
-explicit measurement limitation: retain native_stop_reason=null and
-native_breakdown=null with reasons that the current public API reports neither.
-Available cap counts/flags are observed proxies only, not actual stop causes or
-breakdown claims. Do not presume the native implementation has a reportable
-breakdown mechanism or require instrumentation. No solver instrumentation,
-NaN-cause proposal, repair or invented certificate without separate authorization.
+The accepted FIRST optional experiment telemetry retains the existing native
+arrays/counts/times/flags/merits/line-search data and reports actual PCG
+mask/initial-rho/tolerance/cap paths plus the batch-wide SQP ratio/cap path.
+Task success and physical compliance remain separate. Breakdown is explicitly
+unsupported/null because the algorithm has no breakdown-stop branch; that
+never means numerical breakdown was disproved. The earlier ON/OFF numerical
+comparison is preserved descriptively under Felix's as-is acceptance, without
+equivalence, causal or full nonlinear-certificate claims. Current release uses
+pinned acceptance/source/build/reason/ON-suite evidence, not a numericalPASS
+proxy. Raw `native_return` is saved after wrapper timing even when public
+normalization raises; its argument references are labeled at return, while
+`solve_started` retains exact pre-call wrapper state/reference/warm bytes.
 
 ## Analysis contract
 
@@ -178,24 +195,26 @@ double for a second archival copy. This is not a measured upperbound;
 compression/native telemetry/event-file overhead can change it. Existing
 recorder emits multiple files per solve/plantstep, so filesystemIO may dominate
 fast GPU calls. Measure actual eventbytes and total process time from reviewed
-desktop runs before turning this worksheet into a Jetson duration proposal.
-Record Jetson power/thermal conditions, builds, initialization, solves, plant,
-recorder and archival time separately. No Jetson execution before shorter
-protocol discussion with Felix; no silently pruned cells or shortened episodes.
+desktop runs to refine target runtime/storage calibration. Record Jetson
+power/thermal conditions, builds, initialization, solves, plant, recorder and
+archival time separately. Common short12 coverage was already approved after
+its Jetson duration discussion; actual machine release/calibration remain,
+without silently pruned cells or shortened episodes. Jetson T01/BB repeat
+counts are separate pending discussions.
 
 ## Bounded stopping points
 
-1. Corrected independent CPU design re-review; root checkpoints the held
-   proposal and presents concrete24/12episode Jetson coverage/runtime choices.
-2. Independently review prepared CPU dynamic screening and serialized bank/
-   reference/config hashes; root selects maximal24 or firsttwo-start12 variants;
-   independently review hashes/counts/timing loop/native telemetry collection.
+1. Common short12/two-start coverage is approved after the Jetson discussion;
+   full24 remains the immutable historical superset.
+2. Preserve reviewed CPU dynamic screening and serialized bank/reference/config
+   hashes, selected counts and timing/native telemetry provenance.
 3. Implement only that frozen design; validate meaningful CPU failure/count/
    sampling tests, isolated build identities, required task suite if applicable;
    re-review corrections and checkpoint, then explicit dry-run.
 4. Root-owned sequential desktop timing cohort and matched5060; preserve/report
    surprising failures before changing scope. Update duration/storage proposal
-   using actual call/IO/module/thermal measurements. Discuss Jetson first.
+   using actual call/IO/module/thermal measurements. Prepare actual Jetson machine
+   release using the already approved common short12 coverage.
 5. Complete approved64cells/machine with outcomes/coverage visible; plot and
    interpret before asking about F01c representative budgets. No continuation
    into parameterization viability, learning, force task, solver repair or robot.
@@ -207,8 +226,9 @@ Command: `/opt/gato-venv/bin/python3 experiments/frequency_campaign/freeze_input
 --output experiments/frequency_campaign/inputs`. CLI refuses existing output
 directories. Inputs contain copies of exact sourceT01/endpoints/model/generator,
 `arrays.npz`, `bank.json`, `witnesses.npz`, `screening.json`, provenance and
-`SHA256SUMS.json`. Both variants remain held; no runtime/controller/native loop
-is implemented. References retain the original T01globalanchor across starts.
+`SHA256SUMS.json`. The bank preserves both variants; Felix selected the common short12 subset.
+The bounded collector/factory/readiness/runner path is implemented on CPU,
+with real native deployment held by the reviewed release and machine gates. References retain the original T01globalanchor across starts.
 
 Fifteen8squintic routes were sampled at2668points each (maximum spacing<=3ms):
 four starts→all three original FK-derived endpoints, plus each endpoint→the
@@ -232,3 +252,55 @@ Initial bankv1 before semantic validator strengthening is preserved externally
 in `/workspace/gato-campaign-recovery-20261010/f01-input-bank-v1-prevalidation/`.
 No input failure or numeric parameter change occurred; failed mutation/source
 fixtures are test-only evidence. No GPU/native calls/builds or runtimecore edits.
+
+
+## Concrete held runner commands
+
+The normal runner compiles a build-owned source archive with one literal N
+per horizon group, using the existing campaign preparation helper:
+
+```
+{python} -B {source}/experiments/frequency_campaign/build_isolated.py --source {source} --build {build} --python {python} --cuda-arch {cuda_arch} --N 32
+```
+
+This configures Release/N32/tiago_right/telemetryON; N16/64/128 groups use their
+literalN. It writes source-ownedmodule and `f01-build-N32.json` receipts under
+`{build}`, never edits private runner sources or shares builds across variants.
+Root supplies actual reviewed committed source/module receipts after review.
+
+The worker command consumes normal case/output/input paths:
+
+```
+{python} -B {build}/campaign-source/experiments/frequency_campaign/run.py --case {case} --output {output} --inputs {inputs} --manifest /absolute/reviewed-machine-release.json --manifest-sha256 REVIEWED_HASH --family-state /absolute/machine-family-state.json
+```
+
+A separate fresh N32 canonical-A worker adds `--readiness`; generic runner
+supplies `GATO_MACHINE`. Relative manifest paths resolve under `--inputs`.
+Attempt logs/runner receipts stay in `{output}`; full raw evidence goes into
+fresh `{output}/f01-raw`, and final metrics are mirrored at the attempt root.
+Plot selections use `f01-raw` and its exactmanifest hash. Injected CPU owners,
+plants/observers/readiness executors are marked `evidence_kind=synthetic_test`.
+
+The checked-in held template contains readiness plus all64short12 cells, four
+horizon groups/16budgets each, one repeat/allthree machines. Every entry remains
+disabled; replace reviewed commit/hash/manifest/family-state placeholders only
+in a separate explicit root-reviewed plan. Current coverage display is CPU-only:
+
+```
+python3 -B experiments/frequency_campaign/run.py --dry-run
+```
+
+After root's exact committedplan/build/readiness review, inspect it with:
+
+```
+python3 experiments/run.py --plan /absolute/reviewed-f01-plan.json --machine gtx1070 --dry-run
+```
+
+No plan was enabled or generic runner/native/build executed by this CPU batch.
+The live manifest remains HELD; existing accepted-first observer/ONsuite
+qualification is retained, canonical A readiness is still unmeasured, and
+matching5060/internal plus Jetson release remain pending independently.
+
+Native solve exceptions also flush `native_call_failed` after the wrapper timer,
+with argument arrays labeled at failure and an explicitly unavailable return;
+the standard failed event and family hold follow without another solve.

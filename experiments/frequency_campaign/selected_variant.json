@@ -1,0 +1,65 @@
+{
+  "schema": 1,
+  "UTC": "2026-10-10T12:54:07.131078+00:00",
+  "decision": "12 episodes; two starts",
+  "selected_variant": "short12",
+  "machines": [
+    "gtx1070",
+    "rtx5060",
+    "jetson"
+  ],
+  "episodes_per_cell": 12,
+  "updates_per_episode": 20,
+  "budget_cells_per_machine": 64,
+  "calls_per_cell": {
+    "cold": 12,
+    "warm": 222,
+    "goal_switch": 6,
+    "measured": 240,
+    "unrelated_warmup": 1
+  },
+  "calls_per_machine_including_warmups": 15424,
+  "input_manifest_sha256": "29f8ccdff73d36c339e50ea7153a46fb6ecd22b32da786b74f16cb9e1a61f609",
+  "N": [
+    16,
+    32,
+    64,
+    128
+  ],
+  "SQP": [
+    1,
+    2,
+    5,
+    10
+  ],
+  "PCG": [
+    100,
+    200,
+    400,
+    800
+  ],
+  "timing_mode": "A",
+  "offline_timing": "controller_dt",
+  "duration_discussion": {
+    "retained_jetson_mean_s": 6.921105562463296,
+    "scope": "historicalcylinderN64fields/nativeidentityunknown/200SQP2passesPCG1000; NOTTIAGopredictor",
+    "assumed_new_mean_s": [
+      0.1,
+      1.0
+    ],
+    "solve_only_hours": [
+      0.42844444444444446,
+      4.2844444444444445
+    ],
+    "excluded": "builds/imports/plant/recording/thermal/archivalcopy",
+    "planning_storage_GiB": 16.9453125,
+    "storage_scope": "conservativeunmeasuredallowance; actualfamilybytes/runtimecalibrationstillrequired"
+  },
+  "release_status": "held: exactworker/nativefactory/build/review/plan and own-machine canonicalAreadiness pending",
+  "full24": "retained historicalproposal/frozenbanksuperset; notselected forcurrentmeasurement",
+  "not_resolved": [
+    "JetsonT01/BBrepeatproposals",
+    "newTIAGoJetson actualruntime/IO/thermal behavior",
+    "matching5060task/nativecomparisonexecution"
+  ]
+}

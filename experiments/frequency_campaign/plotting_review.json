@@ -1,0 +1,28 @@
+{
+  "verdict": "approved_CPU_saved_F01ab_plot_tool",
+  "reviewed_file_sha256": {
+    "experiments/analysis/plot_f01ab.py": "87992d001a6dba9aa72568392b0dcfecf68ac2628a7f63cf3e4da82dc381e9a9",
+    "tests/python/test_plot_f01ab.py": "e49765bef4be80d63dc028e0cf78bb11998ed1df301af67214980f5c3af162c0",
+    "experiments/analysis/F01AB_PLOTTING.md": "4e79c1845463f09a2c063ff9f25ad0c7cba1567a5d95d8cbf61e6fd9f691c9e3"
+  },
+  "independent_validation": {
+    "command": "/opt/gato-venv/bin/python3 -m pytest tests/python/test_plot_f01ab.py -q",
+    "outcome": "6 passed, 0 skipped; existing hppfcl warning",
+    "source_reads": "All three scoped files and practical correction diff read; no native/controller/solver imports or measurements"
+  },
+  "accepted_behavior": [
+    "Caller-pinned selection binds bank, attempt manifests, all consumed files and event payloads before parsing/rendering; unsafe paths, changed bytes, duplicate identities and wrong mode/source/category are rejected",
+    "One row per scheduled call despite started/returned/completed/failed stages; explicit missing rows and failures/nonfinite/invalid timing statuses preserved; warmup excluded and separately exported",
+    "Cold/warm/goal-switch separate; native milliseconds and wrapper wall converted from seconds stay separate; scientific negatives and timed failed calls remain included",
+    "Solve-time mean/median/p95 primary views, reciprocal exactly1000/aggregate_ms secondary; per-N readable panels; all192 machine/cap cells retained in coverage",
+    "Common histogram edges across matched cell attempts/machines, explicit category colors, no bimodality or actuation-rate claim",
+    "Synthetic fixtures require explicit marker and permission flag; figures visibly watermarked; fresh output directory and raw descendant protection"
+  ],
+  "scope_limits": [
+    "CPU tool approval only; no actual F01 campaign timing measurements exist",
+    "Frozen short12 two-start subset,64cells per GPU; three-machine completeness remains visible rather than claimed",
+    "Separate source/cohort invocations; no pooling with full T01, modeB, F01c, BA or BB",
+    "Runtime factory, canonical modeA readiness and reviewed explicit runner plan are separate pending work"
+  ],
+  "substantive_findings": []
+}
