@@ -253,6 +253,7 @@ class MPC_GATO:
         self.update_force_batch(q)
         XU_batch, _ = self.solver.solve(x_curr_batch, ee_g_batch, XU_batch)
         XU_best = XU_batch[0, :]
+        self._last_best_trajectory_id = 0
         if use_controller:
             controller.send_trajectory(self.control_horizon_from_plan(XU_best), self.dt)
         
@@ -282,7 +283,8 @@ class MPC_GATO:
                     sim_stamp_origin_sec,
                     last_total_sim_time,
                 )
-                timestep = max(total_sim_time - last_total_sim_time, sim_dt)
+                # Repeated observations do not advance the plan's time origin.
+                timestep = total_sim_time - last_total_sim_time
                 last_total_sim_time = total_sim_time
             else:
                 if offline_timing == "solve_time":
@@ -438,6 +440,10 @@ class MPC_GATO:
         """Evaluate which trajectory best matches reality."""
         if self.batch_size == 1 or self.force_estimator is None:
             return 0
+        if dt == 0.0:
+            # No observation interval means no new force-selection evidence.
+            # Avoid zero-duration native simulation and retain the chosen lane.
+            return getattr(self, '_last_best_trajectory_id', 0)
             
         # Simulate all hypotheses
         x_next_batch = self.solver.sim_forward(x_last, u_last, dt)
@@ -448,6 +454,7 @@ class MPC_GATO:
         
         # Update estimator
         self.force_estimator.update(best_id, errors, alpha=0.6, beta=0.5)
+        self._last_best_trajectory_id = best_id
         
         return best_id
         
@@ -667,6 +674,7 @@ class MPC_GATO:
         self.update_force_batch(q[:self.nq_robot] if self.has_pendulum else q)
         XU_batch, _ = self.solver.solve(x_curr_batch, ee_g_batch, XU_batch)
         XU_best = XU_batch[0, :]
+        self._last_best_trajectory_id = 0
         stats['initial_state'] = x_curr.copy()
         stats['initial_planned_control'] = XU_best[self.nx:self.nx+self.nu].copy()
         if use_controller:
@@ -700,7 +708,8 @@ class MPC_GATO:
                     sim_stamp_origin_sec,
                     last_total_sim_time,
                 )
-                timestep = max(total_sim_time - last_total_sim_time, sim_dt)
+                # Repeated observations do not advance the plan's time origin.
+                timestep = total_sim_time - last_total_sim_time
                 last_total_sim_time = total_sim_time
                 q_robot = q
                 dq_robot = dq
@@ -824,7 +833,8 @@ class MPC_GATO:
             wall_solve_time = time.time() - start
             
             # Select best trajectory
-            best_id = self.evaluate_best_trajectory(x_last, u_last, x_curr, max(sim_dt, round(timestep / sim_dt) * sim_dt))
+            selection_dt = timestep if use_controller else max(sim_dt, round(timestep / sim_dt) * sim_dt)
+            best_id = self.evaluate_best_trajectory(x_last, u_last, x_curr, selection_dt)
             XU_best = XU_batch_new[best_id, :]
             XU_batch[:, :] = XU_best
             planned_u = XU_best[self.nx:self.nx+self.nu].copy()
