@@ -6,6 +6,7 @@ from collections import Counter
 import csv
 import hashlib
 import json
+import math
 from pathlib import Path
 import xml.etree.ElementTree as ET
 
@@ -61,8 +62,26 @@ def limits():
     return tuple(np.array([float(r[key]) for r in rows]) for key in ("lower", "upper", "velocity", "effort"))
 
 
+def validate_prediction_duration(manifest):
+    """Allow only binary64 representation rounding of the derived horizon."""
+    N = manifest.get("N")
+    dt = manifest.get("knot_dt")
+    duration = manifest.get("prediction_seconds")
+    if type(N) is not int or N < 2:
+        raise ValueError("Invalid/missing prediction knot count")
+    for name, value in (("knot_dt", dt), ("prediction_seconds", duration)):
+        if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or value <= 0:
+            raise ValueError(f"Invalid/missing prediction {name}")
+    derived = (N - 1) * dt
+    if not math.isfinite(derived) or abs(duration - derived) > 2 * math.ulp(derived):
+        raise ValueError("Prediction duration differs from (N-1)*knot_dt")
+
+
 def validate_campaign_episode(manifest, campaign_manifest):
-    for key in ("N", "knot_dt", "prediction_seconds", "feedback_seconds", "simulation_step", "simulation_timeout", "solver_params", "binary_sha256"):
+    if any(key in campaign_manifest for key in ("N", "knot_dt", "prediction_seconds")):
+        validate_prediction_duration(campaign_manifest)
+        validate_prediction_duration(manifest)
+    for key in ("N", "knot_dt", "feedback_seconds", "simulation_step", "simulation_timeout", "solver_params", "binary_sha256"):
         if key in campaign_manifest and manifest.get(key) != campaign_manifest[key]:
             raise ValueError(f"Episode differs from campaign {key}")
     if "episode_seed" in campaign_manifest and manifest["args"]["seed"] != campaign_manifest["episode_seed"]:
