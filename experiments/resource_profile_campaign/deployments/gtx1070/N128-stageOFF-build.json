@@ -1,0 +1,51 @@
+{
+  "source_commit": "4e5301feaea5f2d06530922ba46aa543e1995d47",
+  "source_root": "/workspace/gato-campaign-recovery-20261010/f04-f05-builds-4e5301f/N128-stageOFF/campaign-source",
+  "N": 128,
+  "flags": {
+    "GATO_EXPERIMENT_STAGE_TIMING": false,
+    "GATO_EXPERIMENT_RESOURCE_QUERY": true,
+    "GATO_EXPERIMENT_TELEMETRY": true
+  },
+  "module": {
+    "path": "/workspace/gato-campaign-recovery-20261010/f04-f05-builds-4e5301f/N128-stageOFF/campaign-source/python/bsqp/bsqpN128_tiago_right.cpython-310-x86_64-linux-gnu.so",
+    "sha256": "56252928cadba78a392a8fb8ae6a04dde656d10ad8c4d67e9314955195986c57"
+  },
+  "cmake_cache": {
+    "path": "/workspace/gato-campaign-recovery-20261010/f04-f05-builds-4e5301f/N128-stageOFF/campaign-native/CMakeCache.txt",
+    "sha256": "016cc36ba3b424f602acebf7e44129732d039023e9a6109cb308cc9137e61bb3"
+  },
+  "source_receipt": {
+    "path": "/workspace/gato-campaign-recovery-20261010/f04-f05-builds-4e5301f/N128-stageOFF/build_source_receipt.json",
+    "sha256": "875a96221b4d45a734284677a50503541ea6cd0fbe386eae0622c3ab3c8de4dc"
+  },
+  "commands": [
+    [
+      "cmake",
+      "-S",
+      "/workspace/gato-campaign-recovery-20261010/f04-f05-builds-4e5301f/N128-stageOFF/campaign-source",
+      "-B",
+      "/workspace/gato-campaign-recovery-20261010/f04-f05-builds-4e5301f/N128-stageOFF/campaign-native",
+      "-DPLANT=tiago_right",
+      "-DKNOTS=128",
+      "-DCMAKE_BUILD_TYPE=Release",
+      "-DBUILD_TESTING=ON",
+      "-DGATO_EXPERIMENT_TELEMETRY=ON",
+      "-DGATO_EXPERIMENT_RESOURCE_QUERY=ON",
+      "-DGATO_EXPERIMENT_STAGE_TIMING=OFF",
+      "-DCMAKE_CUDA_ARCHITECTURES=61-real",
+      "-DPython3_EXECUTABLE=/opt/gato-venv/bin/python3"
+    ],
+    [
+      "cmake",
+      "--build",
+      "/workspace/gato-campaign-recovery-20261010/f04-f05-builds-4e5301f/N128-stageOFF/campaign-native",
+      "--parallel",
+      "2",
+      "--target",
+      "bsqpN128_tiago_right"
+    ]
+  ],
+  "build_wall_s": 105.0925567450031,
+  "timing_scope": "archive/configure/compile host wall; not solve time"
+}

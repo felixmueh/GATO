@@ -1,0 +1,78 @@
+{
+  "status": "released_F04_F05",
+  "machine": "gtx1070",
+  "source_commit": "4e5301feaea5f2d06530922ba46aa543e1995d47",
+  "production_core_commit": "16b33719b4f0fd463eec7262c99b16b0b324366f",
+  "implementation_review": {
+    "path": "/workspace/gato-campaign-recovery-20261010/f04-f05-implementation-review.json",
+    "sha256": "81d1ba8d9a9753b253f1403c4d854c6bd74d0501f649c800a84a871fa06d0db5"
+  },
+  "observer_acceptance": {
+    "path": "/workspace/gato-campaign-recovery-20261010/telemetry-acceptance-decision.json",
+    "sha256": "9eea290936604e395ee62e228e0225a8b9129aa65f853c112c64b31df49c3dbb"
+  },
+  "native_preparation_review": {
+    "path": "/workspace/gato-campaign-recovery-20261010/f04-f05-native-prep-review.json",
+    "sha256": "d19e434696905294502d127965142eb36140f7257fd5d8f2aaf784dcf5f76632"
+  },
+  "canonical_A_readiness": {
+    "path": "/workspace/gato-campaign-recovery-20261010/f04-f05-canonical-A-20261010T164800Z/readiness.json",
+    "sha256": "155a141adec60d1cf6bdf068b8c73aabcb7d45436cda9c444a6c43b0fe21173e"
+  },
+  "native_task_suite": {
+    "path": "/workspace/gato-campaign-recovery-20261010/f04-f05-ON-task-suite-20261010T164700Z/receipt-after.json",
+    "sha256": "867ddac9382c423cec07153b724e64d0e804b8efa2b78e512642a9c525f9befb"
+  },
+  "duration_approval": {
+    "path": "/workspace/gato-campaign-recovery-20261010/f04-f05-proposal/approval.json",
+    "sha256": "aa96ce80280b1580670005ec42dacac41ff5e46ed140e59e805b41e7fb6888a2"
+  },
+  "sustained_duration_s": 120,
+  "bank": {
+    "path": "/workspace/GATO-eval-resource-profiles/experiments/resource_profile_campaign/inputs",
+    "sha256": "f8a8217982f3fa2b1b4fd2629e8cb45949d372f6d43c6137bbdaa7e52acc7007"
+  },
+  "modules": {
+    "N16-stageOFF": {
+      "path": "/workspace/gato-campaign-recovery-20261010/f04-f05-builds-4e5301f/N16-stageOFF/campaign-source/python/bsqp/bsqpN16_tiago_right.cpython-310-x86_64-linux-gnu.so",
+      "sha256": "183416516a4b51500be8c35fec0a1092e5cacfe72f6b640f5ae3177d129371af",
+      "build_receipt": {
+        "path": "/workspace/gato-campaign-recovery-20261010/f04-f05-builds-4e5301f/N16-stageOFF/resource-profile-build.json",
+        "sha256": "ccaba0aec39e267067d73fed4df95dc6cb44d24c7e76c3450d7dcf2e791e6e8a"
+      }
+    },
+    "N32-stageOFF": {
+      "path": "/workspace/gato-campaign-recovery-20261010/f04-f05-builds-4e5301f/N32-stageOFF/campaign-source/python/bsqp/bsqpN32_tiago_right.cpython-310-x86_64-linux-gnu.so",
+      "sha256": "b5d2b4abffffe907a8250f2148609e298a4cfbad6f2db1aab0632dbe5357df8c",
+      "build_receipt": {
+        "path": "/workspace/gato-campaign-recovery-20261010/f04-f05-builds-4e5301f/N32-stageOFF/resource-profile-build.json",
+        "sha256": "e51f1a1bad8d46dcc207489b204a9dc5a5dbc692ebec71ce0027bd94637a5260"
+      }
+    },
+    "N32-stageON": {
+      "path": "/workspace/gato-campaign-recovery-20261010/f04-f05-builds-4e5301f/N32-stageON/campaign-source/python/bsqp/bsqpN32_tiago_right.cpython-310-x86_64-linux-gnu.so",
+      "sha256": "4dae2311e6a7f8b5ab1eeebf10fedf48ab1cd11b9e9d234080eb6b60cc70c863",
+      "build_receipt": {
+        "path": "/workspace/gato-campaign-recovery-20261010/f04-f05-builds-4e5301f/N32-stageON/resource-profile-build.json",
+        "sha256": "4692a2f14f37cf9f9b5b28a3e4d3b7afc591a2f07a0ed5024f0cd12e0ae098dc"
+      }
+    },
+    "N64-stageOFF": {
+      "path": "/workspace/gato-campaign-recovery-20261010/f04-f05-builds-4e5301f/N64-stageOFF/campaign-source/python/bsqp/bsqpN64_tiago_right.cpython-310-x86_64-linux-gnu.so",
+      "sha256": "1643dfb38be9cd196370951b1bc8eadfc5216d159bd1d2a74126bc3f147ecaec",
+      "build_receipt": {
+        "path": "/workspace/gato-campaign-recovery-20261010/f04-f05-builds-4e5301f/N64-stageOFF/resource-profile-build.json",
+        "sha256": "cf60f04b96be841e62569f9b144b0dd5a1ef0eaa22334282d3538afda7b46af7"
+      }
+    },
+    "N128-stageOFF": {
+      "path": "/workspace/gato-campaign-recovery-20261010/f04-f05-builds-4e5301f/N128-stageOFF/campaign-source/python/bsqp/bsqpN128_tiago_right.cpython-310-x86_64-linux-gnu.so",
+      "sha256": "56252928cadba78a392a8fb8ae6a04dde656d10ad8c4d67e9314955195986c57",
+      "build_receipt": {
+        "path": "/workspace/gato-campaign-recovery-20261010/f04-f05-builds-4e5301f/N128-stageOFF/resource-profile-build.json",
+        "sha256": "981014d86d9c9623728b02a1188e61a15be575dbdbe787b912b258629001444c"
+      }
+    }
+  },
+  "scope": "Eight query-only F04 workers,18 fresh first responses,6 tiny profile workers and6 single120s sustained workers. Measurements retain all calls; no equivalence/thermal steady-state/GPU-saturation claim."
+}

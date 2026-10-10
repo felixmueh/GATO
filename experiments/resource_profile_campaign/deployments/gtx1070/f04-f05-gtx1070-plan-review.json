@@ -1,0 +1,133 @@
+{
+  "verdict": "approved",
+  "status": "approved",
+  "reviewed_at_utc": "2026-10-10T16:53:03.532909+00:00",
+  "scope": "Bounded independent actual target release/queue/build and retained canonical/suite review. No GPU, native imports, constructors, builds, tests, replay, source or raw changes.",
+  "release": {
+    "path": "/workspace/gato-campaign-recovery-20261010/f04-f05-gtx1070-release.json",
+    "sha256": "0bbaab2163d01da5369ae47eb2391f48342c8cf1aacee56559412b092ebc39a4"
+  },
+  "plan": {
+    "path": "/workspace/gato-campaign-recovery-20261010/f04-f05-gtx1070-plan.json",
+    "sha256": "32480d8e9664937591cee40035f14439fba42229bc1f344d035162436934066c"
+  },
+  "source_commit": "4e5301feaea5f2d06530922ba46aa543e1995d47",
+  "production_core_commit": "16b33719b4f0fd463eec7262c99b16b0b324366f",
+  "validation": {
+    "check_script": {
+      "path": "/workspace/gato-campaign-recovery-20261010/review_f04_f05_target.py",
+      "sha256": "a43bf68c55b83811b3074f6d2afdbf3d5f86c21678da0b506c44e767fae07c21"
+    },
+    "retained_checks": {
+      "path": "/workspace/gato-campaign-recovery-20261010/f04-f05-target-review-checks.json",
+      "sha256": "2241920475e0647e81e74512b1bdba8eb50d1ef64b6eaced625ac0dd83bb03f4"
+    },
+    "five_actual_builds": [
+      {
+        "variant": "N16-stageOFF",
+        "module_sha256": "183416516a4b51500be8c35fec0a1092e5cacfe72f6b640f5ae3177d129371af",
+        "build_receipt_sha256": "ccaba0aec39e267067d73fed4df95dc6cb44d24c7e76c3450d7dcf2e791e6e8a",
+        "cache_sha256": "f1edefdb42a3528865161930d2854d59e228968049984750d332c0d4a7fa5cc7",
+        "source_receipt_sha256": "8914f9719d04e8e35c99846daca9d4aaddc1cd8d0946466d7d23ee3fc4d79fea"
+      },
+      {
+        "variant": "N32-stageOFF",
+        "module_sha256": "b5d2b4abffffe907a8250f2148609e298a4cfbad6f2db1aab0632dbe5357df8c",
+        "build_receipt_sha256": "e51f1a1bad8d46dcc207489b204a9dc5a5dbc692ebec71ce0027bd94637a5260",
+        "cache_sha256": "9a7e79ae553d61cca7dfe15cecdb8453adfe208a0dbc752fb7c98cd63a883607",
+        "source_receipt_sha256": "9d42dd52b5ed4d4106b58bb78ef1dbc22060eb2bbacf9049554dfc14f6386658"
+      },
+      {
+        "variant": "N32-stageON",
+        "module_sha256": "4dae2311e6a7f8b5ab1eeebf10fedf48ab1cd11b9e9d234080eb6b60cc70c863",
+        "build_receipt_sha256": "4692a2f14f37cf9f9b5b28a3e4d3b7afc591a2f07a0ed5024f0cd12e0ae098dc",
+        "cache_sha256": "51754ffea29e1ee13c8f4ea3feefb20245cbb841efdda121d6ffabb2847395b7",
+        "source_receipt_sha256": "606ef13cb524e63c77d70d851425f9cf1d52e89dc5d8ffa2f3734ee2d312bdf5"
+      },
+      {
+        "variant": "N64-stageOFF",
+        "module_sha256": "1643dfb38be9cd196370951b1bc8eadfc5216d159bd1d2a74126bc3f147ecaec",
+        "build_receipt_sha256": "cf60f04b96be841e62569f9b144b0dd5a1ef0eaa22334282d3538afda7b46af7",
+        "cache_sha256": "b15c7abdd4f9bf695cd7a567fb457e548b4079ca09e512ccb6ca353ccd8ca2d7",
+        "source_receipt_sha256": "a0ec18b8895c86541c8160300234d0cceedf9629f48ad7d1eedbe68c407325d0"
+      },
+      {
+        "variant": "N128-stageOFF",
+        "module_sha256": "56252928cadba78a392a8fb8ae6a04dde656d10ad8c4d67e9314955195986c57",
+        "build_receipt_sha256": "981014d86d9c9623728b02a1188e61a15be575dbdbe787b912b258629001444c",
+        "cache_sha256": "016cc36ba3b424f602acebf7e44129732d039023e9a6109cb308cc9137e61bb3",
+        "source_receipt_sha256": "875a96221b4d45a734284677a50503541ea6cd0fbe386eae0622c3ab3c8de4dc"
+      }
+    ],
+    "exact_queue": {
+      "query": 8,
+      "first_response": 18,
+      "profile": 6,
+      "sustained": 6
+    },
+    "dryrun": "38 pending, no duplicates/retries/extra cohorts; one enabled GTX1070 experiment/repeat1, build{} reuses exact isolated modules",
+    "inputs": "Five transported bank files hash-match f8a821 frozen F01c bank. Worker command runs pinned archive source with explicit input, manifest, machine and ready family state. Cases equal reviewed common.cases120 definitions.",
+    "canonical_A": {
+      "native_calls": 17,
+      "plant_steps": 170,
+      "duration_s": 0.5100000000000002,
+      "physical_limits_recomputed": {
+        "q_rad": 0,
+        "v_rad_s": 0,
+        "u_Nm": 0
+      },
+      "final_L1_speed_rad_s": 0.5857189876475123
+    },
+    "ON_suite": [
+      {
+        "case": "figure8_tracking",
+        "solves": 3001,
+        "plant_steps": 24000,
+        "duration_s": 24.00000000000635,
+        "all_reported_gates_pass": true,
+        "physical_limits_recomputed": {
+          "q_rad": 0,
+          "v_rad_s": 0,
+          "u_Nm": 0
+        },
+        "original_copy_identical": true
+      },
+      {
+        "case": "long_reach",
+        "solves": 50,
+        "plant_steps": 1500,
+        "duration_s": 1.4999999999999456,
+        "all_reported_gates_pass": true,
+        "physical_limits_recomputed": {
+          "q_rad": 0,
+          "v_rad_s": 0,
+          "u_Nm": 0
+        },
+        "original_copy_identical": true
+      },
+      {
+        "case": "short_reach",
+        "solves": 17,
+        "plant_steps": 510,
+        "duration_s": 0.5100000000000002,
+        "all_reported_gates_pass": true,
+        "physical_limits_recomputed": {
+          "q_rad": 0,
+          "v_rad_s": 0,
+          "u_Nm": 0
+        },
+        "original_copy_identical": true
+      }
+    ],
+    "suite_manifest_files_checked": 19
+  },
+  "saved_evidence": "Same-source OFF canonical reports rough and physical PASS at48.0986mm/8.0634deg/L1.585719; independently checked retained171states/170controls/.003s clock,17native calls and zero all-sample q/v/u excess. Unchanged original-mode stage-ON suite3/3 PASS,3068solves26010steps; verified source/module/fixture pins,19retained file hashes and byte-identical originals/copies, sampled plan finiteness, all-execution finiteness/clock/physical limits and final speeds. Existing evaluator task metrics accepted with these bounded cross-checks; no new full task replay or certificate.",
+  "timing_and_scope": "Eight F04 query-only workers add no solver calls;18 fresh-process first responses,6 profile workers each one unrelated warmup plus one measured call,6 single120s sustained blocks each one unrelated warmup. Fixed36native calls plus variable sustained calls;720s selected sustained wall per GPU. StageOFF first/sustained and stageON profile remain separate, accepted stop observerON throughout. Fresh full owner/reset per call and original schedulers/inputs unchanged; read-only1Hz passive monitor outside worker clocks already approved.",
+  "limitations": [
+    "GTX1070 release only; matching RTX5060/internal and Jetson cohorts remain required/pending.",
+    "No equal-quality, numeric equivalence, solver repair/cause, thermal steady-state, saturation or strict deadline acceptance claim.",
+    "API failures, stage skips/nulls, placeholder PCG timing, all calls and execution failures must remain retained. Negative or interrupted worker holds family; no automatic retry."
+  ],
+  "blockers": [],
+  "authorization_scope": "Review supports coordinator one fixed38-worker pinned plan with approved passive monitoring. No extra task, profile, repeat or protocol change requested."
+}

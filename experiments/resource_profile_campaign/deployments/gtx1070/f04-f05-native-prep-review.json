@@ -1,0 +1,65 @@
+{
+  "verdict": "approved",
+  "status": "approved",
+  "reviewed_at_utc": "2026-10-10T16:46:25.535806+00:00",
+  "scope": "Bounded source/command and actual receipt-schema compatibility review; no execution, native imports, tests, builds, GPU queries, source or raw changes.",
+  "reviewed_file_sha256": {
+    "/workspace/gato-campaign-recovery-20261010/f04-f05-native-validation-prep/readiness_once.py": "f923ac813c314bb78e337641d29723079b727fc4f5a6956db2c305e2fe7197d5",
+    "/workspace/gato-campaign-recovery-20261010/f04-f05-native-validation-prep/COMMANDS.md": "4b8f7bcd42acbc133796771fa7d4bcc0d54b01e6bafa4caf4e5fab7302039fc5",
+    "/workspace/gato-campaign-recovery-20261010/run-resource-plan-with-passive-monitor.py": "aa49c8f131b6aec4b595bf6b071ea2ee2bea4ba73f0a6bef028fd732ab60bdd3"
+  },
+  "actual_build_checks": [
+    {
+      "variant": "N32-stageOFF",
+      "build_receipt_sha256": "e51f1a1bad8d46dcc207489b204a9dc5a5dbc692ebec71ce0027bd94637a5260",
+      "module_sha256": "b5d2b4abffffe907a8250f2148609e298a4cfbad6f2db1aab0632dbe5357df8c",
+      "source_receipt_sha256": "9d42dd52b5ed4d4106b58bb78ef1dbc22060eb2bbacf9049554dfc14f6386658",
+      "archive_sha256": "b5766182adc5d39d5298e840b4564353bcd077841ad7d3e753ac8c3177bcfe21",
+      "reviewed_source_paths": 12,
+      "cache": {
+        "KNOTS": "32",
+        "PLANT": "tiago_right",
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_CUDA_ARCHITECTURES": "61-real",
+        "GATO_EXPERIMENT_STAGE_TIMING": "OFF",
+        "GATO_EXPERIMENT_RESOURCE_QUERY": "ON",
+        "GATO_EXPERIMENT_TELEMETRY": "ON",
+        "CMAKE_HOME_DIRECTORY": "/workspace/gato-campaign-recovery-20261010/f04-f05-builds-4e5301f/N32-stageOFF/campaign-source"
+      }
+    },
+    {
+      "variant": "N32-stageON",
+      "build_receipt_sha256": "4692a2f14f37cf9f9b5b28a3e4d3b7afc591a2f07a0ed5024f0cd12e0ae098dc",
+      "module_sha256": "4dae2311e6a7f8b5ab1eeebf10fedf48ab1cd11b9e9d234080eb6b60cc70c863",
+      "source_receipt_sha256": "606ef13cb524e63c77d70d851425f9cf1d52e89dc5d8ffa2f3734ee2d312bdf5",
+      "archive_sha256": "b5766182adc5d39d5298e840b4564353bcd077841ad7d3e753ac8c3177bcfe21",
+      "reviewed_source_paths": 12,
+      "cache": {
+        "KNOTS": "32",
+        "PLANT": "tiago_right",
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_CUDA_ARCHITECTURES": "61-real",
+        "GATO_EXPERIMENT_STAGE_TIMING": "ON",
+        "GATO_EXPERIMENT_RESOURCE_QUERY": "ON",
+        "GATO_EXPERIMENT_TELEMETRY": "ON",
+        "CMAKE_HOME_DIRECTORY": "/workspace/gato-campaign-recovery-20261010/f04-f05-builds-4e5301f/N32-stageON/campaign-source"
+      }
+    }
+  ],
+  "fixture_sha256": {
+    "tests/python/test_tiago_task_regression.py": "f626cd30bedadbda820d589cc669ee16cf2858a94b6dee6d9dd11af3660f4234",
+    "tests/python/tiago_task_worker.py": "ea4317bdc91e81dd98279a3ad6f10eb92dfec1f29eb6e9deac8b1adb395adb98",
+    "tests/python/tiago_task_cases/short_reach.json": "fc7b77a8054d41b32f7d49ab7c4e44696c45e657c4a104d6c29f68a0664a3055",
+    "tests/python/tiago_task_cases/long_reach.json": "05a0784ee2abe24e00eb0c799c4197c08bc401d1eee67f39e6cc9dbc107dd691",
+    "tests/python/tiago_task_cases/figure8_tracking.json": "78da04c93f8e799cd04543de7fed6492cb6dfd725ae0bb42b4b9b768ed85ce15"
+  },
+  "canonical_readiness": "Actual OFF receipt/source archive/cache/module and 12 reviewed implementation paths match the command pins and helper keys. Existing Factory/Events/Recorder and readiness.execute use unchanged canonical public mode-A controller path, SQP5/PCG120/.03s knots/.003s plant/qd.1/final approach disabled and separate rough/physical evaluation. No historical F01 manifest release guard is invoked. Running receipt precedes native import; final ready requires task and physical pass without execution error and completed raw manifest. External result schema matches resource release canonical_A_readiness guard.",
+  "unchanged_ON_suite": "Existing Make calls incremental configure on the exact isolated stage-ON cache, preserving ON/Release/N32/61-real settings; unchanged frozen short/long/tracking workers/fixtures, with existing cuda_access_smoke readiness. External Git metadata uses actual4e5301f object/index without checkout or source edits. Fresh raw cohort and before/after module/cache/fixture receipts required as documented; no numeric equivalence gate, additional task repeats or rescue.",
+  "passive_monitor": "One externally pinned plan runner invocation on GTX1070, no retry flag. nvidia-smi read-only NVML sampling at one-second cadence retains timestamp/temp/utilization/clocks/power/memory CSV and stderr outside worker clocks; no CUDA context, solver call, device synchronization, clock or power-setting commands. Sampler termination/kill is in finally and runner/monitor exit codes retained. Observer overhead is explicitly unestimated. CSV or stderr must be used to report missing/unsupported sampling fields rather than claiming monitoring success from runner completion alone.",
+  "limitations": [
+    "N16/64/128 resource builds still require their actual receipt review before F04/F05 timed measurements; this review checks two already compiled N32 variants only.",
+    "Preparation approval is not a saved task or event-timing outcome. Root owns one OFF canonical and one unchanged ON suite; failure holds the family and is retained.",
+    "Passive NVML samples cannot establish thermal steady state or an overhead-free measurement."
+  ],
+  "blockers": []
+}

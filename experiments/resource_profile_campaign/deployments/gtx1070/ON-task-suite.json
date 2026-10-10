@@ -1,0 +1,190 @@
+{
+  "status": "passed",
+  "source_commit": "4e5301feaea5f2d06530922ba46aa543e1995d47",
+  "build_receipt": {
+    "path": "/workspace/gato-campaign-recovery-20261010/f04-f05-builds-4e5301f/N32-stageON/resource-profile-build.json",
+    "sha256": "4692a2f14f37cf9f9b5b28a3e4d3b7afc591a2f07a0ed5024f0cd12e0ae098dc"
+  },
+  "module": {
+    "path": "/workspace/gato-campaign-recovery-20261010/f04-f05-builds-4e5301f/N32-stageON/campaign-source/python/bsqp/bsqpN32_tiago_right.cpython-310-x86_64-linux-gnu.so",
+    "sha256": "4dae2311e6a7f8b5ab1eeebf10fedf48ab1cd11b9e9d234080eb6b60cc70c863"
+  },
+  "fixed_task_processes": 3,
+  "scope": "Existing original-mode frozen task fixtures; separate from same-source modeA readiness. ONE run no equivalence gate/retries",
+  "environment": {
+    "GATO_BUILD_DIR": "/workspace/gato-campaign-recovery-20261010/f04-f05-builds-4e5301f/N32-stageON/campaign-native",
+    "GATO_TEST_ARTIFACT_DIR": "/workspace/gato-campaign-recovery-20261010/f04-f05-ON-task-suite-20261010T164700Z/raw",
+    "GIT_DIR": "/workspace/gato-campaign-recovery-20261010/f04-f05-ON-task-suite-20261010T164700Z/source-git",
+    "GIT_WORK_TREE": "/workspace/gato-campaign-recovery-20261010/f04-f05-builds-4e5301f/N32-stageON/campaign-source",
+    "PYTHONDONTWRITEBYTECODE": "1"
+  },
+  "fixtures_sha256": {
+    "tests/python/tiago_task_cases/figure8_tracking.json": "78da04c93f8e799cd04543de7fed6492cb6dfd725ae0bb42b4b9b768ed85ce15",
+    "tests/python/tiago_task_cases/long_reach.json": "05a0784ee2abe24e00eb0c799c4197c08bc401d1eee67f39e6cc9dbc107dd691",
+    "tests/python/tiago_task_cases/short_reach.json": "fc7b77a8054d41b32f7d49ab7c4e44696c45e657c4a104d6c29f68a0664a3055"
+  },
+  "command": [
+    "make",
+    "test-tiago-tasks"
+  ],
+  "cwd": "/workspace/gato-campaign-recovery-20261010/f04-f05-builds-4e5301f/N32-stageON/campaign-source",
+  "exit_code": 0,
+  "started_unix_s": 1791650827.0471957,
+  "ended_unix_s": 1791650849.9433072,
+  "module_after_sha256": "4dae2311e6a7f8b5ab1eeebf10fedf48ab1cd11b9e9d234080eb6b60cc70c863",
+  "cases": [
+    {
+      "path": "/workspace/gato-campaign-recovery-20261010/f04-f05-ON-task-suite-20261010T164700Z/raw/figure8_tracking_3pf5vtij",
+      "original_path": "/workspace/gato-campaign-recovery-20261010/f04-f05-builds-4e5301f/N32-stageON/campaign-source/test-artifacts/tiago-tasks/figure8_tracking_3pf5vtij",
+      "summary": {
+        "case": "figure8_tracking",
+        "passed": true,
+        "gates": {
+          "completed_without_exception": true,
+          "recording_shapes": true,
+          "initial_state_matches": true,
+          "finite_execution": true,
+          "finite_plans": true,
+          "executed_control": true,
+          "nontrivial_motion": true,
+          "position_limits": true,
+          "velocity_limits": true,
+          "effort_limits": true,
+          "recording_clock": true,
+          "reference_covers_preview": true,
+          "completed_tracking_duration": true,
+          "tracking_RMS_error": true,
+          "tracking_max_error": true,
+          "moving_reference": true
+        },
+        "metrics": {
+          "final_L1_speed_rad_s": 0.2578144078078734,
+          "executed_displacement_m": 0.34534822247252933,
+          "executed_duration_s": 24.00000000000635,
+          "plant_steps": 24000,
+          "solves": 3001,
+          "physical_limits": {
+            "position_violation_rad": 0.0,
+            "velocity_violation_rad_s": 0.0,
+            "torque_violation_Nm": 0.0
+          },
+          "public_goal_outcomes": null,
+          "public_goal_reached_times": null,
+          "tracking_RMS_error_m": 0.014333748544613225,
+          "tracking_max_error_m": 0.026210294194701483,
+          "reference_displacement_m": 0.31999999999999995,
+          "solve_wall_total_s": 5.290352081938181
+        },
+        "execution_error": null
+      }
+    },
+    {
+      "path": "/workspace/gato-campaign-recovery-20261010/f04-f05-ON-task-suite-20261010T164700Z/raw/long_reach_lhzn132n",
+      "original_path": "/workspace/gato-campaign-recovery-20261010/f04-f05-builds-4e5301f/N32-stageON/campaign-source/test-artifacts/tiago-tasks/long_reach_lhzn132n",
+      "summary": {
+        "case": "long_reach",
+        "passed": true,
+        "gates": {
+          "completed_without_exception": true,
+          "recording_shapes": true,
+          "initial_state_matches": true,
+          "finite_execution": true,
+          "finite_plans": true,
+          "executed_control": true,
+          "nontrivial_motion": true,
+          "position_limits": true,
+          "velocity_limits": true,
+          "effort_limits": true,
+          "recording_clock": true,
+          "initial_motion_required": true,
+          "bounded_positive_duration": true,
+          "public_reaching_success": true,
+          "position_reached": true,
+          "axis_reached": true,
+          "speed_reached": true,
+          "completion_clock_matches_execution": true
+        },
+        "metrics": {
+          "final_L1_speed_rad_s": 0.42762628231000677,
+          "executed_displacement_m": 0.2682642434281369,
+          "executed_duration_s": 1.4999999999999456,
+          "plant_steps": 1500,
+          "solves": 50,
+          "physical_limits": {
+            "position_violation_rad": 0.0,
+            "velocity_violation_rad_s": 0.0,
+            "torque_violation_Nm": 0.0
+          },
+          "public_goal_outcomes": [
+            "reached"
+          ],
+          "public_goal_reached_times": [
+            1.500000000000001
+          ],
+          "initial_distance_m": 0.3170519461956621,
+          "final_distance_m": 0.04959142365159299,
+          "final_axis_error_deg": 8.043952881421522,
+          "final_full_SO3_error_deg": 8.108074983243789,
+          "solve_wall_total_s": 0.11859775707125664
+        },
+        "execution_error": null
+      }
+    },
+    {
+      "path": "/workspace/gato-campaign-recovery-20261010/f04-f05-ON-task-suite-20261010T164700Z/raw/short_reach_464dfyyg",
+      "original_path": "/workspace/gato-campaign-recovery-20261010/f04-f05-builds-4e5301f/N32-stageON/campaign-source/test-artifacts/tiago-tasks/short_reach_464dfyyg",
+      "summary": {
+        "case": "short_reach",
+        "passed": true,
+        "gates": {
+          "completed_without_exception": true,
+          "recording_shapes": true,
+          "initial_state_matches": true,
+          "finite_execution": true,
+          "finite_plans": true,
+          "executed_control": true,
+          "nontrivial_motion": true,
+          "position_limits": true,
+          "velocity_limits": true,
+          "effort_limits": true,
+          "recording_clock": true,
+          "initial_motion_required": true,
+          "bounded_positive_duration": true,
+          "public_reaching_success": true,
+          "position_reached": true,
+          "axis_reached": true,
+          "speed_reached": true,
+          "completion_clock_matches_execution": true
+        },
+        "metrics": {
+          "final_L1_speed_rad_s": 0.578685512930346,
+          "executed_displacement_m": 0.05448625513879239,
+          "executed_duration_s": 0.5100000000000002,
+          "plant_steps": 510,
+          "solves": 17,
+          "physical_limits": {
+            "position_violation_rad": 0.0,
+            "velocity_violation_rad_s": 0.0,
+            "torque_violation_Nm": 0.0
+          },
+          "public_goal_outcomes": [
+            "reached"
+          ],
+          "public_goal_reached_times": [
+            0.5100000000000002
+          ],
+          "initial_distance_m": 0.10063625937168882,
+          "final_distance_m": 0.048053526504868625,
+          "final_axis_error_deg": 8.021106281351198,
+          "final_full_SO3_error_deg": 8.031166839261557,
+          "solve_wall_total_s": 0.04170946896192618
+        },
+        "execution_error": null
+      }
+    }
+  ],
+  "artifact_location_note": "Existing Make target sets GATO_TEST_ARTIFACT_DIR to archive/test-artifacts/tiago-tasks, overriding outer env. Exact retained files copied to cohort/raw; original artifacts preserved; no rerun.",
+  "actual_original_raw": "/workspace/gato-campaign-recovery-20261010/f04-f05-builds-4e5301f/N32-stageON/campaign-source/test-artifacts/tiago-tasks",
+  "task_solves": 3068,
+  "plant_steps": 26010
+}

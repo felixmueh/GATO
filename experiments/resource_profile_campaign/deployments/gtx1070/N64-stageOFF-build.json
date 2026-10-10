@@ -1,0 +1,51 @@
+{
+  "source_commit": "4e5301feaea5f2d06530922ba46aa543e1995d47",
+  "source_root": "/workspace/gato-campaign-recovery-20261010/f04-f05-builds-4e5301f/N64-stageOFF/campaign-source",
+  "N": 64,
+  "flags": {
+    "GATO_EXPERIMENT_STAGE_TIMING": false,
+    "GATO_EXPERIMENT_RESOURCE_QUERY": true,
+    "GATO_EXPERIMENT_TELEMETRY": true
+  },
+  "module": {
+    "path": "/workspace/gato-campaign-recovery-20261010/f04-f05-builds-4e5301f/N64-stageOFF/campaign-source/python/bsqp/bsqpN64_tiago_right.cpython-310-x86_64-linux-gnu.so",
+    "sha256": "1643dfb38be9cd196370951b1bc8eadfc5216d159bd1d2a74126bc3f147ecaec"
+  },
+  "cmake_cache": {
+    "path": "/workspace/gato-campaign-recovery-20261010/f04-f05-builds-4e5301f/N64-stageOFF/campaign-native/CMakeCache.txt",
+    "sha256": "b15c7abdd4f9bf695cd7a567fb457e548b4079ca09e512ccb6ca353ccd8ca2d7"
+  },
+  "source_receipt": {
+    "path": "/workspace/gato-campaign-recovery-20261010/f04-f05-builds-4e5301f/N64-stageOFF/build_source_receipt.json",
+    "sha256": "a0ec18b8895c86541c8160300234d0cceedf9629f48ad7d1eedbe68c407325d0"
+  },
+  "commands": [
+    [
+      "cmake",
+      "-S",
+      "/workspace/gato-campaign-recovery-20261010/f04-f05-builds-4e5301f/N64-stageOFF/campaign-source",
+      "-B",
+      "/workspace/gato-campaign-recovery-20261010/f04-f05-builds-4e5301f/N64-stageOFF/campaign-native",
+      "-DPLANT=tiago_right",
+      "-DKNOTS=64",
+      "-DCMAKE_BUILD_TYPE=Release",
+      "-DBUILD_TESTING=ON",
+      "-DGATO_EXPERIMENT_TELEMETRY=ON",
+      "-DGATO_EXPERIMENT_RESOURCE_QUERY=ON",
+      "-DGATO_EXPERIMENT_STAGE_TIMING=OFF",
+      "-DCMAKE_CUDA_ARCHITECTURES=61-real",
+      "-DPython3_EXECUTABLE=/opt/gato-venv/bin/python3"
+    ],
+    [
+      "cmake",
+      "--build",
+      "/workspace/gato-campaign-recovery-20261010/f04-f05-builds-4e5301f/N64-stageOFF/campaign-native",
+      "--parallel",
+      "2",
+      "--target",
+      "bsqpN64_tiago_right"
+    ]
+  ],
+  "build_wall_s": 101.28616974799661,
+  "timing_scope": "archive/configure/compile host wall; not solve time"
+}

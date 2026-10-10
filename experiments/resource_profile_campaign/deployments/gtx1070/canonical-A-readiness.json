@@ -1,0 +1,73 @@
+{
+  "status": "ready",
+  "machine": "gtx1070",
+  "source_commit": "4e5301feaea5f2d06530922ba46aa543e1995d47",
+  "timing_mode": "A",
+  "offline_timing": "controller_dt",
+  "execution_backend": "internal",
+  "evidence_kind": "measurement",
+  "task_success": true,
+  "physical_pass": true,
+  "execution_error": null,
+  "scope": "ONE fresh N32 stage-OFF canonical rough-reaching A readiness",
+  "canonical_config_sha256": "9fe246f47000073e1b1297457a1439f3e4523745aa3b0acbb4d6644170eb7cd0",
+  "module_sha256": "b5d2b4abffffe907a8250f2148609e298a4cfbad6f2db1aab0632dbe5357df8c",
+  "runtime_source_sha256": {
+    "python/bsqp/interface.py": "379fd16d5b96bf2cc88ec6a091dcf83ef30694cabc3833092b8e2b6bd2a9951e",
+    "python/bsqp/common.py": "ca5a9fb41377a760c24ba9df881f93ede59301ee8c09463f9f644854e9848dcf",
+    "python/bsqp/offline_mpc.py": "cd689296b079aad7bf0637768c6c5107e725e58b1bda57cf6adc92879fada198",
+    "tiago_src/gato_tiago/tiago_mpc_controller.py": "e7b7471b88643395d7a51c106a36c9ebb39cfcfda892ac5d1ab6b679b94a73c8",
+    "tiago_src/gato_tiago/config.py": "c2287d1522f4f07a09e922af76ecddb215e5801f9b8b297e74cc5a4c849fc316",
+    "gato/dynamics/tiago_right/tiago_right_arm.urdf": "8e1fd973a1d1c3fbddd55039e6eb17b355ebb29f46e1bd8c774b7879c2cdc5bb"
+  },
+  "raw": "/workspace/gato-campaign-recovery-20261010/f04-f05-canonical-A-20261010T164800Z/raw",
+  "module": {
+    "path": "/workspace/gato-campaign-recovery-20261010/f04-f05-builds-4e5301f/N32-stageOFF/campaign-source/python/bsqp/bsqpN32_tiago_right.cpython-310-x86_64-linux-gnu.so",
+    "sha256": "b5d2b4abffffe907a8250f2148609e298a4cfbad6f2db1aab0632dbe5357df8c"
+  },
+  "build_receipt": {
+    "path": "/workspace/gato-campaign-recovery-20261010/f04-f05-builds-4e5301f/N32-stageOFF/resource-profile-build.json",
+    "sha256": "e51f1a1bad8d46dcc207489b204a9dc5a5dbc692ebec71ce0027bd94637a5260"
+  },
+  "implementation_review": {
+    "path": "/workspace/gato-campaign-recovery-20261010/f04-f05-implementation-review.json",
+    "sha256": "81d1ba8d9a9753b253f1403c4d854c6bd74d0501f649c800a84a871fa06d0db5"
+  },
+  "solver_numerical_pass": null,
+  "unmeasured": {
+    "solver_numerical_pass": "SB-001/SB-002 and frozen Q02 method-negative retained; no full nonlinear/KKT certificate"
+  },
+  "validation": {
+    "recording_shapes": true,
+    "finite_execution": true,
+    "recording_clock": true,
+    "initial_state_matches": true,
+    "recorded_applied_control": true
+  },
+  "task_gates": {
+    "position": true,
+    "tool_axis": true,
+    "speed_L1": true,
+    "initial_motion_required": true,
+    "positive_bounded_duration": true,
+    "controller_reached": true,
+    "completed_without_exception": true,
+    "recording_clock": true,
+    "initial_state_matches": true,
+    "executed_control": true
+  },
+  "physical_limits": {
+    "position_violation_rad": 0.0,
+    "velocity_violation_rad_s": 0.0,
+    "torque_violation_Nm": 0.0
+  },
+  "initial_distance_m": 0.10063625937168882,
+  "final_distance_m": 0.04809861614388675,
+  "final_axis_error_deg": 8.063414955095741,
+  "final_full_SO3_error_deg": 8.067342790223348,
+  "final_L1_speed_rad_s": 0.5857189876475123,
+  "executed_duration_s": 0.5100000000000002,
+  "plant_steps": 170,
+  "native_calls": 17,
+  "raw_manifest_sha256": "ba6df9349f24a40ea6b58f25ad5bb52563c258f912b44beef1c8c49d0df44c1e"
+}

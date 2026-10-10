@@ -1,0 +1,61 @@
+{
+  "manifest": {
+    "path": "/workspace/gato-campaign-recovery-20261010/f04-f05-gtx1070-release.json",
+    "sha256": "0bbaab2163d01da5369ae47eb2391f48342c8cf1aacee56559412b092ebc39a4"
+  },
+  "plan": {
+    "path": "/workspace/gato-campaign-recovery-20261010/f04-f05-gtx1070-plan.json",
+    "sha256": "32480d8e9664937591cee40035f14439fba42229bc1f344d035162436934066c"
+  },
+  "cases": 38,
+  "distinct_variant_guards": [
+    {
+      "study": "F04",
+      "arm": "query",
+      "N": 16,
+      "B": 1,
+      "stage_timing": false
+    },
+    {
+      "study": "F05",
+      "N": 32,
+      "B": 1,
+      "SQP": 1,
+      "PCG": 100,
+      "arm": "first_response",
+      "replicate": 0,
+      "stage_timing": false
+    },
+    {
+      "study": "F05",
+      "N": 32,
+      "B": 1,
+      "SQP": 1,
+      "PCG": 100,
+      "arm": "profile",
+      "stage_timing": true
+    },
+    {
+      "study": "F04",
+      "arm": "query",
+      "N": 64,
+      "B": 1,
+      "stage_timing": false
+    },
+    {
+      "study": "F04",
+      "arm": "query",
+      "N": 128,
+      "B": 1,
+      "stage_timing": false
+    }
+  ],
+  "fixed_native_calls": 36,
+  "sustained_blocks": 6,
+  "seconds_per_block": 120,
+  "measurement_status": "not_started",
+  "passive_monitor": {
+    "path": "/workspace/gato-campaign-recovery-20261010/run-resource-plan-with-passive-monitor.py",
+    "sha256": "aa49c8f131b6aec4b595bf6b071ea2ee2bea4ba73f0a6bef028fd732ab60bdd3"
+  }
+}

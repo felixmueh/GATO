@@ -1,0 +1,51 @@
+{
+  "source_commit": "4e5301feaea5f2d06530922ba46aa543e1995d47",
+  "source_root": "/workspace/gato-campaign-recovery-20261010/f04-f05-builds-4e5301f/N32-stageON/campaign-source",
+  "N": 32,
+  "flags": {
+    "GATO_EXPERIMENT_STAGE_TIMING": true,
+    "GATO_EXPERIMENT_RESOURCE_QUERY": true,
+    "GATO_EXPERIMENT_TELEMETRY": true
+  },
+  "module": {
+    "path": "/workspace/gato-campaign-recovery-20261010/f04-f05-builds-4e5301f/N32-stageON/campaign-source/python/bsqp/bsqpN32_tiago_right.cpython-310-x86_64-linux-gnu.so",
+    "sha256": "4dae2311e6a7f8b5ab1eeebf10fedf48ab1cd11b9e9d234080eb6b60cc70c863"
+  },
+  "cmake_cache": {
+    "path": "/workspace/gato-campaign-recovery-20261010/f04-f05-builds-4e5301f/N32-stageON/campaign-native/CMakeCache.txt",
+    "sha256": "51754ffea29e1ee13c8f4ea3feefb20245cbb841efdda121d6ffabb2847395b7"
+  },
+  "source_receipt": {
+    "path": "/workspace/gato-campaign-recovery-20261010/f04-f05-builds-4e5301f/N32-stageON/build_source_receipt.json",
+    "sha256": "606ef13cb524e63c77d70d851425f9cf1d52e89dc5d8ffa2f3734ee2d312bdf5"
+  },
+  "commands": [
+    [
+      "cmake",
+      "-S",
+      "/workspace/gato-campaign-recovery-20261010/f04-f05-builds-4e5301f/N32-stageON/campaign-source",
+      "-B",
+      "/workspace/gato-campaign-recovery-20261010/f04-f05-builds-4e5301f/N32-stageON/campaign-native",
+      "-DPLANT=tiago_right",
+      "-DKNOTS=32",
+      "-DCMAKE_BUILD_TYPE=Release",
+      "-DBUILD_TESTING=ON",
+      "-DGATO_EXPERIMENT_TELEMETRY=ON",
+      "-DGATO_EXPERIMENT_RESOURCE_QUERY=ON",
+      "-DGATO_EXPERIMENT_STAGE_TIMING=ON",
+      "-DCMAKE_CUDA_ARCHITECTURES=61-real",
+      "-DPython3_EXECUTABLE=/opt/gato-venv/bin/python3"
+    ],
+    [
+      "cmake",
+      "--build",
+      "/workspace/gato-campaign-recovery-20261010/f04-f05-builds-4e5301f/N32-stageON/campaign-native",
+      "--parallel",
+      "2",
+      "--target",
+      "bsqpN32_tiago_right"
+    ]
+  ],
+  "build_wall_s": 104.73843254099484,
+  "timing_scope": "archive/configure/compile host wall; not solve time"
+}
