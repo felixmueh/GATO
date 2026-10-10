@@ -4,7 +4,9 @@ from pathlib import Path
 root=Path(__file__).resolve().parent
 spec=importlib.util.spec_from_file_location('preparation',root/'prepare_jetson.py')
 m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
-with tempfile.TemporaryDirectory() as tmp:
+temporary=root.parents[1]/'example_artifacts/jetson_f01ab-tests'
+temporary.mkdir(parents=True,exist_ok=True)
+with tempfile.TemporaryDirectory(dir=temporary) as tmp:
     base=Path(tmp);actual=base/'campaign-source/test-artifacts/tiago-tasks';copied=base/'suite/raw'
     for name in ['short_reach','long_reach','figure8_tracking']:
         p=actual/name;p.mkdir(parents=True);(p/'summary.json').write_text(json.dumps({'passed':True,'case':name}))

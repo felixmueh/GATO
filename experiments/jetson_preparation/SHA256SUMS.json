@@ -1,8 +1,10 @@
 {
-  "README.md": "6be0b719c2f266fa967a42da2566b4a68d8be3b013ad6e6f95d5fb5aafbcddf8",
-  "check_artifact_retention.py": "90fe1bf68ede3867c3a3c658be9f5cd81cce3475fd5d9823911fe4e29408abef",
+  "README.md": "16ff7e4ef4b5bc8c3dc9a05b011162c7282a3ce5f6640b06239f11b57c51d4c4",
+  "check_artifact_retention.py": "d205b7c1470a6bcf187b60ac502edbf5eba63d24fff3b2158b40b61404b4fdea",
+  "full_run.py": "410232a3665ebc8dded567b41ea4db5e9b8891efed1bd76fa042c4ddc10c6030",
   "global-authority/f01-telemetry-rereview.json": "56db7d00a3a38b91308660f0af1b55bc057a9d69481a9c9d5f0d3258f979574e",
   "global-authority/telemetry-acceptance-decision.json": "9eea290936604e395ee62e228e0225a8b9129aa65f853c112c64b31df49c3dbb",
   "global-authority/telemetry-saved-review.json": "0a76906f1d99ccd3c5b753e76979ce00a5bbac9d8a4522352181d204f6f44dfc",
-  "prepare_jetson.py": "643de3961b1050d6ed7cb0531017d72a9ea29366d189b1eb34546eb367ff1996"
+  "prepare_jetson.py": "7e25e258d4cf50402cee60c0ebbcb25c063d634fccb7463a6ead152b04ac2906",
+  "test_full_pipeline.py": "458d1f0a97cd791a827c9b0aa4f26849e3fabe90d36bf885d9383d015e513994"
 }
