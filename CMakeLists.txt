@@ -7,6 +7,12 @@ project(GATO LANGUAGES CXX CUDA)
 
 include(CTest)
 
+# Experiment-only branch telemetry; ordinary builds retain the original API.
+option(GATO_EXPERIMENT_TELEMETRY "Record existing SQP/PCG stop paths" OFF)
+if(GATO_EXPERIMENT_TELEMETRY)
+  add_compile_definitions(GATO_EXPERIMENT_TELEMETRY=1)
+endif()
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_CUDA_STANDARD 17)

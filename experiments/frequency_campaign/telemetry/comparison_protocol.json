@@ -1,0 +1,197 @@
+{
+  "name": "experiment-telemetry-bounded-matched-ON-OFF-v1",
+  "status": "FROZEN_PROTOCOL_REVIEW_REQUIRED_NO_EXECUTION",
+  "scope": "instrumentation validation only; no full numerical certificate, task reliability or solver diagnosis",
+  "machine": "root-selected desktop with exclusive GPU; no Jetson execution without separate duration discussion",
+  "N": 32,
+  "plant": "tiago_right",
+  "dtype": "float32",
+  "build": {
+    "variant_names": [
+      "OFF",
+      "ON"
+    ],
+    "same_source": "Complete gitarchive base plus actual archived reviewed-native patch and telemetry/test overlays, bound by caller-pinned complete source authority; truthful base_commit/candidate_diff_sha256, no claim the base commit contains uncommitted changes",
+    "only_option_difference": "GATO_EXPERIMENT_TELEMETRY",
+    "configuration": "Release, matched compiler/toolkit/architecture, use_fast_math, optimized flags",
+    "isolated_directories": true,
+    "install_into_shared_runtime": false,
+    "retain": "compiler commands/logs, module/source hashes, ptxas registers/local/shared-memory/spill reports; ON/OFF comparison",
+    "receipt_schema_version": 2,
+    "authority": "--source-manifest PATH --source-manifest-sha256 REVIEWED_SHA256 are independent of both receipts; verify actual candidatepatch artifact, complete snapshot inventory, every local dependency/wrapper, recorded compiler depfiles and selected external SDK hashes before any native import"
+  },
+  "direct_PCG": {
+    "fixtures": [
+      {
+        "id": "kkt-mask-skip",
+        "A_real_blocks": "identity",
+        "M_inv_real_blocks": "identity",
+        "b_first_components": [
+          1.0,
+          1.0
+        ],
+        "initial_x": "zero",
+        "kkt_mask": 1,
+        "max_pcg_iters": 0,
+        "epsilon": 0.0,
+        "expected_reason_code": 1,
+        "expected_iterations": 0
+      },
+      {
+        "id": "zero-initial-rho-zero-cap",
+        "A_real_blocks": "identity",
+        "M_inv_real_blocks": "identity",
+        "b_first_components": [
+          0.0,
+          0.0
+        ],
+        "initial_x": "zero",
+        "kkt_mask": 0,
+        "max_pcg_iters": 0,
+        "epsilon": 0.0,
+        "expected_reason_code": 2,
+        "expected_iterations": 0
+      },
+      {
+        "id": "nonzero-initial-rho-zero-cap",
+        "A_real_blocks": "identity",
+        "M_inv_real_blocks": "identity",
+        "b_first_components": [
+          1.0,
+          1.0
+        ],
+        "initial_x": "zero",
+        "kkt_mask": 0,
+        "max_pcg_iters": 0,
+        "epsilon": 0.0,
+        "expected_reason_code": 4,
+        "expected_iterations": 0
+      },
+      {
+        "id": "tolerance-exactly-at-cap",
+        "A_real_blocks": "identity",
+        "M_inv_real_blocks": "identity",
+        "b_first_components": [
+          1.0,
+          1.0
+        ],
+        "initial_x": "zero",
+        "kkt_mask": 0,
+        "max_pcg_iters": 1,
+        "epsilon": 0.0,
+        "expected_reason_code": 3,
+        "expected_iterations": 1
+      },
+      {
+        "id": "one-iteration-cap-nonconverged",
+        "A_real_blocks": "identity except first two real scalar diagonal entries1,2",
+        "M_inv_real_blocks": "identity",
+        "b_first_components": [
+          1.0,
+          1.0
+        ],
+        "initial_x": "zero",
+        "kkt_mask": 0,
+        "max_pcg_iters": 1,
+        "epsilon": 0.0,
+        "expected_reason_code": 4,
+        "expected_iterations": 1
+      }
+    ],
+    "layout": "native block-tridiagonal matrices: identity real diagonal state blocks, zero off-diagonals; vector padding zero, all real RHS entries zero except declared first two. Finite SPD on real state space. All x and mask/count/stop buffers fresh for each call.",
+    "calls_per_variant": 5,
+    "repeats_per_fixture": 1,
+    "warmup_calls": 0,
+    "checks": "both variants exact declared counts and practical finite output agreement; ON exact actual reason codes. Direct wrapper source/input/hash review before execution; no new algorithm/barriers. No invalid inputs."
+  },
+  "full_solver": {
+    "batch_sizes": [
+      1,
+      16
+    ],
+    "inputs": [
+      {
+        "id": "frozen-modest-cold",
+        "state": [
+          -0.38999998569488525,
+          -1.7300000190734863,
+          -0.3799999952316284,
+          -2.3499999046325684,
+          0.0,
+          -1.2100000381469727,
+          0.03999999910593033,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "reference_pose": [
+          0.4228671666527549,
+          -0.21343649437968426,
+          -0.36151277558663436,
+          0.12027270111289123,
+          -0.1237371498883908,
+          -2.9671120609606234
+        ],
+        "seed": "N copies of initial state; zero controls; reference repeatedN",
+        "persistent_state": "fresh solver, zero dual, configured rho/drho",
+        "source": "comparison_inputs.npz cold_state/reference/warm_start: first recorded modest V01 solve, preserved originaldtypes plus frozen float32 transport"
+      },
+      {
+        "id": "recorded-modest-warm",
+        "source": "comparison_inputs.npz warm_state/reference/warm_start: first recorded V01 warm solveindex1; exact retained file identities in comparison_input_receipt.json",
+        "persistent_state": "fresh configured solver; replay one exact cold input from comparison_inputs.npz outside timer; retained dual/rho then shared recordedwarm primalinput. Internal persistent state generated byeachvariantprefix; not independently frozen"
+      }
+    ],
+    "parameters": {
+      "max_sqp_iters": 5,
+      "kkt_tol": 0.001,
+      "max_pcg_iters": 120,
+      "pcg_tol": 0.001,
+      "solve_ratio": 1.0,
+      "mu": 1.0,
+      "q_cost": 4.0,
+      "qd_cost": 0.1,
+      "u_cost": 0.0001,
+      "N_cost": 80.0,
+      "ee_orient_cost": 0.1,
+      "ee_orient_N_cost": 2.0,
+      "q_lim_cost": 0.01,
+      "vel_lim_cost": 0.1,
+      "ctrl_lim_cost": 0.05,
+      "rho": 0.01
+    },
+    "dt_s": 0.03,
+    "warmup": "one exact frozen unrelated_* input in comparison_inputs.npz pervariant/batch in a disposable solver; never measuredcold input",
+    "repeats_per_input_batch_variant": 3,
+    "variant_order": "OFF1 ON1 ON2 OFF2 OFF3 ON3, fresh process per measurement; each creates warmup disposable solver and fresh measured solver; no retry-green",
+    "measured_solve_calls": 24,
+    "warm_prefix_calls": 12,
+    "unrelated_warmup_calls": 24,
+    "expected_native_telemetry": "all PCG rows/terminal row and SQP flags/counts preserved; OFF lacks optional key; ON branch codes truthful, breakdown unsupported/null",
+    "retained_outputs": "all XU, final/initial merits, SQP counts/flags, allPCG count/time rows, allLS arrays, optionalcodes, wrapperwall/native solve time, errors and input/source/build hashes. Timers exclude stats access/raw saving; native timing retains own scope.",
+    "practical_tolerances": {
+      "XU_abs": 0.0001,
+      "XU_rel": 0.0001,
+      "merit_abs": 0.001,
+      "merit_rel": 0.0001
+    },
+    "comparison": "compare ON/OFF deviations withwithinvariant repeat range; report counts/flags disagreement descriptively. Any finiteoutput deviation beyond tolerance plus repeat range, missing/wrong reason/row or new compile/resource obstacle holds validation. Do not fix solver, change input/tolerances or add runs."
+  },
+  "maximum_native_calls": 70,
+  "timing_analysis": "raw24 measured samples; wrapper/native mean median eachvariant/input/batch, paired deltas. Three repeats cannot establish a precise overhead interval. Report pageable-to-pinned publication/extra4B transfer and register/host decode differences explicitly.",
+  "stopping_point": "One fixed70-call maximum including10 direct,24 measured,12 replay prefixes,24 unrelatedwarmups; retain failures; no comparison reruns/new fixtures/benchmarks. Separately required one ON make test-tiago-tasks regression with unchanged fixtures is outside this70-call comparison budget and must have its own source/build/input/raw receipt. Independent saved-data audit, report, then root decision before F01release.",
+  "input_freeze_gate": "comparison_inputs.npz and receipt now materialized from retained raw data; independently audit hashes/dtypes/effectiveinputs and cold-prefix recipe before ANY compile/GPU; comparison driver/directPCG wrapper review still required. No execution authorization inferred.",
+  "source_receipts": {
+    "experiments/campaign/inputs/t01.json": "aec47cfa3819de5adbb8633b637f5bd9bcd327cb3afc5043a856b323af5aac41",
+    "experiments/campaign/inputs/v01.json": "20920040853786cf3d96f13ba240f82918a9f0f5020270fbe67715666477cc81",
+    "experiments/campaign/raw.py": "5c8bbcbe02f060bacdde4ab8294965040204ca95b4c00bb3f45ef1c28235ed17",
+    "python/bsqp/interface.py": "379fd16d5b96bf2cc88ec6a091dcf83ef30694cabc3833092b8e2b6bd2a9951e",
+    "experiments/frequency_campaign/telemetry/comparison_inputs.npz": "8f97f834effffb1de30951bd228b258728083b49dd4c5601e0a979d98855db69",
+    "experiments/frequency_campaign/telemetry/comparison_input_receipt.json": "afb286327314514911db35be98d1721279b86f0123a8137360d477b0c401f551"
+  },
+  "all_call_finiteness": "Preserve each unrelatedwarmup/coldprefix/measured native return first, then validate XU/initial/finalmerit finiteness; any nonfinite call holds queue immediately without filtering, diagnostic expansion or retry. No new solver predicate."
+}

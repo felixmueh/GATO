@@ -1,0 +1,41 @@
+{
+  "base_commit": "12dc7ccdc6acf700235e5cd35cf2ed09328b7962",
+  "files": {
+    "gato/types.cuh": {
+      "sha256": "45a33f6f86d8a1e3f227abffb968579070a3575efb9b21ef628d9d545e8303a8",
+      "off_tokens_equal_baseline": true,
+      "on_sync_vote_atomic_call_sequence_equal_baseline": true,
+      "on_copy_call_sequence_equal_baseline": true,
+      "on_kernel_launch_count_equal_baseline": true
+    },
+    "gato/bsqp/bsqp.cuh": {
+      "sha256": "7da4ce001eb21440fe73ff323d3db4bee9b67172e544cc2ec306a852d579a7d2",
+      "off_tokens_equal_baseline": true,
+      "on_sync_vote_atomic_call_sequence_equal_baseline": true,
+      "on_copy_call_sequence_equal_baseline": true,
+      "on_kernel_launch_count_equal_baseline": true
+    },
+    "gato/bsqp/kernels/pcg.cuh": {
+      "sha256": "907cc0f97f3bf9d3f8299b8b453bf06c9722c9df2451b9c20a81e530689c4c23",
+      "off_tokens_equal_baseline": true,
+      "on_sync_vote_atomic_call_sequence_equal_baseline": true,
+      "on_copy_call_sequence_equal_baseline": true,
+      "on_kernel_launch_count_equal_baseline": true
+    },
+    "python/bindings.cu": {
+      "sha256": "e117797c1ac59ab721d19ada698e1579f82b5d5524ae76e380e511b6e1a4929c",
+      "off_tokens_equal_baseline": true,
+      "on_sync_vote_atomic_call_sequence_equal_baseline": true,
+      "on_copy_call_sequence_equal_baseline": true,
+      "on_kernel_launch_count_equal_baseline": true
+    }
+  },
+  "scope": "static CPU audit; no native behavior qualification",
+  "cmake_default_off": true,
+  "device_bytes_delta_per_lane": 4,
+  "device_bytes_delta_B16": 64,
+  "pinned_host_bytes_B16": 128,
+  "new_explicit_synchronization_calls": 0,
+  "new_copy_calls": 0,
+  "new_kernel_launches": 0
+}

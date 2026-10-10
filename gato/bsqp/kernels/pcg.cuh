@@ -3,6 +3,9 @@
 #include <cstdint>
 #include "settings.h"
 #include "constants.h"
+#if defined(GATO_EXPERIMENT_TELEMETRY) && GATO_EXPERIMENT_TELEMETRY
+#include "types.cuh"
+#endif
 #include "utils/cuda.cuh"
 #include "utils/linalg.cuh"
 
@@ -21,6 +24,10 @@ __global__ __launch_bounds__(PCG_THREADS) void solvePCGBatchedKernel(uint32_t* _
                                                                     int32_t* __restrict__        d_kkt_converged_batch)
 {
         const uint32_t solve_idx = blockIdx.x;
+#if defined(GATO_EXPERIMENT_TELEMETRY) && GATO_EXPERIMENT_TELEMETRY
+        // Second half of the existing iteration buffer holds one exit word/lane.
+        uint32_t* d_stop_reason = d_iterations + BatchSize;
+#endif
         const T        epsilon = d_epsilon_batch[solve_idx];
 
         const T abs_tol = 1e-6;
@@ -28,6 +35,9 @@ __global__ __launch_bounds__(PCG_THREADS) void solvePCGBatchedKernel(uint32_t* _
         // skip solve if rho_max_reached
         if (d_kkt_converged_batch[solve_idx]) {
                 if (threadIdx.x == 0) { d_iterations[solve_idx] = 0; }
+#if defined(GATO_EXPERIMENT_TELEMETRY) && GATO_EXPERIMENT_TELEMETRY
+                if (threadIdx.x == 0) { d_stop_reason[solve_idx] = static_cast<uint32_t>(ExperimentPCGStop::KKTMaskSkip); }
+#endif
                 return;
         }
 
@@ -50,6 +60,9 @@ __global__ __launch_bounds__(PCG_THREADS) void solvePCGBatchedKernel(uint32_t* _
         __shared__ T s_rho, s_rho_new, s_alpha, s_beta, s_rho_init;
 
         uint32_t iterations = 0;
+#if defined(GATO_EXPERIMENT_TELEMETRY) && GATO_EXPERIMENT_TELEMETRY
+        ExperimentPCGStop stop_reason = ExperimentPCGStop::IterationCap;
+#endif
 
         __syncthreads();
 
@@ -99,6 +112,9 @@ __global__ __launch_bounds__(PCG_THREADS) void solvePCGBatchedKernel(uint32_t* _
 
         if (abs(s_rho) < abs_tol) {
                 if (threadIdx.x == 0) { d_iterations[solve_idx] = 0; }
+#if defined(GATO_EXPERIMENT_TELEMETRY) && GATO_EXPERIMENT_TELEMETRY
+                if (threadIdx.x == 0) { d_stop_reason[solve_idx] = static_cast<uint32_t>(ExperimentPCGStop::InitialAbsoluteRho); }
+#endif
                 __syncthreads();
                 return;
         }
@@ -139,7 +155,12 @@ __global__ __launch_bounds__(PCG_THREADS) void solvePCGBatchedKernel(uint32_t* _
                 __syncthreads();
 
                 // check for convergence using absolute and relative tolerance
-                if (abs(s_rho_new) < (abs_tol + epsilon * s_rho_init)) { break; }
+                if (abs(s_rho_new) < (abs_tol + epsilon * s_rho_init)) {
+#if defined(GATO_EXPERIMENT_TELEMETRY) && GATO_EXPERIMENT_TELEMETRY
+                        stop_reason = ExperimentPCGStop::AbsoluteRelativeRho;
+#endif
+                        break;
+                }
 
                 // beta = rho_new / rho
                 // rho = rho_new
@@ -158,6 +179,9 @@ __global__ __launch_bounds__(PCG_THREADS) void solvePCGBatchedKernel(uint32_t* _
 
         // save stats for current batch
         if (threadIdx.x == 0) { d_iterations[solve_idx] = iterations; }
+#if defined(GATO_EXPERIMENT_TELEMETRY) && GATO_EXPERIMENT_TELEMETRY
+        if (threadIdx.x == 0) { d_stop_reason[solve_idx] = static_cast<uint32_t>(stop_reason); }
+#endif
 
         block::copy<T, VEC_SIZE_PADDED>(d_x_vector, s_x_vector);
 }

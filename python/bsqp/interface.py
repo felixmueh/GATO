@@ -4,6 +4,42 @@ import pinocchio as pin
 import torch
 
 
+_EXPERIMENT_PCG_STOP_NAMES = {
+    1: "kkt_mask_skip",
+    2: "initial_absolute_rho",
+    3: "absolute_relative_rho",
+    4: "iteration_cap",
+}
+_EXPERIMENT_SQP_STOP_NAMES = {1: "kkt_ratio", 2: "iteration_cap"}
+
+
+def _decode_experiment_telemetry(result, batch_size):
+    """Decode opt-in native branch codes; never infer causes from counts/flags."""
+    raw = result.get("experiment_telemetry")
+    if raw is None:
+        return None  # Older and ordinary modules keep their original stats API.
+    if raw.get("schema_version") != 1:
+        raise ValueError("Unsupported experiment telemetry schema")
+    codes = np.asarray(raw["pcg_stop_reason_codes"])
+    counts = np.asarray(result["pcg_iters"])
+    if codes.dtype != np.dtype(np.uint32):
+        raise ValueError("PCG stop codes must be uint32")
+    if codes.ndim != 2 or codes.shape[1] != batch_size or codes.shape != counts.shape:
+        raise ValueError("PCG stop codes must match every native PCG row and lane")
+    if any(int(code) not in _EXPERIMENT_PCG_STOP_NAMES for code in codes.flat):
+        raise ValueError("Unknown PCG stop code")
+    sqp_code = int(raw["sqp_stop_reason_code"])
+    if sqp_code not in _EXPERIMENT_SQP_STOP_NAMES:
+        raise ValueError("Unknown SQP stop code")
+    decoded = dict(raw)
+    decoded["pcg_stop_reason_codes"] = codes.copy()
+    decoded["pcg_stop_reasons"] = [
+        [_EXPERIMENT_PCG_STOP_NAMES[int(code)] for code in row] for row in codes
+    ]
+    decoded["sqp_stop_reason"] = _EXPERIMENT_SQP_STOP_NAMES[sqp_code]
+    return decoded
+
+
 class BSQP:
     def __init__(
         self,
@@ -191,6 +227,12 @@ class BSQP:
         self.stats["pcg_times_us"] = pcg_times
         self.stats["min_merit"] = min_merit
         self.stats["step_size"] = step_size
+
+        telemetry = _decode_experiment_telemetry(result, self.batch_size)
+        if telemetry is not None:
+            self.stats["experiment_telemetry"] = telemetry
+        else:
+            self.stats.pop("experiment_telemetry", None)
 
         # Derive per-iteration aggregates
         ls_np = self.stats.get("min_merit", np.array([]))

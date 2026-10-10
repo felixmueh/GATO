@@ -8,6 +8,20 @@
 using namespace sqp;
 using namespace gato::constants;
 
+#if defined(GATO_EXPERIMENT_TELEMETRY) && GATO_EXPERIMENT_TELEMETRY
+// Actual existing control-flow exits, not inferred convergence certificates.
+enum class ExperimentPCGStop : uint32_t {
+        KKTMaskSkip = 1,
+        InitialAbsoluteRho = 2,
+        AbsoluteRelativeRho = 3,
+        IterationCap = 4,
+};
+enum class ExperimentSQPStop : uint32_t {
+        KKTRatio = 1,
+        IterationCap = 2,
+};
+#endif
+
 // --------------------------------------------------
 
 template<typename T, uint32_t BatchSize>
@@ -27,6 +41,9 @@ struct PCGStats {
         std::vector<int> num_iterations;
         std::vector<int> converged;  // 1 if converged (pcg exit tol), 0 if not
 
+#if defined(GATO_EXPERIMENT_TELEMETRY) && GATO_EXPERIMENT_TELEMETRY
+        std::vector<uint32_t> stop_reason = std::vector<uint32_t>(BatchSize, 0);
+#endif
         PCGStats() : num_iterations(BatchSize, 0), converged(BatchSize, 0) {}
 };
 
@@ -55,6 +72,9 @@ struct SQPStats {
         std::vector<PCGStats<BatchSize>>           pcg_stats;
         std::vector<LineSearchStats<T, BatchSize>> line_search_stats;
 
+#if defined(GATO_EXPERIMENT_TELEMETRY) && GATO_EXPERIMENT_TELEMETRY
+        ExperimentSQPStop stop_reason = ExperimentSQPStop::IterationCap;
+#endif
         SQPStats() : sqp_iterations(BatchSize, 0), kkt_converged(BatchSize, 0) {}
 };
 

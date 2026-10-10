@@ -1,0 +1,57 @@
+{
+  "status": "CPU_DRIVER_SHAPE_CORRECTION_READY_HIGH_REVIEW_REQUIRED_NO_NATIVE_EXECUTION",
+  "base_commit": "608c8f72e0a0be322bcfd100a4b1c273c293ab70",
+  "candidate_diff_sha256": null,
+  "unmeasured": {
+    "candidate_diff_sha256": "Root has not yet archived the reviewed native patch/source authority. Driver requires actual saved patch bytes plus independently pinned complete source manifest before any native import."
+  },
+  "command": "/opt/gato-venv/bin/python3 -B -m pytest tests/python/test_experiment_telemetry.py tests/python/test_interface.py -q",
+  "result": "58 passed, one existing hppfcl warning",
+  "scope": "57 fake/source/driver checks plus existing interface1; no CUDA compile, production native import, GPU, snapshot build or commit",
+  "source_sha256": {
+    "CMakeLists.txt": "af2c5c0318d0e15fc3332282a360c6c40caeae821f31ff532c356c7127925a6f",
+    "gato/types.cuh": "45a33f6f86d8a1e3f227abffb968579070a3575efb9b21ef628d9d545e8303a8",
+    "gato/bsqp/bsqp.cuh": "7da4ce001eb21440fe73ff323d3db4bee9b67172e544cc2ec306a852d579a7d2",
+    "gato/bsqp/kernels/pcg.cuh": "907cc0f97f3bf9d3f8299b8b453bf06c9722c9df2451b9c20a81e530689c4c23",
+    "python/bindings.cu": "e117797c1ac59ab721d19ada698e1579f82b5d5524ae76e380e511b6e1a4929c",
+    "python/bsqp/interface.py": "379fd16d5b96bf2cc88ec6a091dcf83ef30694cabc3833092b8e2b6bd2a9951e",
+    "tests/python/test_experiment_telemetry.py": "fa2442d3dc7f30d09c981343ee0766d6351334b7467c0c31bdb734ade3a322e3",
+    "experiments/frequency_campaign/telemetry/CMakeLists.txt": "ac0b5b18362a580b6042191b2f6a4d89a08b536f6a43b0b8bf79fd5a2727e295",
+    "experiments/frequency_campaign/telemetry/README.md": "ba4f5c183f7fc4e9cbbf80848777c66b99f672faf9537e13ea02cfe341f913ae",
+    "experiments/frequency_campaign/telemetry/audit_scope.py": "4188747b516826408ed6fa5c4b0cde9155af027a849328280fa683d62de04c52",
+    "experiments/frequency_campaign/telemetry/build_receipt_schema.json": "63b909c7c46d7b2aa4a23ac3958f67949d240e192082e5da8cbd3fb7b35d4834",
+    "experiments/frequency_campaign/telemetry/compare.py": "4b202d4034571134ea19994b9cefff6f317c0b2dfb4b915c71a5fdd419355a2a",
+    "experiments/frequency_campaign/telemetry/comparison_input_receipt.json": "afb286327314514911db35be98d1721279b86f0123a8137360d477b0c401f551",
+    "experiments/frequency_campaign/telemetry/comparison_inputs.npz": "8f97f834effffb1de30951bd228b258728083b49dd4c5601e0a979d98855db69",
+    "experiments/frequency_campaign/telemetry/comparison_protocol.json": "8eca01b8646a1cd2a56549698575adc077d6b2afe0132a97cb649626daf3c35e",
+    "experiments/frequency_campaign/telemetry/direct_pcg.cu": "b2588150997e0a3d1f9dcbd4dab9511be3e2ec378f7b8bf68191a080bf88ca73",
+    "experiments/frequency_campaign/telemetry/source_scope_audit.json": "1a5882a80a1aa1aa0b097700bd98fddbdc5e76b8ed37a6869f4502a34b1ddbdf"
+  },
+  "log_sha256": "689bae0eb52524858b9ef90a0fcc1b0e50c47cb0742d0ccfe2eebc1c02cdc043",
+  "dry_run": {
+    "command": "/opt/gato-venv/bin/python3 -B experiments/frequency_campaign/telemetry/compare.py",
+    "status": "CPU_PREPARATION_ONLY",
+    "output": "/workspace/gato-campaign-recovery-20261010/f01-telemetry-driver-v3-dry-run.json",
+    "sha256": "2950804569a72c71d8696cce45cc3228ad821722054a462f8a007cf5324fedd5",
+    "queued_workers": 24,
+    "maximum_native_calls": 70,
+    "actual_native_calls": 0
+  },
+  "preserved_initial": "/workspace/gato-campaign-recovery-20261010/f01-telemetry-initial-driver",
+  "frozen_numerical_protocol_input_identity": "Direct/full-solver input/parameters/repeat/order/tolerance/call-budget/source-receipts exact unchanged; NPZ/input-receipt hashes unchanged",
+  "native_six_files_unchanged_since_initial": {
+    "CMakeLists.txt": "af2c5c0318d0e15fc3332282a360c6c40caeae821f31ff532c356c7127925a6f",
+    "gato/types.cuh": "45a33f6f86d8a1e3f227abffb968579070a3575efb9b21ef628d9d545e8303a8",
+    "gato/bsqp/bsqp.cuh": "7da4ce001eb21440fe73ff323d3db4bee9b67172e544cc2ec306a852d579a7d2",
+    "gato/bsqp/kernels/pcg.cuh": "907cc0f97f3bf9d3f8299b8b453bf06c9722c9df2451b9c20a81e530689c4c23",
+    "python/bindings.cu": "e117797c1ac59ab721d19ada698e1579f82b5d5524ae76e380e511b6e1a4929c",
+    "python/bsqp/interface.py": "379fd16d5b96bf2cc88ec6a091dcf83ef30694cabc3833092b8e2b6bd2a9951e"
+  },
+  "required_separate_ON_task_suite": "One unchanged-fixture make test-tiago-tasks regression outside the frozen70 comparison scope; pending root build/review, not run here",
+  "earlier_cpu_result": "24 passed, one existing hppfcl warning",
+  "earlier_receipt_sha256": "59dd3f22c424c90bf3760318634429ec50db40911155eb8f93a60b1563c08cc9",
+  "maximum_native_calls_frozen": 70,
+  "native_calls_this_implementation": 0,
+  "driver_shape_guard": "After complete raw/public preservation, every warmup/prefix/measured native reply requires XU(B,665), initial_merit(B,), final_merit(B,), then finiteness. Eight finite malformed warmup/prefix cases retain complete replies and stop without next call/retry.",
+  "preserved_before_shape_guard": "/workspace/gato-campaign-recovery-20261010/f01-telemetry-v2-shape-before"
+}

@@ -1,0 +1,79 @@
+{
+  "schema_version": 2,
+  "variant": "OFF or ON",
+  "base_commit": "full40-character gitarchive base; intended root snapshot608c8f72e0a0be322bcfd100a4b1c273c293ab70",
+  "candidate_diff_sha256": "SHA256 of the actual archived reviewed6-native-file patch bytes, verified against source authority candidate_diff artifact",
+  "source_manifest_sha256": "externally reviewed SHA256 supplied independently on command line; not trusted from these receipts",
+  "build_root": "absolute distinct OFF/ON build root",
+  "source_root": "absolute complete archive-plus-reviewed-overlay snapshot under build_root",
+  "source_file_sha256": {
+    "relative/source/path": "SHA256; EXACT complete map equality with caller-pinned source authority"
+  },
+  "flags": {
+    "GATO_EXPERIMENT_TELEMETRY": "boolean false for OFF, true for ON",
+    "CMAKE_BUILD_TYPE": "Release",
+    "CMAKE_CUDA_ARCHITECTURES": "explicit numeric architecture string, e.g.61-real",
+    "N": 32,
+    "plant": "tiago_right",
+    "compiler": "exact reviewed version",
+    "cuda_toolkit": "exact reviewed version",
+    "cuda_flags": "exact matched flags",
+    "cxx_flags": "exact matched flags",
+    "resource_reporting_flags": "same for both variants"
+  },
+  "module": {
+    "path": "absolute build-owned bsqpN32_tiago_right*.so; only exact receipt-bound module output may appear as an extra file inside snapshot",
+    "sha256": "SHA256 of exact artifact"
+  },
+  "direct_executable": {
+    "path": "absolute build-owned direct_pcg",
+    "sha256": "SHA256 of exact artifact"
+  },
+  "cmake_cache": {
+    "path": "absolute modulebuild CMakeCache.txt; typed exact telemetry/Release/architecture/KNOTS32/PLANTtiago_right",
+    "sha256": "SHA256 of exact artifact"
+  },
+  "direct_cmake_cache": {
+    "path": "absolute directtarget CMakeCache.txt; typed exact telemetry/Release/architecture; N32/plant hardcoded in independently reviewed direct source",
+    "sha256": "SHA256 of exact artifact"
+  },
+  "compiler_resource_log": {
+    "path": "absolute nonempty build-owned compiler commands/resource log; root reviews command and ptxas resource scope",
+    "sha256": "SHA256 of exact artifact"
+  },
+  "compiled_dependencies": {
+    "path": "absolute build-owned JSON inventory from actual compiler depfiles; schema below",
+    "sha256": "SHA256 of exact artifact"
+  },
+  "compiled_dependency_receipt_schema": {
+    "local_source_files": [
+      "all compiled local relative dependency paths; every byte also covered by complete source authority"
+    ],
+    "external_dependency_sha256": {
+      "absolute/selected/SDK/header/path": "SHA256, validated before import; all caller-authority entries must be retained"
+    },
+    "depfile_sha256": {
+      "absolute/build-owned/compiler-depfile/path": "SHA256; actual compiler generated files retained, root audits inventory completeness"
+    }
+  },
+  "caller_pinned_source_authority_schema": {
+    "schema_version": 2,
+    "base_commit": "full40-character archive base",
+    "candidate_diff": {
+      "path": "absolute archived reviewed-native patch artifact",
+      "sha256": "SHA256 verified against real artifact bytes"
+    },
+    "source_file_sha256": {
+      "canonical/relative/path": "SHA256 for EVERY archived/overlaid file, including all local solver/dynamics/generated headers and Python wrapper/package files; no manifest self-entry"
+    },
+    "build_flags": "exact common flags object above, excluding only GATO_EXPERIMENT_TELEMETRY",
+    "external_dependency_sha256": {
+      "absolute/selected/SDK/header/path": "optional additional root-pinned SDK hashes; absence does not claim full system-header certificate"
+    },
+    "review_attestations": "Root may additionally retain source archive/overlay receipts and independent scope review hashes in this pinned object."
+  },
+  "trust_boundary": "Caller independently reviews complete source authority and pins its SHA256. The driver verifies this authority, patch bytes, receipt equality, complete source inventory, all file bytes and recorded dependency bytes before imports. Self-hashed receipts cannot replace source authority. Module/compiler build provenance still requires root review of actual commands/logs/depfiles and receipt artifact hashes; this is not a digital signature.",
+  "forbidden_fields": [
+    "source_commit"
+  ]
+}

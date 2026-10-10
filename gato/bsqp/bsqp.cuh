@@ -161,11 +161,20 @@ class BSQP {
                         gpuErrchk(cudaMemcpyAsync(h_r_batch_, kkt_system_batch_.d_r_batch, CONTROL_P_KNOTS * BatchSize * sizeof(T), cudaMemcpyDeviceToHost, stream_));
                         gpuErrchk(cudaMemcpyAsync(h_c_batch_, kkt_system_batch_.d_c_batch, STATE_P_KNOTS * BatchSize * sizeof(T), cudaMemcpyDeviceToHost, stream_));
 
+#if defined(GATO_EXPERIMENT_TELEMETRY) && GATO_EXPERIMENT_TELEMETRY
+                        // Extend the existing copy; publish at the same barrier.
+                        gpuErrchk(cudaMemcpyAsync(h_pcg_iterations_and_stop_, d_pcg_iterations_, 2 * sizeof(uint32_t) * BatchSize, cudaMemcpyDeviceToHost, stream_));
+#else
                         gpuErrchk(cudaMemcpyAsync(pcg_stats.num_iterations.data(), d_pcg_iterations_, sizeof(uint32_t) * BatchSize, cudaMemcpyDeviceToHost, stream_));
+#endif
                         pcg_stats.solve_time_us = 0;
                         // The residual copies target pinned host memory. Enqueueing
                         // them does not publish their values to the CPU predicate.
                         gpuErrchk(cudaStreamSynchronize(stream_));
+#if defined(GATO_EXPERIMENT_TELEMETRY) && GATO_EXPERIMENT_TELEMETRY
+                        std::copy(h_pcg_iterations_and_stop_, h_pcg_iterations_and_stop_ + BatchSize, pcg_stats.num_iterations.begin());
+                        std::copy(h_pcg_iterations_and_stop_ + BatchSize, h_pcg_iterations_and_stop_ + 2 * BatchSize, pcg_stats.stop_reason.begin());
+#endif
                         sqp_stats.pcg_stats.push_back(pcg_stats);
 
                         // These are current-point stationarity and primal defects;
@@ -187,7 +196,12 @@ class BSQP {
                                 }
                         }
 
-                        if (num_solved >= BatchSize * solve_ratio_) break;
+                        if (num_solved >= BatchSize * solve_ratio_) {
+#if defined(GATO_EXPERIMENT_TELEMETRY) && GATO_EXPERIMENT_TELEMETRY
+                                sqp_stats.stop_reason = ExperimentSQPStop::KKTRatio;
+#endif
+                                break;
+                        }
 
                         computeMeritBatched<T, BatchSize, NUM_ALPHAS>(
                             d_merit_batch_, d_dz_batch_, d_xu_traj_batch, d_f_ext_batch_, inputs, d_mu_batch_, d_GRiD_mem_, q_cost_, qd_cost_, u_cost_, N_cost_, ee_orient_cost_, ee_orient_N_cost_, q_lim_cost_, vel_lim_cost_, ctrl_lim_cost_, stream_);
@@ -261,7 +275,12 @@ class BSQP {
                 gpuErrchk(cudaMalloc(&d_merit_batch_, NUM_ALPHAS * BT));
 
                 gpuErrchk(cudaMalloc(&d_sqp_iters_B_, BI));
+#if defined(GATO_EXPERIMENT_TELEMETRY) && GATO_EXPERIMENT_TELEMETRY
+                gpuErrchk(cudaMalloc(&d_pcg_iterations_, 2 * BI));
+                gpuErrchk(cudaMallocHost(&h_pcg_iterations_and_stop_, 2 * BI));
+#else
                 gpuErrchk(cudaMalloc(&d_pcg_iterations_, BI));
+#endif
                 gpuErrchk(cudaMalloc(&d_step_size_batch_, BT));
                 gpuErrchk(cudaMalloc(&d_all_kkt_converged_, sizeof(int32_t)));
                 gpuErrchk(cudaMalloc(&d_kkt_converged_batch_, BI));
@@ -313,6 +332,9 @@ class BSQP {
                 gpuErrchk(cudaFree(d_merit_batch_));
                 gpuErrchk(cudaFree(d_sqp_iters_B_));
                 gpuErrchk(cudaFree(d_pcg_iterations_));
+#if defined(GATO_EXPERIMENT_TELEMETRY) && GATO_EXPERIMENT_TELEMETRY
+                gpuErrchk(cudaFreeHost(h_pcg_iterations_and_stop_));
+#endif
                 gpuErrchk(cudaFree(d_step_size_batch_));
                 gpuErrchk(cudaFree(d_all_kkt_converged_));
                 gpuErrchk(cudaFree(d_f_ext_batch_));
@@ -335,6 +357,9 @@ class BSQP {
         T*                        d_dz_batch_;
         // PCG
         uint32_t* d_pcg_iterations_;
+#if defined(GATO_EXPERIMENT_TELEMETRY) && GATO_EXPERIMENT_TELEMETRY
+        uint32_t* h_pcg_iterations_and_stop_;
+#endif
         // Merit
         T* d_merit_initial_batch_;
         T* d_merit_initial0_batch_;

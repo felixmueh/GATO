@@ -1,0 +1,176 @@
+{
+  "verdict": "approved_saved_required_ON_regression",
+  "scope": "CPU saved-data review only; no new native/GPU/test execution",
+  "manifest_sha256": "74613aaf85081bd46f8d9dfecf30f12067f8833dc1189276e373534bcd04fba4",
+  "manifest_files_verified": 24,
+  "source_identity": "Historical reviewed source authority f055ce54 and dirty native patch 600fbe7b; real baseline Git HEAD608c identifies baseline only",
+  "module_sha256": "9a5b436437cafbf1a8e4d5021182a5be8a1a412b5aa92ad46edefb995d884009",
+  "cases": [
+    {
+      "raw": "/workspace/gato-campaign-recovery-20261010/telemetry-ON-task-suite-metadata-corrected-20261010T135400Z/raw/figure8_tracking_fw0_fsfl",
+      "receipt_sha256": "bd11b5655ac5d2adf8e1791d46d4ecd189af8227aa974d7d1c52811c3b9db151",
+      "summary_sha256": "564f65d3fa0405359dd5af53897b26873cbd482647515e217a64e098a3b5510a",
+      "recomputed": {
+        "case": "figure8_tracking",
+        "passed": true,
+        "gates": {
+          "completed_without_exception": true,
+          "recording_shapes": true,
+          "initial_state_matches": true,
+          "finite_execution": true,
+          "finite_plans": true,
+          "executed_control": true,
+          "nontrivial_motion": true,
+          "position_limits": true,
+          "velocity_limits": true,
+          "effort_limits": true,
+          "recording_clock": true,
+          "reference_covers_preview": true,
+          "completed_tracking_duration": true,
+          "tracking_RMS_error": true,
+          "tracking_max_error": true,
+          "moving_reference": true
+        },
+        "metrics": {
+          "final_L1_speed_rad_s": 0.2550201901711432,
+          "executed_displacement_m": 0.34535521594797736,
+          "executed_duration_s": 24.00000000000635,
+          "plant_steps": 24000,
+          "solves": 3001,
+          "physical_limits": {
+            "position_violation_rad": 0.0,
+            "velocity_violation_rad_s": 0.0,
+            "torque_violation_Nm": 0.0
+          },
+          "public_goal_outcomes": null,
+          "public_goal_reached_times": null,
+          "tracking_RMS_error_m": 0.014333280475615372,
+          "tracking_max_error_m": 0.026104435195470135,
+          "reference_displacement_m": 0.31999999999999995
+        },
+        "execution_error": null
+      }
+    },
+    {
+      "raw": "/workspace/gato-campaign-recovery-20261010/telemetry-ON-task-suite-metadata-corrected-20261010T135400Z/raw/long_reach_gua6tjfa",
+      "receipt_sha256": "043d91584b854aac93c0451b881c96c3df8b4dc3e47364ebdcd9d8ce849da9a8",
+      "summary_sha256": "c2d8ee37d8ab6da6b5bf82aaf3cff0b974befafd9ec607273a1d1612a8edbf16",
+      "recomputed": {
+        "case": "long_reach",
+        "passed": true,
+        "gates": {
+          "completed_without_exception": true,
+          "recording_shapes": true,
+          "initial_state_matches": true,
+          "finite_execution": true,
+          "finite_plans": true,
+          "executed_control": true,
+          "nontrivial_motion": true,
+          "position_limits": true,
+          "velocity_limits": true,
+          "effort_limits": true,
+          "recording_clock": true,
+          "initial_motion_required": true,
+          "bounded_positive_duration": true,
+          "public_reaching_success": true,
+          "position_reached": true,
+          "axis_reached": true,
+          "speed_reached": true,
+          "completion_clock_matches_execution": true
+        },
+        "metrics": {
+          "final_L1_speed_rad_s": 0.4366862812931262,
+          "executed_displacement_m": 0.26824553299406784,
+          "executed_duration_s": 1.4999999999999456,
+          "plant_steps": 1500,
+          "solves": 50,
+          "physical_limits": {
+            "position_violation_rad": 0.0,
+            "velocity_violation_rad_s": 0.0,
+            "torque_violation_Nm": 0.0
+          },
+          "public_goal_outcomes": [
+            "reached"
+          ],
+          "public_goal_reached_times": [
+            1.500000000000001
+          ],
+          "initial_distance_m": 0.3170519461956621,
+          "final_distance_m": 0.04959533847099597,
+          "final_axis_error_deg": 8.04799662308129,
+          "final_full_SO3_error_deg": 8.084503735766319
+        },
+        "execution_error": null
+      }
+    },
+    {
+      "raw": "/workspace/gato-campaign-recovery-20261010/telemetry-ON-task-suite-metadata-corrected-20261010T135400Z/raw/short_reach_ztue1lxo",
+      "receipt_sha256": "6f0c2dfd4fca0311a0c5c1f6a85dc4cf39d52a51956a332b8297f622cb0ea833",
+      "summary_sha256": "5b9da0f19a5a64f793957c67f4fc673462173ddaf0c4bf4203a22f3d9c6b90c5",
+      "recomputed": {
+        "case": "short_reach",
+        "passed": true,
+        "gates": {
+          "completed_without_exception": true,
+          "recording_shapes": true,
+          "initial_state_matches": true,
+          "finite_execution": true,
+          "finite_plans": true,
+          "executed_control": true,
+          "nontrivial_motion": true,
+          "position_limits": true,
+          "velocity_limits": true,
+          "effort_limits": true,
+          "recording_clock": true,
+          "initial_motion_required": true,
+          "bounded_positive_duration": true,
+          "public_reaching_success": true,
+          "position_reached": true,
+          "axis_reached": true,
+          "speed_reached": true,
+          "completion_clock_matches_execution": true
+        },
+        "metrics": {
+          "final_L1_speed_rad_s": 0.5837848683748235,
+          "executed_displacement_m": 0.054532250832355335,
+          "executed_duration_s": 0.5100000000000002,
+          "plant_steps": 510,
+          "solves": 17,
+          "physical_limits": {
+            "position_violation_rad": 0.0,
+            "velocity_violation_rad_s": 0.0,
+            "torque_violation_Nm": 0.0
+          },
+          "public_goal_outcomes": [
+            "reached"
+          ],
+          "public_goal_reached_times": [
+            0.5100000000000002
+          ],
+          "initial_distance_m": 0.10063625937168882,
+          "final_distance_m": 0.04802626353762022,
+          "final_axis_error_deg": 8.006029937302888,
+          "final_full_SO3_error_deg": 8.009237758203446
+        },
+        "execution_error": null
+      }
+    }
+  ],
+  "totals": {
+    "task_solves": 3068,
+    "plant_steps": 26010,
+    "cases_passed": 3
+  },
+  "accepted_instrumentation_metadata": {
+    "path": "/workspace/GATO-eval-frequency/experiments/frequency_campaign/telemetry/accepted_instrumentation.json",
+    "sha256": "34b6ba478debcc21db757b4bc01e165e336d5b1bc56e125194a385016c1a9689",
+    "verdict": "consistent_with_reviewed_source_build_user_waiver_and_saved_suite"
+  },
+  "limitations": [
+    "Original three unchanged frozen fixtures, not canonical F01 mode-A readiness",
+    "Initial Git-metadata packaging failure retained separately with zero task solves and plant steps",
+    "No numerical equivalence claim; explicit user waiver and original negative comparison remain preserved",
+    "Task and physical passes do not certify full native numerical convergence",
+    "Legacy suite public stats do not record new per-call native reason arrays"
+  ]
+}

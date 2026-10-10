@@ -131,6 +131,24 @@ class PyBSQP {
                         result["pcg_iters"] = py::array_t<int>(sh_iters, pcg_iters.data());
                 }
 
+#if defined(GATO_EXPERIMENT_TELEMETRY) && GATO_EXPERIMENT_TELEMETRY
+                // Include the last PCG row even when SQP exits before line search.
+                std::vector<uint32_t> pcg_stop_reason;
+                pcg_stop_reason.reserve(num_pcg_iters * BatchSize);
+                for (const auto& pcg_stat : stats.pcg_stats) {
+                        pcg_stop_reason.insert(pcg_stop_reason.end(), pcg_stat.stop_reason.begin(), pcg_stat.stop_reason.end());
+                }
+                py::dict telemetry;
+                telemetry["schema_version"] = 1;
+                telemetry["pcg_stop_reason_codes"] = py::array_t<uint32_t>(
+                    {static_cast<py::ssize_t>(num_pcg_iters), static_cast<py::ssize_t>(BatchSize)}, pcg_stop_reason.data());
+                telemetry["sqp_stop_reason_code"] = static_cast<uint32_t>(stats.stop_reason);
+                telemetry["breakdown_stopping_supported"] = false;
+                telemetry["breakdown"] = py::none();
+                telemetry["breakdown_unavailable_reason"] = "No explicit breakdown stop exists in this solver; numerical anomalies are not instrumented.";
+                result["experiment_telemetry"] = telemetry;
+#endif
+
                 std::vector<float> ls_min_merit;
                 std::vector<float> ls_step_size;
                 ls_min_merit.reserve(num_iters * BatchSize);

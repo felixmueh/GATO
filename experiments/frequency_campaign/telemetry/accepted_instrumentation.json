@@ -1,0 +1,48 @@
+{
+  "schema": 1,
+  "status": "accepted_for_experiment_instrumentation",
+  "user_decision": {
+    "path": "/workspace/gato-campaign-recovery-20261010/telemetry-acceptance-decision.json",
+    "sha256": "9eea290936604e395ee62e228e0225a8b9129aa65f853c112c64b31df49c3dbb",
+    "statement": "Just accept it like it is. No need for equivalence here.",
+    "numerical_equivalence_required": false
+  },
+  "production_core": "16b33719b4f0fd463eec7262c99b16b0b324366f",
+  "native_patch_sha256": "600fbe7bda2cc9f9736fdc621e6ffc969ef31ec66acbca393741552102d32b5c",
+  "source_review": {
+    "path": "/workspace/gato-campaign-recovery-20261010/f01-telemetry-rereview.json",
+    "sha256": "56db7d00a3a38b91308660f0af1b55bc057a9d69481a9c9d5f0d3258f979574e"
+  },
+  "build_receipt": {
+    "path": "/workspace/gato-campaign-recovery-20261010/telemetry-build-20261010T125000Z/ON/build-receipt.json",
+    "sha256": "5b4f9593ae95bffa04ef79b36f0082bd3c8357c72ac787281f45abd42f214231"
+  },
+  "actual_reason_audit": {
+    "path": "/workspace/gato-campaign-recovery-20261010/telemetry-saved-review.json",
+    "sha256": "0a76906f1d99ccd3c5b753e76979ce00a5bbac9d8a4522352181d204f6f44dfc",
+    "finite_SPD_fixtures": 10,
+    "comparison_calls": 70,
+    "outcome": "reason/source/input/build audit accepted; numerical agreement negative retained descriptively"
+  },
+  "required_task_suite": {
+    "path": "/workspace/gato-campaign-recovery-20261010/telemetry-ON-task-suite-metadata-corrected-20261010T135400Z",
+    "manifest_sha256": "74613aaf85081bd46f8d9dfecf30f12067f8833dc1189276e373534bcd04fba4",
+    "command": "make test-tiago-tasks",
+    "cases": 3,
+    "passed": 3,
+    "unchanged_fixtures": true,
+    "module_sha256": "9a5b436437cafbf1a8e4d5021182a5be8a1a412b5aa92ad46edefb995d884009",
+    "scope": "original-mode frozen regression, not canonical F01 mode-A readiness",
+    "initial_setup_failure": "previous attempt had zero task solves/plant steps because archive omitted Git metadata; retained separately"
+  },
+  "native_option": {
+    "name": "GATO_EXPERIMENT_TELEMETRY",
+    "default": "OFF",
+    "experimental_runs": "ON",
+    "observation_scope": "existing PCG/SQP exit branches and work, no new stopping/breakdown logic",
+    "memory_change": "small additional B-word count-reason device area and fixed pinned host count/reason scratch; existing copy enlarged, no additional explicit synchronization",
+    "overhead": "not assumed zero; wall/native timings retain instrumentation cost"
+  },
+  "packed_alternative": "inactive/uncompiled; no new comparison required",
+  "remaining": "same-machine canonical F01 modeA preflight, reviewed runnable worker/build/explicitplan; matching5060/Jetson evidence pending"
+}
