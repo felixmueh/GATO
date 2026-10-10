@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "status": "Disabled proposal. Deployment owner supplies reviewed source commit, isolated build and preflight attempt path before runner dry-run/execution.",
+  "experiments": [
+    {
+      "id": "D01-gazebo-canonical-preflight",
+      "enabled": false,
+      "source_commit": "REPLACE_WITH_REVIEWED_D01_COMMIT",
+      "machines": ["rtx5060"],
+      "command": ["{python}", "{source}/experiments/deployment/run_d01.py", "--case", "{case}", "--output", "{output}"],
+      "inputs": {"experiments/deployment/inputs/t01.json": "aec47cfa3819de5adbb8633b637f5bd9bcd327cb3afc5043a856b323af5aac41"},
+      "repeats": 1,
+      "cases": [{"id": "preflight-goal-1", "parameters": {"backend": "gazebo"}}]
+    },
+    {
+      "id": "D01-gazebo-six-tasks",
+      "enabled": false,
+      "source_commit": "REPLACE_WITH_REVIEWED_D01_COMMIT",
+      "machines": ["rtx5060"],
+      "command": ["{python}", "{source}/experiments/deployment/run_d01.py", "--case", "{case}", "--output", "{output}"],
+      "inputs": {"experiments/deployment/inputs/t01.json": "aec47cfa3819de5adbb8633b637f5bd9bcd327cb3afc5043a856b323af5aac41"},
+      "repeats": 1,
+      "cases": [
+        {"id": "goal-1", "parameters": {"backend": "gazebo", "preflight_output": "REPLACE_WITH_SUCCESSFUL_D01_PREFLIGHT_OUTPUT"}},
+        {"id": "goal-2", "parameters": {"backend": "gazebo", "preflight_output": "REPLACE_WITH_SUCCESSFUL_D01_PREFLIGHT_OUTPUT"}},
+        {"id": "goal-3", "parameters": {"backend": "gazebo", "preflight_output": "REPLACE_WITH_SUCCESSFUL_D01_PREFLIGHT_OUTPUT"}},
+        {"id": "figure8-24s", "parameters": {"backend": "gazebo", "preflight_output": "REPLACE_WITH_SUCCESSFUL_D01_PREFLIGHT_OUTPUT"}},
+        {"id": "figure8-18s", "parameters": {"backend": "gazebo", "preflight_output": "REPLACE_WITH_SUCCESSFUL_D01_PREFLIGHT_OUTPUT"}},
+        {"id": "figure8-12s", "parameters": {"backend": "gazebo", "preflight_output": "REPLACE_WITH_SUCCESSFUL_D01_PREFLIGHT_OUTPUT"}}
+      ]
+    }
+  ]
+}
