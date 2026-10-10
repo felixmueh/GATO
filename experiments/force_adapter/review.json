@@ -1,0 +1,70 @@
+{
+  "review_id": "force-adapter-independent-cpu-review-2026-10-10",
+  "status": "ACCEPTED within newly defined CPU orchestration scope",
+  "reviewer": "independent review_force_adapter agent",
+  "reviewed_commit": "e18bc86c4952eefe0208b2bbb94831aab7a44c6e",
+  "authorization": "New predict hypotheses -> select current best-fitting unsmoothed force -> exactly one B1 TO; historical adapted provenance remains unrecovered.",
+  "scope": "Read-only adapter/test/source review and CPU replication. This review.json is the only repository file written by reviewer; no solver, ROS, controller, native constructor, GPU, build or robot jobs.",
+  "blockers": [],
+  "source_sha256": {
+    "experiments/force_adapter/estimator.py": "39856ee46ed028fd96f6804ad1fec950a0dfccd3f9cf27cb763e7885e051fb94",
+    "experiments/force_adapter/orchestration.py": "067a4fcc45cd39388070a04467ebd8547fa6ea422e18bf92c92a53fcffb1c1e0",
+    "experiments/force_adapter/records.py": "14d73960d566fe3c35aa236b6c076cc9e100645417962836ce7f497785b6ebed",
+    "experiments/force_adapter/run_cpu.py": "a5cb2feb6ff528de09dbda3b9346c790d9ab25d94242281785715fbfb0c9c751",
+    "experiments/force_adapter/cpu_protocol.json": "7d2540668dbc81078db30da97a11a1190b6eaebcb9072a5aa4ef22d5bab82a38",
+    "examples/force_estimator.py": "797782e7508fb8abfc541c40bd78141b15266950ec8923ab3d0a635dd96a2dd4",
+    "tests/python/test_force_adapter.py": "edcd11b9ce3e4f6fd65ef804953c39e5ba1b5503659fa03f6bed1123bde9bcbe"
+  },
+  "documentation_sha256": {
+    "experiments/force_adapter/README.md": "0236e6b736a96625716f98bee2c1c292e89ee70bebc067f7c032be56fe2a74f1"
+  },
+  "author_evidence_receipt_sha256": "698b19e96b163183cdfd7b9e867a3a6cf569943818770e28dbdff508818df80e",
+  "author_source_hashes_verified": 7,
+  "author_raw_hashes_verified": 4,
+  "independent_evidence_root": "/tmp/gato-force-review-20261010-0699gflp",
+  "verification": [
+    {
+      "command": "/opt/gato-venv/bin/python3 -m pytest -q tests/python/test_force_adapter.py",
+      "exit_code": 0,
+      "result": "11 passed; one existing hppfcl-to-coal dependency warning"
+    },
+    {
+      "command": "/opt/gato-venv/bin/python3 -m experiments.force_adapter.run_cpu --output /tmp/gato-force-review-20261010-0699gflp/cli",
+      "exit_code": 0,
+      "result": "CPU correspondence PASS"
+    },
+    {
+      "check": "Independent raw-array audit of both author and replicate outputs",
+      "result": "Predictions [3 + .5*i, 0], errors abs(predicted first component - 5.5), selected candidate 5, original plans (16,4), adapted plans (1,4), strict JSON, null memory with explicit reason, expected event ordering"
+    }
+  ],
+  "independent_evidence_sha256": {
+    "cli/adapted/arrays.npz": "0831fbb3233556884a263b43a016c857bcd4615e2aaef7a5b2c42be171c7548f",
+    "cli/adapted/record.json": "d042ba0be8685f8a394bac47fef28b6ef371fdb4d7a6eaa18479058a280c0b88",
+    "cli/original/arrays.npz": "760f38823a2adcfb028d929d0d5f7156fb738db98847bc7a010514f604eead2d",
+    "cli/original/record.json": "09cf9e8098d864e7332ffa9058a0fcc978ddee87b32d6e4a97924304132b7eb7",
+    "cli/receipt.json": "30a4731a1718f8c221ff0d31743f6ab58a74adcf6660a7611df3c77eab43d161",
+    "cli.log": "1594dcb3b48334a6941415b2b3d6f8ae86bc6ffc67e666ca4fc72b7ea7d4e252",
+    "pytest.log": "fccdae507c88e1546163faf2cd46dc4b84a82686bff831f4acaf7f958a928a94",
+    "raw_audit.json": "3fa136e44c76a5a5cdbda182051bf46046fec2a2b7d4aa93e91a9637c750031a"
+  },
+  "accepted_properties": [
+    "Original performs one B16 TO before prediction/selection; adapted predicts/selects before exactly one B1 TO.",
+    "Adapted TO freezes the selected unsmoothed force plus candidate-specific state, reference window and warm seed; next-tick estimator changes cannot replace current TO inputs.",
+    "Frozen original/adapted hypotheses produce shared prediction/error/selection correspondence, with earliest NumPy argmin tie policy; native optimizer output equivalence is explicitly not claimed.",
+    "Full applied control history is carried as contiguous ordered intervals; predictor owns replay and state-dependent frame/reference-point transformation at every dynamics evaluation. No physical transform is qualified.",
+    "FrozenBatchForceEstimator retains the inherited update algorithm and alpha=.6/beta=.5, freezes the internal generate_batch call, updates once, and clears temporary cache even after exceptions. Partial inherited state after an update exception is explicitly documented.",
+    "Nonfinite prediction/error and full-plan arrays are retained before the documented failure; no lane filtering, replacement force or retry-until-green.",
+    "Success and failure observers execute once outside reported timers. Lossless NPZ stores nonfinite arrays and JSON is standards-compliant.",
+    "Reported whole-tick and callback wall timing scopes and overlapping wrapper/update scopes are explicit; native device time is not represented as measured GPU time.",
+    "Unmeasured memory is null with a reason; callback allocations may negate any allocation advantage and no performance/memory benefit is inferred.",
+    "Current native TIAGo wrench guards and solver/controller files are unchanged from 16b3371; E02 stays blocked and no Indy7 or Jetson qualification is substituted."
+  ],
+  "nonblocking_followups_before_native_execution": [
+    "Real backends must supply executable source/config/model/frame receipts, RNG state, native telemetry/timing and measured allocation scope; current generic callbacks and CPU records intentionally do not establish these.",
+    "Qualify complete applied-history replay and state-dependent wrench rotation/reference-point torque shift on the actual backend; the arithmetic CPU protocol uses an identity transform.",
+    "Freeze a reviewed native protocol and discuss Jetson duration/storage with Felix before execution. CPU acceptance does not authorize new GPU/Jetson/robot work."
+  ],
+  "limitations": "New source implementation rather than recovered historical adapted experiment. CPU contract checks only; no native solver correspondence, task success, physical compliance, memory reduction, speedup or Jetson result. Raw telemetry unavailable from the arithmetic stub is not manufactured.",
+  "receipt_hash_policy": "review.json is excluded from adapter executable-source hashes to avoid circular receipts."
+}

@@ -1,0 +1,21 @@
+{
+  "protocol_id": "force-adapter-new-cpu-v1",
+  "status": "CPU correspondence PASS",
+  "commit": "e18bc86c4952eefe0208b2bbb94831aab7a44c6e",
+  "source_sha256": {
+    "experiments/force_adapter/estimator.py": "39856ee46ed028fd96f6804ad1fec950a0dfccd3f9cf27cb763e7885e051fb94",
+    "experiments/force_adapter/orchestration.py": "067a4fcc45cd39388070a04467ebd8547fa6ea422e18bf92c92a53fcffb1c1e0",
+    "experiments/force_adapter/records.py": "14d73960d566fe3c35aa236b6c076cc9e100645417962836ce7f497785b6ebed",
+    "experiments/force_adapter/run_cpu.py": "a5cb2feb6ff528de09dbda3b9346c790d9ab25d94242281785715fbfb0c9c751",
+    "experiments/force_adapter/cpu_protocol.json": "7d2540668dbc81078db30da97a11a1190b6eaebcb9072a5aa4ef22d5bab82a38",
+    "examples/force_estimator.py": "797782e7508fb8abfc541c40bd78141b15266950ec8923ab3d0a635dd96a2dd4",
+    "tests/python/test_force_adapter.py": "edcd11b9ce3e4f6fd65ef804953c39e5ba1b5503659fa03f6bed1123bde9bcbe"
+  },
+  "raw_sha256": {
+    "adapted/arrays.npz": "0831fbb3233556884a263b43a016c857bcd4615e2aaef7a5b2c42be171c7548f",
+    "adapted/record.json": "8d76d0d7c776c4981099787041e68002017d479087d27f206d36d10256595d74",
+    "original/arrays.npz": "760f38823a2adcfb028d929d0d5f7156fb738db98847bc7a010514f604eead2d",
+    "original/record.json": "4d0f665ba6253d66937376c613c094428255c6157b8f02dab50953cc5706acca"
+  },
+  "limitation": "CPU stub assertions only; no native/TIAGo qualification, performance or memory benefit"
+}

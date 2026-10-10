@@ -1,0 +1,351 @@
+{
+  "mode": "adapted",
+  "inputs_submitted": {
+    "previous_time_s": 0.0,
+    "observed_time_s": 0.5,
+    "previous_state": {
+      "npz_key": "array_0000",
+      "shape": [
+        2
+      ],
+      "dtype": "float64"
+    },
+    "observed_state": {
+      "npz_key": "array_0001",
+      "shape": [
+        2
+      ],
+      "dtype": "float64"
+    },
+    "applied_history": [
+      {
+        "start_s": 0.0,
+        "end_s": 0.25,
+        "control": {
+          "npz_key": "array_0002",
+          "shape": [
+            1
+          ],
+          "dtype": "float64"
+        }
+      },
+      {
+        "start_s": 0.25,
+        "end_s": 0.5,
+        "control": {
+          "npz_key": "array_0003",
+          "shape": [
+            1
+          ],
+          "dtype": "float64"
+        }
+      }
+    ],
+    "candidate_states": {
+      "npz_key": "array_0004",
+      "shape": [
+        16,
+        2
+      ],
+      "dtype": "float64"
+    },
+    "candidate_references": {
+      "npz_key": "array_0005",
+      "shape": [
+        16,
+        3
+      ],
+      "dtype": "int64"
+    },
+    "candidate_warm_seeds": {
+      "npz_key": "array_0006",
+      "shape": [
+        16,
+        4
+      ],
+      "dtype": "int64"
+    }
+  },
+  "convention": {
+    "hypothesis_frame": "world",
+    "hypothesis_point": "tool origin",
+    "backend_frame": "stub world",
+    "backend_point": "tool origin",
+    "components": "Fx,Fy,Fz,Tx,Ty,Tz",
+    "force_units": "N",
+    "torque_units": "N*m"
+  },
+  "timings_s": {
+    "candidate_forward": 3.460000152699649e-05,
+    "selection": 4.320099833421409e-05,
+    "estimator_update": 7.250899216160178e-05,
+    "to_backend": 4.015993908978999e-06,
+    "total": 0.00027632099227048457,
+    "wrapper": 0.00019450399850029498
+  },
+  "memory_bytes": null,
+  "memory_reason": "allocation/peak memory not measured by CPU orchestration",
+  "status": "complete",
+  "events": [
+    "candidate_forward",
+    "selection",
+    "estimator_update",
+    "to_backend"
+  ],
+  "error": null,
+  "inputs": {
+    "previous_time_s": 0.0,
+    "observed_time_s": 0.5,
+    "previous_state": {
+      "npz_key": "array_0007",
+      "shape": [
+        2
+      ],
+      "dtype": "float64"
+    },
+    "observed_state": {
+      "npz_key": "array_0008",
+      "shape": [
+        2
+      ],
+      "dtype": "float64"
+    },
+    "applied_history": [
+      {
+        "start_s": 0.0,
+        "end_s": 0.25,
+        "control": {
+          "npz_key": "array_0009",
+          "shape": [
+            1
+          ],
+          "dtype": "float64"
+        }
+      },
+      {
+        "start_s": 0.25,
+        "end_s": 0.5,
+        "control": {
+          "npz_key": "array_0010",
+          "shape": [
+            1
+          ],
+          "dtype": "float64"
+        }
+      }
+    ],
+    "candidate_states": {
+      "npz_key": "array_0011",
+      "shape": [
+        16,
+        2
+      ],
+      "dtype": "float64"
+    },
+    "candidate_references": {
+      "npz_key": "array_0012",
+      "shape": [
+        16,
+        3
+      ],
+      "dtype": "int64"
+    },
+    "candidate_warm_seeds": {
+      "npz_key": "array_0013",
+      "shape": [
+        16,
+        4
+      ],
+      "dtype": "int64"
+    }
+  },
+  "hypotheses": {
+    "npz_key": "array_0014",
+    "shape": [
+      16,
+      6
+    ],
+    "dtype": "float64"
+  },
+  "prediction_request": {
+    "inputs": {
+      "previous_time_s": 0.0,
+      "observed_time_s": 0.5,
+      "previous_state": {
+        "npz_key": "array_0015",
+        "shape": [
+          2
+        ],
+        "dtype": "float64"
+      },
+      "observed_state": {
+        "npz_key": "array_0016",
+        "shape": [
+          2
+        ],
+        "dtype": "float64"
+      },
+      "applied_history": [
+        {
+          "start_s": 0.0,
+          "end_s": 0.25,
+          "control": {
+            "npz_key": "array_0017",
+            "shape": [
+              1
+            ],
+            "dtype": "float64"
+          }
+        },
+        {
+          "start_s": 0.25,
+          "end_s": 0.5,
+          "control": {
+            "npz_key": "array_0018",
+            "shape": [
+              1
+            ],
+            "dtype": "float64"
+          }
+        }
+      ],
+      "candidate_states": {
+        "npz_key": "array_0019",
+        "shape": [
+          16,
+          2
+        ],
+        "dtype": "float64"
+      },
+      "candidate_references": {
+        "npz_key": "array_0020",
+        "shape": [
+          16,
+          3
+        ],
+        "dtype": "int64"
+      },
+      "candidate_warm_seeds": {
+        "npz_key": "array_0021",
+        "shape": [
+          16,
+          4
+        ],
+        "dtype": "int64"
+      }
+    },
+    "hypothesis_wrenches": {
+      "npz_key": "array_0022",
+      "shape": [
+        16,
+        6
+      ],
+      "dtype": "float64"
+    },
+    "convention": {
+      "hypothesis_frame": "world",
+      "hypothesis_point": "tool origin",
+      "backend_frame": "stub world",
+      "backend_point": "tool origin",
+      "components": "Fx,Fy,Fz,Tx,Ty,Tz",
+      "force_units": "N",
+      "torque_units": "N*m"
+    },
+    "transform_wrench": {
+      "callable": "__main__.main.<locals>.transform",
+      "provenance": "caller must supply implementation/config source hashes"
+    }
+  },
+  "predictions": {
+    "npz_key": "array_0023",
+    "shape": [
+      16,
+      2
+    ],
+    "dtype": "float64"
+  },
+  "errors": {
+    "npz_key": "array_0024",
+    "shape": [
+      16
+    ],
+    "dtype": "float64"
+  },
+  "selected_index": 5,
+  "selected_force": {
+    "npz_key": "array_0025",
+    "shape": [
+      6
+    ],
+    "dtype": "float64"
+  },
+  "to_request": {
+    "candidate_indices": [
+      5
+    ],
+    "states": {
+      "npz_key": "array_0026",
+      "shape": [
+        1,
+        2
+      ],
+      "dtype": "float64"
+    },
+    "references": {
+      "npz_key": "array_0027",
+      "shape": [
+        1,
+        3
+      ],
+      "dtype": "int64"
+    },
+    "warm_seeds": {
+      "npz_key": "array_0028",
+      "shape": [
+        1,
+        4
+      ],
+      "dtype": "int64"
+    },
+    "hypothesis_wrenches": {
+      "npz_key": "array_0029",
+      "shape": [
+        1,
+        6
+      ],
+      "dtype": "float64"
+    },
+    "backend_wrenches": {
+      "npz_key": "array_0030",
+      "shape": [
+        1,
+        6
+      ],
+      "dtype": "float64"
+    },
+    "convention": {
+      "hypothesis_frame": "world",
+      "hypothesis_point": "tool origin",
+      "backend_frame": "stub world",
+      "backend_point": "tool origin",
+      "components": "Fx,Fy,Fz,Tx,Ty,Tz",
+      "force_units": "N",
+      "torque_units": "N*m"
+    }
+  },
+  "plans": {
+    "npz_key": "array_0031",
+    "shape": [
+      1,
+      4
+    ],
+    "dtype": "int64"
+  },
+  "selected_plan": {
+    "npz_key": "array_0032",
+    "shape": [
+      4
+    ],
+    "dtype": "int64"
+  }
+}
