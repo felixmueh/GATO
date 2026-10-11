@@ -113,3 +113,25 @@ def test_seed_progress_is_own_lane_and_not_task_success():
     failed=progress(np.nan,1.,np.zeros(665),np.ones(665),[0,1,0])
     assert failed['merit_available'] is False and failed['own_output_change_linf']==1
     assert [a.shape for a in unpack(np.zeros(665))]==[(32,14),(31,7)]
+
+
+@pytest.mark.parametrize('outcome,physical_valid,success,returncode',[
+    ('reached',True,True,0),('timeout',True,False,1),('reached',False,True,1),
+])
+def test_ba_mode_a_original_outcome_drives_preflight(tmp_path,outcome,physical_valid,success,returncode):
+    inputs=batching_plan.ROOT/'experiments/inputs/batching'
+    build=tmp_path/'build';(build/'modules').mkdir(parents=True)
+    (build/'modules/bsqpN32_tiago_right.synthetic.so').write_bytes(b'fake')
+    summary=dict(complete=True,outcome=outcome,reached_seconds=.9 if outcome=='reached' else None,
+                 physical=dict(physical_valid=physical_valid,q_violation_max_rad=0.))
+    class Worker:
+        def run_episode(self,args,pair,batch,dt):
+            assert pair==-1 and batch==1 and args.preflight_input.name=='ba_nominal16x_preflight.json'
+            return summary.copy()
+    output=tmp_path/'output'
+    assert ba.run_case(tmp_path,build,inputs,None,output,preflight=True,batch=1,
+                       worker=Worker(),preflight_arm='nominal16x')==returncode
+    metrics=json.loads((output/'metrics.json').read_text())
+    assert metrics['task_success'] is success and metrics['physical_pass'] is physical_valid
+    assert metrics['outcome']==outcome and metrics['physical']==summary['physical']
+    assert metrics['reached_seconds']==summary['reached_seconds'] and metrics['execution_error'] is None

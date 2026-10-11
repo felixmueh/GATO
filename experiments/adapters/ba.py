@@ -55,7 +55,10 @@ def run_case(source,build,inputs,case,output,preflight=False,batch=None,worker=N
             velocity_l1_tolerance=1.,seed=20260925,vel_lim_cost=.1,qd_cost=.1,prefix_guard=False)
         summary=worker.run_episode(args,pair,B,.03)
         if not summary.get('complete'):raise ValueError('BA incomplete summary')
-        metrics.update(summary,physical_pass=summary['physical']['physical_valid'],parameters=parameters)
+        # The retained mode A worker reports its original reaching gate as an
+        # outcome; only its mode B summary includes an explicit task_success.
+        metrics.update(summary,task_success=summary.get('task_success',summary.get('outcome')=='reached'),
+                       physical_pass=summary['physical']['physical_valid'],parameters=parameters)
     except BaseException:
         metrics.update(outcome='execution_failed',execution_error=traceback.format_exc())
     write_json(output/'metrics.json',metrics)
