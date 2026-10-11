@@ -5,9 +5,18 @@
         "ControlChoices",
         "M02",
         "BB",
-        "BA"
+        "BA",
+        "CylinderChecks",
+        "CylinderTasks",
+        "E03",
+        "E02-no_estimator-truth0",
+        "E02-no_estimator-truth1",
+        "E02-original-truth0",
+        "E02-original-truth1",
+        "E02-adapted-truth0",
+        "E02-adapted-truth1"
       ],
-      "cases": 318,
+      "cases": 357,
       "status": "prepared_not_executed"
     },
     "rtx5060_desktop.json": {
@@ -23,9 +32,18 @@
         "M02",
         "BB",
         "BA",
-        "demo_visual_square_internal"
+        "demo_visual_square_internal",
+        "CylinderChecks",
+        "CylinderTasks",
+        "E03",
+        "E02-no_estimator-truth0",
+        "E02-no_estimator-truth1",
+        "E02-original-truth0",
+        "E02-original-truth1",
+        "E02-adapted-truth0",
+        "E02-adapted-truth1"
       ],
-      "cases": 670,
+      "cases": 709,
       "status": "prepared_not_executed"
     },
     "rtx5060_gazebo.json": {
@@ -39,6 +57,7 @@
     },
     "jetson_proposed.json": {
       "experiments": [
+        "CylinderTasks",
         "T01",
         "F01c",
         "F04-stageOFF",
@@ -47,9 +66,16 @@
         "ControlChoices",
         "M02",
         "BB",
-        "BA"
+        "BA",
+        "E03",
+        "E02-no_estimator-truth0",
+        "E02-no_estimator-truth1",
+        "E02-original-truth0",
+        "E02-original-truth1",
+        "E02-adapted-truth0",
+        "E02-adapted-truth1"
       ],
-      "cases": 569,
+      "cases": 605,
       "status": "proposed_duration_discussion_and_target_review_pending"
     }
   },
@@ -60,7 +86,9 @@
     "4f6c8fd4be428c135fc16564c5dd56eb61ce5660",
     "502fa29c8b0d649dcb347f9534bf29c6935fa6dd",
     "63940f7a5c724c84c731a6a1edbc49a094f3b806",
-    "a3a96ad3deabea5c0165da69addd1c55406710a9"
+    "a3a96ad3deabea5c0165da69addd1c55406710a9",
+    "c0032ba57b34777f769cce9361887672016348b7",
+    "d6c827842c6ed65d455472063bcf77f5498efd46"
   ],
   "source_plan_files": [
     "campaign.json",
@@ -77,13 +105,18 @@
     "demo_gazebo.json",
     "deployment.json",
     "simulated_faults.json",
+    "cylinder_studies.json",
+    "cylinder_studies_jetson_proposed.json",
     "t01_jetson_proposed.json",
     "f01c_jetson_proposed.json",
     "resource_profiles-jetson-proposed.json",
     "control_studies_jetson_proposed.json",
     "collision_monitor_jetson_proposed.json",
     "bb_jetson_proposed.json",
-    "ba_jetson_proposed.json"
+    "ba_jetson_proposed.json",
+    "force-gtx1070-proposed.json",
+    "force-rtx5060-proposed.json",
+    "force-jetson-proposed.json"
   ],
   "source_plan_notes": {
     "campaign.json": {
@@ -184,6 +217,12 @@
       "original_leading_baseline_is_preflight": true,
       "historical": "External robot_faults/2026-09-21 records recovery pending; no historical result overwritten"
     },
+    "cylinder_studies.json": {
+      "status": "prepared_target_validation_pending"
+    },
+    "cylinder_studies_jetson_proposed.json": {
+      "status": "proposed_target_duration_discussion_pending"
+    },
     "t01_jetson_proposed.json": {
       "status": "proposed_not_executed_target_duration_discussion_pending",
       "proposal_source": "campaign.json",
@@ -236,6 +275,57 @@
       "status": "proposed_not_executed_target_duration_discussion_pending",
       "proposal_source": "ba_rtx5060.json",
       "note": "Unchanged coverage and repeats. Discuss retained Jetson timing, estimated duration/storage and any shorter protocol with Felix before execution. F01ab is completed and excluded."
+    },
+    "force-gtx1070-proposed.json": {
+      "preparation": {
+        "unique_one_ticks": 24,
+        "excluded_unrelated_warmups": 24,
+        "disturbance_tasks": 6,
+        "canonical_mode_B_preflights": 6,
+        "nominal_tracking_seconds": 144,
+        "E01": "Saved-data correspondence uses four first-input measured E03 records; no duplicate native executions",
+        "force_scope": "Attached/body-fixed arm_right_7_joint local x2N at joint origin; zero comparison. Not constant world force.",
+        "timing": "Exact accepted modeB old-plan plant clock; fresh owner/model allocation and memory queries included in full algorithm wall. Native solve separately retained. Disk recording outside.",
+        "baseline": "No estimator: zero-wrench B1 every tick. All methods start with zero/prior lane0 B1; no true-force access or estimator update before observed history.",
+        "memory": "cudaMemGetInfo boundary availability delta; host peak RSS separate. Not continuous peak or per-solver allocation, no host/device summing on shared-memory Jetson.",
+        "readiness": "Productionfloat force path and unchanged task-suite accepted at7d317fa. New method/truth canonicalB preflight per target. FailedB stays held; namedA diagnostic preserves evidence, no automatic rescue.",
+        "jetson": "Execution requires duration/storage/bottleneck discussion with Felix; retain original protocol, no silent pruning.",
+        "execution_status": "prepared_only_no_measurements"
+      }
+    },
+    "force-rtx5060-proposed.json": {
+      "preparation": {
+        "unique_one_ticks": 24,
+        "excluded_unrelated_warmups": 24,
+        "disturbance_tasks": 6,
+        "canonical_mode_B_preflights": 6,
+        "nominal_tracking_seconds": 144,
+        "E01": "Saved-data correspondence uses four first-input measured E03 records; no duplicate native executions",
+        "force_scope": "Attached/body-fixed arm_right_7_joint local x2N at joint origin; zero comparison. Not constant world force.",
+        "timing": "Exact accepted modeB old-plan plant clock; fresh owner/model allocation and memory queries included in full algorithm wall. Native solve separately retained. Disk recording outside.",
+        "baseline": "No estimator: zero-wrench B1 every tick. All methods start with zero/prior lane0 B1; no true-force access or estimator update before observed history.",
+        "memory": "cudaMemGetInfo boundary availability delta; host peak RSS separate. Not continuous peak or per-solver allocation, no host/device summing on shared-memory Jetson.",
+        "readiness": "Productionfloat force path and unchanged task-suite accepted at7d317fa. New method/truth canonicalB preflight per target. FailedB stays held; namedA diagnostic preserves evidence, no automatic rescue.",
+        "jetson": "Execution requires duration/storage/bottleneck discussion with Felix; retain original protocol, no silent pruning.",
+        "execution_status": "prepared_only_no_measurements"
+      }
+    },
+    "force-jetson-proposed.json": {
+      "preparation": {
+        "unique_one_ticks": 24,
+        "excluded_unrelated_warmups": 24,
+        "disturbance_tasks": 6,
+        "canonical_mode_B_preflights": 6,
+        "nominal_tracking_seconds": 144,
+        "E01": "Saved-data correspondence uses four first-input measured E03 records; no duplicate native executions",
+        "force_scope": "Attached/body-fixed arm_right_7_joint local x2N at joint origin; zero comparison. Not constant world force.",
+        "timing": "Exact accepted modeB old-plan plant clock; fresh owner/model allocation and memory queries included in full algorithm wall. Native solve separately retained. Disk recording outside.",
+        "baseline": "No estimator: zero-wrench B1 every tick. All methods start with zero/prior lane0 B1; no true-force access or estimator update before observed history.",
+        "memory": "cudaMemGetInfo boundary availability delta; host peak RSS separate. Not continuous peak or per-solver allocation, no host/device summing on shared-memory Jetson.",
+        "readiness": "Productionfloat force path and unchanged task-suite accepted at7d317fa. New method/truth canonicalB preflight per target. FailedB stays held; namedA diagnostic preserves evidence, no automatic rescue.",
+        "jetson": "Execution requires duration/storage/bottleneck discussion with Felix; retain original protocol, no silent pruning.",
+        "execution_status": "prepared_only_no_measurements"
+      }
     }
   },
   "missing_plan_files": [],
@@ -243,8 +333,7 @@
     "Jetson F01ab": "Completed according to Felix; manual collection/import pending; never rerun for migration.",
     "GTX1070 T01/F01ab/F01c/F04/F05": "Retained completed measurements; not selected again.",
     "D02 physical robot": "Standalone scripts/manual confirmation and index; never automatic runner execution.",
-    "Force E01/E02/E03": "Runtimequalified7d317fa accepted; study plans in progress; no comparative benefit claimed from runtime qualification.",
-    "X and B02": "Pending explicit remaining definitions/review; no silent scientific substitutions.",
+    "B02 QDLDL": "Not selected: Felix dropped this campaign comparison; historical results retained, no pending port.",
     "Q03 target task suite": "Separate readiness helper/relevant original fixture checks; not duplicated as research data.",
     "Historical M01/F02/F03/C02/C07/L00/X03-IIWA": "Record-only; exact result locations retained in tracker/evidence ledger.",
     "L01 learning": "Deferred."

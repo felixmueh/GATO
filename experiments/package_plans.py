@@ -18,12 +18,12 @@ PLANS=('campaign.json','f01c.json','resource_profiles.json','model_checks.json',
     'collision_monitor.json','bb_gtx1070.json','bb_rtx5060.json','ba_gtx1070.json','ba_rtx5060.json',
     'demo_internal.json','demo_gazebo.json','deployment.json','simulated_faults.json','cylinder_studies.json','cylinder_studies_jetson_proposed.json','t01_jetson_proposed.json','f01c_jetson_proposed.json',
     'resource_profiles-jetson-proposed.json','control_studies_jetson_proposed.json','collision_monitor_jetson_proposed.json',
-    'bb_jetson_proposed.json','ba_jetson_proposed.json')
+    'bb_jetson_proposed.json','ba_jetson_proposed.json',
+    'force-gtx1070-proposed.json','force-rtx5060-proposed.json','force-jetson-proposed.json')
 OMISSIONS={
  'Jetson F01ab':'Completed according to Felix; manual collection/import pending; never rerun for migration.',
  'GTX1070 T01/F01ab/F01c/F04/F05':'Retained completed measurements; not selected again.',
   'D02 physical robot':'Standalone scripts/manual confirmation and index; never automatic runner execution.',
- 'Force E01/E02/E03':'Runtimequalified7d317fa accepted; study plans in progress; no comparative benefit claimed from runtime qualification.',
  'B02 QDLDL':'Not selected: Felix dropped this campaign comparison; historical results retained, no pending port.',
  'Q03 target task suite':'Separate readiness helper/relevant original fixture checks; not duplicated as research data.',
  'Historical M01/F02/F03/C02/C07/L00/X03-IIWA':'Record-only; exact result locations retained in tracker/evidence ledger.',

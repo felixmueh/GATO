@@ -201,6 +201,26 @@ reciprocal-frequency views. Warmups remain labeled and excluded from aggregates;
 failed/nonfinite samples remain visible. It never pools distinct attempts or
 cohorts. No universal scientific schema is required.
 
+## Thesis exports and laptop plotting
+
+Use `/workspace/GATO/thesis_results/<study>/` as the finalized export destination
+for desktop/laptop sync. Generate thesis figures and tables on the desktop,
+where full raw recordings remain with a separate backup. Keep raw recordings,
+builds and source caches outside this directory. The full result archive from
+`collect.py --export` belongs in raw-data transfer/backup, not thesis sync.
+
+Where straightforward, also export compact plotting data and its plotting script
+for laptop edits. Preserve individual samples needed for distributions, units,
+cohort identities and failure labels. Include source runs/raw locations,
+protocol, script revision and regeneration command in a small provenance file
+or text note. Use relative paths within the export. Analyses needing full raw
+recordings run on the desktop and refresh the figures/tables.
+
+Start with existing analysis outputs; do not introduce a new export framework,
+universal data format or requirement to copy all raw data for plotting. Record
+finalized export paths alongside raw locations in the main `experiment_result.md`.
+Sync and backup configuration are separate from this directory policy.
+
 ## BB integration
 
 `adapters/bb.py` runs one frozen pair/B1-or-B16 episode directly, with the same
@@ -445,3 +465,51 @@ collection and adapter wiring. They do not qualify native builds or new GPU
 measurements. The family preflight remains part of actual execution. Controller,
 timing, warm-start or task-behavior changes require their relevant task regressions;
 packaging and recording-only work does not repeat a task campaign.
+
+## Cylinder costs, supplied routes and moving obstacles
+
+`cylinder_studies.json` prepares nine cases on each desktop: one mode-A
+cylinder-cost check, two mode-B supplied-route cases (B1/B8), and six mode-B
+moving-cylinder cases (three retained scenes, B1/B16). The Jetson proposal
+contains the six moving-cylinder cases and still needs the duration discussion.
+The native objective is position plus cylinder cost; its orientation slots
+encode obstacle weights. Ordinary orientation-on readiness and the positional
+cylinder preflight remain separate. Tool-center sampled clearance does not
+certify whole-arm or continuous collision avoidance.
+
+Analyze a saved collection without executing tasks:
+
+```sh
+python3 experiments/analysis/cylinder.py --raw RESULT_COLLECTION --output NEW_DIRECTORY --source PINNED_SOURCE
+```
+
+Each attempt retains its task/physical outcome, tool-clearance and motion traces,
+and own-seed versus optimized-output differences. Retries are separate points.
+`--source` is optional and supplies matching model limits for descriptive traces.
+Historical failures and unchanged supplied trajectories remain evidence; the
+new computation-paid cohort does not replace them. QDLDL (B02) is not selected
+for this campaign, following Felix's decision.
+
+## Force estimation and known disturbances
+
+`force-gtx1070-proposed.json`, `force-rtx5060-proposed.json` and
+`force-jetson-proposed.json` pin reviewed source `c0032ba`. Each prepares
+24 original/adapted one-tick timing/memory comparisons with identical frozen
+hypotheses and six 24-second tracking tasks: no estimator/original/adapted,
+each with zero force or a 2 N body-fixed local-x force at the last arm joint.
+Each method/disturbance task has its own canonical mode-B preflight.
+The first-input timing records also supply correspondence evidence (E01),
+without duplicate executions. Native solve and complete algorithm timing are
+separate; memory snapshots describe observed allocation boundaries, not a
+continuous peak. Disturbance tasks charge complete algorithm wall time while
+the previous plan plays. These are body-fixed forces, not constant world forces.
+
+```sh
+python3 experiments/analysis/force.py --index RESULT_COLLECTION/index.json --output NEW_DIRECTORY
+```
+
+This exports per-attempt timing/memory, task and paired-correspondence tables.
+Failures remain visible and duplicate completed attempts are not silently
+selected or pooled. Production-float validation is accepted; the retained
+additional double-precision discrepancy is closed without a tighter gate.
+Jetson duration/storage discussion remains required before execution.

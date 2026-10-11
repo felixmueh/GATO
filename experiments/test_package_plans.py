@@ -21,7 +21,9 @@ def test_exact_pending_composition_and_explicit_dependencies(tmp_path):
     assert len(demo['cases'])==1 and demo['collector_source_commit'].startswith('2c7e2b1')
     assert demo['collector_source_commit'] in inventory['source_commits']
     assert not any('robot' in e['backend'].lower() for p in (desktop,jetson,gazebo) for e in p['experiments'])
-    assert 'Force E01/E02/E03' in inventory['omissions'] and inventory['readiness'].startswith('Preparation')
+    assert 'Force E01/E02/E03' not in inventory['omissions'] and inventory['readiness'].startswith('Preparation')
+    assert any(e['id']=='E03' for e in desktop['experiments'])
+    assert any(e['id']=='E03' for e in jetson['experiments'])
 
 
 def test_missing_definitions_visible_and_duplicate_ids_fail(tmp_path,monkeypatch):
