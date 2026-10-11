@@ -1,0 +1,257 @@
+{
+  "version": 1,
+  "experiments": [
+    {
+      "id": "M03",
+      "research_question": "RQ-monitor",
+      "source_commit": "a3a96ad3deabea5c0165da69addd1c55406710a9",
+      "protocol": "unchanged-live-fault-campaign-v1",
+      "machines": [
+        "rtx5060"
+      ],
+      "timing_mode": "live",
+      "backend": "Gazebo",
+      "timeout_seconds": 600,
+      "build": {
+        "inputs": {
+          "native/CMakeLists.txt": "07c285afa3d2055c2c8f64c4645bdad01bdeb3391e77f2082aff3c70443df1e2",
+          "native/control_studies/CMakeLists.txt": "9bdaae9f2d3991a3c567666bf77d8a253666c3adee9b4e66598c83f647dc41c7",
+          "native/task_readiness/CMakeLists.txt": "90abec70a6f830071843841791f13b995cf963118659b7001d8ed0085a8da6a6"
+        },
+        "commands": [
+          [
+            "cmake",
+            "-S",
+            "{runner}/native/control_studies",
+            "-B",
+            "{build}",
+            "-DGATO_SOURCE_DIR={source}",
+            "-DKNOTS=32;64",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DGATO_EXPERIMENT_TELEMETRY=ON",
+            "-DCMAKE_CUDA_ARCHITECTURES={cuda_arch}-real",
+            "-DPython3_EXECUTABLE={python}"
+          ],
+          [
+            "cmake",
+            "--build",
+            "{build}",
+            "--parallel",
+            "2"
+          ]
+        ],
+        "artifacts": [
+          "modules/bsqpN32_tiago_right*.so",
+          "modules/bsqpN64_tiago_right*.so",
+          "cuda_access_smoke"
+        ]
+      },
+      "preflight": {
+        "group": "M03-live-simulator",
+        "command": [
+          "{python}",
+          "{runner}/adapters/simulated_fault_trial.py",
+          "--source",
+          "{source}",
+          "--build",
+          "{build}",
+          "--simulator-config",
+          "{runner}/collision_local.json",
+          "--output",
+          "{output}",
+          "--preflight"
+        ]
+      },
+      "command": [
+        "{python}",
+        "{runner}/adapters/simulated_fault_trial.py",
+        "--source",
+        "{source}",
+        "--build",
+        "{build}",
+        "--simulator-config",
+        "{runner}/collision_local.json",
+        "--output",
+        "{output}",
+        "--case",
+        "{case}"
+      ],
+      "cases": [
+        {
+          "id": "01-trajectory_nan",
+          "parameters": {
+            "fault": "trajectory_nan",
+            "description": "One outgoing torque horizon contains NaN"
+          }
+        },
+        {
+          "id": "02-trajectory_shape",
+          "parameters": {
+            "fault": "trajectory_shape",
+            "description": "One outgoing horizon has six joint columns"
+          }
+        },
+        {
+          "id": "03-trajectory_dt_zero",
+          "parameters": {
+            "fault": "trajectory_dt_zero",
+            "description": "One outgoing horizon has dt=0"
+          }
+        },
+        {
+          "id": "04-trajectory_expired",
+          "parameters": {
+            "fault": "trajectory_expired",
+            "description": "One outgoing horizon starts ten seconds in the past"
+          }
+        },
+        {
+          "id": "05-trajectory_future",
+          "parameters": {
+            "fault": "trajectory_future",
+            "description": "One outgoing horizon starts thirty seconds in the future"
+          }
+        },
+        {
+          "id": "06-trajectory_start_nan",
+          "parameters": {
+            "fault": "trajectory_start_nan",
+            "description": "One outgoing horizon has a NaN start timestamp"
+          }
+        },
+        {
+          "id": "07-torque_spike",
+          "parameters": {
+            "fault": "torque_spike",
+            "description": "One outgoing horizon requests 60 Nm on every joint; clamp remains enabled"
+          }
+        },
+        {
+          "id": "08-planner_exception",
+          "parameters": {
+            "fault": "planner_exception",
+            "description": "Planner raises while submitting the next horizon"
+          }
+        },
+        {
+          "id": "09-planner_stall",
+          "parameters": {
+            "fault": "planner_stall",
+            "description": "Planner sleeps for two wall-clock seconds before submitting"
+          }
+        },
+        {
+          "id": "10-planner_exit",
+          "parameters": {
+            "fault": "planner_exit",
+            "description": "Planner exits abruptly without Python cleanup"
+          }
+        },
+        {
+          "id": "11-feedback_drop",
+          "parameters": {
+            "fault": "feedback_drop",
+            "description": "Controller callback discards all subsequent joint states"
+          }
+        },
+        {
+          "id": "12-feedback_nan",
+          "parameters": {
+            "fault": "feedback_nan",
+            "description": "Controller receives NaN for one right-arm position"
+          }
+        },
+        {
+          "id": "13-feedback_frozen",
+          "parameters": {
+            "fault": "feedback_frozen",
+            "description": "Controller receives frozen positions/velocities with fresh timestamps"
+          }
+        },
+        {
+          "id": "14-feedback_stamp_backwards",
+          "parameters": {
+            "fault": "feedback_stamp_backwards",
+            "description": "Controller receives timestamps ten seconds earlier"
+          }
+        },
+        {
+          "id": "15-safety_exit",
+          "parameters": {
+            "fault": "safety_exit",
+            "description": "Controller kills its own safety worker"
+          }
+        },
+        {
+          "id": "16-controller_stall",
+          "parameters": {
+            "fault": "controller_stall",
+            "description": "Controller sleeps for two seconds while publishing effort"
+          }
+        },
+        {
+          "id": "17-controller_exit",
+          "parameters": {
+            "fault": "controller_exit",
+            "description": "Controller exits abruptly while publishing effort"
+          }
+        },
+        {
+          "id": "18-publish_exception",
+          "parameters": {
+            "fault": "publish_exception",
+            "description": "Effort publication raises, including during cleanup"
+          }
+        },
+        {
+          "id": "19-restore_exception",
+          "parameters": {
+            "fault": "restore_exception",
+            "description": "Planner raises, then default-controller restoration raises"
+          }
+        },
+        {
+          "id": "20-baseline",
+          "parameters": {
+            "fault": "baseline",
+            "description": "Unmodified planner, controller, and feedback"
+          }
+        }
+      ]
+    }
+  ],
+  "status": "prepared_reviewed_source_target_native_canonical_live_and_simulator_setup_pending",
+  "prerequisites": {
+    "config": "Ignored experiments/collision_local.json: simulation_only true, domain1or91, canonical_live_preflight_receipt, pal_controller_log",
+    "canonical_receipt": "Existing D01 metrics.json with task/physical/handback pass and backendgazebo; sibling protocol.json records N32/.03 qd=.1/vel_lim=.1 and provenance.json source_sha256 matches relevant runtime bytes. No invented receipt conversion.",
+    "reset": "Host must perform separately logged assisted simulator restoration before each trial, as original c3po orchestration. Fresh PAL default-controller observations are required for every case.",
+    "host": "Existing PAL simulator, GATO runtime/ROS dependencies, loopback-only DDS and current PAL-side observation log. This runner does not create Docker containers or infer host mount paths.",
+    "baseline": "Original leading baseline is the family preflight, followed by the original20 remaining trials including trailing baseline.21 original ordered trials total; no extra baseline repeat.",
+    "safety": "Simulation only. Original controller/executor/publication/restoration negative behavior preserved; no ROS or cleanup repair."
+  },
+  "original_order": [
+    "baseline",
+    "trajectory_nan",
+    "trajectory_shape",
+    "trajectory_dt_zero",
+    "trajectory_expired",
+    "trajectory_future",
+    "trajectory_start_nan",
+    "torque_spike",
+    "planner_exception",
+    "planner_stall",
+    "planner_exit",
+    "feedback_drop",
+    "feedback_nan",
+    "feedback_frozen",
+    "feedback_stamp_backwards",
+    "safety_exit",
+    "controller_stall",
+    "controller_exit",
+    "publish_exception",
+    "restore_exception",
+    "baseline"
+  ],
+  "original_leading_baseline_is_preflight": true,
+  "historical": "External robot_faults/2026-09-21 records recovery pending; no historical result overwritten"
+}

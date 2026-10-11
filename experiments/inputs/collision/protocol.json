@@ -1,0 +1,662 @@
+{
+  "id": "monitor-CPU-eight-state-v1",
+  "source_commit": "2db284ca8e11f42f8f3248403b879652966893ed",
+  "states": [
+    {
+      "id": "comfortable-stationary",
+      "right_arm_q_rad": [
+        -0.36,
+        -1.83,
+        -0.47,
+        -2.35,
+        0.0,
+        -1.2,
+        0.04
+      ],
+      "right_arm_qd_rad_s": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "torso_lift_joint_m": 0.1,
+      "other_reduced_joints": "Pinocchio neutral positions and zero velocities",
+      "scope": "Synthetic named joint snapshots for CPU query workload; no executed robot motion"
+    },
+    {
+      "id": "comfortable-velocity05",
+      "right_arm_q_rad": [
+        -0.36,
+        -1.83,
+        -0.47,
+        -2.35,
+        0.0,
+        -1.2,
+        0.04
+      ],
+      "right_arm_qd_rad_s": [
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05
+      ],
+      "torso_lift_joint_m": 0.1,
+      "other_reduced_joints": "Pinocchio neutral positions and zero velocities",
+      "scope": "Synthetic named joint snapshots for CPU query workload; no executed robot motion"
+    },
+    {
+      "id": "high-clearance-stationary",
+      "right_arm_q_rad": [
+        -0.39,
+        -1.73,
+        -0.38,
+        -2.35,
+        0.0,
+        -1.21,
+        0.04
+      ],
+      "right_arm_qd_rad_s": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "torso_lift_joint_m": 0.1,
+      "other_reduced_joints": "Pinocchio neutral positions and zero velocities",
+      "scope": "Synthetic named joint snapshots for CPU query workload; no executed robot motion"
+    },
+    {
+      "id": "high-clearance-velocity05",
+      "right_arm_q_rad": [
+        -0.39,
+        -1.73,
+        -0.38,
+        -2.35,
+        0.0,
+        -1.21,
+        0.04
+      ],
+      "right_arm_qd_rad_s": [
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05
+      ],
+      "torso_lift_joint_m": 0.1,
+      "other_reduced_joints": "Pinocchio neutral positions and zero velocities",
+      "scope": "Synthetic named joint snapshots for CPU query workload; no executed robot motion"
+    },
+    {
+      "id": "high-clearance-joint1-plus05-stationary",
+      "right_arm_q_rad": [
+        -0.34,
+        -1.73,
+        -0.38,
+        -2.35,
+        0.0,
+        -1.21,
+        0.04
+      ],
+      "right_arm_qd_rad_s": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "torso_lift_joint_m": 0.1,
+      "other_reduced_joints": "Pinocchio neutral positions and zero velocities",
+      "scope": "Synthetic named joint snapshots for CPU query workload; no executed robot motion"
+    },
+    {
+      "id": "high-clearance-joint1-plus05-velocity05",
+      "right_arm_q_rad": [
+        -0.34,
+        -1.73,
+        -0.38,
+        -2.35,
+        0.0,
+        -1.21,
+        0.04
+      ],
+      "right_arm_qd_rad_s": [
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05
+      ],
+      "torso_lift_joint_m": 0.1,
+      "other_reduced_joints": "Pinocchio neutral positions and zero velocities",
+      "scope": "Synthetic named joint snapshots for CPU query workload; no executed robot motion"
+    },
+    {
+      "id": "high-clearance-joint1-minus05-stationary",
+      "right_arm_q_rad": [
+        -0.44,
+        -1.73,
+        -0.38,
+        -2.35,
+        0.0,
+        -1.21,
+        0.04
+      ],
+      "right_arm_qd_rad_s": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "torso_lift_joint_m": 0.1,
+      "other_reduced_joints": "Pinocchio neutral positions and zero velocities",
+      "scope": "Synthetic named joint snapshots for CPU query workload; no executed robot motion"
+    },
+    {
+      "id": "high-clearance-joint1-minus05-velocity05",
+      "right_arm_q_rad": [
+        -0.44,
+        -1.73,
+        -0.38,
+        -2.35,
+        0.0,
+        -1.21,
+        0.04
+      ],
+      "right_arm_qd_rad_s": [
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05
+      ],
+      "torso_lift_joint_m": 0.1,
+      "other_reduced_joints": "Pinocchio neutral positions and zero velocities",
+      "scope": "Synthetic named joint snapshots for CPU query workload; no executed robot motion"
+    }
+  ],
+  "assets": {
+    "original": {
+      "original_urdf": "/workspace/GATO/TiagoProURDF/tiago_pro.urdf",
+      "original_sha256": "7fcdfa01e2a67c550ae9624061126b87f8887ab251803bc3bd5b93fc2f022ae6",
+      "bundled_sha256": "be722e3ab6801be618d4f23defb1c8a8759f84834936702bfa51a05d86257141",
+      "used_collision_meshes": [
+        {
+          "original_uri": "package://meshes/torso_fixed_collision.stl",
+          "original_path": "/workspace/GATO/TiagoProURDF/meshes/torso_fixed_collision.stl",
+          "sha256": "56a8f0732fdbb1f4145a61269d59f3ed07be1bb9c060e7caf44d8dd37cd06d80",
+          "bundled": "meshes/56a8f0732fdb-torso_fixed_collision.stl"
+        },
+        {
+          "original_uri": "package://meshes/torso_lift_link_collision.stl",
+          "original_path": "/workspace/GATO/TiagoProURDF/meshes/torso_lift_link_collision.stl",
+          "sha256": "6c45a1e2778576ad7ef2d6ced8ffbbf6a4aaf2a2de8aecb59f7b44329b758d0b",
+          "bundled": "meshes/6c45a1e27785-torso_lift_link_collision.stl"
+        },
+        {
+          "original_uri": "package://meshes/laptop_tray_collision.stl",
+          "original_path": "/workspace/GATO/TiagoProURDF/meshes/laptop_tray_collision.stl",
+          "sha256": "849b78bbe967caf550ba918b02e274770f9652094fdf6aaff23c5c24358230a2",
+          "bundled": "meshes/849b78bbe967-laptop_tray_collision.stl"
+        },
+        {
+          "original_uri": "package://meshes/arm_1_link_collision.stl",
+          "original_path": "/workspace/GATO/TiagoProURDF/meshes/arm_1_link_collision.stl",
+          "sha256": "f911e6d2a6f9383c30183183962648c7e3872116bc29225f1bf10c8cd0491487",
+          "bundled": "meshes/f911e6d2a6f9-arm_1_link_collision.stl"
+        },
+        {
+          "original_uri": "package://meshes/arm_2_link_collision.stl",
+          "original_path": "/workspace/GATO/TiagoProURDF/meshes/arm_2_link_collision.stl",
+          "sha256": "5dd1d5f0843169ef66d4a05ff34e664e161bbb832917a80f939cd2766430e9f4",
+          "bundled": "meshes/5dd1d5f08431-arm_2_link_collision.stl"
+        },
+        {
+          "original_uri": "package://meshes/arm_3_link_collision.stl",
+          "original_path": "/workspace/GATO/TiagoProURDF/meshes/arm_3_link_collision.stl",
+          "sha256": "4d9d8428b84d4511e95ac362c541a951c83efcfe47b0db958e35e231e944f9ff",
+          "bundled": "meshes/4d9d8428b84d-arm_3_link_collision.stl"
+        },
+        {
+          "original_uri": "package://meshes/arm_4_link_collision.stl",
+          "original_path": "/workspace/GATO/TiagoProURDF/meshes/arm_4_link_collision.stl",
+          "sha256": "8f86c50cda3e2c351c7b76c7f049fa28352e08ceabcae9b5eceaf58f204ff6c3",
+          "bundled": "meshes/8f86c50cda3e-arm_4_link_collision.stl"
+        },
+        {
+          "original_uri": "package://meshes/arm_5_link_collision.stl",
+          "original_path": "/workspace/GATO/TiagoProURDF/meshes/arm_5_link_collision.stl",
+          "sha256": "8d12d72d6114b807b2e7a20910672f06d64be64e1a760b3c6ec1ed774a59c6be",
+          "bundled": "meshes/8d12d72d6114-arm_5_link_collision.stl"
+        },
+        {
+          "original_uri": "package://meshes/arm_6_link_collision.stl",
+          "original_path": "/workspace/GATO/TiagoProURDF/meshes/arm_6_link_collision.stl",
+          "sha256": "b50fe52fd99bf91ed25de5988156ce3fa846fb68357c745afed0663d5242596a",
+          "bundled": "meshes/b50fe52fd99b-arm_6_link_collision.stl"
+        },
+        {
+          "original_uri": "package://meshes/base_link_tc.stl",
+          "original_path": "/workspace/GATO/TiagoProURDF/meshes/base_link_tc.stl",
+          "sha256": "e438c3363a7ad819b5ee44520f2b8e6a6e9636a0cc44afefacd98ae3f8a0ab2e",
+          "bundled": "meshes/e438c3363a7a-base_link_tc.stl"
+        },
+        {
+          "original_uri": "package://meshes/outer_finger.stl",
+          "original_path": "/workspace/GATO/TiagoProURDF/meshes/outer_finger.stl",
+          "sha256": "f6b296645c242878eaba955b30bd9b932aae88491bb9a627383f4a41e79f3dcc",
+          "bundled": "meshes/f6b296645c24-outer_finger.stl"
+        },
+        {
+          "original_uri": "package://meshes/inner_finger.stl",
+          "original_path": "/workspace/GATO/TiagoProURDF/meshes/inner_finger.stl",
+          "sha256": "ac2ec34c8b0cefe1d4637122553a8c9409a2ed6d389a90050962eed5a41cc5a3",
+          "bundled": "meshes/ac2ec34c8b0c-inner_finger.stl"
+        },
+        {
+          "original_uri": "package://meshes/fingertip.stl",
+          "original_path": "/workspace/GATO/TiagoProURDF/meshes/fingertip.stl",
+          "sha256": "aef403084be21aa0fbc5ad411e4bf22c796a044a70b906834539453a5637df83",
+          "bundled": "meshes/aef403084be2-fingertip.stl"
+        },
+        {
+          "original_uri": "package://meshes/outer_finger.stl",
+          "original_path": "/workspace/GATO/TiagoProURDF/meshes/outer_finger.stl",
+          "sha256": "f6b296645c242878eaba955b30bd9b932aae88491bb9a627383f4a41e79f3dcc",
+          "bundled": "meshes/f6b296645c24-outer_finger.stl"
+        },
+        {
+          "original_uri": "package://meshes/inner_finger.stl",
+          "original_path": "/workspace/GATO/TiagoProURDF/meshes/inner_finger.stl",
+          "sha256": "ac2ec34c8b0cefe1d4637122553a8c9409a2ed6d389a90050962eed5a41cc5a3",
+          "bundled": "meshes/ac2ec34c8b0c-inner_finger.stl"
+        },
+        {
+          "original_uri": "package://meshes/fingertip.stl",
+          "original_path": "/workspace/GATO/TiagoProURDF/meshes/fingertip.stl",
+          "sha256": "aef403084be21aa0fbc5ad411e4bf22c796a044a70b906834539453a5637df83",
+          "bundled": "meshes/aef403084be2-fingertip.stl"
+        },
+        {
+          "original_uri": "package://meshes/arm_1_link_collision.stl",
+          "original_path": "/workspace/GATO/TiagoProURDF/meshes/arm_1_link_collision.stl",
+          "sha256": "f911e6d2a6f9383c30183183962648c7e3872116bc29225f1bf10c8cd0491487",
+          "bundled": "meshes/f911e6d2a6f9-arm_1_link_collision.stl"
+        },
+        {
+          "original_uri": "package://meshes/arm_2_link_collision.stl",
+          "original_path": "/workspace/GATO/TiagoProURDF/meshes/arm_2_link_collision.stl",
+          "sha256": "5dd1d5f0843169ef66d4a05ff34e664e161bbb832917a80f939cd2766430e9f4",
+          "bundled": "meshes/5dd1d5f08431-arm_2_link_collision.stl"
+        },
+        {
+          "original_uri": "package://meshes/arm_3_link_collision.stl",
+          "original_path": "/workspace/GATO/TiagoProURDF/meshes/arm_3_link_collision.stl",
+          "sha256": "4d9d8428b84d4511e95ac362c541a951c83efcfe47b0db958e35e231e944f9ff",
+          "bundled": "meshes/4d9d8428b84d-arm_3_link_collision.stl"
+        },
+        {
+          "original_uri": "package://meshes/arm_4_link_collision.stl",
+          "original_path": "/workspace/GATO/TiagoProURDF/meshes/arm_4_link_collision.stl",
+          "sha256": "8f86c50cda3e2c351c7b76c7f049fa28352e08ceabcae9b5eceaf58f204ff6c3",
+          "bundled": "meshes/8f86c50cda3e-arm_4_link_collision.stl"
+        },
+        {
+          "original_uri": "package://meshes/arm_5_link_collision.stl",
+          "original_path": "/workspace/GATO/TiagoProURDF/meshes/arm_5_link_collision.stl",
+          "sha256": "8d12d72d6114b807b2e7a20910672f06d64be64e1a760b3c6ec1ed774a59c6be",
+          "bundled": "meshes/8d12d72d6114-arm_5_link_collision.stl"
+        },
+        {
+          "original_uri": "package://meshes/arm_6_link_collision.stl",
+          "original_path": "/workspace/GATO/TiagoProURDF/meshes/arm_6_link_collision.stl",
+          "sha256": "b50fe52fd99bf91ed25de5988156ce3fa846fb68357c745afed0663d5242596a",
+          "bundled": "meshes/b50fe52fd99b-arm_6_link_collision.stl"
+        },
+        {
+          "original_uri": "package://meshes/base_link_tc.stl",
+          "original_path": "/workspace/GATO/TiagoProURDF/meshes/base_link_tc.stl",
+          "sha256": "e438c3363a7ad819b5ee44520f2b8e6a6e9636a0cc44afefacd98ae3f8a0ab2e",
+          "bundled": "meshes/e438c3363a7a-base_link_tc.stl"
+        },
+        {
+          "original_uri": "package://meshes/outer_finger.stl",
+          "original_path": "/workspace/GATO/TiagoProURDF/meshes/outer_finger.stl",
+          "sha256": "f6b296645c242878eaba955b30bd9b932aae88491bb9a627383f4a41e79f3dcc",
+          "bundled": "meshes/f6b296645c24-outer_finger.stl"
+        },
+        {
+          "original_uri": "package://meshes/inner_finger.stl",
+          "original_path": "/workspace/GATO/TiagoProURDF/meshes/inner_finger.stl",
+          "sha256": "ac2ec34c8b0cefe1d4637122553a8c9409a2ed6d389a90050962eed5a41cc5a3",
+          "bundled": "meshes/ac2ec34c8b0c-inner_finger.stl"
+        },
+        {
+          "original_uri": "package://meshes/fingertip.stl",
+          "original_path": "/workspace/GATO/TiagoProURDF/meshes/fingertip.stl",
+          "sha256": "aef403084be21aa0fbc5ad411e4bf22c796a044a70b906834539453a5637df83",
+          "bundled": "meshes/aef403084be2-fingertip.stl"
+        },
+        {
+          "original_uri": "package://meshes/outer_finger.stl",
+          "original_path": "/workspace/GATO/TiagoProURDF/meshes/outer_finger.stl",
+          "sha256": "f6b296645c242878eaba955b30bd9b932aae88491bb9a627383f4a41e79f3dcc",
+          "bundled": "meshes/f6b296645c24-outer_finger.stl"
+        },
+        {
+          "original_uri": "package://meshes/inner_finger.stl",
+          "original_path": "/workspace/GATO/TiagoProURDF/meshes/inner_finger.stl",
+          "sha256": "ac2ec34c8b0cefe1d4637122553a8c9409a2ed6d389a90050962eed5a41cc5a3",
+          "bundled": "meshes/ac2ec34c8b0c-inner_finger.stl"
+        },
+        {
+          "original_uri": "package://meshes/fingertip.stl",
+          "original_path": "/workspace/GATO/TiagoProURDF/meshes/fingertip.stl",
+          "sha256": "aef403084be21aa0fbc5ad411e4bf22c796a044a70b906834539453a5637df83",
+          "bundled": "meshes/aef403084be2-fingertip.stl"
+        },
+        {
+          "original_uri": "package://meshes/head_1_link_collision.stl",
+          "original_path": "/workspace/GATO/TiagoProURDF/meshes/head_1_link_collision.stl",
+          "sha256": "bf984aed7be282270a78b2ed0f751e9910e6db9500f769956b95bd0c3522983e",
+          "bundled": "meshes/bf984aed7be2-head_1_link_collision.stl"
+        },
+        {
+          "original_uri": "package://meshes/head_2_link_collision.stl",
+          "original_path": "/workspace/GATO/TiagoProURDF/meshes/head_2_link_collision.stl",
+          "sha256": "bdc70cb83ec4c699b70edcef550a635b66e3e2ad426ef517ba8d2b9a46abb098",
+          "bundled": "meshes/bdc70cb83ec4-head_2_link_collision.stl"
+        },
+        {
+          "original_uri": "package://meshes/suspension_rear_link.stl",
+          "original_path": "/workspace/GATO/TiagoProURDF/meshes/suspension_rear_link.stl",
+          "sha256": "382922eaf317749b749ff3dd84c04e9f4dc206a2e7227a7a62c79f097f665c4c",
+          "bundled": "meshes/382922eaf317-suspension_rear_link.stl"
+        },
+        {
+          "original_uri": "package://meshes/suspension_rear_link.stl",
+          "original_path": "/workspace/GATO/TiagoProURDF/meshes/suspension_rear_link.stl",
+          "sha256": "382922eaf317749b749ff3dd84c04e9f4dc206a2e7227a7a62c79f097f665c4c",
+          "bundled": "meshes/382922eaf317-suspension_rear_link.stl"
+        },
+        {
+          "original_uri": "package://meshes/suspension_front_link.stl",
+          "original_path": "/workspace/GATO/TiagoProURDF/meshes/suspension_front_link.stl",
+          "sha256": "9a2f26924de595e4c6e2b0ef7465c7af1d09ee3070e9f7173523113b545119d5",
+          "bundled": "meshes/9a2f26924de5-suspension_front_link.stl"
+        },
+        {
+          "original_uri": "package://meshes/suspension_front_link.stl",
+          "original_path": "/workspace/GATO/TiagoProURDF/meshes/suspension_front_link.stl",
+          "sha256": "9a2f26924de595e4c6e2b0ef7465c7af1d09ee3070e9f7173523113b545119d5",
+          "bundled": "meshes/9a2f26924de5-suspension_front_link.stl"
+        },
+        {
+          "original_uri": "package://meshes/base_dock_link.stl",
+          "original_path": "/workspace/GATO/TiagoProURDF/meshes/base_dock_link.stl",
+          "sha256": "d13ab33c5a39f9daa7f34a1b728c6b8afa2b105671846af29eb9f2d8c617cd0c",
+          "bundled": "meshes/d13ab33c5a39-base_dock_link.stl"
+        }
+      ],
+      "scope": "Only collision-used meshes bundled; URDF mesh URI rewrite only, no geometry changes"
+    },
+    "wrapped": {
+      "original_urdf": "/workspace/GATO/tiago_configs/collision_alpha_wrap_a3_o25_cap001/tiago_pro_collision_alpha_wrap_a3_o25_cap001.urdf",
+      "original_sha256": "98d18490cdf1ec9e9f3f749f43d96d0203d598344f47425e0287d1029b3894fd",
+      "bundled_sha256": "c4706232bf7f902c2c6efdfbd07d02fa779dc01a16dfa153c39860f78b5c8403",
+      "used_collision_meshes": [
+        {
+          "original_uri": "meshes/torso_fixed_collision.stl",
+          "original_path": "/workspace/GATO/tiago_configs/collision_alpha_wrap_a3_o25_cap001/meshes/torso_fixed_collision.stl",
+          "sha256": "0f95d2c770eded42543f0bde0e007807c29d3a54f1bc440b1f1f9a723111bbb3",
+          "bundled": "meshes/0f95d2c770ed-torso_fixed_collision.stl"
+        },
+        {
+          "original_uri": "meshes/torso_lift_link_collision.stl",
+          "original_path": "/workspace/GATO/tiago_configs/collision_alpha_wrap_a3_o25_cap001/meshes/torso_lift_link_collision.stl",
+          "sha256": "7b66a644317cb0a0f015129ecd21c213b5d44dfa5be42fd00c96b697b9a53689",
+          "bundled": "meshes/7b66a644317c-torso_lift_link_collision.stl"
+        },
+        {
+          "original_uri": "meshes/laptop_tray_collision.stl",
+          "original_path": "/workspace/GATO/tiago_configs/collision_alpha_wrap_a3_o25_cap001/meshes/laptop_tray_collision.stl",
+          "sha256": "749d75d19834dd0ee2ddd1c8d9aeb9710458b954d2539c99169a31c2037deafb",
+          "bundled": "meshes/749d75d19834-laptop_tray_collision.stl"
+        },
+        {
+          "original_uri": "meshes/arm_1_link_collision.stl",
+          "original_path": "/workspace/GATO/tiago_configs/collision_alpha_wrap_a3_o25_cap001/meshes/arm_1_link_collision.stl",
+          "sha256": "fac97e4422c8b5035cddaafbc5016849b702c5cd6ebdecd181ba3e3e40c5aaa9",
+          "bundled": "meshes/fac97e4422c8-arm_1_link_collision.stl"
+        },
+        {
+          "original_uri": "meshes/arm_2_link_collision.stl",
+          "original_path": "/workspace/GATO/tiago_configs/collision_alpha_wrap_a3_o25_cap001/meshes/arm_2_link_collision.stl",
+          "sha256": "1d701b53ed5cee6c2a634f53d318baffe488b61bd2be6082abff8b92bcb7929e",
+          "bundled": "meshes/1d701b53ed5c-arm_2_link_collision.stl"
+        },
+        {
+          "original_uri": "meshes/arm_3_link_collision.stl",
+          "original_path": "/workspace/GATO/tiago_configs/collision_alpha_wrap_a3_o25_cap001/meshes/arm_3_link_collision.stl",
+          "sha256": "c8ba9d1cc381e739029f51f93dabab9798bed2497aefab7191f0f8c43fe50b39",
+          "bundled": "meshes/c8ba9d1cc381-arm_3_link_collision.stl"
+        },
+        {
+          "original_uri": "meshes/arm_4_link_collision.stl",
+          "original_path": "/workspace/GATO/tiago_configs/collision_alpha_wrap_a3_o25_cap001/meshes/arm_4_link_collision.stl",
+          "sha256": "9583305582846870eefbb961a4564468c90376a18fc1633c3437b3fc9e53dd00",
+          "bundled": "meshes/958330558284-arm_4_link_collision.stl"
+        },
+        {
+          "original_uri": "meshes/arm_5_link_collision.stl",
+          "original_path": "/workspace/GATO/tiago_configs/collision_alpha_wrap_a3_o25_cap001/meshes/arm_5_link_collision.stl",
+          "sha256": "bb0c0a79eb5d3f5b686cf935206793c47c1b77207262b53b6dd412d2253a8199",
+          "bundled": "meshes/bb0c0a79eb5d-arm_5_link_collision.stl"
+        },
+        {
+          "original_uri": "meshes/arm_6_link_collision.stl",
+          "original_path": "/workspace/GATO/tiago_configs/collision_alpha_wrap_a3_o25_cap001/meshes/arm_6_link_collision.stl",
+          "sha256": "a8533ae8a4a8befd9a14212235074146384bafeadf3279809ac0c4f706a21890",
+          "bundled": "meshes/a8533ae8a4a8-arm_6_link_collision.stl"
+        },
+        {
+          "original_uri": "meshes/base_link_tc.stl",
+          "original_path": "/workspace/GATO/tiago_configs/collision_alpha_wrap_a3_o25_cap001/meshes/base_link_tc.stl",
+          "sha256": "0c975e09d276b4e05126e16d1148ebfaaef3189728c275f40e189503064a17e0",
+          "bundled": "meshes/0c975e09d276-base_link_tc.stl"
+        },
+        {
+          "original_uri": "meshes/outer_finger.stl",
+          "original_path": "/workspace/GATO/tiago_configs/collision_alpha_wrap_a3_o25_cap001/meshes/outer_finger.stl",
+          "sha256": "77a22c23c99137704be333dce2bbc29985a3d5855c99fc29d294053a47612c02",
+          "bundled": "meshes/77a22c23c991-outer_finger.stl"
+        },
+        {
+          "original_uri": "meshes/inner_finger.stl",
+          "original_path": "/workspace/GATO/tiago_configs/collision_alpha_wrap_a3_o25_cap001/meshes/inner_finger.stl",
+          "sha256": "5bc1e37e954e6f893624f9ee4396552e0acefbfa71987f0adb7850c512df4f58",
+          "bundled": "meshes/5bc1e37e954e-inner_finger.stl"
+        },
+        {
+          "original_uri": "meshes/fingertip.stl",
+          "original_path": "/workspace/GATO/tiago_configs/collision_alpha_wrap_a3_o25_cap001/meshes/fingertip.stl",
+          "sha256": "86d32c521ceebf0e7829e6aa67fbb7332b79f3236057be35335e70d0777120b9",
+          "bundled": "meshes/86d32c521cee-fingertip.stl"
+        },
+        {
+          "original_uri": "meshes/outer_finger.stl",
+          "original_path": "/workspace/GATO/tiago_configs/collision_alpha_wrap_a3_o25_cap001/meshes/outer_finger.stl",
+          "sha256": "77a22c23c99137704be333dce2bbc29985a3d5855c99fc29d294053a47612c02",
+          "bundled": "meshes/77a22c23c991-outer_finger.stl"
+        },
+        {
+          "original_uri": "meshes/inner_finger.stl",
+          "original_path": "/workspace/GATO/tiago_configs/collision_alpha_wrap_a3_o25_cap001/meshes/inner_finger.stl",
+          "sha256": "5bc1e37e954e6f893624f9ee4396552e0acefbfa71987f0adb7850c512df4f58",
+          "bundled": "meshes/5bc1e37e954e-inner_finger.stl"
+        },
+        {
+          "original_uri": "meshes/fingertip.stl",
+          "original_path": "/workspace/GATO/tiago_configs/collision_alpha_wrap_a3_o25_cap001/meshes/fingertip.stl",
+          "sha256": "86d32c521ceebf0e7829e6aa67fbb7332b79f3236057be35335e70d0777120b9",
+          "bundled": "meshes/86d32c521cee-fingertip.stl"
+        },
+        {
+          "original_uri": "meshes/arm_1_link_collision.stl",
+          "original_path": "/workspace/GATO/tiago_configs/collision_alpha_wrap_a3_o25_cap001/meshes/arm_1_link_collision.stl",
+          "sha256": "fac97e4422c8b5035cddaafbc5016849b702c5cd6ebdecd181ba3e3e40c5aaa9",
+          "bundled": "meshes/fac97e4422c8-arm_1_link_collision.stl"
+        },
+        {
+          "original_uri": "meshes/arm_2_link_collision.stl",
+          "original_path": "/workspace/GATO/tiago_configs/collision_alpha_wrap_a3_o25_cap001/meshes/arm_2_link_collision.stl",
+          "sha256": "1d701b53ed5cee6c2a634f53d318baffe488b61bd2be6082abff8b92bcb7929e",
+          "bundled": "meshes/1d701b53ed5c-arm_2_link_collision.stl"
+        },
+        {
+          "original_uri": "meshes/arm_3_link_collision.stl",
+          "original_path": "/workspace/GATO/tiago_configs/collision_alpha_wrap_a3_o25_cap001/meshes/arm_3_link_collision.stl",
+          "sha256": "c8ba9d1cc381e739029f51f93dabab9798bed2497aefab7191f0f8c43fe50b39",
+          "bundled": "meshes/c8ba9d1cc381-arm_3_link_collision.stl"
+        },
+        {
+          "original_uri": "meshes/arm_4_link_collision.stl",
+          "original_path": "/workspace/GATO/tiago_configs/collision_alpha_wrap_a3_o25_cap001/meshes/arm_4_link_collision.stl",
+          "sha256": "9583305582846870eefbb961a4564468c90376a18fc1633c3437b3fc9e53dd00",
+          "bundled": "meshes/958330558284-arm_4_link_collision.stl"
+        },
+        {
+          "original_uri": "meshes/arm_5_link_collision.stl",
+          "original_path": "/workspace/GATO/tiago_configs/collision_alpha_wrap_a3_o25_cap001/meshes/arm_5_link_collision.stl",
+          "sha256": "bb0c0a79eb5d3f5b686cf935206793c47c1b77207262b53b6dd412d2253a8199",
+          "bundled": "meshes/bb0c0a79eb5d-arm_5_link_collision.stl"
+        },
+        {
+          "original_uri": "meshes/arm_6_link_collision.stl",
+          "original_path": "/workspace/GATO/tiago_configs/collision_alpha_wrap_a3_o25_cap001/meshes/arm_6_link_collision.stl",
+          "sha256": "a8533ae8a4a8befd9a14212235074146384bafeadf3279809ac0c4f706a21890",
+          "bundled": "meshes/a8533ae8a4a8-arm_6_link_collision.stl"
+        },
+        {
+          "original_uri": "meshes/base_link_tc.stl",
+          "original_path": "/workspace/GATO/tiago_configs/collision_alpha_wrap_a3_o25_cap001/meshes/base_link_tc.stl",
+          "sha256": "0c975e09d276b4e05126e16d1148ebfaaef3189728c275f40e189503064a17e0",
+          "bundled": "meshes/0c975e09d276-base_link_tc.stl"
+        },
+        {
+          "original_uri": "meshes/outer_finger.stl",
+          "original_path": "/workspace/GATO/tiago_configs/collision_alpha_wrap_a3_o25_cap001/meshes/outer_finger.stl",
+          "sha256": "77a22c23c99137704be333dce2bbc29985a3d5855c99fc29d294053a47612c02",
+          "bundled": "meshes/77a22c23c991-outer_finger.stl"
+        },
+        {
+          "original_uri": "meshes/inner_finger.stl",
+          "original_path": "/workspace/GATO/tiago_configs/collision_alpha_wrap_a3_o25_cap001/meshes/inner_finger.stl",
+          "sha256": "5bc1e37e954e6f893624f9ee4396552e0acefbfa71987f0adb7850c512df4f58",
+          "bundled": "meshes/5bc1e37e954e-inner_finger.stl"
+        },
+        {
+          "original_uri": "meshes/fingertip.stl",
+          "original_path": "/workspace/GATO/tiago_configs/collision_alpha_wrap_a3_o25_cap001/meshes/fingertip.stl",
+          "sha256": "86d32c521ceebf0e7829e6aa67fbb7332b79f3236057be35335e70d0777120b9",
+          "bundled": "meshes/86d32c521cee-fingertip.stl"
+        },
+        {
+          "original_uri": "meshes/outer_finger.stl",
+          "original_path": "/workspace/GATO/tiago_configs/collision_alpha_wrap_a3_o25_cap001/meshes/outer_finger.stl",
+          "sha256": "77a22c23c99137704be333dce2bbc29985a3d5855c99fc29d294053a47612c02",
+          "bundled": "meshes/77a22c23c991-outer_finger.stl"
+        },
+        {
+          "original_uri": "meshes/inner_finger.stl",
+          "original_path": "/workspace/GATO/tiago_configs/collision_alpha_wrap_a3_o25_cap001/meshes/inner_finger.stl",
+          "sha256": "5bc1e37e954e6f893624f9ee4396552e0acefbfa71987f0adb7850c512df4f58",
+          "bundled": "meshes/5bc1e37e954e-inner_finger.stl"
+        },
+        {
+          "original_uri": "meshes/fingertip.stl",
+          "original_path": "/workspace/GATO/tiago_configs/collision_alpha_wrap_a3_o25_cap001/meshes/fingertip.stl",
+          "sha256": "86d32c521ceebf0e7829e6aa67fbb7332b79f3236057be35335e70d0777120b9",
+          "bundled": "meshes/86d32c521cee-fingertip.stl"
+        },
+        {
+          "original_uri": "meshes/head_1_link_collision.stl",
+          "original_path": "/workspace/GATO/tiago_configs/collision_alpha_wrap_a3_o25_cap001/meshes/head_1_link_collision.stl",
+          "sha256": "0759e0403abfdeae381f4377593e46881ff7295b16c1f6a08fb91365eba5e35f",
+          "bundled": "meshes/0759e0403abf-head_1_link_collision.stl"
+        },
+        {
+          "original_uri": "meshes/head_2_link_collision.stl",
+          "original_path": "/workspace/GATO/tiago_configs/collision_alpha_wrap_a3_o25_cap001/meshes/head_2_link_collision.stl",
+          "sha256": "11597e4eff73042411fa28beb10e7af92a90b2ed508f21fc00d09069e9b7dd04",
+          "bundled": "meshes/11597e4eff73-head_2_link_collision.stl"
+        },
+        {
+          "original_uri": "meshes/suspension_rear_link.stl",
+          "original_path": "/workspace/GATO/tiago_configs/collision_alpha_wrap_a3_o25_cap001/meshes/suspension_rear_link.stl",
+          "sha256": "ea585fcd2120ad09a70f1408ad82d21a1435204240486c33702816b52b5333eb",
+          "bundled": "meshes/ea585fcd2120-suspension_rear_link.stl"
+        },
+        {
+          "original_uri": "meshes/suspension_rear_link.stl",
+          "original_path": "/workspace/GATO/tiago_configs/collision_alpha_wrap_a3_o25_cap001/meshes/suspension_rear_link.stl",
+          "sha256": "ea585fcd2120ad09a70f1408ad82d21a1435204240486c33702816b52b5333eb",
+          "bundled": "meshes/ea585fcd2120-suspension_rear_link.stl"
+        },
+        {
+          "original_uri": "meshes/suspension_front_link.stl",
+          "original_path": "/workspace/GATO/tiago_configs/collision_alpha_wrap_a3_o25_cap001/meshes/suspension_front_link.stl",
+          "sha256": "ccc0d71e6c4fd693315ee2596d3108b4b6a6f5a3eb98dabd2ecffa7c01272f19",
+          "bundled": "meshes/ccc0d71e6c4f-suspension_front_link.stl"
+        },
+        {
+          "original_uri": "meshes/suspension_front_link.stl",
+          "original_path": "/workspace/GATO/tiago_configs/collision_alpha_wrap_a3_o25_cap001/meshes/suspension_front_link.stl",
+          "sha256": "ccc0d71e6c4fd693315ee2596d3108b4b6a6f5a3eb98dabd2ecffa7c01272f19",
+          "bundled": "meshes/ccc0d71e6c4f-suspension_front_link.stl"
+        },
+        {
+          "original_uri": "meshes/base_dock_link.stl",
+          "original_path": "/workspace/GATO/tiago_configs/collision_alpha_wrap_a3_o25_cap001/meshes/base_dock_link.stl",
+          "sha256": "293092d0a0be6c9156fb1aa9642ea5c20286e706ee9faa161f45a4eec17d9bf5",
+          "bundled": "meshes/293092d0a0be-base_dock_link.stl"
+        }
+      ],
+      "scope": "Only collision-used meshes bundled; URDF mesh URI rewrite only, no geometry changes"
+    }
+  },
+  "min_distance_m": 0.04,
+  "query_repeats": 100,
+  "worker_repeats": 20,
+  "stop_at_first": true,
+  "queries": [
+    "exact-all-pair-distance",
+    "runtime-margin-first-violation"
+  ],
+  "worker_scope": "Complete synchronous _SafetyChecker.check CPU wall time (state mapping, limits, margin and geometry-speed checks); excludes async queue/polling/process startup.",
+  "exact_scope": "Fresh collision-data allocation and Pinocchio exact distances for ALL retained pairs; compare whole query behavior, not interchangeable distance-kernel speedup",
+  "margin_scope": "Existing compute_collision_margin_violation at4cm with stop_at_first=True; may short-circuit at first violation",
+  "duplicated_worker_scope": "The identical runtime margin worker is measured under both query case labels. This is repeated worker evidence, not a distinct exact-worker implementation.",
+  "raw": "All per-call times and violations/errors retained; safety rejection is completed evidence, setup failure holds dependent case",
+  "machine_scope": "Current CPU model/package details retained; not historical2Hz reconstruction or live125Hz monitor guarantee"
+}

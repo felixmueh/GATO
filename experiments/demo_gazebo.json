@@ -1,0 +1,100 @@
+{
+  "version": 1,
+  "experiments": [
+    {
+      "id": "demo_visual_square_gazebo",
+      "name": "Square poses and upward-tool figure-eight demonstration",
+      "research_question": "RQ-control",
+      "protocol": "demo-visual-square-v1",
+      "source_commit": "63940f7a5c724c84c731a6a1edbc49a094f3b806",
+      "collector_source_commit": "2c7e2b11bd5bab8fa3a761d17cf55c1aa9cff55e",
+      "machines": [
+        "rtx5060"
+      ],
+      "timing_mode": "live",
+      "backend": "gazebo",
+      "build": {
+        "inputs": {
+          "native/CMakeLists.txt": "07c285afa3d2055c2c8f64c4645bdad01bdeb3391e77f2082aff3c70443df1e2"
+        },
+        "commands": [
+          [
+            "cmake",
+            "-S",
+            "{runner}/native",
+            "-B",
+            "{build}",
+            "-DGATO_SOURCE_DIR={source}",
+            "-DKNOTS=16;32;64;128",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DGATO_EXPERIMENT_TELEMETRY=ON",
+            "-DCMAKE_CUDA_ARCHITECTURES={cuda_arch}-real",
+            "-DPython3_EXECUTABLE={python}"
+          ],
+          [
+            "cmake",
+            "--build",
+            "{build}",
+            "--parallel",
+            "2"
+          ]
+        ],
+        "artifacts": [
+          "modules/bsqpN16_tiago_right*.so",
+          "modules/bsqpN32_tiago_right*.so",
+          "modules/bsqpN64_tiago_right*.so",
+          "modules/bsqpN128_tiago_right*.so"
+        ]
+      },
+      "inputs": {
+        "experiments/inputs/demo/proposal.json": "93b9ff4edad18bb484d41b15626775d0bdfd3f2afb5fd6859682593a9ae19e75"
+      },
+      "preflight": {
+        "group": "demo-gazebo",
+        "command": [
+          "{python}",
+          "{runner}/adapters/demo.py",
+          "--source",
+          "{source}",
+          "--build",
+          "{build}",
+          "--case",
+          "{case}",
+          "--output",
+          "{output}",
+          "--backend",
+          "gazebo",
+          "--preflight",
+          "--inputs",
+          "{inputs}/experiments/inputs/demo"
+        ]
+      },
+      "command": [
+        "{python}",
+        "{runner}/adapters/demo.py",
+        "--source",
+        "{source}",
+        "--build",
+        "{build}",
+        "--case",
+        "{case}",
+        "--output",
+        "{output}",
+        "--backend",
+        "gazebo",
+        "--inputs",
+        "{inputs}/experiments/inputs/demo"
+      ],
+      "repeats": 1,
+      "cases": [
+        {
+          "id": "all-demo-tasks",
+          "parameters": {
+            "backend": "gazebo"
+          }
+        }
+      ],
+      "qualification": "Prepared only; target frozen task readiness/module review and full internal then Gazebo motion review precede robot. Physical scripts outside runner."
+    }
+  ]
+}

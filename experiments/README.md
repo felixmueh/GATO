@@ -48,6 +48,14 @@ Separate clones and manual GPU jobs must also be kept separate from measurements
 
 ## Development workflow
 
+Comparisons should be **good enough for the scientific question**. Use sensible,
+fairly loose tolerances and check that behavior and conclusions are similar.
+High numerical precision, exact equality and bitwise determinism are not
+required. Small numerical differences alone should not block an experiment or
+start another investigation. Physical-safety and task-success gates remain
+separate. Preserve original failed checks rather than changing their tolerances
+after the result to turn them into passes.
+
 1. Start with the experiment's existing thesis question and retained evidence.
    State the comparison, required measurements and intended figure/table briefly;
    reuse a working study when it answers the question.
@@ -325,6 +333,51 @@ these are prepared coverage, not execution authorization. Inspect retained
 Jetson timings, estimate duration/storage and discuss any shorter protocol with
 Felix before execution. Repeats and coverage have not been silently reduced.
 Jetson cold/warm timing (F01ab) is completed and remains excluded.
+
+## Visual demonstration and collision monitoring
+
+`demo_internal.json` prepares the five-reach vertical-square sequence and three
+upward figure eights. `demo_gazebo.json` runs the same four tasks as one live
+sequence, holding remaining motion after an execution or handback failure.
+The 30 cm square uses inward corner orientations and a normal centre approach;
+each reach has a 15-second timeout and the existing settling parameter switch.
+Rough success is reported separately from stricter settling. Endpoint IK and
+collision screens passed; full-motion simulation and Felix's review remain due.
+
+The manually reviewed physical script is
+`experiments/deployment/demo/demo_robot.py` at source `2c7e2b1` on the deployment
+branch. It is outside the runner, defaults to preview, prints named parameters,
+requires matching canonical preflight evidence and confirms before robot motion.
+Backend, selected/skipped tasks and fresh raw paths are recorded. Do not run an
+unreviewed robot script as part of a desktop plan.
+
+`collision_monitor.json` contains four CPU cases: original/wrapped geometry with
+all-pair exact distances or the runtime's first-violation margin query. It bundles
+the used geometry. These workloads differ deliberately; exact timing includes
+fresh collision-data allocation. Synchronous safety-worker timing excludes
+process/queue overhead and uses the runtime margin implementation in both query
+cases. `collision_monitor_jetson_proposed.json` retains the same coverage.
+
+`simulated_faults.json` preserves the original live fault protocol: a leading
+baseline preflight and 20 remaining trials, including the trailing baseline.
+It needs the existing local PAL simulator, loopback DDS, an actual successful
+canonical Gazebo preflight and fresh PAL controller observations. Configure the
+ignored `experiments/collision_local.json` as described by that plan's
+`prerequisites`; the runner does not launch host Docker containers or reset the
+simulator. After a trial fails to restore control, a separately logged simulator
+restoration is needed before another trial can pass its motion prerequisites.
+Historical publication/restoration failures remain results, not solver fixes.
+
+Saved-data commands do not execute motion or solve again:
+
+```sh
+python3 experiments/analysis/control_choices.py --raw PATH_TO_CONTROL_RESULTS --output NEW_DERIVED_DIRECTORY
+python3 experiments/analysis/fault_envelope.py --raw PATH_TO_FAULT_RESULTS --output NEW_DERIVED_DIRECTORY
+```
+
+Control plots retain every attempt separately. Fault response and observed motion
+are descriptive; unavailable state age, clearance and certified braking bounds
+remain null. No measured hardware-safety guarantee is inferred.
 
 ## Relevant checks
 
