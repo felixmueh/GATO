@@ -110,6 +110,9 @@ def prepare():
                 e['inputs']={k:v for k,v in e['inputs'].items() if not k.endswith(obsolete)}
                 suite_then_canonical(e)
             if e['id']=='CylinderTasks':
+                if machine=='jetson':
+                    approved=read('cylinder_studies_jetson_proposed.json')['experiments'][0]['cases']
+                    e['cases']=copy.deepcopy(approved)
                 e['dependency_source_commits']={'ordinary_canonical_runtime':ORDINARY}
                 for argv in (e['command'],e['preflight']['command']):argv+=['--ordinary-runtime',ORDINARY]
             entries.append(e)

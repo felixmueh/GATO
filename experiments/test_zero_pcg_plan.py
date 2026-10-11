@@ -24,6 +24,7 @@ def test_full_successor_coverage_and_fresh_readiness(tmp_path):
             assert not any('copy-module' in c for c in v['build']['commands'])
             assert '--reuse-gtx1070' not in v['preflight']['command']
         assert Z.ORDINARY in e['CylinderTasks']['command']
+        assert len(e['CylinderTasks']['cases'])==(6 if machine=='jetson' else 8)
     assert len(json.loads((tmp_path/'jetson_proposed.json').read_text())['experiments'])>0
     desktop=json.loads((tmp_path/'gtx1070_desktop.json').read_text())
     assert not any(e['id'].startswith('F04') or e['id'] in ('M02','Q02') for e in desktop['experiments'])
