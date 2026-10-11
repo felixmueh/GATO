@@ -46,6 +46,41 @@ Separate clones and manual GPU jobs must also be kept separate from measurements
 {"machine":"rtx5060","python":"/opt/gato-venv/bin/python3"}
 ```
 
+## Development workflow
+
+1. Start with the experiment's existing thesis question and retained evidence.
+   State the comparison, required measurements and intended figure/table briefly;
+   reuse a working study when it answers the question.
+2. Reuse the existing scientific worker and source revision where suitable.
+   Several experiments can share one source/build. Create a separate source
+   branch only when actual runtime changes require it; do not create a new
+   manager or framework for each family.
+3. Implement the smallest script/adapter using the interface below. Keep raw
+   measurements and failures, write a compact summary, and provide saved-data
+   analysis. Build/source/cache directories never belong in collected results.
+4. Add explicit cases, source/input pins and a protocol revision to the plan.
+   Preserve historical cohorts. Select only pending work; completed results can
+   be imported without repeating measurements.
+5. Use focused checks for changed setup, recording and failure handling, and
+   one focused review for a substantive implementation batch. Reuse passed
+   checks when their relevant code and modules are unchanged. A scientific
+   negative is evidence, not a reason to tune or retry until success.
+6. Before a large run, use a short sensibility preflight where relevant. Reuse
+   an unchanged successful preflight. Keep actual task and physical gates;
+   package-version equality and harmless floating-point differences are not
+   scientific gates. Inspect the explicit plan with `--dry-run`.
+7. Run locally on the selected machine, sequentially on its GPU. Preserve an
+   individual failure and continue independent cases. Shared setup/preflight
+   failures block only dependent work. Changes to task settings define a new
+   recorded cohort, never a silent rescue of a failed one.
+8. Collect raw results separately from builds; regenerate plots/indexes without
+   rerunning measurements. Update the thesis-question result ledger with paths,
+   outcomes and practical limitations.
+
+Keep the runner **and the experiment harness** simple. Fix demonstrated faults
+that compromise the study; do not turn experiment development into solver repair,
+exhaustive certification, repeated artifact audits or a general-purpose framework.
+
 ## Add an experiment
 
 Implement a normal script accepting `--case FILE --output DIRECTORY`. Read the
