@@ -41,7 +41,7 @@ def test_exact_original_trials_preserved_with_leading_baseline_as_preflight(tmp_
 def test_pal_freshness_is_rechecked_after_target_suite(tmp_path,monkeypatch):
     source,c=config(tmp_path);build=tmp_path/'build';(build/'modules').mkdir(parents=True)
     (build/'modules/bsqpN64_tiago_right.fake.so').write_bytes(b'fake')
-    path=tmp_path/'local.json';path.write_text(json.dumps(c))
+    path=tmp_path/'local.json';path.write_text(json.dumps(dict(simulator_faults=c)))
     times=iter((10.,13.))
     monkeypatch.setattr(adapter.time,'monotonic',lambda:next(times))
     monkeypatch.setattr(adapter.task_suite,'run',lambda *a:0)

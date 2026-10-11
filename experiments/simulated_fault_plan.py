@@ -18,7 +18,7 @@ def prepare(output=None):
     call=next(n for n in ast.walk(ast.parse(c3po)) if isinstance(n,ast.Call) and any(isinstance(a,ast.Constant) and a.value=='--cases' for a in n.args))
     order=next(ast.literal_eval(k.value) for k in call.keywords if k.arg=='default')
     command=['{python}','{runner}/adapters/simulated_fault_trial.py','--source','{source}','--build','{build}',
-        '--simulator-config','{runner}/collision_local.json','--output','{output}']
+        '--simulator-config','{runner}/local.json','--output','{output}']
     plan=dict(version=1,experiments=[dict(id='M03',research_question='RQ-monitor',source_commit=commit,
         protocol='unchanged-live-fault-campaign-v1',machines=['rtx5060'],timing_mode='live',backend='Gazebo',timeout_seconds=600,
         build=dict(inputs={p:hashlib.sha256((ROOT/'experiments'/p).read_bytes()).hexdigest() for p in (
@@ -29,7 +29,7 @@ def prepare(output=None):
         preflight=dict(group='M03-live-simulator',command=command+['--preflight']),command=command+['--case','{case}'],
         cases=[dict(id=f'{i:02d}-'+fault,parameters=dict(fault=fault,description=faults[fault])) for i,fault in enumerate(order) if i>0])],
         status='prepared_reviewed_source_target_native_canonical_live_and_simulator_setup_pending',
-        prerequisites=dict(config='Ignored experiments/collision_local.json: simulation_only true, domain1or91, canonical_live_preflight_receipt, pal_controller_log',
+        prerequisites=dict(config='Ignored experiments/local.json simulator_faults section: simulation_only true, domain1or91, canonical_live_preflight_receipt, pal_controller_log',
             canonical_receipt='Existing D01 metrics.json with task/physical/handback pass and backendgazebo; sibling protocol.json records N32/.03 qd=.1/vel_lim=.1 and provenance.json source_sha256 matches relevant runtime bytes. No invented receipt conversion.',
             reset='Host must perform separately logged assisted simulator restoration before each trial, as original c3po orchestration. Fresh PAL default-controller observations are required for every case.',
             host='Existing PAL simulator, GATO runtime/ROS dependencies, loopback-only DDS and current PAL-side observation log. This runner does not create Docker containers or infer host mount paths.',

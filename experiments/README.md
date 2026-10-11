@@ -362,7 +362,7 @@ cases. `collision_monitor_jetson_proposed.json` retains the same coverage.
 baseline preflight and 20 remaining trials, including the trailing baseline.
 It needs the existing local PAL simulator, loopback DDS, an actual successful
 canonical Gazebo preflight and fresh PAL controller observations. Configure the
-ignored `experiments/collision_local.json` as described by that plan's
+`simulator_faults` section of ignored `experiments/local.json` as described by that plan's
 `prerequisites`; the runner does not launch host Docker containers or reset the
 simulator. After a trial fails to restore control, a separately logged simulator
 restoration is needed before another trial can pass its motion prerequisites.
@@ -373,6 +373,7 @@ Saved-data commands do not execute motion or solve again:
 ```sh
 python3 experiments/analysis/control_choices.py --raw PATH_TO_CONTROL_RESULTS --output NEW_DERIVED_DIRECTORY
 python3 experiments/analysis/fault_envelope.py --raw PATH_TO_FAULT_RESULTS --output NEW_DERIVED_DIRECTORY
+python3 experiments/analysis/collision_monitor.py --raw PATH_TO_MONITOR_RESULTS --output NEW_DERIVED_DIRECTORY
 ```
 
 Control plots retain every attempt separately. Fault response and observed motion

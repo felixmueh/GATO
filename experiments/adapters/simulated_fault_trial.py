@@ -55,7 +55,7 @@ def run(source,build,config_path,case,output,preflight=False):
     metrics=dict(campaign_id='M03',research_question='RQ-monitor',execution_backend='Gazebo',timing_mode='live',
         task_success=None,physical_pass=None,execution_error=None,simulation_only=True)
     try:
-        config=json.loads(config_path.read_text());proof=prerequisites(config,source,time.monotonic())
+        config=json.loads(config_path.read_text())['simulator_faults'];proof=prerequisites(config,source,time.monotonic())
         modules=list((build/'modules').glob('bsqpN64_tiago_right*.so'))
         if len(modules)!=1:raise ValueError('Expected exact isolated N64 native module')
         if preflight and task_suite.run(source,build,output/'native-task-suite'):

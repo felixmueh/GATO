@@ -1,0 +1,258 @@
+{
+  "plans": {
+    "gtx1070_desktop.json": {
+      "experiments": [
+        "ControlChoices",
+        "M02",
+        "BB",
+        "BA"
+      ],
+      "cases": 317,
+      "status": "prepared_not_executed"
+    },
+    "rtx5060_desktop.json": {
+      "experiments": [
+        "T01",
+        "F01ab",
+        "F01c",
+        "F04-stageOFF",
+        "F05-stageOFF",
+        "F05-stageON",
+        "Q02",
+        "ControlChoices",
+        "M02",
+        "BB",
+        "BA",
+        "demo_visual_square_internal"
+      ],
+      "cases": 669,
+      "status": "prepared_not_executed"
+    },
+    "rtx5060_gazebo.json": {
+      "experiments": [
+        "demo_visual_square_gazebo",
+        "D01",
+        "M03"
+      ],
+      "cases": 27,
+      "status": "prepared_not_executed"
+    },
+    "jetson_proposed.json": {
+      "experiments": [
+        "T01",
+        "F01c",
+        "F04-stageOFF",
+        "F05-stageOFF",
+        "F05-stageON",
+        "ControlChoices",
+        "M02",
+        "BB",
+        "BA"
+      ],
+      "cases": 569,
+      "status": "proposed_duration_discussion_and_target_review_pending"
+    }
+  },
+  "source_commits": [
+    "2c7e2b11bd5bab8fa3a761d17cf55c1aa9cff55e",
+    "2db284ca8e11f42f8f3248403b879652966893ed",
+    "4e5301feaea5f2d06530922ba46aa543e1995d47",
+    "4f6c8fd4be428c135fc16564c5dd56eb61ce5660",
+    "502fa29c8b0d649dcb347f9534bf29c6935fa6dd",
+    "63940f7a5c724c84c731a6a1edbc49a094f3b806",
+    "a3a96ad3deabea5c0165da69addd1c55406710a9"
+  ],
+  "source_plan_files": [
+    "campaign.json",
+    "f01c.json",
+    "resource_profiles.json",
+    "model_checks.json",
+    "control_studies.json",
+    "collision_monitor.json",
+    "bb_gtx1070.json",
+    "bb_rtx5060.json",
+    "ba_gtx1070.json",
+    "ba_rtx5060.json",
+    "demo_internal.json",
+    "demo_gazebo.json",
+    "deployment.json",
+    "simulated_faults.json",
+    "t01_jetson_proposed.json",
+    "f01c_jetson_proposed.json",
+    "resource_profiles-jetson-proposed.json",
+    "control_studies_jetson_proposed.json",
+    "collision_monitor_jetson_proposed.json",
+    "bb_jetson_proposed.json",
+    "ba_jetson_proposed.json"
+  ],
+  "source_plan_notes": {
+    "campaign.json": {
+      "note": "No GPU execution during plan generation. Jetson T01 repeat/duration decisions remain separate. D02 remains manual."
+    },
+    "f01c.json": {
+      "note": "Development-only plan; no native build or GPU measurements performed by generation. Default campaign unchanged."
+    },
+    "resource_profiles.json": {
+      "preparation": {
+        "machine": "rtx5060",
+        "native_calls": "36 fixed plus variable sustained-loop calls",
+        "queries": 8,
+        "workers": 38,
+        "sustained_arms": 6,
+        "sustained_seconds_per_arm": 120,
+        "sustained_repeats": 1,
+        "duration_approval_sha256": "aa96ce80280b1580670005ec42dacac41ff5e46ed140e59e805b41e7fb6888a2",
+        "execution_status": "preparation_only_no_execution",
+        "readiness": "Stage OFF canonical A. Stage ON unchanged original three-case task-suite launcher; reuse successful same-machine/module evidence.",
+        "jetson": "Discuss measured bottlenecks, estimated duration/storage and shorter-protocol options with Felix before execution; no budget pruning"
+      },
+      "note": "OFF resource/response/sustained groups followed by ON profiles. New cohort/order recorded; no thermal-steady claim. Use resource_profiles_monitor.py during actual queue execution for passive nvidia-smi desktop or tegrastats Jetson temperature/clock/power recording outside worker timers."
+    },
+    "model_checks.json": {
+      "note": "Includes existing orientation value/derivative checks. No solver repairs. Jetson bounded coverage/duration remains separate preparation."
+    },
+    "control_studies.json": {
+      "status": "prepared_target_validation_pending",
+      "unsupported": {
+        "C06-model-gripper": "No frozen compatible generated-native model/gripper perturbation protocol recovered; arm-only nominal holding does not qualify this question."
+      },
+      "note": "Historical sweeps and failures preserved. Fixed8s observations report rough success separately from public timeout. No full parameter optimization."
+    },
+    "collision_monitor.json": {
+      "status": "prepared_CPU_target_check_pending",
+      "jetson": "Same four cells proposed after target duration discussion; no GPU required",
+      "M03": {
+        "source": "/workspace/GATO-eval-collision",
+        "base_commit": "2db284ca8e11f42f8f3248403b879652966893ed",
+        "status": "unchanged fault harness transplanted; CPU review pending; runtime source checkpoint required",
+        "simulation_only": true,
+        "defaults": "N64/.008s/125Hz;6s figure8 prefix;injectafter2s;4s restoration;one-shot malformed horizons; existing failure/cleanup semantics",
+        "historical_results": "external robot_faults/2026-09-21 recovery pending"
+      },
+      "M04": "Saved fault response/observed braking illustration analyzer; actual state age and clearance unavailable without compatible co-temporal evidence. No safety certificate."
+    },
+    "bb_gtx1070.json": {
+      "status": "prepared_not_executed",
+      "note": "Frozen100-pair one-pass coverage; GPU use sequential. Jetson target readiness and duration/storage discussion precede execution; this plan authorizes no runs."
+    },
+    "bb_rtx5060.json": {
+      "status": "prepared_not_executed",
+      "note": "Frozen100-pair one-pass coverage; GPU use sequential. Jetson target readiness and duration/storage discussion precede execution; this plan authorizes no runs."
+    },
+    "ba_gtx1070.json": {
+      "status": "prepared_not_executed",
+      "note": "Nominal16xSQP allocation is not matched realized compute. Existing default seeds/own outputs support saved-data diagnostics; no seed-only closed-loop arm."
+    },
+    "ba_rtx5060.json": {
+      "status": "prepared_not_executed",
+      "note": "Nominal16xSQP allocation is not matched realized compute. Existing default seeds/own outputs support saved-data diagnostics; no seed-only closed-loop arm."
+    },
+    "demo_internal.json": {},
+    "demo_gazebo.json": {},
+    "deployment.json": {},
+    "simulated_faults.json": {
+      "status": "prepared_reviewed_source_target_native_canonical_live_and_simulator_setup_pending",
+      "prerequisites": {
+        "config": "Ignored experiments/collision_local.json: simulation_only true, domain1or91, canonical_live_preflight_receipt, pal_controller_log",
+        "canonical_receipt": "Existing D01 metrics.json with task/physical/handback pass and backendgazebo; sibling protocol.json records N32/.03 qd=.1/vel_lim=.1 and provenance.json source_sha256 matches relevant runtime bytes. No invented receipt conversion.",
+        "reset": "Host must perform separately logged assisted simulator restoration before each trial, as original c3po orchestration. Fresh PAL default-controller observations are required for every case.",
+        "host": "Existing PAL simulator, GATO runtime/ROS dependencies, loopback-only DDS and current PAL-side observation log. This runner does not create Docker containers or infer host mount paths.",
+        "baseline": "Original leading baseline is the family preflight, followed by the original20 remaining trials including trailing baseline.21 original ordered trials total; no extra baseline repeat.",
+        "safety": "Simulation only. Original controller/executor/publication/restoration negative behavior preserved; no ROS or cleanup repair."
+      },
+      "original_order": [
+        "baseline",
+        "trajectory_nan",
+        "trajectory_shape",
+        "trajectory_dt_zero",
+        "trajectory_expired",
+        "trajectory_future",
+        "trajectory_start_nan",
+        "torque_spike",
+        "planner_exception",
+        "planner_stall",
+        "planner_exit",
+        "feedback_drop",
+        "feedback_nan",
+        "feedback_frozen",
+        "feedback_stamp_backwards",
+        "safety_exit",
+        "controller_stall",
+        "controller_exit",
+        "publish_exception",
+        "restore_exception",
+        "baseline"
+      ],
+      "original_leading_baseline_is_preflight": true,
+      "historical": "External robot_faults/2026-09-21 records recovery pending; no historical result overwritten"
+    },
+    "t01_jetson_proposed.json": {
+      "status": "proposed_not_executed_target_duration_discussion_pending",
+      "proposal_source": "campaign.json",
+      "note": "Unchanged coverage and repeats. Discuss retained Jetson timing, estimated duration/storage and any shorter protocol with Felix before execution. F01ab is completed and excluded."
+    },
+    "f01c_jetson_proposed.json": {
+      "status": "proposed_not_executed_target_duration_discussion_pending",
+      "proposal_source": "f01c.json",
+      "note": "Unchanged coverage and repeats. Discuss retained Jetson timing, estimated duration/storage and any shorter protocol with Felix before execution. F01ab is completed and excluded."
+    },
+    "resource_profiles-jetson-proposed.json": {
+      "preparation": {
+        "machine": "jetson",
+        "native_calls": "36 fixed plus variable sustained-loop calls",
+        "queries": 8,
+        "workers": 38,
+        "sustained_arms": 6,
+        "sustained_seconds_per_arm": 120,
+        "sustained_repeats": 1,
+        "duration_approval_sha256": "aa96ce80280b1580670005ec42dacac41ff5e46ed140e59e805b41e7fb6888a2",
+        "execution_status": "preparation_only_no_execution",
+        "readiness": "Stage OFF canonical A. Stage ON unchanged original three-case task-suite launcher; reuse successful same-machine/module evidence.",
+        "jetson": "Discuss measured bottlenecks, estimated duration/storage and shorter-protocol options with Felix before execution; no budget pruning"
+      },
+      "note": "OFF resource/response/sustained groups followed by ON profiles. New cohort/order recorded; no thermal-steady claim. Use resource_profiles_monitor.py during actual queue execution for passive nvidia-smi desktop or tegrastats Jetson temperature/clock/power recording outside worker timers."
+    },
+    "control_studies_jetson_proposed.json": {
+      "status": "proposed_target_duration_discussion_pending",
+      "unsupported": {
+        "C06-model-gripper": "No frozen compatible generated-native model/gripper perturbation protocol recovered; arm-only nominal holding does not qualify this question."
+      },
+      "note": "Historical sweeps and failures preserved. Fixed8s observations report rough success separately from public timeout. No full parameter optimization."
+    },
+    "collision_monitor_jetson_proposed.json": {
+      "status": "proposed_target_duration_discussion_pending",
+      "jetson": "Same four cells proposed after target duration discussion; no GPU required",
+      "M03": {
+        "source": "/workspace/GATO-eval-collision",
+        "base_commit": "2db284ca8e11f42f8f3248403b879652966893ed",
+        "status": "unchanged fault harness transplanted; CPU review pending; runtime source checkpoint required",
+        "simulation_only": true,
+        "defaults": "N64/.008s/125Hz;6s figure8 prefix;injectafter2s;4s restoration;one-shot malformed horizons; existing failure/cleanup semantics",
+        "historical_results": "external robot_faults/2026-09-21 recovery pending"
+      },
+      "M04": "Saved fault response/observed braking illustration analyzer; actual state age and clearance unavailable without compatible co-temporal evidence. No safety certificate."
+    },
+    "bb_jetson_proposed.json": {
+      "status": "proposed_not_executed_target_duration_discussion_pending",
+      "note": "Frozen100-pair one-pass coverage; GPU use sequential. Jetson target readiness and duration/storage discussion precede execution; this plan authorizes no runs."
+    },
+    "ba_jetson_proposed.json": {
+      "status": "proposed_not_executed_target_duration_discussion_pending",
+      "proposal_source": "ba_rtx5060.json",
+      "note": "Unchanged coverage and repeats. Discuss retained Jetson timing, estimated duration/storage and any shorter protocol with Felix before execution. F01ab is completed and excluded."
+    }
+  },
+  "missing_plan_files": [],
+  "omissions": {
+    "Jetson F01ab": "Completed according to Felix; manual collection/import pending; never rerun for migration.",
+    "GTX1070 T01/F01ab/F01c/F04/F05": "Retained completed measurements; not selected again.",
+    "D02 physical robot": "Standalone scripts/manual confirmation and index; never automatic runner execution.",
+    "Force E01/E02/E03": "Runtimequalified7d317fa accepted; study plans in progress; no comparative benefit claimed from runtime qualification.",
+    "X and B02": "Pending explicit remaining definitions/review; no silent scientific substitutions.",
+    "C06 model variation": "Unsupported by current declared runtime; pending bounded choice.",
+    "Q03 target task suite": "Separate readiness helper/relevant original fixture checks; not duplicated as research data.",
+    "Historical M01/F02/F03/C02/C07/L00/X03-IIWA": "Record-only; exact result locations retained in tracker/evidence ledger.",
+    "L01 learning": "Deferred."
+  },
+  "readiness": "Preparation inventory, not a statement that all experiments or targets are execution-ready."
+}
