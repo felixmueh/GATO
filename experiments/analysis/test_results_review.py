@@ -5,6 +5,7 @@ import tempfile
 import unittest
 import numpy as np
 from results_review import outcome, task_success, compatible
+from f01ab import samples
 
 class ReviewChecks(unittest.TestCase):
     def test_known_crash_only_changes_reported_outcome(self):
@@ -19,6 +20,18 @@ class ReviewChecks(unittest.TestCase):
         self.assertTrue(task_success(dict(complete=True,outcome='reached')))
         self.assertIsNone(task_success(dict(complete=True,outcome='reached',task_success=None)))
         self.assertFalse(task_success(dict(complete=True,outcome='timeout')))
+
+    def test_saved_pcg_task_category_and_cap_counts(self):
+        with tempfile.TemporaryDirectory() as d:
+            root=Path(d);p=root/'attempt';p.mkdir()
+            (p/'protocol.json').write_text(json.dumps(dict(N=32,SQP=3,PCG=100)))
+            np.savez(p/'stats.npz',pcg=np.array([[5],[100],[0]]))
+            event=dict(event='solve_completed',raw_file='stats.npz',record=dict(episode_id='start-0-tracking-0',slot=1,category='warm',wall_solve_time_s=.01,native_solve_time_ms=8,solver_stats=dict(pcg_iters=dict(npz_key='pcg'))))
+            (p/'events.jsonl').write_text(json.dumps(event)+'\n')
+            rows,_=samples(dict(attempt='attempt'),root)
+            self.assertEqual(rows[0]['task_type'],'tracking')
+            self.assertEqual(rows[0]['pcg_calls'],3)
+            self.assertEqual(rows[0]['pcg_cap_hits'],1)
 
     def test_pairing_checks_settings_and_task_beyond_binary(self):
         with tempfile.TemporaryDirectory() as d:
