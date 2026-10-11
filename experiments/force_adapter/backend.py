@@ -63,6 +63,7 @@ class NativeOptimizer:
         self.model_path=str(model_path);self.params=dict(params);self.N=N;self.dt=dt
         self.native_records=[]
         self.measurements=[];self.memory_query=memory_query
+        self.last_stats={}
 
     def __call__(self,request):
         from bsqp.interface import BSQP
@@ -98,10 +99,12 @@ class NativeOptimizer:
                     self.native_records.append(dict(candidate_indices=request.candidate_indices,native_reply=reply))
                     return reply
             owner.solver=Capture()
+            warm=request.warm_seeds.copy()
             started=time.perf_counter()
-            plans,native_us=owner.solve(request.states,request.references,request.warm_seeds.copy())
+            plans,native_us=owner.solve(request.states,request.references,warm)
             metric['public_solve_wall_s']=time.perf_counter()-started
             metric['native_solve_us']=float(native_us)
+            self.last_stats=owner.get_stats() if hasattr(owner,'get_stats') else {}
             sample('after_solve')
             return plans.copy()
         finally:

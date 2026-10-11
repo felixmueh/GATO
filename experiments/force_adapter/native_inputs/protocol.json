@@ -1,0 +1,121 @@
+{
+  "protocol_id": "force-body-fixed-native-v1",
+  "status": "proposed_no_measurements",
+  "input_source_commit": "9f2ab6f3dfd324e397fd4d6909f70284558c8d76",
+  "input_source_bank_sha256": "50210ac0701d63bb1e63981748010d430092c404c82015b2a4e549c94ba526a3",
+  "inputs": [
+    {
+      "id": "start-0-goal-1",
+      "start_index": 0,
+      "goal_index": 0
+    },
+    {
+      "id": "start-0-goal-2",
+      "start_index": 0,
+      "goal_index": 1
+    },
+    {
+      "id": "start-0-goal-3",
+      "start_index": 0,
+      "goal_index": 2
+    },
+    {
+      "id": "start-1-goal-1",
+      "start_index": 1,
+      "goal_index": 0
+    },
+    {
+      "id": "start-1-goal-2",
+      "start_index": 1,
+      "goal_index": 1
+    },
+    {
+      "id": "start-1-goal-3",
+      "start_index": 1,
+      "goal_index": 2
+    }
+  ],
+  "params": {
+    "max_sqp_iters": 5,
+    "kkt_tol": 0.001,
+    "max_pcg_iters": 120,
+    "pcg_tol": 0.001,
+    "solve_ratio": 1.0,
+    "mu": 1.0,
+    "q_cost": 4.0,
+    "qd_cost": 0.1,
+    "u_cost": 0.0001,
+    "N_cost": 80.0,
+    "ee_orient_cost": 0.1,
+    "ee_orient_N_cost": 2.0,
+    "q_lim_cost": 0.01,
+    "vel_lim_cost": 0.1,
+    "ctrl_lim_cost": 0.05,
+    "rho": 0.01
+  },
+  "N": 32,
+  "dt_s": 0.03,
+  "sim_dt_s": 0.003,
+  "batch_size": 16,
+  "previous_time_s": 0.0,
+  "observed_time_s": 0.03,
+  "control_intervals_s": [
+    [
+      0.0,
+      0.015
+    ],
+    [
+      0.015,
+      0.03
+    ]
+  ],
+  "modes": [
+    "original",
+    "adapted"
+  ],
+  "truths": [
+    "zero",
+    "local_x_2N"
+  ],
+  "frame": "arm_right_7_joint",
+  "point": "arm_right_7_joint origin",
+  "components": "Fx,Fy,Fz,Tx,Ty,Tz",
+  "estimator": {
+    "initial_radius": 5.0,
+    "min_radius": 2.0,
+    "max_radius": 20.0,
+    "smoothing_factor": 0.5,
+    "alpha": 0.6,
+    "beta": 0.5
+  },
+  "seed_policy": "Same public constant-current-state/zero-control cold seed for all force hypotheses; matching selected seed for adapted B1",
+  "comparison": "Original B16 TO then predict/select/update; adapted predict/select/update then selected B1 TO. Correspondence of predictions/selection separate from optimizer output quality.",
+  "E01": {
+    "inputs": [
+      0
+    ],
+    "derived_from": "Four measured first-input E03 records, two methods x two truths; no separate GPU cases",
+    "timing_mode": "A"
+  },
+  "E03": {
+    "inputs": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "repeats_per_mode": 1,
+    "excluded_unrelated_warmups_per_worker": 1,
+    "timing_mode": "A",
+    "scopes": "full callback, constructor, public solve, native solve, observed CUDA free-total boundary deltas and host RSS separately"
+  },
+  "E02": {
+    "status": "task_protocol_preparation",
+    "timing_mode": "B",
+    "goals": "Reuse canonical modest goal and frozen T01 inputs; body-fixed2N disturbance; current rough/physical gates; no actual task run"
+  },
+  "model_sha256": "8e1fd973a1d1c3fbddd55039e6eb17b355ebb29f46e1bd8c774b7879c2cdc5bb",
+  "limitations": "New attached/body-fixed physical scope; Pinocchio CPU forward predictor. No reconstructed historical adapted result, no equal-quality acceleration or constant-world-force claim."
+}

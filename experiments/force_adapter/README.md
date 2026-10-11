@@ -142,3 +142,43 @@ exact per-allocation accounting or a continuous GPU peak. Jetson shares system
 memory; do not sum CUDA device availability changes and host RSS. Memory failures
 retain status/null reasons. Constructor, public-solve and native timings remain
 distinct; the complete TO callback includes a fresh owner/model allocation.
+
+## Prepared real studies (no measurements yet)
+
+`run_native.py` uses frozen `native_inputs/` for 24 E03 timing/memory cases:
+six retained start/goal inputs × original/adapted × zero/local-x2N truth.
+Each worker has one unrelated excluded warmup and one measured tick. Both paths
+receive the same frozen16 hypotheses, RNG, observed state, actual two-control
+history, reference and cold seed. E01 correspondence derives from the four
+first-input measured E03 records; it schedules no duplicate calls.
+
+`run_task.py` uses byte-identical accepted502 V01/T01 inputs in `task_inputs/`.
+E02 has six unchanged24s figure-eight tasks: no estimator/original/adapted ×
+zero/local-x2N. Each method/truth has its canonical modeB rough-reaching
+preflight. No estimator uses zero-wrench B1 on every tick. Both estimator
+methods bootstrap with zero prior lane0 B1, with no truth access or estimator
+update before the first observed control interval. Hidden truth only enters
+the body-fixed Pinocchio plant. Failed B preflight retains evidence and holds
+its dependent task; a follow-up diagnostic is discussed separately.
+
+All tasks use the unchanged accepted `bsqp.offline_mpc.run_mode_b` engine.
+Full force-algorithm wall time, including prediction/selection/update, fresh
+native owner/model allocation and memory queries, advances the previous plan.
+Recording occurs outside that timer. Native solve and constructor clocks are
+also saved separately. Do not describe full algorithm time as pure TO speedup.
+Observed device-availability boundary differences and host RSS are measured
+separately; missing telemetry stays null with its reason. Full histories,
+native replies, hypotheses, selections and estimator errors remain in raw data.
+
+The simple runner's `experiments/force_plan.py` prepares an explicit plan for
+each named GPU from this source pin. Jetson execution needs the duration/storage
+discussion; none of these studies have been executed. Saved-data analysis is
+`experiments/analysis/force.py` in the simple runner. It retains failed attempts,
+exports algorithm/native time and reciprocal, memory, task/physical outcomes,
+and descriptive correspondence, without another tight precision gate.
+
+CPU study wiring checks:
+
+```bash
+python -m pytest -q tests/python/test_force_studies.py
+```
