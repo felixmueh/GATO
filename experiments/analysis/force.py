@@ -29,7 +29,7 @@ def load(index_path):
         def read(name):
             target=raw/(name+'.json');return json.loads(target.read_text()) if target.exists() else {}
         protocol,provenance,metrics=read('protocol'),read('provenance'),read('metrics')
-        case=entry.get('case',{})
+        case=read('receipt').get('case',entry.get('case',{}))
         case=case if isinstance(case,dict) else {}
         p=metrics.get('parameters',protocol.get('case',case.get('parameters',{})))
         identity=dict(attempt=str(raw),machine=provenance.get('machine') or entry.get('machine') or index_metadata.get('machine'),
@@ -48,7 +48,7 @@ def load(index_path):
             tasks.append(dict(identity,task_success=metrics.get('task_success'),physical_pass=metrics.get('physical_pass'),
                 tracking_RMS_error_m=metrics.get('tracking_RMS_error_m'),tracking_max_error_m=metrics.get('tracking_max_error_m'),
                 update_above_nominal_share=metrics.get('above_nominal_share'),force_estimation_errors_SI=metrics.get('force_estimation_errors_SI'),
-                execution_error=metrics.get('execution_error')))
+                execution_error=metrics.get('execution_error',entry.get('error'))))
         if not (raw/'events.jsonl').exists():continue
         for event in iter_events(raw):
             r=event['record']

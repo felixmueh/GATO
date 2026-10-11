@@ -34,10 +34,16 @@ def test_saved_pairs_failures_and_distinct_cohorts(tmp_path):
     from collect import collect
     for entry in attempts:
         write_json(tmp_path/entry['attempt']/'receipt.json',dict(experiment='E03',machine='rtx5060',case=dict(id=entry['attempt']),status=entry['status']))
+    blocked=tmp_path/'attempt-004';blocked.mkdir()
+    write_json(blocked/'receipt.json',dict(experiment='E02-original-truth1',machine='rtx5060',case=dict(id='original-truth1',
+        parameters=dict(mode='original',truth_index=1)),status='blocked',error='retained canonical failure'))
     collected=collect(tmp_path)
     list_result=load(index)
-    assert isinstance(collected,list) and len(list_result['attempts'])==4
+    assert isinstance(collected,list) and len(list_result['attempts'])==5
     assert len(list_result['pairs'])==1 and list_result['ticks'][-1]['status']=='failed'
+    assert list_result['tasks'][0]['mode']=='original' and list_result['tasks'][0]['truth_index']==1
+    assert list_result['tasks'][0]['execution_error']=='retained canonical failure'
+    assert list_result['tasks'][0]['task_success'] is None
     # Retain the pinned-dict integrity rejection independently of list support.
     write_json(index,dict(attempts=attempts))
 
