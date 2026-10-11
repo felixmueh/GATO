@@ -1,0 +1,281 @@
+{
+  "version": 1,
+  "experiments": [
+    {
+      "id": "F01c",
+      "research_question": "RQ-timing",
+      "source_commit": "502fa29c8b0d649dcb347f9534bf29c6935fa6dd",
+      "protocol": "simple-f01c-v1",
+      "timing_mode": "A",
+      "backend": "internal",
+      "machines": [
+        "rtx5060"
+      ],
+      "original_collector_source_commit": "9f2ab6f3dfd324e397fd4d6909f70284558c8d76",
+      "description": "Same 16 candidates across B1/2/4/8/16; retained1070 complete, Jetson execution separate.",
+      "build": {
+        "inputs": {
+          "native/CMakeLists.txt": "07c285afa3d2055c2c8f64c4645bdad01bdeb3391e77f2082aff3c70443df1e2"
+        },
+        "commands": [
+          [
+            "cmake",
+            "-S",
+            "{runner}/native",
+            "-B",
+            "{build}",
+            "-DGATO_SOURCE_DIR={source}",
+            "-DKNOTS=16;32;64;128",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DGATO_EXPERIMENT_TELEMETRY=ON",
+            "-DCMAKE_CUDA_ARCHITECTURES={cuda_arch}-real",
+            "-DPython3_EXECUTABLE={python}"
+          ],
+          [
+            "cmake",
+            "--build",
+            "{build}",
+            "--parallel",
+            "2"
+          ]
+        ],
+        "artifacts": [
+          "modules/bsqpN16_tiago_right*.so",
+          "modules/bsqpN32_tiago_right*.so",
+          "modules/bsqpN64_tiago_right*.so",
+          "modules/bsqpN128_tiago_right*.so"
+        ]
+      },
+      "inputs": {
+        "experiments/inputs/f01c/bank.json": "50210ac0701d63bb1e63981748010d430092c404c82015b2a4e549c94ba526a3",
+        "experiments/inputs/f01c/arrays.npz": "eefdc3644f4f884e60353349312999eeca446e5e703a794b9f9e3058791e4d40",
+        "experiments/inputs/f01c/preparation.json": "a79f1450e3a9c2a61e349de439cff5df4abf46285c7e3e6f014566da66f7fada",
+        "experiments/inputs/f01c/seed_diagnostics.json": "2d29f523f2c943123fd759f0889ffd081d97d8d7e7de4171d00da067a1aabf9d",
+        "experiments/inputs/f01c/SHA256SUMS.json": "f8a8217982f3fa2b1b4fd2629e8cb45949d372f6d43c6137bbdaa7e52acc7007",
+        "experiments/inputs/t01/v01.json": "20920040853786cf3d96f13ba240f82918a9f0f5020270fbe67715666477cc81",
+        "experiments/inputs/t01/t01.json": "aec47cfa3819de5adbb8633b637f5bd9bcd327cb3afc5043a856b323af5aac41"
+      },
+      "preflight": {
+        "group": "F01c-A",
+        "command": [
+          "{python}",
+          "{runner}/adapters/task.py",
+          "--source",
+          "{source}",
+          "--build",
+          "{build}",
+          "--output",
+          "{output}",
+          "--inputs",
+          "{inputs}/experiments/inputs/t01",
+          "--preflight",
+          "--timing-mode",
+          "A"
+        ]
+      },
+      "command": [
+        "{python}",
+        "{runner}/adapters/f01c.py",
+        "--source",
+        "{source}",
+        "--build",
+        "{build}",
+        "--case",
+        "{case}",
+        "--output",
+        "{output}",
+        "--inputs",
+        "{inputs}/experiments/inputs/f01c"
+      ],
+      "cases": [
+        {
+          "id": "N32-B1-SQP1-PCG100",
+          "parameters": {
+            "N": 32,
+            "B": 1,
+            "SQP": 1,
+            "PCG": 100,
+            "diagnostics": false,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-B2-SQP1-PCG100",
+          "parameters": {
+            "N": 32,
+            "B": 2,
+            "SQP": 1,
+            "PCG": 100,
+            "diagnostics": false,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-B4-SQP1-PCG100",
+          "parameters": {
+            "N": 32,
+            "B": 4,
+            "SQP": 1,
+            "PCG": 100,
+            "diagnostics": false,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-B8-SQP1-PCG100",
+          "parameters": {
+            "N": 32,
+            "B": 8,
+            "SQP": 1,
+            "PCG": 100,
+            "diagnostics": false,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-B16-SQP1-PCG100",
+          "parameters": {
+            "N": 32,
+            "B": 16,
+            "SQP": 1,
+            "PCG": 100,
+            "diagnostics": false,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-B1-SQP5-PCG100",
+          "parameters": {
+            "N": 32,
+            "B": 1,
+            "SQP": 5,
+            "PCG": 100,
+            "diagnostics": false,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-B2-SQP5-PCG100",
+          "parameters": {
+            "N": 32,
+            "B": 2,
+            "SQP": 5,
+            "PCG": 100,
+            "diagnostics": false,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-B4-SQP5-PCG100",
+          "parameters": {
+            "N": 32,
+            "B": 4,
+            "SQP": 5,
+            "PCG": 100,
+            "diagnostics": false,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-B8-SQP5-PCG100",
+          "parameters": {
+            "N": 32,
+            "B": 8,
+            "SQP": 5,
+            "PCG": 100,
+            "diagnostics": false,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-B16-SQP5-PCG100",
+          "parameters": {
+            "N": 32,
+            "B": 16,
+            "SQP": 5,
+            "PCG": 100,
+            "diagnostics": true,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-B1-SQP10-PCG800",
+          "parameters": {
+            "N": 32,
+            "B": 1,
+            "SQP": 10,
+            "PCG": 800,
+            "diagnostics": false,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-B2-SQP10-PCG800",
+          "parameters": {
+            "N": 32,
+            "B": 2,
+            "SQP": 10,
+            "PCG": 800,
+            "diagnostics": false,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-B4-SQP10-PCG800",
+          "parameters": {
+            "N": 32,
+            "B": 4,
+            "SQP": 10,
+            "PCG": 800,
+            "diagnostics": false,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-B8-SQP10-PCG800",
+          "parameters": {
+            "N": 32,
+            "B": 8,
+            "SQP": 10,
+            "PCG": 800,
+            "diagnostics": false,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-B16-SQP10-PCG800",
+          "parameters": {
+            "N": 32,
+            "B": 16,
+            "SQP": 10,
+            "PCG": 800,
+            "diagnostics": false,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        }
+      ]
+    }
+  ],
+  "retained_results": {
+    "F01c": {
+      "gtx1070": "15 completed reviewed cells; preserve/import historical results",
+      "jetson": "Not selected here; retained duration estimate/protocol and target preparation remain separate"
+    }
+  },
+  "note": "Development-only plan; no native build or GPU measurements performed by generation. Default campaign unchanged."
+}

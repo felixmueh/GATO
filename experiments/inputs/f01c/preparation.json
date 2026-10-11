@@ -1,0 +1,6 @@
+{
+  "cpu_wall_s": 0.2788273810001556,
+  "native_calls": 0,
+  "GPU_calls": 0,
+  "status": "CPU bank only, uncheckpointed generator hash pins actual bytes; collector commit assigned at review checkpoint"
+}

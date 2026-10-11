@@ -182,6 +182,52 @@ preparing a continuation plan, retain the earlier cohort links, and keep the new
 recording source/protocol identifiable. The runner handles independent failures;
 there is no second campaign manager.
 
+## F01c same-candidate timing
+
+The separate `f01c.json` plan selects only the 15 pending RTX5060/internal cells:
+N32, B1/2/4/8/16, budgets SQP/PCG 1/100, 5/100 and 10/800. Each cell retains the
+same six frozen inputs, 16 candidate pool, three repeats, disposable public BSQP
+owner and explicit dual/rho/zero-force reset per call. B1 supplies the serial
+16-candidate baseline. The middle-budget B16 cell includes six extra duplicate
+and permutation checks. All 1695 calls, including 15 excluded unrelated warmups,
+remain identifiable. Canonical mode A preflight runs before this family; the
+runner continues independent cells if one worker fails.
+
+```sh
+python3 experiments/f01c_plan.py
+python3 experiments/run.py --plan experiments/f01c.json --machine rtx5060 --dry-run
+python3 experiments/run.py --plan experiments/f01c.json --machine rtx5060
+```
+
+Generation preserves `campaign.json` and copies the existing F01c frozen bank
+without regenerating seeds or CPU screening. Native source remains `502fa29`;
+the build configuration matches the existing F01ab/T01 campaign for shared
+modules. Scientific collector source is `9f2ab6f`: `adapters/f01c_collect.py`
+retains its exact `jobs` and `collect` functions with the episode helper injected,
+and `adapters/f01c_diagnostics.py` is byte-identical. Original source hashes and
+the actual new adapter hashes are recorded separately. Protocol `simple-f01c-v1`
+identifies the new recording/scheduling adapter; the old release/family-hold
+framework is replaced by the current runner's preflight and independent cases.
+
+GTX1070 F01c is completed and reviewed: import its historical results instead
+of rerunning them. Jetson is excluded from this plan; its target preparation and
+duration/storage discussion precede execution. Jetson F01ab remains completed
+and awaiting Felix's manual collection.
+
+Saved-data analysis accepts old per-event and new chunked raw recordings:
+
+```sh
+python3 experiments/analysis/f01c.py --index .experiment-results/index.json \
+  --output .experiment-results/analysis/f01c
+```
+
+Solve time is primary and its reciprocal is the secondary figure. Compare total
+time for the same 16 candidates across batch sizes; report setup/recording and
+whole-collection time separately. Existing GTX1070 outputs differ materially
+between scalar and batch solves, so speedup alone does not establish equal
+quality, task success or physical feasibility. Preserve failed/missing calls,
+actual work, duplicate/permutation differences and repeat dispersion.
+
 ## Relevant checks
 
 ```sh
