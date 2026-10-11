@@ -152,33 +152,37 @@ def numeric_payload(value,prefix='record'):
     return result
 
 
-def solve_recorded(controller,state,reference,candidates,out,step,cfg,timings=None):
+def solve_recorded(controller,state,reference,candidates,out,step,cfg,timings=None,recorder=None):
     path=out/f'step_{step:04d}'
+    def save(kind,**payload):
+        if recorder is None:np.savez_compressed(str(path)+'_'+kind+'.npz',**payload)
+        else:recorder('solve_'+kind,dict(step=step,**payload))
     raw_started=time.perf_counter() if timings is not None else None
-    np.savez_compressed(str(path)+'_input.npz',actual_state=state,reference=reference,candidates=candidates,
+    save('input',actual_state=state,reference=reference,candidates=candidates,
                         caps=np.array([controller.N,len(candidates),cfg['max_sqp_iters'],cfg['max_pcg_iters']]))
     if timings is not None:timings['raw_recording_wall_s'] += time.perf_counter()-raw_started
-    started=time.perf_counter();wall=None
+    started=time.perf_counter();wall=None;returned_saved=False
     try:
         optimized,gpu_us=controller.solver.solve(state,reference,candidates)
         wall=time.perf_counter()-started
         reply=controller.solver.solver.reply
         raw_started=time.perf_counter() if timings is not None else None
-        np.savez_compressed(str(path)+'_returned.npz',optimized=optimized,wall_seconds=wall,gpu_microseconds=gpu_us,
+        save('returned',optimized=optimized,wall_seconds=wall,gpu_microseconds=gpu_us,
                             **numeric_payload(reply,'native'))
+        returned_saved=True
         if timings is not None:timings['raw_recording_wall_s'] += time.perf_counter()-raw_started
         stats_started=time.perf_counter() if timings is not None else None
         stats=controller.solver.get_stats()
         if timings is not None:timings['diagnostics_wall_s'] += time.perf_counter()-stats_started
         raw_started=time.perf_counter() if timings is not None else None
-        np.savez_compressed(str(path)+'_stats.npz',**numeric_payload(stats,'stats'))
+        save('stats',**numeric_payload(stats,'stats'))
         if timings is not None:timings['raw_recording_wall_s'] += time.perf_counter()-raw_started
         return optimized,gpu_us,wall,stats
     except BaseException as error:
         if wall is None:wall=time.perf_counter()-started
         reply=controller.solver.solver.reply
-        if reply is not None and not Path(str(path)+'_returned.npz').exists():
-            np.savez_compressed(str(path)+'_returned.npz',wall_seconds=wall,**numeric_payload(reply,'native'))
+        if reply is not None and not returned_saved:
+            save('returned',wall_seconds=wall,**numeric_payload(reply,'native'))
         write_json(Path(str(path)+'_failure.json'),dict(error_type=type(error).__name__,error=str(error),wall_seconds=wall,
                      native_reply_available=reply is not None))
         raise

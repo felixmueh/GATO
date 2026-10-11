@@ -162,7 +162,7 @@ def inputs(args,pair_id):
     return model,data,x,source_goal_q,goal,ref,si,gi
 
 
-def run_episode(args,pair_id,batch,dt):
+def run_episode(args,pair_id,batch,dt,*,recorder=None,final_checkpoint_only=False):
     selected_protocol_path=protocol_path(args)
     protocol=load_protocol(selected_protocol_path)
     mode_b=protocol['timing_mode']=='B'
@@ -229,10 +229,16 @@ def run_episode(args,pair_id,batch,dt):
 
     def persist(function,*values,**keywords):
         started=time.perf_counter()
-        try:return function(*values,**keywords)
+        try:
+            if recorder is not None and function in (np.savez_compressed,write_json) and Path(values[0]).name.startswith('step_'):
+                payload=keywords if function is np.savez_compressed else values[1]
+                return recorder('step_record',dict(path=Path(values[0]).name,payload=payload))
+            return function(*values,**keywords)
         finally:timings['raw_recording_wall_s']+=time.perf_counter()-started
 
     def checkpoint():
+        complete=failure is not None or reached is not None or times[-1]>=args.seconds-1e-10
+        if final_checkpoint_only and not complete:return dict(complete=False)
         extras=dict(plan_solve_indices=executed_plan_ids,active_control_ages_s=executed_plan_ages) if mode_b else {}
         writer=persist if mode_b else lambda f,*a,**kw:f(*a,**kw)
         writer(np.savez_compressed,out/'executed.npz',states=np.asarray(states),controls=np.asarray(controls).reshape(-1,7),times=times,**extras)
@@ -274,7 +280,8 @@ def run_episode(args,pair_id,batch,dt):
                 previous_optimizer_start=0.; step=0
                 with (out/'execution.jsonl').open('w',buffering=1) as execution:
                     def emit(event,record):
-                        persist(execution.write,json.dumps(safe(dict(event=event,**record)),allow_nan=False)+'\n')
+                        if recorder is None:persist(execution.write,json.dumps(safe(dict(event=event,**record)),allow_nan=False)+'\n')
+                        else:persist(recorder,event,record)
 
                     def completed_step(next_x,u,h,end_s,plan_index,age):
                         nonlocal x
@@ -297,7 +304,7 @@ def run_episode(args,pair_id,batch,dt):
                         controller.solver.reset_rho()
                         candidates=warm.copy()
                         optimized,gpu_us,wall,stats=solve_recorded(controller,np.repeat(feedback_state[None],batch,axis=0),
-                            reference,warm,out,step,cfg,timings=timings)
+                            reference,warm,out,step,cfg,timings=timings,recorder=recorder)
                         row.update(wall_seconds=wall,gpu_microseconds=gpu_us,
                             solve_arrival_time_s=0. if step==0 else feedback+wall,stats=safe(stats))
                         # Save completed call and its clocks before assessment/replay can fail.
@@ -352,7 +359,8 @@ def run_episode(args,pair_id,batch,dt):
                                 row.update(activation_time_s=activation_s,activation_status='activated')
                         row['final']=metrics(model,data,x,goal)
                         persist(write_json,out/f'step_{step:04d}_clock.json',dict(row,status='completed'))
-                        persist(log.write,json.dumps(safe(row),allow_nan=False)+'\n')
+                        if recorder is None:persist(log.write,json.dumps(safe(row),allow_nan=False)+'\n')
+                        else:persist(recorder,'feedback_completed',row)
                         summary=checkpoint()
                         if summary['complete']:break
                         generation_started=time.perf_counter()
