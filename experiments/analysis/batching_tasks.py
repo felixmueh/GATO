@@ -9,6 +9,7 @@ sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 from collect import records
 from analysis.f01ab import csv_write,read
 from recording import write_json,sha
+from analysis.results_review import outcome
 
 
 def analyze(raw,output):
@@ -32,6 +33,7 @@ def analyze(raw,output):
             accepted_sqp_steps_selected=m.get('accepted_sqp_steps_selected'),solve_wall_seconds=m.get('solve_wall_seconds'),
             elapsed_wall_seconds=m.get('elapsed_wall_seconds'),above_nominal_share=m.get('above_nominal_share'),
             max_joint_bound_excess_rad=bounds.get('max_joint_bound_excess_rad'),max_velocity_ratio=bounds.get('max_velocity_ratio'),max_effort_ratio=bounds.get('max_effort_ratio'))
+        row.update(outcome(m))
         rows.append(row)
     csv_write(output/'attempts.csv',rows)
     groups=defaultdict(list)
@@ -42,8 +44,8 @@ def analyze(raw,output):
     for selected in groups.values():
         first=selected[0];counts.append(dict({k:first[k] for k in ('study','machine','source_commit','protocol','timing_mode','execution_backend','cohort','module_sha256','arm','B')},
             attempts=len(selected),receipt_statuses=dict(Counter(r['status'] for r in selected)),
-            task_pass=sum(r['task_success'] is True for r in selected),task_fail=sum(r['task_success'] is False for r in selected),task_unavailable=sum(r['task_success'] is None for r in selected),
-            physical_pass=sum(r['physical_pass'] is True for r in selected),physical_fail=sum(r['physical_pass'] is False for r in selected),physical_unavailable=sum(r['physical_pass'] is None for r in selected)))
+            task_pass=sum(r['reported_task_success'] is True for r in selected),task_fail=sum(r['reported_task_success'] is False for r in selected),task_unavailable=sum(r['reported_task_success'] is None for r in selected),
+            physical_pass=sum(r['reported_physical_pass'] is True for r in selected),physical_fail=sum(r['reported_physical_pass'] is False for r in selected),physical_unavailable=sum(r['reported_physical_pass'] is None for r in selected)))
     csv_write(output/'attempt_counts.csv',counts)
     write_json(output/'summary.json',dict(raw=str(raw),attempts=rows,counts=counts,analysis_sha256=sha(__file__),
         scope='Terminal saved BA/BB attempts only. Every retry remains a distinct row; counts are attempts, not independent task success rates. Current continuation does not replace historical23completed+1failed BB attempts or retained BA baseline. Source/protocol/mode/module/arm cohorts separated. No solver calls or tighter task/physical gates.'))

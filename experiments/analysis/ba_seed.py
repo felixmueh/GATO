@@ -39,7 +39,6 @@ def diagnostic(model,data,pin,rk4,plan,state,xyz,rotation):
         dense.append(np.r_[q,v])
         if not np.isfinite(dense[-1]).all():break
     result['nominal_prefix_physical']=bounds(model,np.asarray(dense),controls[:1])
-    result['modeled_endpoint_in_rough_region']=bool(result['position_error_m']<.05 and result['tool_axis_error_deg']<30 and result['speed_l1']<1)
     return result
 
 
@@ -63,7 +62,7 @@ def analyze(raw,source,output,limit=None):
     fields=['path','cohort_id','protocol_sha256','binary_sha256','pair_id','batch','step','lane','winner','error',
         'initial_merit','final_merit','merit_decrease','merit_available','accepted_steps','own_output_change_linf']
     diagnostics=['finite','position_error_m','tool_axis_error_deg','orientation_error_deg','speed_l1',
-        'predicted_knots_physical','nominal_prefix_physical','modeled_endpoint_in_rough_region']
+        'predicted_knots_physical','nominal_prefix_physical']
     fields += [prefix+'_'+key for prefix in ('seed','output') for key in diagnostics]
     files=rows=errors=0
     with (output/'seed_to_output.csv').open('w') as stream:

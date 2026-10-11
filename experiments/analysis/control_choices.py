@@ -32,7 +32,7 @@ def analyze(raw, output):
                 timing_mode=metrics.get('timing_mode'), backend=metrics.get('execution_backend'))
             for key in ('outcome', 'task_success', 'physical_pass', 'execution_error',
                         'observation_completed', 'first_rough_success_s', 'final_position_error_m',
-                        'final_tool_axis_error_deg', 'final_speed_L1_rad_s',
+                        'final_tool_axis_error_deg', 'final_full_SO3_error_deg', 'final_speed_L1_rad_s',
                         'tracking_RMS_m', 'tracking_maximum_m'):
                 row[key] = metrics.get(key)
             rows.append(row)

@@ -82,6 +82,8 @@ def samples(entry, root):
                     key = (record.get('episode_id'), record.get('slot'))
                     if key not in grouped:
                         grouped[key] = dict(base, episode_id=key[0], slot=key[1], category=record.get('category'),
+                            task_type=('tracking' if 'tracking' in str(key[0]) else 'reaching' if 'goal' in str(key[0]) else 'unclassified'),
+                            pcg_calls=None, pcg_cap_hits=None,
                             excluded=record.get('excluded', False) or record.get('category') == 'process_cuda_warmup',
                             call_status='started_only', error=None,
                             **{field: None for field in SCOPES},
@@ -94,6 +96,15 @@ def samples(entry, root):
                         row['call_status'] = {'solve_completed': 'completed', 'solve_returned': 'returned',
                                               'solve_started': 'started_only'}[stage]
                     row['error'] = record.get('error', record.get('telemetry_error', row['error']))
+                    stats = record.get('solver_stats', {})
+                    pcg = stats.get('pcg_iters')
+                    if pcg is not None:
+                        if isinstance(pcg, dict) and 'npz_key' in pcg:
+                            with np.load(payload / event['raw_file'], allow_pickle=False) as saved:
+                                pcg = saved[pcg['npz_key']]
+                        pcg = np.asarray(pcg)
+                        row['pcg_calls'] = int(pcg.size)
+                        row['pcg_cap_hits'] = int(np.count_nonzero(pcg >= base['PCG'])) if base['PCG'] is not None else None
                     for scope, (field, multiplier) in SCOPES.items():
                         value, status = timing(record.get(field), event.get('raw_file', ''), multiplier)
                         if status != 'missing':
@@ -154,10 +165,10 @@ def plot(rows, summaries, output):
             axis = axes[0, column]
             all_values = [r[scope] for r in selected if r[scope + '_status'] == 'finite']
             edges = np.linspace(0., max(all_values) * 1.05 if all_values else 1., 21)
-            for category in dict.fromkeys(r['category'] for r in selected):
-                category_rows = [r for r in selected if r['category'] == category]
+            for category, task in dict.fromkeys((r['category'], r.get('task_type', 'unclassified')) for r in selected):
+                category_rows = [r for r in selected if r['category'] == category and r.get('task_type', 'unclassified') == task]
                 values = [r[scope] for r in category_rows if r[scope + '_status'] == 'finite']
-                axis.hist(values, bins=edges, histtype='step', label=f'{category}: {len(values)}/{len(category_rows)} usable')
+                axis.hist(values, bins=edges, histtype='step', label=f'{task} / {category}: {len(values)}/{len(category_rows)} usable')
             unavailable = sum(r[scope + '_status'] != 'finite' for r in selected)
             failed = sum(r['call_status'] == 'failed' for r in selected)
             axis.set(title=f'{scope}: {failed} failed calls; {unavailable} unavailable timings',
@@ -200,6 +211,20 @@ def analyze(index_path, output, plots=True):
     summaries = summarize(rows)
     csv_write(output / 'all_samples.csv', rows)
     csv_write(output / 'cell_summaries.csv', summaries)
+    cap_groups = {}
+    for row in rows:
+        if row.get('excluded'):
+            continue
+        cap_groups.setdefault((row['attempt'], row.get('task_type', 'unclassified')), []).append(row)
+    cap_rows = []
+    for (_, task), selected in cap_groups.items():
+        base = {k: selected[0][k] for k in ('attempt', 'machine', 'N', 'SQP', 'PCG', 'source_commit', 'cohort', 'protocol_identity')}
+        usable = [r for r in selected if r.get('pcg_calls') is not None and r.get('pcg_cap_hits') is not None]
+        calls = sum(r['pcg_calls'] for r in usable)
+        hits = sum(r['pcg_cap_hits'] for r in usable)
+        cap_rows.append(dict(base, task_type=task, pcg_calls=calls, pcg_cap_hits=hits,
+            pcg_cap_share=hits / calls if calls else None, telemetry_unavailable=len(selected)-len(usable)))
+    csv_write(output / 'pcg_cap_shares.csv', cap_rows)
     (output / 'analysis_errors.json').write_text(json.dumps(errors, indent=2) + '\n')
     if plots and rows:
         plot(rows, summaries, output)
