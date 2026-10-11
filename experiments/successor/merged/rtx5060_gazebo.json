@@ -466,7 +466,7 @@
   },
   "retained_results": [],
   "omissions": {
-    "Force": "Held after original0N canonical physical failure; awaiting discussion of bounded setup-only review",
+    "Force": "Held after original0N canonical physical failure; no smoke/screen or further runs authorized",
     "D02 physical": "Standalone/manual; faster speeds withheld pending simulation review",
     "Solver-independent": "F04/Q02/X02/M02 not rerun solely for stopping change; pending target checks remain separate",
     "Jetson BA": "No full task sweep; F01c supplies speedup study",

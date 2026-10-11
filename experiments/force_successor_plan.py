@@ -66,25 +66,29 @@ def prepare_stage(source,stage,smoke=None,resume_after_approved_setup=False):
     plan=dict(version=1,experiments=[e],stage=stage,status='prepared_reviewed_source_target_checks_pending',
         original_smoke=evidence,screen_criterion=dict(RMS_degradation_m=.010,forces_N=[5,10,20],selection='smallest qualifying force within sampled effort and physical limits; no expansion'),
         note='One original0N tracking smoke first after canonical; crash/physical failure holds force study. Historical tracking task gate remains separately reported. No automatic screen or study continuation.')
-    if previous.get('held'):plan['retained_hold']=previous
+    retained=previous if previous.get('held') else previous.get('retained_hold')
+    if retained:plan['retained_hold']=retained
     path=ROOT/'experiments/successor'/f'force_{stage}.json';write(path,plan)
     inventory=ROOT/'experiments/successor/inventory.json';d=json.loads(inventory.read_text())
     d.setdefault('force_stage_plans',{})[stage]='successor/'+path.name;write(inventory,d)
     state=dict(version=1,experiments=[],source_commit=source,
         selected_force_N=None,status='Actual smoke/screen stage plan prepared; final F* and bank pending',stage_plans=d['force_stage_plans'],
         evidence_note='Bounded qualification/smoke/screen outcomes are retained separately; stage preparation launches no measurement.')
-    if previous.get('held'):state['retained_hold']=previous
+    if retained:state['retained_hold']=retained
     write(ROOT/'experiments/successor/force_stages.json',state)
+    d['force_stage_status']=state['status'];d['force_readiness']=state;write(inventory,d)
     return plan
 
 def record_hold(source,canonical):
+    stages=ROOT/'experiments/successor/force_stages.json'
+    previous=json.loads(stages.read_text()) if stages.exists() else {}
     canonical=Path(canonical).resolve();metrics=json.loads((canonical/'metrics.json').read_text())
     provenance=json.loads((canonical/'provenance.json').read_text())
     if provenance['source_commit']!=source:raise ValueError('Hold evidence source differs')
     if metrics.get('task_success') is True and metrics.get('physical_pass') is True and not metrics.get('execution_error'):
         raise ValueError('Canonical evidence does not contain a hold condition')
     status=dict(version=1,experiments=[],source_commit=source,selected_force_N=None,held=True,
-        status='Held after original0N canonical physical failure; awaiting discussion of bounded setup-only review',
+        status='Held after original0N canonical physical failure; no smoke/screen or further runs authorized',
         canonical_evidence=dict(path=str(canonical),metrics_sha256=sha(canonical/'metrics.json'),
             provenance_sha256=sha(canonical/'provenance.json'),module_sha256=provenance['module_sha256'],
             task_success=metrics.get('task_success'),physical_pass=metrics.get('physical_pass'),
@@ -92,6 +96,8 @@ def record_hold(source,canonical):
         pending=dict(original0N_tracking_smoke=True,bounded_disturbance_screen=True,selected_Fstar=True,
             E02_tasks_per_machine=12,E03_bank_inputs=12,E03_method_cases_per_machine=24,E01='Derived from future GPU bank'),
         note='No smoke/screen/final force campaign was run. No correction, tuning, extra GPU call or solver investigation authorized by this hold record.')
+    if previous.get('retained_hold'):status['retained_hold']=previous['retained_hold']
+    elif previous.get('held') and previous.get('canonical_evidence',{}).get('path')!=str(canonical):status['retained_hold']=previous
     write(ROOT/'experiments/successor/force_stages.json',status)
     smoke=ROOT/'experiments/successor/force_smoke.json'
     if smoke.exists():
@@ -142,9 +148,13 @@ def prepare_final(source,selection,bank):
     d['plan_files']=[f for f in d['plan_files'] if not f.startswith('successor/force_')]+files
     d['force']=dict(source_commit=source,selected_force_N=force,selection_sha256=sha(selection),status='Prepared revised full cohorts; target preflights pending')
     d['status']='All explicit cohorts prepared; no measurements launched by generation';write(inventory,d)
-    write(ROOT/'experiments/successor/force_stages.json',dict(version=1,experiments=[],status='smoke_screen_selected_final_plans_prepared',
+    state=dict(version=1,experiments=[],status='smoke_screen_selected_final_plans_prepared',
         source_commit=source,selected_force_N=force,selection_sha256=sha(selection),final_plan_files=files,
-        note='Original smoke and screen remain separate evidence; old force plans and raw outcomes are historical.'))
+        note='Original smoke and screen remain separate evidence; old force plans and raw outcomes are historical.')
+    previous=json.loads(stages.read_text()) if stages.exists() else {}
+    if previous.get('retained_hold'):state['retained_hold']=previous['retained_hold']
+    write(stages,state)
+    d['force_stage_status']=state['status'];d['force_readiness']=state;write(inventory,d)
     return files
 
 if __name__=='__main__':

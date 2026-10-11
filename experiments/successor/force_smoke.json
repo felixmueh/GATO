@@ -7,7 +7,7 @@
       "protocol": "force-persistent-grid-v2",
       "cohort_id": "force-grid-zero-pcg-v2",
       "stopping_policy": "zero_pcg_or_finite_kkt",
-      "source_commit": "16cc57f706ecb9fb5731297a83bc47f30632ca39",
+      "source_commit": "bbbb047c9827beedff15b40d42aacc6389fa06ba",
       "machines": [
         "gtx1070"
       ],
@@ -96,17 +96,17 @@
         "scope": "Undisturbed0N rough-reaching readiness, shared across0/F*; disturbance physical compliance measured in task runs"
       },
       "enabled": false,
-      "held_reason": "Held after original0N canonical physical failure; awaiting discussion of bounded setup-only review",
+      "held_reason": "Held after original0N canonical physical failure; no smoke/screen or further runs authorized",
       "hold_evidence": {
-        "path": "/workspace/GATO/_expr_results/force-persistent-v2-20261011T194420Z/canonical-original0",
-        "metrics_sha256": "0702dafbae6ef7c27f8d684bf23b7c014659ee7fd4fd02025ef3aed173792322",
-        "provenance_sha256": "fc2090cdae59baeced46878617aa19cb3aaf811e0a72379252ef9c4cdb203b66",
+        "path": "/workspace/GATO/_expr_results/force-rho-policy-20261011T201734Z/canonical-original0",
+        "metrics_sha256": "d6bb3fd97923298f408a1508040e9950c38682eeed7cb03fbd4d14b1c79aeeff",
+        "provenance_sha256": "8fca76488599aaebf567b80d4054fa587377397460e950090c5a9a50975d3252",
         "module_sha256": "a93273dc23b8e9d1c7c46d0c898599b78544948cb6e1ef8f36f8faab4ee7a526",
         "task_success": true,
         "physical_pass": false,
         "physical_limit_excess": {
           "q_rad": 0.0,
-          "v_rad_s": 0.1271132353761657,
+          "v_rad_s": 0.46536199928323896,
           "u_Nm": 0.0
         },
         "execution_error": null
@@ -114,7 +114,7 @@
     }
   ],
   "stage": "smoke",
-  "status": "Held after original0N canonical physical failure; awaiting discussion of bounded setup-only review",
+  "status": "Held after original0N canonical physical failure; no smoke/screen or further runs authorized",
   "original_smoke": null,
   "screen_criterion": {
     "RMS_degradation_m": 0.01,
@@ -125,5 +125,37 @@
     ],
     "selection": "smallest qualifying force within sampled effort and physical limits; no expansion"
   },
-  "note": "One original0N tracking smoke first after canonical; crash/physical failure holds force study. Historical tracking task gate remains separately reported. No automatic screen or study continuation."
+  "note": "One original0N tracking smoke first after canonical; crash/physical failure holds force study. Historical tracking task gate remains separately reported. No automatic screen or study continuation.",
+  "retained_hold": {
+    "version": 1,
+    "experiments": [],
+    "source_commit": "16cc57f706ecb9fb5731297a83bc47f30632ca39",
+    "selected_force_N": null,
+    "held": true,
+    "status": "Held after original0N canonical physical failure; awaiting discussion of bounded setup-only review",
+    "canonical_evidence": {
+      "path": "/workspace/GATO/_expr_results/force-persistent-v2-20261011T194420Z/canonical-original0",
+      "metrics_sha256": "0702dafbae6ef7c27f8d684bf23b7c014659ee7fd4fd02025ef3aed173792322",
+      "provenance_sha256": "fc2090cdae59baeced46878617aa19cb3aaf811e0a72379252ef9c4cdb203b66",
+      "module_sha256": "a93273dc23b8e9d1c7c46d0c898599b78544948cb6e1ef8f36f8faab4ee7a526",
+      "task_success": true,
+      "physical_pass": false,
+      "physical_limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.1271132353761657,
+        "u_Nm": 0.0
+      },
+      "execution_error": null
+    },
+    "pending": {
+      "original0N_tracking_smoke": true,
+      "bounded_disturbance_screen": true,
+      "selected_Fstar": true,
+      "E02_tasks_per_machine": 12,
+      "E03_bank_inputs": 12,
+      "E03_method_cases_per_machine": 24,
+      "E01": "Derived from future GPU bank"
+    },
+    "note": "No smoke/screen/final force campaign was run. No correction, tuning, extra GPU call or solver investigation authorized by this hold record."
+  }
 }

@@ -50,9 +50,17 @@ reached its target but exceeded the sampled joint-speed limit by 0.127113 rad/s.
 The tracking smoke and force screen have not run, and no F* or final force bank
 has been selected. The disabled `successor/force_smoke.json` preserves the
 reviewed source and intended smoke; it is not queued in combined plans.
-`force_stages.json` links the retained failure. A proposed correction to the
-wrapper's reaching rho-reset policy awaits Felix's discussion/approval before
-application or rerun. The other families remain independently prepared.
+`force_stages.json` retains both failed canonicals. Felix authorized the narrow
+rho-policy correction: reaching now carries rho as requested, while tracking
+continues to reset it each feedback solve. Source `bbbb047` reused the unchanged
+native module for one unchanged canonical retry; it reached the target but
+again failed physical compliance (joint-speed excess **0.465362 rad/s**, no
+position/torque excess or execution error). That retry is retained at
+`/workspace/GATO/_expr_results/force-rho-policy-20261011T201734Z/canonical-original0/`;
+the first failure and previous package remain preserved. The correction did not
+resolve the physical failure. Force stays held, with no tracking smoke, screen,
+selected F* or final force cohort. No additional correction or run is authorized.
+The other families remain independently prepared.
 `force_successor_plan.py` and `force_screen.py` implement the subsequent fixed
 screen and final-plan generation; do not bypass the recorded hold. Regenerating
 `zero_pcg_plan.py` preserves the installed force stage and any final force plans.
