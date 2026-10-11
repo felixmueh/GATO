@@ -92,7 +92,8 @@ def run_tick(mode, inputs, *, estimator, predictor, optimizer, convention,
              transform_wrench, observer):
     """Run one isolated comparison tick and emit one raw record even on failure.
 
-    predictor(request) -> (B,nx) predictions, replaying ALL applied segments.
+    predictor(request) -> (B,nx) predictions. The GPU backend approximates all
+    applied segments by their time-weighted control over the actual interval.
     optimizer(request) -> (batch,...) plans; native timing may be saved by backend.
     estimator.generate_batch() -> (B,6); update_frozen(index,errors,batch) -> None.
     observer(record) persists raw arrays/nonfinite values; runs outside all timers.
@@ -160,6 +161,8 @@ def run_tick(mode, inputs, *, estimator, predictor, optimizer, convention,
         record["prediction_request"] = prediction_request
         predictions = frozen(measured("candidate_forward", lambda: predictor(prediction_request)))
         record["predictions"] = predictions
+        if hasattr(predictor, "last_observation"):
+            record["prediction_observation"] = predictor.last_observation
         if predictions.shape != (batch, len(tick.observed_state)):
             raise ValueError("predictor must return shape (B,nx)")
 
@@ -191,5 +194,5 @@ def run_tick(mode, inputs, *, estimator, predictor, optimizer, convention,
         elapsed = perf_counter() - started
         record["timings_s"]["total"] = elapsed
         record["timings_s"]["wrapper"] = elapsed - sum(
-            record["timings_s"].get(k, 0.0) for k in ("candidate_forward", "to_backend", "selection"))
+            record["timings_s"].get(k, 0.0) for k in ("candidate_forward", "to_backend", "selection", "estimator_update"))
         observer(record)

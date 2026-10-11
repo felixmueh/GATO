@@ -58,57 +58,86 @@ class PinocchioPredictor:
 
 
 class NativeOptimizer:
-    """Fresh complete public BSQP owner per tick; actual native replies retained."""
-    def __init__(self,model_path,params,N=32,dt=.03,memory_query=None):
+    """One persistent public BSQP owner; construction is outside tick timing."""
+    def __init__(self,model_path,params,N=32,dt=.03,batch_size=1,memory_query=None):
+        from bsqp.interface import BSQP
         self.model_path=str(model_path);self.params=dict(params);self.N=N;self.dt=dt
-        self.native_records=[]
-        self.measurements=[];self.memory_query=memory_query
-        self.last_stats={}
+        self.batch_size=int(batch_size);self.native_records=[];self.measurements=[];self.last_stats={}
+        self.memory_query=memory_query
+        started=time.perf_counter()
+        self.owner=BSQP(self.model_path,self.batch_size,N,dt,plant_type='tiago_right',**self.params)
+        native=self.owner.solver
+        class Capture:
+            def __getattr__(capture,name):return getattr(native,name)
+            def solve(capture,xu,dt,state,reference):
+                reply=native.solve(xu,dt,state,reference)
+                self.native_records.append(dict(candidate_indices=self._candidate_indices,native_reply=reply))
+                return reply
+        self.owner.solver=Capture()
+        self.construction_wall_s=time.perf_counter()-started
+        self.workspace=dict(native.workspace_bytes())
+
+    def reset_dual(self):self.owner.reset_dual()
+    def reset_rho(self):self.owner.reset_rho()
 
     def __call__(self,request):
-        from bsqp.interface import BSQP
-        from .memory import CudaMemory,summarize
+        if len(request.candidate_indices)!=self.batch_size:
+            raise ValueError('Persistent optimizer batch differs from requested candidates')
         for state,wrench in zip(request.states,request.backend_wrenches):
             transform_local(state,wrench,request.convention)
-        metric=dict(candidate_indices=request.candidate_indices,constructor_wall_s=None,
-                    public_solve_wall_s=None,native_solve_us=None,memory=None,memory_error=None)
-        self.measurements.append(metric)
-        snapshots=[];owner=None;native=None
-        try:
-            query=self.memory_query or CudaMemory()
-        except Exception as error:
-            metric['memory_error']=str(error);query=None
-        def sample(stage):
-            if query is not None:
-                try:snapshots.append(query(stage))
-                except Exception as error:metric['memory_error']=str(error)
-        try:
-            sample('before_owner');started=time.perf_counter()
-            owner=BSQP(self.model_path,len(request.candidate_indices),self.N,self.dt,
-                       plant_type='tiago_right',**self.params)
-            metric['constructor_wall_s']=time.perf_counter()-started
-            sample('after_owner')
-            owner.reset_dual();owner.reset_rho();owner.set_f_ext_B(request.backend_wrenches)
-            # Public interface performs the explicit linear->angular conversion.
-            # Capture the complete native response before wrapper normalization.
-            native=owner.solver
-            class Capture:
-                def __getattr__(self,name):return getattr(native,name)
-                def solve(capture,xu,dt,state,reference):
-                    reply=native.solve(xu,dt,state,reference)
-                    self.native_records.append(dict(candidate_indices=request.candidate_indices,native_reply=reply))
-                    return reply
-            owner.solver=Capture()
-            warm=request.warm_seeds.copy()
-            started=time.perf_counter()
-            plans,native_us=owner.solve(request.states,request.references,warm)
-            metric['public_solve_wall_s']=time.perf_counter()-started
-            metric['native_solve_us']=float(native_us)
-            self.last_stats=owner.get_stats() if hasattr(owner,'get_stats') else {}
-            sample('after_solve')
-            return plans.copy()
-        finally:
-            if owner is not None:owner.solver=None
-            native=None
-            sample('after_close')
-            metric['memory']=summarize(snapshots) if snapshots else None
+        self._candidate_indices=request.candidate_indices
+        # Tracking defaults reset rho before each feedback solve; duals persist.
+        self.owner.reset_rho()
+        self.owner.set_f_ext_B(request.backend_wrenches)
+        started=time.perf_counter()
+        plans,native_us=self.owner.solve(request.states,request.references,request.warm_seeds.copy())
+        self.measurements.append(dict(candidate_indices=request.candidate_indices,
+            public_solve_wall_s=time.perf_counter()-started,native_solve_us=float(native_us)))
+        self.last_stats=self.owner.get_stats()
+        return plans.copy()
+
+    def predict(self,state,control,hypotheses,dt):
+        if self.batch_size!=16:raise ValueError('Only original B16 optimizer supplies prediction')
+        self.owner.set_f_ext_B(hypotheses)
+        return self.owner.sim_forward(state,control,dt)
+
+
+class GPUPredictor:
+    """One unchanged GRiD step over elapsed time with applied-control average."""
+    def __init__(self,optimizer,mode):
+        self.optimizer=optimizer;self.mode=mode;started=time.perf_counter()
+        self.simulation=None
+        if mode=='adapted':self.simulation=optimizer.owner.lib.Simulation16_float()
+        self.construction_wall_s=time.perf_counter()-started
+        self.workspace={} if self.simulation is None else dict(self.simulation.workspace_bytes())
+
+    def __call__(self,request):
+        inputs=request.inputs
+        elapsed=inputs.observed_time_s-inputs.previous_time_s
+        control=sum((segment.end_s-segment.start_s)*np.asarray(segment.control)
+                    for segment in inputs.applied_history)/elapsed
+        hypotheses=np.asarray([request.transform_wrench(inputs.previous_state,f,request.convention)
+                               for f in request.hypothesis_wrenches],dtype=np.float32)
+        self.last_observation=dict(elapsed_interval_s=elapsed,average_applied_control=control.copy(),
+            approximation='one existing GRiD TYPE2 step over actual elapsed interval using time-weighted applied control')
+        if self.simulation is None:
+            return self.optimizer.predict(inputs.previous_state,control,hypotheses,elapsed)
+        return self.simulation.sim_forward(np.asarray(inputs.previous_state,dtype=np.float32),
+            np.asarray(control,dtype=np.float32),hypotheses,float(elapsed))
+
+
+def attached_force(model,state,magnitude):
+    """Pure last-joint-origin force aligned with world-Z downward at start."""
+    if not np.isfinite(magnitude) or magnitude<0:raise ValueError('Finite nonnegative force required')
+    data=model.createData();pin.forwardKinematics(model,data,np.asarray(state)[:7])
+    local_direction=data.oMi[-1].rotation.T@np.array([0.,0.,-1.])
+    return np.r_[float(magnitude)*local_direction,np.zeros(3)]
+
+
+def force_world_direction(model,q,truth):
+    data=model.createData();pin.forwardKinematics(model,data,q)
+    force=data.oMi[-1].rotation@np.asarray(truth)[:3]
+    norm=np.linalg.norm(force)
+    direction=None if norm==0 else force/norm
+    angle=None if direction is None else float(np.rad2deg(np.arccos(np.clip(-direction[2],-1.,1.))))
+    return dict(world_force_N=force,world_force_direction=direction,deviation_from_world_down_deg=angle)

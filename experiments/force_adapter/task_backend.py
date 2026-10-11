@@ -2,7 +2,7 @@
 import numpy as np
 import pinocchio as pin
 
-from .backend import NativeOptimizer,PinocchioPredictor,transform_local,LOCAL_FRAME,LOCAL_POINT
+from .backend import NativeOptimizer,GPUPredictor,transform_local,LOCAL_FRAME,LOCAL_POINT
 from .estimator import FrozenBatchForceEstimator
 from .orchestration import AppliedSegment,TickInputs,TORequest,WrenchConvention,run_tick
 from bsqp.common import rk4
@@ -14,9 +14,9 @@ class ForceTask:
         self.params=dict(params)
         self.N=32;self.dt=.03;self.batch_size=1;self.nq=self.nv=self.nq_robot=self.nv_robot=self.nu=7;self.nx=14
         self.has_pendulum=False;self.final_approach=None;self.track_full_stats=True
-        self.estimator=FrozenBatchForceEstimator(16,initial_radius=5.,min_radius=2.,max_radius=20.,smoothing_factor=.5)
-        self.predictor=PinocchioPredictor(model)
-        self.optimizer=optimizer or NativeOptimizer(model_path,params)
+        self.estimator=FrozenBatchForceEstimator(16,initial_radius=10.,min_radius=1.,max_radius=100.,smoothing_factor=.5)
+        self.optimizer=optimizer or NativeOptimizer(model_path,params,batch_size=16 if mode=='original' else 1)
+        self.predictor=None if mode=='no_estimator' else GPUPredictor(self.optimizer,mode)
         self.convention=WrenchConvention(LOCAL_FRAME,LOCAL_POINT,LOCAL_FRAME,LOCAL_POINT)
         self.solver=self;self.previous_state=None;self.previous_time=0.;self.time=0.;self.history=[]
         self.pending=[];self.selected_index=0;self.selected_stats_index=0
@@ -24,16 +24,21 @@ class ForceTask:
         for _ in range(model.njoints):self.actual.append(pin.Force.Zero())
         self.actual[-1]=pin.Force(self.truth[:3],self.truth[3:])
         self.actual_f_ext=self.actual
+        self.plant_data=model.createData()
+        self.construction=dict(optimizer_wall_s=self.optimizer.construction_wall_s,
+            prediction_wall_s=0. if self.predictor is None else self.predictor.construction_wall_s,
+            optimizer_workspace=self.optimizer.workspace,
+            prediction_workspace={} if self.predictor is None else self.predictor.workspace)
 
-    def reset_dual(self):pass # Fresh native TO owner resets dual/rho each call.
-    def reset_rho(self):pass
+    def reset_dual(self):self.optimizer.reset_dual()
+    def reset_rho(self):self.optimizer.reset_rho()
     def update_force_batch(self,q):pass # run_tick freezes its own hypotheses.
     def evaluate_best_trajectory(self,*args):return 0 # Facade returns one selected plan.
 
     def integrate(self,q,v,u,dt):
         start=self.time;self.time+=float(dt)
         self.history.append(AppliedSegment(start,self.time,np.asarray(u).copy()))
-        return rk4(self.model,self.model.createData(),q,v,u,dt,self.actual)
+        return rk4(self.model,self.plant_data,q,v,u,dt,self.actual)
 
     def ee_pos(self,q):
         data=self.model.createData();pin.framesForwardKinematics(self.model,data,q)
@@ -62,13 +67,18 @@ class ForceTask:
     def _solve(self,states,references,warm):
         state=states[0].copy();before=len(self.optimizer.native_records);memory_before=len(self.optimizer.measurements)
         if self.previous_state is None or self.mode=='no_estimator':
-            # No observation history exists yet. Use the estimator's prior lane0
-            # and one B1 startup solve, independent of the hidden plant truth.
-            force=np.zeros(6) if self.mode=='no_estimator' else self.estimator.generate_batch()[0].copy()
-            request=TORequest((0,),states,references,warm,force[None,:],force[None,:],self.convention)
+            # Original startup uses its existing B16 owner, with prior lane0
+            # selected until actual observations exist. No extra B1 allocation.
+            forces=np.zeros((1,6)) if self.mode=='no_estimator' else self.estimator.generate_batch()
+            count=16 if self.mode=='original' else 1
+            forces=forces[:count]
+            request=TORequest(tuple(range(count)),np.repeat(states[:1],count,axis=0),
+                np.repeat(references[:1],count,axis=0),np.repeat(warm[:1],count,axis=0),forces,forces,self.convention)
             plan=self.optimizer(request)[0]
-            self.pending.append(('force_baseline' if self.previous_state is not None else 'force_bootstrap',dict(policy='zero-wrench B1 without estimator' if self.mode=='no_estimator' else 'prior lane0, one B1 TO, no estimator update; first actual control history starts at t=0; bootstrap compute uncharged by accepted modeB',
-                state=state.copy(),force=force.copy(),reference=references.copy(),warm_seed=warm.copy(),
+            force=forces[0]
+            self.pending.append(('force_baseline' if self.previous_state is not None else 'force_bootstrap',dict(policy='zero-wrench persistent B1 without estimator' if self.mode=='no_estimator' else 'prior lane0, persistent native batch, no estimator update; bootstrap compute uncharged by accepted modeB',
+                state=state.copy(),force=force.copy(),reference=references.copy(),warm_seed=warm.copy(),selected_plan=plan.copy(),
+                native_batch_size=count,construction=self.construction,
                 native_records=list(self.optimizer.native_records[before:]),backend_measurements=list(self.optimizer.measurements[memory_before:]))))
             self.selected_stats_index=0
         else:

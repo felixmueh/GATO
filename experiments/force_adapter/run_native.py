@@ -10,7 +10,7 @@ import traceback
 import numpy as np
 import pinocchio as pin
 
-from .backend import NativeOptimizer,PinocchioPredictor,transform_local,LOCAL_FRAME,LOCAL_POINT
+from .backend import NativeOptimizer,GPUPredictor,transform_local,LOCAL_FRAME,LOCAL_POINT
 from .estimator import FrozenBatchForceEstimator
 from .orchestration import AppliedSegment,TickInputs,WrenchConvention,run_tick
 
@@ -51,60 +51,76 @@ def tick_inputs(protocol,arrays,index,truth,warmup=False):
 
 
 def run_case(case,output,inputs,module,recorder_class,sha,write_json,*,optimizer_factory=None):
+    from bsqp.common import shift_packed_trajectory_warm_start
+    from .memory import CudaMemory,summarize
     output=Path(output);p=case['parameters']
-    metrics=dict(campaign_id=p['study'],timing_mode='A',execution_backend='internal',
-        evidence_kind='synthetic_test' if optimizer_factory is not None else 'measurement',
-        task_success=None,physical_pass=None,solver_numerical_pass=None,execution_error=None,
-        outcome='execution_failed',parameters=p)
+    metrics=dict(campaign_id='E03',timing_mode='A',execution_backend='internal',parameters=p,
+        task_success=None,physical_pass=None,solver_numerical_pass=None,execution_error=None,outcome='execution_failed')
     with recorder_class(output) as recorder:
         try:
             protocol,arrays=load_inputs(inputs,sha)
-            if p['study'] not in ('E01','E03') or p['mode'] not in protocol['modes'] or p['timing_mode']!='A' or p['backend']!='internal':
-                raise ValueError('Explicit mode A correspondence/time/memory case required')
-            index,truth=int(p['input_index']),int(p['truth_index'])
+            if (protocol['protocol_id']!='force-persistent-grid-native-v2' or p['mode'] not in ('original','adapted')
+                    or p.get('study')!='E03' or p.get('timing_mode')!='A' or p.get('backend')!='internal'):
+                raise ValueError('New persistent GPU force bank and explicit estimator mode required')
+            index,truth=int(p['input_index']),int(p['truth_index']);batch=16 if p['mode']=='original' else 1
             write_json(output/'protocol.json',dict(protocol,case=p))
-            write_json(output/'provenance.json',dict(source_root=str(ROOT),source_commit=source_commit(),machine=p.get('machine'),module_path=str(module),module_sha256=sha(module),
-                bank_manifest_sha256=sha(Path(inputs)/'SHA256SUMS.json'),evidence_kind=metrics['evidence_kind']))
+            write_json(output/'provenance.json',dict(source_root=str(ROOT),source_commit=source_commit(),machine=p.get('machine'),
+                module_path=str(module),module_sha256=sha(module),bank_manifest_sha256=sha(Path(inputs)/'SHA256SUMS.json')))
             if optimizer_factory is None:
                 import bsqp
                 name='bsqp.bsqpN32_tiago_right';spec=importlib.util.spec_from_file_location(name,module)
                 native=importlib.util.module_from_spec(spec);sys.modules[name]=native;spec.loader.exec_module(native)
-            model=pin.buildModelFromUrdf(str(ROOT/'gato/dynamics/tiago_right/tiago_right_arm.urdf'))
-            predictor=PinocchioPredictor(model)
-            optimizer=(optimizer_factory or NativeOptimizer)(ROOT/'gato/dynamics/tiago_right/tiago_right_arm.urdf',protocol['params'])
+            memory=CudaMemory();snapshots=[memory('before_owner')]
+            optimizer=(optimizer_factory or NativeOptimizer)(ROOT/'gato/dynamics/tiago_right/tiago_right_arm.urdf',protocol['params'],batch_size=batch)
+            predictor=GPUPredictor(optimizer,p['mode']);snapshots.append(memory('after_owner'))
+            workspace=dict(device_bytes=int(optimizer.workspace['device_bytes'])+int(predictor.workspace.get('device_bytes',0)),
+                pinned_host_bytes=int(optimizer.workspace['pinned_host_bytes'])+int(predictor.workspace.get('pinned_host_bytes',0)),
+                optimizer=optimizer.workspace,prediction=predictor.workspace)
+            recorder('force_construction',dict(optimizer_wall_s=optimizer.construction_wall_s,prediction_wall_s=predictor.construction_wall_s,
+                workspace=workspace,snapshots=snapshots,timing_scope='one-time setup outside all measured algorithm ticks'))
             convention=WrenchConvention(LOCAL_FRAME,LOCAL_POINT,LOCAL_FRAME,LOCAL_POINT)
-            def execute(category):
-                np.random.seed(20261011)
-                class PairEstimator(FrozenBatchForceEstimator):
-                    def generate_batch(self):
-                        cached=getattr(self,'_tick_candidates',None)
-                        return (cached if cached is not None else arrays['hypotheses']).copy()
-                estimator=PairEstimator(16,**{k:v for k,v in protocol['estimator'].items() if k in
-                    ('initial_radius','min_radius','max_radius','smoothing_factor')})
-                def observe(record):
-                    record=dict(record,category=category,backend_measurements=optimizer.measurements,
-                                native_records=optimizer.native_records)
-                    if optimizer.measurements:
-                        memory=optimizer.measurements[-1].get('memory')
-                        record['memory_bytes']=None if not memory else memory['maximum_observed_additional_device_bytes']
-                        record['memory_reason']='Observed device availability boundary delta; no continuous peak. Host RSS separate.'
-                    record['rng_state_after']=np.random.get_state()
-                    recorder('force_tick',serializable(record))
-                # Hypotheses and candidate inputs remain frozen; estimator is fresh
-                # per isolated comparison, matching both method workers.
+            class PairEstimator(FrozenBatchForceEstimator):
+                def generate_batch(self):
+                    cached=getattr(self,'_tick_candidates',None)
+                    return (cached if cached is not None else arrays['hypotheses']).copy()
+            settings={k:v for k,v in protocol['estimator'].items() if k in ('initial_radius','min_radius','max_radius','smoothing_factor')}
+            records=[]
+            def execute(category,tick_number,estimator,warm):
                 tick=tick_inputs(protocol,arrays,index,truth,warmup=category=='excluded_warmup')
-                recorder('force_tick_inputs',serializable(dict(category=category,mode=p['mode'],inputs=tick,
+                tick=TickInputs(tick.previous_time_s,tick.observed_time_s,tick.previous_state,tick.observed_state,tick.applied_history,
+                    tick.candidate_states,tick.candidate_references,warm)
+                recorder('force_tick_inputs',serializable(dict(category=category,tick_number=tick_number,mode=p['mode'],inputs=tick,
                     hypotheses=arrays['hypotheses'],rng_state_before=np.random.get_state())))
                 recorder.flush()
-                return run_tick(p['mode'],tick,estimator=estimator,
-                    predictor=predictor,optimizer=optimizer,convention=convention,transform_wrench=transform_local,observer=observe)
-            if p['study']=='E03':
-                execute('excluded_warmup')
+                before=len(optimizer.native_records);measured_before=len(optimizer.measurements)
+                def observe(record):
+                    payload=dict(record,category=category,tick_number=tick_number,
+                        native_records=list(optimizer.native_records[before:]),backend_measurements=list(optimizer.measurements[measured_before:]),
+                        rng_state_after=np.random.get_state(),workspace=workspace)
+                    actual_truth=np.zeros(6) if category=='excluded_warmup' else arrays['truths'][index,truth]
+                    if record.get('selected_force') is not None:
+                        payload['estimated_force_error_N']=float(np.linalg.norm(np.asarray(record['selected_force'])[:3]-actual_truth[:3]))
+                        payload['estimated_torque_error_Nm']=float(np.linalg.norm(np.asarray(record['selected_force'])[3:]-actual_truth[3:]))
+                    recorder('force_tick',serializable(payload))
+                    if category=='measured':records.append(record)
+                result=run_tick(p['mode'],tick,estimator=estimator,predictor=predictor,optimizer=optimizer,
+                    convention=convention,transform_wrench=transform_local,observer=observe)
                 optimizer.native_records.clear();optimizer.measurements.clear()
-            result=execute('measured')
-            metrics.update(outcome='force_tick_completed',selected_index=result['selected_index'],
-                           timings_s=result['timings_s'],backend_measurements=optimizer.measurements,
-                           task_success=None,physical_pass=None)
+                return result
+            np.random.seed(20261011)
+            execute('excluded_warmup',-1,PairEstimator(16,**settings),arrays['warmup_seed'])
+            optimizer.reset_dual();np.random.seed(20261011);estimator=PairEstimator(16,**settings)
+            warm=arrays['warm_seeds'][index,truth].copy()
+            for tick_number in range(20):
+                result=execute('measured',tick_number,estimator,warm)
+                shifted=shift_packed_trajectory_warm_start(result['selected_plan'][None,:],arrays['observed_states'][index,truth],14,7,32,
+                    protocol['dt_s'],protocol['dt_s'])
+                warm=np.repeat(shifted,16,axis=0)
+            snapshots.append(memory('after_measured_ticks'))
+            metrics.update(outcome='force_bank_completed',measured_ticks=len(records),excluded_warmups=1,
+                selected_indices=[r['selected_index'] for r in records],timings_s=[r['timings_s'] for r in records],
+                workspace=workspace,memory=summarize(snapshots),construction_wall_s=optimizer.construction_wall_s+predictor.construction_wall_s,
+                comparison_scope='matched observations/hypotheses; native outputs and retained dual/warm histories may differ; no equal quality claim')
         except BaseException:
             metrics['execution_error']=traceback.format_exc();recorder('execution_failed',dict(error=metrics['execution_error']))
         finally:
