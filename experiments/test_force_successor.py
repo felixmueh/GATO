@@ -43,6 +43,9 @@ def test_screen_selects_smallest_physical_qualifier_and_retains_failure(tmp_path
     p=tmp_path/'screen/20/provenance.json';d=json.loads(p.read_text());d['module_sha256']='different-module';put(p,d)
     with pytest.raises(ValueError,match='settings differ'):
         S.select(tmp_path/'screen',original,tmp_path/'different-module.json',recording_only_source='a'*40)
+    put(tmp_path/'screen/retained/attempt-002/receipt.json',dict(status='failed',case=dict(parameters=dict(stage='screen',mode='no_estimator',force_N=20))))
+    with pytest.raises(ValueError,match='exactly one retained'):
+        S.select(tmp_path/'screen',original,tmp_path/'duplicate-attempt.json',recording_only_source='a'*40)
 
 def test_speed_only_waiver_scoped_and_adapter_preserves_raw(tmp_path,monkeypatch):
     from adapters import force as A

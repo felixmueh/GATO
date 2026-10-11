@@ -3,6 +3,7 @@
 import argparse
 import json
 import math
+import os
 import re
 from pathlib import Path
 from recording import sha,write_json
@@ -10,6 +11,12 @@ from recording import sha,write_json
 DEGRADATION_M=.010
 FORCES=(5.,10.,20.)
 PRE_RECORDING_SOURCE='bbbb047c9827beedff15b40d42aacc6389fa06ba'
+
+def receipts(root):
+    for directory,folders,files in os.walk(root):
+        # Recorder raw directories contain NPZ chunks, not attempt receipts.
+        folders[:]=sorted(name for name in folders if name!='raw')
+        if 'receipt.json' in files:yield Path(directory)/'receipt.json'
 
 def physical_eligibility(metrics,allow_speed_only=False):
     """Eligibility only; never change the source physical result."""
@@ -58,7 +65,7 @@ def select(root,smoke,output,allow_speed_only=False,recording_only_source=None):
     if recording_only_source is not None and not re.fullmatch('[0-9a-f]{40}',recording_only_source):
         raise ValueError('Explicit reviewed recording-only full source commit required')
     evidence=smoke_evidence(smoke,allow_speed_only);rows=[]
-    for receipt_path in sorted(Path(root).rglob('receipt.json')):
+    for receipt_path in sorted(receipts(root)):
         receipt=json.loads(receipt_path.read_text())
         if receipt.get('kind')=='preflight':continue
         path=receipt_path.parent/'metrics.json'
