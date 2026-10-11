@@ -33,3 +33,17 @@ def test_missing_native_is_failure_with_saved_metrics(tmp_path):
     metrics = json.loads((tmp_path / 'output/metrics.json').read_text())
     assert metrics['task_success'] is None and metrics['physical_pass'] is None
     assert metrics['execution_error']
+
+
+def test_namespace_package_loads_selected_module(tmp_path):
+    package = tmp_path / 'python/bsqp'
+    package.mkdir(parents=True)
+    selected = tmp_path / 'selected.py'
+    selected.write_text('SELECTED = True\n')
+    bootstrap = Path(__file__).parent / 'task_bootstrap'
+    env = dict(os.environ, PYTHONPATH=os.pathsep.join((str(bootstrap), str(tmp_path / 'python'))),
+               GATO_TASK_SOURCE=str(tmp_path), GATO_TASK_NATIVE_MODULE=str(selected))
+    child = subprocess.run([sys.executable, '-B', '-c',
+        'import sys; assert sys.modules["bsqp.bsqpN32_tiago_right"].SELECTED'],
+        env=env, capture_output=True, text=True)
+    assert child.returncode == 0, child.stderr

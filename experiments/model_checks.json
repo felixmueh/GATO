@@ -1,0 +1,66 @@
+{
+  "version": 1,
+  "experiments": [
+    {
+      "id": "Q02",
+      "name": "Model, orientation and cost consistency checks",
+      "research_question": "RQ-model",
+      "protocol": "simple-model-checks-v1",
+      "source_commit": "502fa29c8b0d649dcb347f9534bf29c6935fa6dd",
+      "machines": [
+        "rtx5060"
+      ],
+      "timing_mode": "A",
+      "backend": "internal",
+      "build": {
+        "commands": [
+          [
+            "cmake",
+            "-S",
+            "{source}/experiments/campaign/q02",
+            "-B",
+            "{build}",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DCMAKE_CUDA_ARCHITECTURES={cuda_arch}-real",
+            "-DPython3_EXECUTABLE={python}",
+            "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
+          ],
+          [
+            "cmake",
+            "--build",
+            "{build}",
+            "--parallel",
+            "2"
+          ]
+        ],
+        "artifacts": [
+          "modules/q02_probe*.so"
+        ]
+      },
+      "command": [
+        "{python}",
+        "{runner}/adapters/model_checks.py",
+        "--source",
+        "{source}",
+        "--build",
+        "{build}",
+        "--output",
+        "{output}"
+      ],
+      "cases": [
+        {
+          "id": "frozen-eight-state-probe",
+          "parameters": {
+            "samples": 8,
+            "native_calls": 351,
+            "repeats": 1
+          }
+        }
+      ]
+    }
+  ],
+  "retained_results": {
+    "gtx1070": "Completed original protocol: 2/560 negatives retained. No rerun or tolerance change."
+  },
+  "note": "Includes existing orientation value/derivative checks. No solver repairs. Jetson bounded coverage/duration remains separate preparation."
+}

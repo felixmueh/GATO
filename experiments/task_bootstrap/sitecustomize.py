@@ -11,7 +11,10 @@ if os.environ.get('GATO_TASK_NATIVE_MODULE'):
         module = Path(os.environ['GATO_TASK_NATIVE_MODULE']).resolve()
         sys.path[:0] = [str(source / 'python'), str(source / 'tiago_src')]
         import bsqp
-        if Path(bsqp.__file__).resolve() != source / 'python/bsqp/__init__.py':
+        package_root = source / 'python/bsqp'
+        package_file = getattr(bsqp, '__file__', None)
+        package_paths = {Path(p).resolve() for p in bsqp.__path__}
+        if (package_file and Path(package_file).resolve() != package_root / '__init__.py') or package_paths != {package_root}:
             raise RuntimeError('Task bootstrap imported a different BSQP package')
         name = 'bsqp.bsqpN32_tiago_right'
         spec = importlib.util.spec_from_file_location(name, module)

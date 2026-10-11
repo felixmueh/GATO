@@ -1,0 +1,195 @@
+{
+  "id": "bounded-control-choices-B-v1",
+  "source_commit": "502fa29c8b0d649dcb347f9534bf29c6935fa6dd",
+  "variants": [
+    {
+      "id": "current-default",
+      "study": "shared-baseline",
+      "name": "Current defaults",
+      "weights": {}
+    },
+    {
+      "id": "position-half",
+      "study": "C01",
+      "name": "Half running position weight",
+      "weights": {
+        "q_cost": 2.0
+      }
+    },
+    {
+      "id": "orientation-off",
+      "study": "C01",
+      "name": "Orientation costs off",
+      "weights": {
+        "ee_orient_cost": 0.0,
+        "ee_orient_N_cost": 0.0
+      }
+    },
+    {
+      "id": "switch-20mm",
+      "study": "C03",
+      "name": "Historical factor10 switch at20mm",
+      "switch_distance_m": 0.02
+    },
+    {
+      "id": "switch-75mm",
+      "study": "C03",
+      "name": "Historical factor10 switch at75mm",
+      "switch_distance_m": 0.075
+    },
+    {
+      "id": "final-approach",
+      "study": "C04",
+      "name": "Existing final approach",
+      "final_approach": true
+    },
+    {
+      "id": "final-approach-perturbed",
+      "study": "C04",
+      "name": "Final approach with +.01rad joint1 start",
+      "final_approach": true,
+      "initial_delta_rad": 0.01
+    },
+    {
+      "id": "default-perturbed",
+      "study": "C04",
+      "name": "Defaults with +.01rad joint1 start",
+      "initial_delta_rad": 0.01
+    },
+    {
+      "id": "damping-low",
+      "study": "C05",
+      "name": "Damping .01",
+      "weights": {
+        "qd_cost": 0.01
+      }
+    },
+    {
+      "id": "damping-high",
+      "study": "C05",
+      "name": "Damping1",
+      "weights": {
+        "qd_cost": 1.0
+      }
+    },
+    {
+      "id": "speed-limit-low",
+      "study": "C05",
+      "name": "Speed limit penalty .001",
+      "weights": {
+        "vel_lim_cost": 0.001
+      }
+    },
+    {
+      "id": "speed-limit-high",
+      "study": "C05",
+      "name": "Speed limit penalty1",
+      "weights": {
+        "vel_lim_cost": 1.0
+      }
+    },
+    {
+      "id": "terminal-half",
+      "study": "C05",
+      "name": "Half terminal position weight",
+      "terminal_factor": 0.5
+    },
+    {
+      "id": "terminal-double",
+      "study": "C05",
+      "name": "Double terminal position weight",
+      "terminal_factor": 2.0
+    },
+    {
+      "id": "holding-default",
+      "study": "C06",
+      "name": "Nominal holding with current effort cost",
+      "holding": true
+    },
+    {
+      "id": "holding-no-effort-cost",
+      "study": "C06",
+      "name": "Nominal holding with effort cost0",
+      "holding": true,
+      "weights": {
+        "u_cost": 0.0
+      }
+    },
+    {
+      "id": "warm-unshifted",
+      "study": "C08",
+      "name": "Unshifted previous output reanchored",
+      "seed_policy": "unshifted"
+    },
+    {
+      "id": "warm-cold",
+      "study": "C08",
+      "name": "Fresh constant state seed each solve",
+      "seed_policy": "cold"
+    }
+  ],
+  "reaching_tasks": [
+    "goal-1",
+    "goal-2"
+  ],
+  "tracking_task": "figure8-24s",
+  "fixed_reaching_observation_s": 8.0,
+  "observation_dwell_s": 8.03,
+  "rough_success": {
+    "position_m": 0.05,
+    "axis_deg": 30.0,
+    "speed_L1_rad_s": 1.0,
+    "dwell_s": 0.0
+  },
+  "questions": {
+    "C01": "Do running position/orientation choices change bounded current reaching behavior?",
+    "C03": "Does the retained factor10 latched20/75mm switch change progress during a fixed8s observation?",
+    "C04": "What changes under existing final approach, including one declared small start perturbation?",
+    "C05": "Separate damping, speed-limit penalty and terminal position weight on fixed tasks.",
+    "C06": "Finite8s nominal holding offset with default versus zero effort regularization; no equilibrium claim.",
+    "C08": "Does correctly shifted warm start affect task outcomes relative to unshifted/reanchored or cold seeds?"
+  },
+  "baseline_reuse": "Shared current-default goal1/goal2 and figure8 baseline, no per-study reruns",
+  "C03_policy": {
+    "factor": 10.0,
+    "speed_max_rad_s": 0.1,
+    "scaled": [
+      "q_cost",
+      "qd_cost",
+      "ee_orient_cost"
+    ],
+    "terminal_equalized_to_scaled_running": [
+      "N_cost",
+      "ee_orient_N_cost"
+    ]
+  },
+  "C04_final_params": {
+    "q_cost": 400.0,
+    "N_cost": 1200.0,
+    "qd_cost": 1.0,
+    "u_cost": 0.0003,
+    "ee_orient_cost": 10.0,
+    "ee_orient_N_cost": 10.0,
+    "max_sqp_iters": 20,
+    "mu": 30.0
+  },
+  "C04_trigger": {
+    "distance_m": 0.075,
+    "max_joint_speed_rad_s": 0.1
+  },
+  "C06_holding": "Pose reference = FK of approved initial state; public goal regulation with explicit full-window dwell stop convention.",
+  "unsupported": {
+    "C06-model-gripper": "No frozen compatible generated-native model/gripper perturbation protocol recovered; arm-only nominal holding does not qualify this question."
+  },
+  "historical_evidence": [
+    "/workspace/gato-tiago-reaching-cost-sweep",
+    "/workspace/gato-tiago-reaching-vel01",
+    "/workspace/gato-tiago-reaching-weight-switch",
+    "/workspace/gato-tiago-reaching-weight-switch-75mm-far",
+    "/workspace/gato-tiago-final-approach-tuning",
+    "/workspace/gato-tiago-mpc-final-weights"
+  ],
+  "stopping": "One planned attempt per case. Scientific failures retained, independent cases continue; no tuning/retry-green.",
+  "qualifications": "CPU preparation only. Genuine unchanged target task suite + canonical modeB preflight precede execution. New behavior is not GPU-qualified.",
+  "C08_scope": "Same task/source/caps/cold start; subsequent states and optimized seeds differ. No identical-input speedup or determinism claim."
+}

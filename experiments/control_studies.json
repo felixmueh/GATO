@@ -1,0 +1,352 @@
+{
+  "version": 1,
+  "experiments": [
+    {
+      "id": "ControlChoices",
+      "research_question": "RQ-control-choices",
+      "protocol": "bounded-control-choices-B-v1",
+      "source_commit": "502fa29c8b0d649dcb347f9534bf29c6935fa6dd",
+      "machines": [
+        "gtx1070",
+        "rtx5060"
+      ],
+      "timing_mode": "B",
+      "backend": "internal",
+      "inputs": {
+        "experiments/inputs/control_studies/v01.json": "20920040853786cf3d96f13ba240f82918a9f0f5020270fbe67715666477cc81",
+        "experiments/inputs/control_studies/t01.json": "aec47cfa3819de5adbb8633b637f5bd9bcd327cb3afc5043a856b323af5aac41",
+        "experiments/inputs/control_studies/protocol.json": "57e2a752e145af50238996044c08d2bc580184ec16a73f443888c3399f0d1588"
+      },
+      "build": {
+        "inputs": {
+          "native/CMakeLists.txt": "07c285afa3d2055c2c8f64c4645bdad01bdeb3391e77f2082aff3c70443df1e2",
+          "native/control_studies/CMakeLists.txt": "9bdaae9f2d3991a3c567666bf77d8a253666c3adee9b4e66598c83f647dc41c7",
+          "native/task_readiness/CMakeLists.txt": "90abec70a6f830071843841791f13b995cf963118659b7001d8ed0085a8da6a6"
+        },
+        "commands": [
+          [
+            "cmake",
+            "-S",
+            "{runner}/native/control_studies",
+            "-B",
+            "{build}",
+            "-DGATO_SOURCE_DIR={source}",
+            "-DKNOTS=32",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DGATO_EXPERIMENT_TELEMETRY=ON",
+            "-DCMAKE_CUDA_ARCHITECTURES={cuda_arch}-real",
+            "-DPython3_EXECUTABLE={python}"
+          ],
+          [
+            "cmake",
+            "--build",
+            "{build}",
+            "--parallel",
+            "2"
+          ]
+        ],
+        "artifacts": [
+          "modules/bsqpN32_tiago_right*.so",
+          "cuda_access_smoke"
+        ]
+      },
+      "command": [
+        "{python}",
+        "{runner}/adapters/control_studies.py",
+        "--source",
+        "{source}",
+        "--build",
+        "{build}",
+        "--inputs",
+        "{inputs}/experiments/inputs/control_studies",
+        "--output",
+        "{output}",
+        "--case",
+        "{case}"
+      ],
+      "preflight": {
+        "group": "ControlChoices-B",
+        "command": [
+          "{python}",
+          "{runner}/adapters/control_studies.py",
+          "--source",
+          "{source}",
+          "--build",
+          "{build}",
+          "--inputs",
+          "{inputs}/experiments/inputs/control_studies",
+          "--output",
+          "{output}",
+          "--preflight"
+        ]
+      },
+      "cases": [
+        {
+          "id": "current-default-goal-1",
+          "parameters": {
+            "variant": "current-default",
+            "base_task": "goal-1"
+          }
+        },
+        {
+          "id": "current-default-goal-2",
+          "parameters": {
+            "variant": "current-default",
+            "base_task": "goal-2"
+          }
+        },
+        {
+          "id": "current-default-figure8-24s",
+          "parameters": {
+            "variant": "current-default",
+            "base_task": "figure8-24s"
+          }
+        },
+        {
+          "id": "position-half-goal-1",
+          "parameters": {
+            "variant": "position-half",
+            "base_task": "goal-1"
+          }
+        },
+        {
+          "id": "position-half-goal-2",
+          "parameters": {
+            "variant": "position-half",
+            "base_task": "goal-2"
+          }
+        },
+        {
+          "id": "orientation-off-goal-1",
+          "parameters": {
+            "variant": "orientation-off",
+            "base_task": "goal-1"
+          }
+        },
+        {
+          "id": "orientation-off-goal-2",
+          "parameters": {
+            "variant": "orientation-off",
+            "base_task": "goal-2"
+          }
+        },
+        {
+          "id": "switch-20mm-goal-1",
+          "parameters": {
+            "variant": "switch-20mm",
+            "base_task": "goal-1"
+          }
+        },
+        {
+          "id": "switch-20mm-goal-2",
+          "parameters": {
+            "variant": "switch-20mm",
+            "base_task": "goal-2"
+          }
+        },
+        {
+          "id": "switch-75mm-goal-1",
+          "parameters": {
+            "variant": "switch-75mm",
+            "base_task": "goal-1"
+          }
+        },
+        {
+          "id": "switch-75mm-goal-2",
+          "parameters": {
+            "variant": "switch-75mm",
+            "base_task": "goal-2"
+          }
+        },
+        {
+          "id": "final-approach-goal-1",
+          "parameters": {
+            "variant": "final-approach",
+            "base_task": "goal-1"
+          }
+        },
+        {
+          "id": "final-approach-goal-2",
+          "parameters": {
+            "variant": "final-approach",
+            "base_task": "goal-2"
+          }
+        },
+        {
+          "id": "final-approach-perturbed-goal-1",
+          "parameters": {
+            "variant": "final-approach-perturbed",
+            "base_task": "goal-1"
+          }
+        },
+        {
+          "id": "final-approach-perturbed-goal-2",
+          "parameters": {
+            "variant": "final-approach-perturbed",
+            "base_task": "goal-2"
+          }
+        },
+        {
+          "id": "default-perturbed-goal-1",
+          "parameters": {
+            "variant": "default-perturbed",
+            "base_task": "goal-1"
+          }
+        },
+        {
+          "id": "default-perturbed-goal-2",
+          "parameters": {
+            "variant": "default-perturbed",
+            "base_task": "goal-2"
+          }
+        },
+        {
+          "id": "damping-low-goal-1",
+          "parameters": {
+            "variant": "damping-low",
+            "base_task": "goal-1"
+          }
+        },
+        {
+          "id": "damping-low-goal-2",
+          "parameters": {
+            "variant": "damping-low",
+            "base_task": "goal-2"
+          }
+        },
+        {
+          "id": "damping-high-goal-1",
+          "parameters": {
+            "variant": "damping-high",
+            "base_task": "goal-1"
+          }
+        },
+        {
+          "id": "damping-high-goal-2",
+          "parameters": {
+            "variant": "damping-high",
+            "base_task": "goal-2"
+          }
+        },
+        {
+          "id": "speed-limit-low-goal-1",
+          "parameters": {
+            "variant": "speed-limit-low",
+            "base_task": "goal-1"
+          }
+        },
+        {
+          "id": "speed-limit-low-goal-2",
+          "parameters": {
+            "variant": "speed-limit-low",
+            "base_task": "goal-2"
+          }
+        },
+        {
+          "id": "speed-limit-high-goal-1",
+          "parameters": {
+            "variant": "speed-limit-high",
+            "base_task": "goal-1"
+          }
+        },
+        {
+          "id": "speed-limit-high-goal-2",
+          "parameters": {
+            "variant": "speed-limit-high",
+            "base_task": "goal-2"
+          }
+        },
+        {
+          "id": "terminal-half-goal-1",
+          "parameters": {
+            "variant": "terminal-half",
+            "base_task": "goal-1"
+          }
+        },
+        {
+          "id": "terminal-half-goal-2",
+          "parameters": {
+            "variant": "terminal-half",
+            "base_task": "goal-2"
+          }
+        },
+        {
+          "id": "terminal-half-figure8-24s",
+          "parameters": {
+            "variant": "terminal-half",
+            "base_task": "figure8-24s"
+          }
+        },
+        {
+          "id": "terminal-double-goal-1",
+          "parameters": {
+            "variant": "terminal-double",
+            "base_task": "goal-1"
+          }
+        },
+        {
+          "id": "terminal-double-goal-2",
+          "parameters": {
+            "variant": "terminal-double",
+            "base_task": "goal-2"
+          }
+        },
+        {
+          "id": "terminal-double-figure8-24s",
+          "parameters": {
+            "variant": "terminal-double",
+            "base_task": "figure8-24s"
+          }
+        },
+        {
+          "id": "holding-default-goal-1",
+          "parameters": {
+            "variant": "holding-default",
+            "base_task": "goal-1"
+          }
+        },
+        {
+          "id": "holding-no-effort-cost-goal-1",
+          "parameters": {
+            "variant": "holding-no-effort-cost",
+            "base_task": "goal-1"
+          }
+        },
+        {
+          "id": "warm-unshifted-goal-1",
+          "parameters": {
+            "variant": "warm-unshifted",
+            "base_task": "goal-1"
+          }
+        },
+        {
+          "id": "warm-unshifted-goal-2",
+          "parameters": {
+            "variant": "warm-unshifted",
+            "base_task": "goal-2"
+          }
+        },
+        {
+          "id": "warm-cold-goal-1",
+          "parameters": {
+            "variant": "warm-cold",
+            "base_task": "goal-1"
+          }
+        },
+        {
+          "id": "warm-cold-goal-2",
+          "parameters": {
+            "variant": "warm-cold",
+            "base_task": "goal-2"
+          }
+        }
+      ],
+      "timeout_seconds": 600
+    }
+  ],
+  "status": "prepared_target_validation_pending",
+  "unsupported": {
+    "C06-model-gripper": "No frozen compatible generated-native model/gripper perturbation protocol recovered; arm-only nominal holding does not qualify this question."
+  },
+  "note": "Historical sweeps and failures preserved. Fixed8s observations report rough success separately from public timeout. No full parameter optimization."
+}

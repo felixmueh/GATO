@@ -1,0 +1,116 @@
+{
+  "version": 1,
+  "experiments": [
+    {
+      "id": "D01",
+      "name": "Gazebo reaching and figure-eight demonstration",
+      "research_question": "RQ-control",
+      "protocol": "simple-d01-v1",
+      "source_commit": "63940f7a5c724c84c731a6a1edbc49a094f3b806",
+      "machines": [
+        "rtx5060"
+      ],
+      "timing_mode": "live",
+      "backend": "gazebo",
+      "qualification": "Prepared pending target simulation result/gate review; physical robot D02 stays manual and is excluded.",
+      "build": {
+        "inputs": {
+          "native/CMakeLists.txt": "07c285afa3d2055c2c8f64c4645bdad01bdeb3391e77f2082aff3c70443df1e2"
+        },
+        "commands": [
+          [
+            "cmake",
+            "-S",
+            "{runner}/native",
+            "-B",
+            "{build}",
+            "-DGATO_SOURCE_DIR={source}",
+            "-DKNOTS=32",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DGATO_EXPERIMENT_TELEMETRY=ON",
+            "-DCMAKE_CUDA_ARCHITECTURES={cuda_arch}-real",
+            "-DPython3_EXECUTABLE={python}"
+          ],
+          [
+            "cmake",
+            "--build",
+            "{build}",
+            "--parallel",
+            "2"
+          ]
+        ],
+        "artifacts": [
+          "modules/bsqpN32_tiago_right*.so"
+        ]
+      },
+      "inputs": {},
+      "command": [
+        "{python}",
+        "{runner}/adapters/deployment.py",
+        "--source",
+        "{source}",
+        "--build",
+        "{build}",
+        "--case",
+        "{case}",
+        "--output",
+        "{output}"
+      ],
+      "preflight": {
+        "group": "D01-gazebo",
+        "command": [
+          "{python}",
+          "{runner}/adapters/deployment.py",
+          "--source",
+          "{source}",
+          "--build",
+          "{build}",
+          "--case",
+          "{case}",
+          "--output",
+          "{output}",
+          "--preflight"
+        ]
+      },
+      "repeats": 1,
+      "cases": [
+        {
+          "id": "goal-1",
+          "parameters": {
+            "backend": "gazebo"
+          }
+        },
+        {
+          "id": "goal-2",
+          "parameters": {
+            "backend": "gazebo"
+          }
+        },
+        {
+          "id": "goal-3",
+          "parameters": {
+            "backend": "gazebo"
+          }
+        },
+        {
+          "id": "figure8-24s",
+          "parameters": {
+            "backend": "gazebo"
+          }
+        },
+        {
+          "id": "figure8-18s",
+          "parameters": {
+            "backend": "gazebo"
+          }
+        },
+        {
+          "id": "figure8-12s",
+          "parameters": {
+            "backend": "gazebo"
+          }
+        }
+      ]
+    }
+  ]
+}

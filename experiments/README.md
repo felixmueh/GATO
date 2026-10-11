@@ -176,10 +176,9 @@ and `--protocol` paths from the plan's declared inputs, plus `--source`, `--buil
 An optional canonical preflight uses `--preflight-input FILE --batch 1` (or 16),
 returning nonzero if either task success or physical compliance fails.
 
-BB is not added to the automatic plan. Its old 23 completed episodes and retained
-failed episode remain untouched. Select only the genuinely pending cases when
-preparing a continuation plan, retain the earlier cohort links, and keep the new
-recording source/protocol identifiable. The runner handles independent failures;
+BB uses the separate explicit plans described below. Its old 23 completed
+episodes and retained failed episode remain untouched; the GTX1070 continuation
+selects only the 176 pending episodes and links the earlier cohort. The runner handles independent failures;
 there is no second campaign manager.
 
 ## F01c same-candidate timing
@@ -287,6 +286,45 @@ own-seed/output merits, endpoint errors, predicted-knot bounds and nominal-prefi
 diagnostics. These are not seed-only closed-loop success or convergence claims.
 Same-candidate serial/batched solve timing comes from F01c, with its distinct
 input and budget scope. Historical raw files and failures remain unchanged.
+
+## Model consistency and bounded control choices
+
+`model_checks.json` runs the original eight-state, 351-call model/orientation/cost
+probe on RTX5060. GTX1070's completed 2/560 numerical negatives stay in the
+historical evidence. A completed numerical failure is a result; an incomplete
+probe or missing raw manifest is an execution failure. Tolerances are unchanged.
+
+`control_studies.json` prepares 37 cases on each desktop: running position and
+orientation costs, two historical cost-switch distances, existing final approach
+with one small starting-state perturbation, damping/speed-limit/terminal weights,
+nominal holding and warm-start choices. Reaching uses an explicit eight-second
+observation so settling switches can act; zero-dwell rough task success is
+reported separately from observation timeout and physical compliance. These
+reuse the frozen two reaches and 24-second figure eight. Holding is a finite
+observation, not an equilibrium certificate. Model/gripper sensitivity is still
+unimplemented and explicitly listed in the plan. The original target task suite
+and canonical mode B preflight precede this substantive task adapter.
+
+```sh
+python3 experiments/run.py --plan experiments/model_checks.json --machine rtx5060 --dry-run
+python3 experiments/run.py --plan experiments/control_studies.json --machine rtx5060 --dry-run
+```
+
+The same commands without `--dry-run` execute the selected plan on that machine.
+CPU preparation is not target qualification. Shared readiness supports the
+repository's namespace package and requires the selected native module.
+
+## Remaining Jetson proposals
+
+`jetson_remaining_plan.py` copies unchanged study definitions into
+`t01_jetson_proposed.json` (six reaching/tracking tasks),
+`f01c_jetson_proposed.json` (15 same-candidate timing cells) and
+`ba_jetson_proposed.json` (300 batching-quality/nominal-compute episodes).
+Together with the existing batching, resource and warm-start proposal plans,
+these are prepared coverage, not execution authorization. Inspect retained
+Jetson timings, estimate duration/storage and discuss any shorter protocol with
+Felix before execution. Repeats and coverage have not been silently reduced.
+Jetson cold/warm timing (F01ab) is completed and remains excluded.
 
 ## Relevant checks
 
