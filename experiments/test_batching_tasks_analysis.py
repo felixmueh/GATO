@@ -12,6 +12,9 @@ def test_terminal_attempts_keep_failed_retry_and_mode(tmp_path):
             identity=dict(source_commit='synthetic-source'),case=dict(id='pair1',parameters=dict(pair_id=1,batch=1,arm='nominal16x' if study=='BA' else 'default')),
             error='saved setup failure' if status=='blocked' else None))
         if status!='blocked':write_json(path/'metrics.json',dict(task_success=task,physical_pass=False,outcome='timeout',campaign_id=study,timing_mode=mode))
+    preflight=raw/'gtx1070/_preflight/BA/attempt-001';preflight.mkdir(parents=True)
+    write_json(preflight/'receipt.json',dict(experiment='BA',kind='preflight',status='completed',case=dict(id='preflight')))
+    write_json(preflight/'metrics.json',dict(task_success=True,physical_pass=True))
     rows=analyze(raw,output)
     assert len(rows)==3 and [r['status'] for r in rows].count('completed')==1
     assert {r['timing_mode'] for r in rows}=={'A','B'}

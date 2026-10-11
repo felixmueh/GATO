@@ -37,6 +37,10 @@ def test_saved_pairs_failures_and_distinct_cohorts(tmp_path):
     blocked=tmp_path/'attempt-004';blocked.mkdir()
     write_json(blocked/'receipt.json',dict(experiment='E02-original-truth1',machine='rtx5060',case=dict(id='original-truth1',
         parameters=dict(mode='original',truth_index=1)),status='blocked',error='retained canonical failure'))
+    preflight=tmp_path/'attempt-005';preflight.mkdir()
+    write_json(preflight/'receipt.json',dict(experiment='E02-original-truth1',kind='preflight',machine='rtx5060',
+        case=dict(id='preflight'),status='completed'))
+    write_json(preflight/'metrics.json',dict(task_success=True,physical_pass=True))
     collected=collect(tmp_path)
     list_result=load(index)
     assert isinstance(collected,list) and len(list_result['attempts'])==5

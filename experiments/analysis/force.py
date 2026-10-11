@@ -28,8 +28,10 @@ def load(index_path):
         if not Path(relative).is_absolute() and not raw.is_relative_to(root):raise ValueError('Attempt escapes collection')
         def read(name):
             target=raw/(name+'.json');return json.loads(target.read_text()) if target.exists() else {}
+        receipt=read('receipt')
+        if receipt.get('kind')=='preflight':continue
         protocol,provenance,metrics=read('protocol'),read('provenance'),read('metrics')
-        case=read('receipt').get('case',entry.get('case',{}))
+        case=receipt.get('case',entry.get('case',{}))
         case=case if isinstance(case,dict) else {}
         p=metrics.get('parameters',protocol.get('case',case.get('parameters',{})))
         identity=dict(attempt=str(raw),machine=provenance.get('machine') or entry.get('machine') or index_metadata.get('machine'),

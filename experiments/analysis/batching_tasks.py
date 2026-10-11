@@ -17,7 +17,9 @@ def analyze(raw,output):
     output.mkdir(parents=True,exist_ok=False);rows=[]
     for entry in records(raw):
         if entry.get('experiment') not in ('BA','BB') or entry['status']=='running':continue
-        path=raw/entry['attempt'];receipt=read(path/'receipt.json');m=entry['metrics'];p=read(path/'provenance.json')
+        path=raw/entry['attempt'];receipt=read(path/'receipt.json')
+        if receipt.get('kind')=='preflight':continue
+        m=entry['metrics'];p=read(path/'provenance.json')
         params=receipt.get('case',{}).get('parameters',m.get('parameters',{}));bounds=m.get('physical',{})
         row={k:entry.get(k) for k in ('attempt','machine','source_commit','protocol','timing_mode','execution_backend','status')}
         row['timing_mode']=row['timing_mode'] or receipt.get('timing_mode',receipt.get('identity',{}).get('timing_mode'))
