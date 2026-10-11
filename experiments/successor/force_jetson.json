@@ -1,0 +1,828 @@
+{
+  "version": 1,
+  "experiments": [
+    {
+      "id": "E03",
+      "research_question": "RQ-force",
+      "protocol": "force-persistent-grid-v2",
+      "cohort_id": "force-grid-zero-pcg-v2",
+      "stopping_policy": "zero_pcg_or_finite_kkt",
+      "source_commit": "61a8135f6b986ef1deca1de562ac184936698133",
+      "machines": [
+        "jetson"
+      ],
+      "timing_mode": "A",
+      "backend": "internal",
+      "inputs": {
+        "experiments/inputs/force_v2/task_inputs/v01.json": "20920040853786cf3d96f13ba240f82918a9f0f5020270fbe67715666477cc81",
+        "experiments/inputs/force_v2/task_inputs/t01.json": "aec47cfa3819de5adbb8633b637f5bd9bcd327cb3afc5043a856b323af5aac41",
+        "experiments/inputs/force_v2/task_inputs/SHA256SUMS.json": "7835ecd62576737334582d50e724a4be83b4bd2878d2085143b76ec0eb44b8b1",
+        "experiments/inputs/force_v2/native_inputs/arrays.npz": "81543c5ce403343799c6df3db66cba1e936c877f8bff6a8b61a2334db50b5e4a",
+        "experiments/inputs/force_v2/native_inputs/protocol.json": "d6c1d63b5e33f732358e07742a569460d304f8c502d600e4c0760fe8c22afd4c",
+        "experiments/inputs/force_v2/native_inputs/SHA256SUMS.json": "6655c2ad8919f8b0ea988433ebcf6dfac3288e5d6ab3ce1ad39ef4196cd23f47",
+        "experiments/inputs/force_v2/selection.json": "299cc36c86650e6dc8a1ece15da19bdd693b5d6a2bfe0d08c1fe329eba65c27b"
+      },
+      "build": {
+        "commands": [
+          [
+            "cmake",
+            "-S",
+            "{source}/experiments/force_adapter/native",
+            "-B",
+            "{build}",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DCMAKE_CUDA_ARCHITECTURES={cuda_arch}-real",
+            "-DPython3_EXECUTABLE={python}"
+          ],
+          [
+            "cmake",
+            "--build",
+            "{build}",
+            "--target",
+            "bsqpN32_tiago_right",
+            "cuda_access_smoke",
+            "--parallel",
+            "2"
+          ]
+        ],
+        "artifacts": [
+          "modules/bsqpN32_tiago_right*.so",
+          "cuda_access_smoke"
+        ]
+      },
+      "command": [
+        "{python}",
+        "{runner}/adapters/force.py",
+        "--source",
+        "{source}",
+        "--build",
+        "{build}",
+        "--inputs",
+        "{inputs}/experiments/inputs/force_v2/native_inputs",
+        "--output",
+        "{output}",
+        "--case",
+        "{case}"
+      ],
+      "timeout_seconds": 900,
+      "cases": [
+        {
+          "id": "input0-original-truth0",
+          "parameters": {
+            "study": "E03",
+            "stage": "measurement",
+            "mode": "original",
+            "input_index": 0,
+            "truth_index": 0,
+            "timing_mode": "A",
+            "backend": "internal",
+            "machine": "jetson"
+          }
+        },
+        {
+          "id": "input0-adapted-truth0",
+          "parameters": {
+            "study": "E03",
+            "stage": "measurement",
+            "mode": "adapted",
+            "input_index": 0,
+            "truth_index": 0,
+            "timing_mode": "A",
+            "backend": "internal",
+            "machine": "jetson"
+          }
+        },
+        {
+          "id": "input0-original-truth1",
+          "parameters": {
+            "study": "E03",
+            "stage": "measurement",
+            "mode": "original",
+            "input_index": 0,
+            "truth_index": 1,
+            "timing_mode": "A",
+            "backend": "internal",
+            "machine": "jetson"
+          }
+        },
+        {
+          "id": "input0-adapted-truth1",
+          "parameters": {
+            "study": "E03",
+            "stage": "measurement",
+            "mode": "adapted",
+            "input_index": 0,
+            "truth_index": 1,
+            "timing_mode": "A",
+            "backend": "internal",
+            "machine": "jetson"
+          }
+        },
+        {
+          "id": "input1-original-truth0",
+          "parameters": {
+            "study": "E03",
+            "stage": "measurement",
+            "mode": "original",
+            "input_index": 1,
+            "truth_index": 0,
+            "timing_mode": "A",
+            "backend": "internal",
+            "machine": "jetson"
+          }
+        },
+        {
+          "id": "input1-adapted-truth0",
+          "parameters": {
+            "study": "E03",
+            "stage": "measurement",
+            "mode": "adapted",
+            "input_index": 1,
+            "truth_index": 0,
+            "timing_mode": "A",
+            "backend": "internal",
+            "machine": "jetson"
+          }
+        },
+        {
+          "id": "input1-original-truth1",
+          "parameters": {
+            "study": "E03",
+            "stage": "measurement",
+            "mode": "original",
+            "input_index": 1,
+            "truth_index": 1,
+            "timing_mode": "A",
+            "backend": "internal",
+            "machine": "jetson"
+          }
+        },
+        {
+          "id": "input1-adapted-truth1",
+          "parameters": {
+            "study": "E03",
+            "stage": "measurement",
+            "mode": "adapted",
+            "input_index": 1,
+            "truth_index": 1,
+            "timing_mode": "A",
+            "backend": "internal",
+            "machine": "jetson"
+          }
+        },
+        {
+          "id": "input2-original-truth0",
+          "parameters": {
+            "study": "E03",
+            "stage": "measurement",
+            "mode": "original",
+            "input_index": 2,
+            "truth_index": 0,
+            "timing_mode": "A",
+            "backend": "internal",
+            "machine": "jetson"
+          }
+        },
+        {
+          "id": "input2-adapted-truth0",
+          "parameters": {
+            "study": "E03",
+            "stage": "measurement",
+            "mode": "adapted",
+            "input_index": 2,
+            "truth_index": 0,
+            "timing_mode": "A",
+            "backend": "internal",
+            "machine": "jetson"
+          }
+        },
+        {
+          "id": "input2-original-truth1",
+          "parameters": {
+            "study": "E03",
+            "stage": "measurement",
+            "mode": "original",
+            "input_index": 2,
+            "truth_index": 1,
+            "timing_mode": "A",
+            "backend": "internal",
+            "machine": "jetson"
+          }
+        },
+        {
+          "id": "input2-adapted-truth1",
+          "parameters": {
+            "study": "E03",
+            "stage": "measurement",
+            "mode": "adapted",
+            "input_index": 2,
+            "truth_index": 1,
+            "timing_mode": "A",
+            "backend": "internal",
+            "machine": "jetson"
+          }
+        },
+        {
+          "id": "input3-original-truth0",
+          "parameters": {
+            "study": "E03",
+            "stage": "measurement",
+            "mode": "original",
+            "input_index": 3,
+            "truth_index": 0,
+            "timing_mode": "A",
+            "backend": "internal",
+            "machine": "jetson"
+          }
+        },
+        {
+          "id": "input3-adapted-truth0",
+          "parameters": {
+            "study": "E03",
+            "stage": "measurement",
+            "mode": "adapted",
+            "input_index": 3,
+            "truth_index": 0,
+            "timing_mode": "A",
+            "backend": "internal",
+            "machine": "jetson"
+          }
+        },
+        {
+          "id": "input3-original-truth1",
+          "parameters": {
+            "study": "E03",
+            "stage": "measurement",
+            "mode": "original",
+            "input_index": 3,
+            "truth_index": 1,
+            "timing_mode": "A",
+            "backend": "internal",
+            "machine": "jetson"
+          }
+        },
+        {
+          "id": "input3-adapted-truth1",
+          "parameters": {
+            "study": "E03",
+            "stage": "measurement",
+            "mode": "adapted",
+            "input_index": 3,
+            "truth_index": 1,
+            "timing_mode": "A",
+            "backend": "internal",
+            "machine": "jetson"
+          }
+        },
+        {
+          "id": "input4-original-truth0",
+          "parameters": {
+            "study": "E03",
+            "stage": "measurement",
+            "mode": "original",
+            "input_index": 4,
+            "truth_index": 0,
+            "timing_mode": "A",
+            "backend": "internal",
+            "machine": "jetson"
+          }
+        },
+        {
+          "id": "input4-adapted-truth0",
+          "parameters": {
+            "study": "E03",
+            "stage": "measurement",
+            "mode": "adapted",
+            "input_index": 4,
+            "truth_index": 0,
+            "timing_mode": "A",
+            "backend": "internal",
+            "machine": "jetson"
+          }
+        },
+        {
+          "id": "input4-original-truth1",
+          "parameters": {
+            "study": "E03",
+            "stage": "measurement",
+            "mode": "original",
+            "input_index": 4,
+            "truth_index": 1,
+            "timing_mode": "A",
+            "backend": "internal",
+            "machine": "jetson"
+          }
+        },
+        {
+          "id": "input4-adapted-truth1",
+          "parameters": {
+            "study": "E03",
+            "stage": "measurement",
+            "mode": "adapted",
+            "input_index": 4,
+            "truth_index": 1,
+            "timing_mode": "A",
+            "backend": "internal",
+            "machine": "jetson"
+          }
+        },
+        {
+          "id": "input5-original-truth0",
+          "parameters": {
+            "study": "E03",
+            "stage": "measurement",
+            "mode": "original",
+            "input_index": 5,
+            "truth_index": 0,
+            "timing_mode": "A",
+            "backend": "internal",
+            "machine": "jetson"
+          }
+        },
+        {
+          "id": "input5-adapted-truth0",
+          "parameters": {
+            "study": "E03",
+            "stage": "measurement",
+            "mode": "adapted",
+            "input_index": 5,
+            "truth_index": 0,
+            "timing_mode": "A",
+            "backend": "internal",
+            "machine": "jetson"
+          }
+        },
+        {
+          "id": "input5-original-truth1",
+          "parameters": {
+            "study": "E03",
+            "stage": "measurement",
+            "mode": "original",
+            "input_index": 5,
+            "truth_index": 1,
+            "timing_mode": "A",
+            "backend": "internal",
+            "machine": "jetson"
+          }
+        },
+        {
+          "id": "input5-adapted-truth1",
+          "parameters": {
+            "study": "E03",
+            "stage": "measurement",
+            "mode": "adapted",
+            "input_index": 5,
+            "truth_index": 1,
+            "timing_mode": "A",
+            "backend": "internal",
+            "machine": "jetson"
+          }
+        }
+      ],
+      "preflight": {
+        "group": "force-grid-native",
+        "command": [
+          "{build}/cuda_access_smoke"
+        ]
+      }
+    },
+    {
+      "id": "E02-no_estimator",
+      "research_question": "RQ-force",
+      "protocol": "force-persistent-grid-v2",
+      "cohort_id": "force-grid-zero-pcg-v2",
+      "stopping_policy": "zero_pcg_or_finite_kkt",
+      "source_commit": "61a8135f6b986ef1deca1de562ac184936698133",
+      "machines": [
+        "jetson"
+      ],
+      "timing_mode": "B",
+      "backend": "internal",
+      "inputs": {
+        "experiments/inputs/force_v2/task_inputs/v01.json": "20920040853786cf3d96f13ba240f82918a9f0f5020270fbe67715666477cc81",
+        "experiments/inputs/force_v2/task_inputs/t01.json": "aec47cfa3819de5adbb8633b637f5bd9bcd327cb3afc5043a856b323af5aac41",
+        "experiments/inputs/force_v2/task_inputs/SHA256SUMS.json": "7835ecd62576737334582d50e724a4be83b4bd2878d2085143b76ec0eb44b8b1",
+        "experiments/inputs/force_v2/native_inputs/arrays.npz": "81543c5ce403343799c6df3db66cba1e936c877f8bff6a8b61a2334db50b5e4a",
+        "experiments/inputs/force_v2/native_inputs/protocol.json": "d6c1d63b5e33f732358e07742a569460d304f8c502d600e4c0760fe8c22afd4c",
+        "experiments/inputs/force_v2/native_inputs/SHA256SUMS.json": "6655c2ad8919f8b0ea988433ebcf6dfac3288e5d6ab3ce1ad39ef4196cd23f47",
+        "experiments/inputs/force_v2/selection.json": "299cc36c86650e6dc8a1ece15da19bdd693b5d6a2bfe0d08c1fe329eba65c27b"
+      },
+      "build": {
+        "commands": [
+          [
+            "cmake",
+            "-S",
+            "{source}/experiments/force_adapter/native",
+            "-B",
+            "{build}",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DCMAKE_CUDA_ARCHITECTURES={cuda_arch}-real",
+            "-DPython3_EXECUTABLE={python}"
+          ],
+          [
+            "cmake",
+            "--build",
+            "{build}",
+            "--target",
+            "bsqpN32_tiago_right",
+            "cuda_access_smoke",
+            "--parallel",
+            "2"
+          ]
+        ],
+        "artifacts": [
+          "modules/bsqpN32_tiago_right*.so",
+          "cuda_access_smoke"
+        ]
+      },
+      "command": [
+        "{python}",
+        "{runner}/adapters/force.py",
+        "--source",
+        "{source}",
+        "--build",
+        "{build}",
+        "--inputs",
+        "{inputs}/experiments/inputs/force_v2/task_inputs",
+        "--output",
+        "{output}",
+        "--case",
+        "{case}",
+        "--allow-speed-only"
+      ],
+      "timeout_seconds": 900,
+      "cases": [
+        {
+          "id": "figure8-0N-r0",
+          "parameters": {
+            "study": "E02",
+            "stage": "measurement",
+            "mode": "no_estimator",
+            "force_N": 0.0,
+            "repeat": 0,
+            "timing_mode": "B",
+            "backend": "internal",
+            "machine": "jetson"
+          }
+        },
+        {
+          "id": "figure8-10N-r0",
+          "parameters": {
+            "study": "E02",
+            "stage": "measurement",
+            "mode": "no_estimator",
+            "force_N": 10.0,
+            "repeat": 0,
+            "timing_mode": "B",
+            "backend": "internal",
+            "machine": "jetson"
+          }
+        },
+        {
+          "id": "figure8-10N-r1",
+          "parameters": {
+            "study": "E02",
+            "stage": "measurement",
+            "mode": "no_estimator",
+            "force_N": 10.0,
+            "repeat": 1,
+            "timing_mode": "B",
+            "backend": "internal",
+            "machine": "jetson"
+          }
+        },
+        {
+          "id": "figure8-10N-r2",
+          "parameters": {
+            "study": "E02",
+            "stage": "measurement",
+            "mode": "no_estimator",
+            "force_N": 10.0,
+            "repeat": 2,
+            "timing_mode": "B",
+            "backend": "internal",
+            "machine": "jetson"
+          }
+        }
+      ],
+      "preflight": {
+        "group": "force-grid-B-no_estimator",
+        "command": [
+          "{python}",
+          "{runner}/adapters/force.py",
+          "--source",
+          "{source}",
+          "--build",
+          "{build}",
+          "--inputs",
+          "{inputs}/experiments/inputs/force_v2/task_inputs",
+          "--output",
+          "{output}",
+          "--preflight",
+          "--mode",
+          "no_estimator",
+          "--allow-speed-only"
+        ],
+        "scope": "Undisturbed0N rough-reaching readiness, shared across0/F*; disturbance physical compliance measured in task runs"
+      },
+      "speed_only_waiver": "Internal force simulations only; unchanged position/torque/finite/effort limits; speed descriptive; raw physical flags retained"
+    },
+    {
+      "id": "E02-original",
+      "research_question": "RQ-force",
+      "protocol": "force-persistent-grid-v2",
+      "cohort_id": "force-grid-zero-pcg-v2",
+      "stopping_policy": "zero_pcg_or_finite_kkt",
+      "source_commit": "61a8135f6b986ef1deca1de562ac184936698133",
+      "machines": [
+        "jetson"
+      ],
+      "timing_mode": "B",
+      "backend": "internal",
+      "inputs": {
+        "experiments/inputs/force_v2/task_inputs/v01.json": "20920040853786cf3d96f13ba240f82918a9f0f5020270fbe67715666477cc81",
+        "experiments/inputs/force_v2/task_inputs/t01.json": "aec47cfa3819de5adbb8633b637f5bd9bcd327cb3afc5043a856b323af5aac41",
+        "experiments/inputs/force_v2/task_inputs/SHA256SUMS.json": "7835ecd62576737334582d50e724a4be83b4bd2878d2085143b76ec0eb44b8b1",
+        "experiments/inputs/force_v2/native_inputs/arrays.npz": "81543c5ce403343799c6df3db66cba1e936c877f8bff6a8b61a2334db50b5e4a",
+        "experiments/inputs/force_v2/native_inputs/protocol.json": "d6c1d63b5e33f732358e07742a569460d304f8c502d600e4c0760fe8c22afd4c",
+        "experiments/inputs/force_v2/native_inputs/SHA256SUMS.json": "6655c2ad8919f8b0ea988433ebcf6dfac3288e5d6ab3ce1ad39ef4196cd23f47",
+        "experiments/inputs/force_v2/selection.json": "299cc36c86650e6dc8a1ece15da19bdd693b5d6a2bfe0d08c1fe329eba65c27b"
+      },
+      "build": {
+        "commands": [
+          [
+            "cmake",
+            "-S",
+            "{source}/experiments/force_adapter/native",
+            "-B",
+            "{build}",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DCMAKE_CUDA_ARCHITECTURES={cuda_arch}-real",
+            "-DPython3_EXECUTABLE={python}"
+          ],
+          [
+            "cmake",
+            "--build",
+            "{build}",
+            "--target",
+            "bsqpN32_tiago_right",
+            "cuda_access_smoke",
+            "--parallel",
+            "2"
+          ]
+        ],
+        "artifacts": [
+          "modules/bsqpN32_tiago_right*.so",
+          "cuda_access_smoke"
+        ]
+      },
+      "command": [
+        "{python}",
+        "{runner}/adapters/force.py",
+        "--source",
+        "{source}",
+        "--build",
+        "{build}",
+        "--inputs",
+        "{inputs}/experiments/inputs/force_v2/task_inputs",
+        "--output",
+        "{output}",
+        "--case",
+        "{case}",
+        "--allow-speed-only"
+      ],
+      "timeout_seconds": 900,
+      "cases": [
+        {
+          "id": "figure8-0N-r0",
+          "parameters": {
+            "study": "E02",
+            "stage": "measurement",
+            "mode": "original",
+            "force_N": 0.0,
+            "repeat": 0,
+            "timing_mode": "B",
+            "backend": "internal",
+            "machine": "jetson"
+          }
+        },
+        {
+          "id": "figure8-10N-r0",
+          "parameters": {
+            "study": "E02",
+            "stage": "measurement",
+            "mode": "original",
+            "force_N": 10.0,
+            "repeat": 0,
+            "timing_mode": "B",
+            "backend": "internal",
+            "machine": "jetson"
+          }
+        },
+        {
+          "id": "figure8-10N-r1",
+          "parameters": {
+            "study": "E02",
+            "stage": "measurement",
+            "mode": "original",
+            "force_N": 10.0,
+            "repeat": 1,
+            "timing_mode": "B",
+            "backend": "internal",
+            "machine": "jetson"
+          }
+        },
+        {
+          "id": "figure8-10N-r2",
+          "parameters": {
+            "study": "E02",
+            "stage": "measurement",
+            "mode": "original",
+            "force_N": 10.0,
+            "repeat": 2,
+            "timing_mode": "B",
+            "backend": "internal",
+            "machine": "jetson"
+          }
+        }
+      ],
+      "preflight": {
+        "group": "force-grid-B-original",
+        "command": [
+          "{python}",
+          "{runner}/adapters/force.py",
+          "--source",
+          "{source}",
+          "--build",
+          "{build}",
+          "--inputs",
+          "{inputs}/experiments/inputs/force_v2/task_inputs",
+          "--output",
+          "{output}",
+          "--preflight",
+          "--mode",
+          "original",
+          "--allow-speed-only"
+        ],
+        "scope": "Undisturbed0N rough-reaching readiness, shared across0/F*; disturbance physical compliance measured in task runs"
+      },
+      "speed_only_waiver": "Internal force simulations only; unchanged position/torque/finite/effort limits; speed descriptive; raw physical flags retained"
+    },
+    {
+      "id": "E02-adapted",
+      "research_question": "RQ-force",
+      "protocol": "force-persistent-grid-v2",
+      "cohort_id": "force-grid-zero-pcg-v2",
+      "stopping_policy": "zero_pcg_or_finite_kkt",
+      "source_commit": "61a8135f6b986ef1deca1de562ac184936698133",
+      "machines": [
+        "jetson"
+      ],
+      "timing_mode": "B",
+      "backend": "internal",
+      "inputs": {
+        "experiments/inputs/force_v2/task_inputs/v01.json": "20920040853786cf3d96f13ba240f82918a9f0f5020270fbe67715666477cc81",
+        "experiments/inputs/force_v2/task_inputs/t01.json": "aec47cfa3819de5adbb8633b637f5bd9bcd327cb3afc5043a856b323af5aac41",
+        "experiments/inputs/force_v2/task_inputs/SHA256SUMS.json": "7835ecd62576737334582d50e724a4be83b4bd2878d2085143b76ec0eb44b8b1",
+        "experiments/inputs/force_v2/native_inputs/arrays.npz": "81543c5ce403343799c6df3db66cba1e936c877f8bff6a8b61a2334db50b5e4a",
+        "experiments/inputs/force_v2/native_inputs/protocol.json": "d6c1d63b5e33f732358e07742a569460d304f8c502d600e4c0760fe8c22afd4c",
+        "experiments/inputs/force_v2/native_inputs/SHA256SUMS.json": "6655c2ad8919f8b0ea988433ebcf6dfac3288e5d6ab3ce1ad39ef4196cd23f47",
+        "experiments/inputs/force_v2/selection.json": "299cc36c86650e6dc8a1ece15da19bdd693b5d6a2bfe0d08c1fe329eba65c27b"
+      },
+      "build": {
+        "commands": [
+          [
+            "cmake",
+            "-S",
+            "{source}/experiments/force_adapter/native",
+            "-B",
+            "{build}",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DCMAKE_CUDA_ARCHITECTURES={cuda_arch}-real",
+            "-DPython3_EXECUTABLE={python}"
+          ],
+          [
+            "cmake",
+            "--build",
+            "{build}",
+            "--target",
+            "bsqpN32_tiago_right",
+            "cuda_access_smoke",
+            "--parallel",
+            "2"
+          ]
+        ],
+        "artifacts": [
+          "modules/bsqpN32_tiago_right*.so",
+          "cuda_access_smoke"
+        ]
+      },
+      "command": [
+        "{python}",
+        "{runner}/adapters/force.py",
+        "--source",
+        "{source}",
+        "--build",
+        "{build}",
+        "--inputs",
+        "{inputs}/experiments/inputs/force_v2/task_inputs",
+        "--output",
+        "{output}",
+        "--case",
+        "{case}",
+        "--allow-speed-only"
+      ],
+      "timeout_seconds": 900,
+      "cases": [
+        {
+          "id": "figure8-0N-r0",
+          "parameters": {
+            "study": "E02",
+            "stage": "measurement",
+            "mode": "adapted",
+            "force_N": 0.0,
+            "repeat": 0,
+            "timing_mode": "B",
+            "backend": "internal",
+            "machine": "jetson"
+          }
+        },
+        {
+          "id": "figure8-10N-r0",
+          "parameters": {
+            "study": "E02",
+            "stage": "measurement",
+            "mode": "adapted",
+            "force_N": 10.0,
+            "repeat": 0,
+            "timing_mode": "B",
+            "backend": "internal",
+            "machine": "jetson"
+          }
+        },
+        {
+          "id": "figure8-10N-r1",
+          "parameters": {
+            "study": "E02",
+            "stage": "measurement",
+            "mode": "adapted",
+            "force_N": 10.0,
+            "repeat": 1,
+            "timing_mode": "B",
+            "backend": "internal",
+            "machine": "jetson"
+          }
+        },
+        {
+          "id": "figure8-10N-r2",
+          "parameters": {
+            "study": "E02",
+            "stage": "measurement",
+            "mode": "adapted",
+            "force_N": 10.0,
+            "repeat": 2,
+            "timing_mode": "B",
+            "backend": "internal",
+            "machine": "jetson"
+          }
+        }
+      ],
+      "preflight": {
+        "group": "force-grid-B-adapted",
+        "command": [
+          "{python}",
+          "{runner}/adapters/force.py",
+          "--source",
+          "{source}",
+          "--build",
+          "{build}",
+          "--inputs",
+          "{inputs}/experiments/inputs/force_v2/task_inputs",
+          "--output",
+          "{output}",
+          "--preflight",
+          "--mode",
+          "adapted",
+          "--allow-speed-only"
+        ],
+        "scope": "Undisturbed0N rough-reaching readiness, shared across0/F*; disturbance physical compliance measured in task runs"
+      },
+      "speed_only_waiver": "Internal force simulations only; unchanged position/torque/finite/effort limits; speed descriptive; raw physical flags retained"
+    }
+  ],
+  "selected_force_N": 10.0,
+  "selection_sha256": "299cc36c86650e6dc8a1ece15da19bdd693b5d6a2bfe0d08c1fe329eba65c27b",
+  "status": "proposed_duration_storage_discussion_pending",
+  "preparation": {
+    "E02_tasks": 12,
+    "E03_input_truth_pairs": 12,
+    "E03_method_cases": 24,
+    "excluded_warmups_per_case": 1,
+    "measured_ticks_per_case": 20,
+    "E01": "Derived from matched GPU prediction/selection bank; no separate runs",
+    "canonical": "Three undisturbed0N method preflights; F* actual task physical outcomes separate",
+    "timing": "Persistent estimator prediction/selection/update/TO wall; nativeTO separate; construction and memory query outside tick timing",
+    "force": "Attached pure force at last-joint origin, initially world-Z downward; changing world direction retained",
+    "Jetson": "Duration/storage discussion before execution; no silent pruning"
+  }
+}

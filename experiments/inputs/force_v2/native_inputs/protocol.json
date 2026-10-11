@@ -1,0 +1,117 @@
+{
+  "protocol_id": "force-persistent-grid-native-v2",
+  "status": "new selected-force bank; target measurements pending",
+  "input_source_commit": "9f2ab6f3dfd324e397fd4d6909f70284558c8d76",
+  "input_source_bank_sha256": "50210ac0701d63bb1e63981748010d430092c404c82015b2a4e549c94ba526a3",
+  "inputs": [
+    {
+      "id": "start-0-goal-1",
+      "start_index": 0,
+      "goal_index": 0
+    },
+    {
+      "id": "start-0-goal-2",
+      "start_index": 0,
+      "goal_index": 1
+    },
+    {
+      "id": "start-0-goal-3",
+      "start_index": 0,
+      "goal_index": 2
+    },
+    {
+      "id": "start-1-goal-1",
+      "start_index": 1,
+      "goal_index": 0
+    },
+    {
+      "id": "start-1-goal-2",
+      "start_index": 1,
+      "goal_index": 1
+    },
+    {
+      "id": "start-1-goal-3",
+      "start_index": 1,
+      "goal_index": 2
+    }
+  ],
+  "params": {
+    "max_sqp_iters": 5,
+    "kkt_tol": 0.001,
+    "max_pcg_iters": 120,
+    "pcg_tol": 0.001,
+    "solve_ratio": 1.0,
+    "mu": 1.0,
+    "q_cost": 4.0,
+    "qd_cost": 0.01,
+    "u_cost": 0.0001,
+    "N_cost": 80.0,
+    "ee_orient_cost": 0.0,
+    "ee_orient_N_cost": 0.0,
+    "q_lim_cost": 0.01,
+    "vel_lim_cost": 0.001,
+    "ctrl_lim_cost": 0.003,
+    "rho": 0.01
+  },
+  "N": 32,
+  "dt_s": 0.03,
+  "sim_dt_s": 0.003,
+  "batch_size": 16,
+  "previous_time_s": 0.0,
+  "observed_time_s": 0.03,
+  "control_intervals_s": [
+    [
+      0.0,
+      0.015
+    ],
+    [
+      0.015,
+      0.03
+    ]
+  ],
+  "modes": [
+    "original",
+    "adapted"
+  ],
+  "truths": [
+    "zero",
+    "selected_attached_force"
+  ],
+  "frame": "arm_right_7_joint",
+  "point": "arm_right_7_joint origin",
+  "components": "Fx,Fy,Fz,Tx,Ty,Tz",
+  "estimator": {
+    "initial_radius": 10.0,
+    "min_radius": 1.0,
+    "max_radius": 100.0,
+    "smoothing_factor": 0.5,
+    "alpha": 0.6,
+    "beta": 0.5
+  },
+  "seed_policy": "same shifted selected-plan warm seed broadcast to all hypotheses per tick",
+  "comparison": "Original B16 TO then predict/select/update; adapted predict/select/update then selected B1 TO. Correspondence of predictions/selection separate from optimizer output quality.",
+  "E01": {
+    "derived_from": "matched E03 prediction/selection records across both arms; no separate measurements"
+  },
+  "E03": {
+    "input_truth_pairs": 12,
+    "excluded_warmups_per_owner": 1,
+    "measured_ticks_per_input_method": 20,
+    "timing_mode": "A",
+    "construction_memory_queries": "outside per-tick timers",
+    "memory": "exact requested persistent device and pinned-host bytes, model/simulation included; boundary snapshots cross-check"
+  },
+  "E02": {
+    "status": "task_protocol_preparation",
+    "timing_mode": "B",
+    "goals": "Reuse canonical modest goal and frozen T01 inputs; body-fixed2N disturbance; current rough/physical gates; no actual task run"
+  },
+  "model_sha256": "8e1fd973a1d1c3fbddd55039e6eb17b355ebb29f46e1bd8c774b7879c2cdc5bb",
+  "limitations": "Matched fixed observation bank; optimizer outputs/warm histories can differ between methods; no same-quality or task-outcome claim",
+  "selected_force_N": 10.0,
+  "truth_direction": "attached last-joint force initially aligned world-Z downward, per preserved input state",
+  "rho_policy": "reset each tick; within-solve adaptation",
+  "dual_policy": "reset after excluded warmup, once before20 measured ticks",
+  "prediction": "existing parallel GRiD TYPE2 simulation, previous measured state and actual-interval time-weighted control",
+  "original_bank_sha256": "b88a6c2160515f71cb1ebcf29467393b3ef813242e6ffc8f939e5dfbe850b89f"
+}

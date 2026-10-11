@@ -1,0 +1,175 @@
+{
+  "protocol": "force-screen5-10-20-v2",
+  "degradation_threshold_m": 0.01,
+  "speed_only_waiver": true,
+  "waiver_scope": "Internal force simulations only; speed descriptive, unchanged position/torque/finite/effort gates; raw physical_pass retained",
+  "reviewed_recording_only_source": "61a8135f6b986ef1deca1de562ac184936698133",
+  "recording_compatibility_scope": "Only the explicitly reviewed recording-only successor of bbbb047; identical native module and task/settings inputs; original source labels retained",
+  "original_smoke": {
+    "attempt": "/workspace/GATO/_expr_results/force-rho-policy-20261011T201734Z/smoke-original0",
+    "metrics_sha256": "908a22291ca88eb4eb9f9b19a9a6e3b55c8745cb94d23c95c909b658dd6e3d11",
+    "canonical_output": "/workspace/GATO/_expr_results/force-rho-policy-20261011T201734Z/canonical-original0",
+    "canonical_metrics_sha256": "d6bb3fd97923298f408a1508040e9950c38682eeed7cb03fbd4d14b1c79aeeff",
+    "task_success": false,
+    "physical_pass": true,
+    "speed_only_waiver": true,
+    "physical_limit_excess": {
+      "q_rad": 0.0,
+      "v_rad_s": 0.0,
+      "u_Nm": 0.0
+    },
+    "eligibility_pass": true,
+    "tracking_RMS_error_m": 0.021323180456982165,
+    "note": "Execution/finite/physical smoke gate; historical20mm task gate is reported, not a smoke execution gate."
+  },
+  "baseline": {
+    "force_N": 0.0,
+    "attempt": "/workspace/GATO/_expr_results/force-rho-policy-20261011T201734Z/screen-no-estimator-0N",
+    "status": "completed",
+    "execution_error": null,
+    "task_success": true,
+    "physical_pass": true,
+    "physical_limit_excess": {
+      "q_rad": 0.0,
+      "v_rad_s": 0.0,
+      "u_Nm": 0.0
+    },
+    "physical_eligibility": true,
+    "RMS_m": 0.019868894525457485,
+    "executed_duration_s": 24.0,
+    "sampled_effort_ratio": 0.367154414837177,
+    "metrics_sha256": "de23792cbcfcf8fe6a703042e980e197f27f0adbeab8cf3674e93ab2a9bd77d8",
+    "compatibility": {
+      "source_commit": "bbbb047c9827beedff15b40d42aacc6389fa06ba",
+      "module_sha256": "a93273dc23b8e9d1c7c46d0c898599b78544948cb6e1ef8f36f8faab4ee7a526",
+      "input_sha256": {
+        "v01.json": "20920040853786cf3d96f13ba240f82918a9f0f5020270fbe67715666477cc81",
+        "t01.json": "aec47cfa3819de5adbb8633b637f5bd9bcd327cb3afc5043a856b323af5aac41"
+      }
+    }
+  },
+  "all_attempts": [
+    {
+      "force_N": 0.0,
+      "attempt": "/workspace/GATO/_expr_results/force-rho-policy-20261011T201734Z/screen-no-estimator-0N",
+      "status": "completed",
+      "execution_error": null,
+      "task_success": true,
+      "physical_pass": true,
+      "physical_limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "physical_eligibility": true,
+      "RMS_m": 0.019868894525457485,
+      "executed_duration_s": 24.0,
+      "sampled_effort_ratio": 0.367154414837177,
+      "metrics_sha256": "de23792cbcfcf8fe6a703042e980e197f27f0adbeab8cf3674e93ab2a9bd77d8",
+      "compatibility": {
+        "source_commit": "bbbb047c9827beedff15b40d42aacc6389fa06ba",
+        "module_sha256": "a93273dc23b8e9d1c7c46d0c898599b78544948cb6e1ef8f36f8faab4ee7a526",
+        "input_sha256": {
+          "v01.json": "20920040853786cf3d96f13ba240f82918a9f0f5020270fbe67715666477cc81",
+          "t01.json": "aec47cfa3819de5adbb8633b637f5bd9bcd327cb3afc5043a856b323af5aac41"
+        }
+      }
+    },
+    {
+      "force_N": 10.0,
+      "attempt": "/workspace/GATO/_expr_results/force-rho-policy-20261011T201734Z/screen-no-estimator-10N",
+      "status": "completed",
+      "execution_error": null,
+      "task_success": false,
+      "physical_pass": true,
+      "physical_limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "physical_eligibility": true,
+      "RMS_m": 0.0451439502258371,
+      "executed_duration_s": 24.0,
+      "sampled_effort_ratio": 0.4885673522949219,
+      "metrics_sha256": "b2161ce89c79d1e1107e94bac2a09af9936e424e60698de088048e0b5e91e403",
+      "compatibility": {
+        "source_commit": "61a8135f6b986ef1deca1de562ac184936698133",
+        "module_sha256": "a93273dc23b8e9d1c7c46d0c898599b78544948cb6e1ef8f36f8faab4ee7a526",
+        "input_sha256": {
+          "v01.json": "20920040853786cf3d96f13ba240f82918a9f0f5020270fbe67715666477cc81",
+          "t01.json": "aec47cfa3819de5adbb8633b637f5bd9bcd327cb3afc5043a856b323af5aac41"
+        }
+      },
+      "same_source_module_settings": false,
+      "reviewed_recording_only_source": true,
+      "compatible_scientific_settings": true,
+      "degradation_m": 0.025275055700379617,
+      "qualifies": true
+    },
+    {
+      "force_N": 20.0,
+      "attempt": "/workspace/GATO/_expr_results/force-rho-policy-20261011T201734Z/screen-no-estimator-20N",
+      "status": "completed",
+      "execution_error": null,
+      "task_success": false,
+      "physical_pass": true,
+      "physical_limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "physical_eligibility": true,
+      "RMS_m": 0.07565547576453616,
+      "executed_duration_s": 24.0,
+      "sampled_effort_ratio": 0.608789664048415,
+      "metrics_sha256": "b7011858932985623423c403b2031efbbfd94a311fe0d2e9edeab9c95220ebe7",
+      "compatibility": {
+        "source_commit": "61a8135f6b986ef1deca1de562ac184936698133",
+        "module_sha256": "a93273dc23b8e9d1c7c46d0c898599b78544948cb6e1ef8f36f8faab4ee7a526",
+        "input_sha256": {
+          "v01.json": "20920040853786cf3d96f13ba240f82918a9f0f5020270fbe67715666477cc81",
+          "t01.json": "aec47cfa3819de5adbb8633b637f5bd9bcd327cb3afc5043a856b323af5aac41"
+        }
+      },
+      "same_source_module_settings": false,
+      "reviewed_recording_only_source": true,
+      "compatible_scientific_settings": true,
+      "degradation_m": 0.055786581239078675,
+      "qualifies": true
+    },
+    {
+      "force_N": 5.0,
+      "attempt": "/workspace/GATO/_expr_results/force-rho-policy-20261011T201734Z/screen-no-estimator-5N",
+      "status": "completed",
+      "execution_error": null,
+      "task_success": false,
+      "physical_pass": true,
+      "physical_limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.0,
+        "u_Nm": 0.0
+      },
+      "physical_eligibility": true,
+      "RMS_m": 0.02904814006833243,
+      "executed_duration_s": 24.0,
+      "sampled_effort_ratio": 0.4284709050105168,
+      "metrics_sha256": "9c791aeb96a35a31ccfcec50d12e79241b4c0fd3a17fbbac02a7d68d4120b951",
+      "compatibility": {
+        "source_commit": "61a8135f6b986ef1deca1de562ac184936698133",
+        "module_sha256": "a93273dc23b8e9d1c7c46d0c898599b78544948cb6e1ef8f36f8faab4ee7a526",
+        "input_sha256": {
+          "v01.json": "20920040853786cf3d96f13ba240f82918a9f0f5020270fbe67715666477cc81",
+          "t01.json": "aec47cfa3819de5adbb8633b637f5bd9bcd327cb3afc5043a856b323af5aac41"
+        }
+      },
+      "same_source_module_settings": false,
+      "reviewed_recording_only_source": true,
+      "compatible_scientific_settings": true,
+      "degradation_m": 0.009179245542874945,
+      "qualifies": false
+    }
+  ],
+  "selected_force_N": 10.0,
+  "outcome": "selected_smallest_qualifying_force",
+  "note": "No task-gate relabeling; all scientific/physical failures and execution errors remain explicit. No extended screen or tuning."
+}

@@ -4058,7 +4058,7 @@
   "omissions": {
     "BA_seeds_alone": "Dropped; seed-to-output progress remains saved analysis",
     "Jetson_BA": "No full BA task sweep; same-candidate speedup answered by F01c",
-    "force": "Revised runtime, bounded smoke/screen and selected F* pending; see force_stages.json",
+    "force": "Separate force plans follow actual force_stages.json status and are included by successor inventory when prepared",
     "independent_studies": "No solver-change rerun of F04/Q02/X02/M02; pending M02/F04 target plans remain separate"
   }
 }

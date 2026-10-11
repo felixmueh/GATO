@@ -45,9 +45,9 @@ force and revised E01/E02/E03 coverage. A pending stage is not an executable
 old-force substitute. Persistent solvers and GPU prediction replace the old
 fresh-owner/CPU-predictor study; their data remain separate protocols.
 
-**Current force status: bounded screen; final cohorts pending.** The revised original-method 0 N canonical
+**Current force status: F*=10 N selected; final cohorts prepared.** The revised original-method 0 N canonical
 reached its target but exceeded the sampled joint-speed limit by 0.127113 rad/s.
-No F* or final force bank has been selected. The separate
+The matching v2 bank and final E02/E03 plans are prepared. The separate
 `successor/force_smoke.json` is not queued in combined campaign plans.
 `force_stages.json` retains both failed canonicals. Felix authorized the narrow
 rho-policy correction: reaching now carries rho as requested, while tracking
@@ -64,8 +64,12 @@ completion and sampled-effort checks still apply. This does not apply to robots
 or any other study. The corrected canonical is reused without another retry.
 Original0N smoke completed24s with finite data and zero physical excesses
 (RMS21.323mm/max35.933mm); its old20mm task-gate failure stays reported. The
-no-estimator0N canonical passed. The fixed0/5/10/20N screen is running, with F*
-and final force cohorts pending. Both failures and earlier packages are retained.
+no-estimator0N canonical passed. The fixed 0/5/10/20 N screen completed with
+all four physical gates passing. Against baseline RMS19.869mm, 5 N added
+9.179mm and did not meet the frozen10mm degradation criterion; 10 N added
+25.275mm and is the smallest qualifier. Final plans add12 E02 tasks and24 E03
+method cases per machine, using reviewed recording-only source61a8135 and the
+10 N v2 bank. Both failures and earlier packages are retained.
 `force_successor_plan.py` and `force_screen.py` implement the subsequent fixed
 screen and final-plan generation. `--allow-speed-only` records this explicit
 internal-force waiver; it does not relabel physical compliance. Regenerating

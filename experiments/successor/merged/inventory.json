@@ -12,9 +12,13 @@
         "BA",
         "ControlChoices",
         "CylinderTasks",
-        "demo_visual_square_internal"
+        "demo_visual_square_internal",
+        "E03",
+        "E02-no_estimator",
+        "E02-original",
+        "E02-adapted"
       ],
-      "cases": 668,
+      "cases": 704,
       "status": "prepared_not_executed"
     },
     "rtx5060_desktop.json": {
@@ -32,9 +36,13 @@
         "demo_visual_square_internal",
         "Q02",
         "M02",
-        "F04-stageOFF"
+        "F04-stageOFF",
+        "E03",
+        "E02-no_estimator",
+        "E02-original",
+        "E02-adapted"
       ],
-      "cases": 681,
+      "cases": 717,
       "status": "prepared_not_executed"
     },
     "rtx5060_gazebo.json": {
@@ -57,9 +65,13 @@
         "BB",
         "CylinderTasks",
         "M02",
-        "F04-stageOFF"
+        "F04-stageOFF",
+        "E03",
+        "E02-no_estimator",
+        "E02-original",
+        "E02-adapted"
       ],
-      "cases": 336,
+      "cases": 372,
       "status": "proposed_duration_discussion_and_target_review_pending"
     }
   },
@@ -68,11 +80,11 @@
     "2db284ca8e11f42f8f3248403b879652966893ed",
     "4e5301feaea5f2d06530922ba46aa543e1995d47",
     "502fa29c8b0d649dcb347f9534bf29c6935fa6dd",
+    "61a8135f6b986ef1deca1de562ac184936698133",
     "84bad9ad3d88b1b50d01f4d7aa3721bbc31ea210",
     "852b0cbcfe6e56fe5337a3b6e5fe8e777f959b77",
     "8dbb8b8d6dc1d65e902373a9aa58693e33329c14",
     "b931bbdd41303f1456ce3242045ebe48b241600a",
-    "bbbb047c9827beedff15b40d42aacc6389fa06ba",
     "c887bea29d3ed8a24de339478a7390bd4bac1915",
     "fa6f6bede286c122cc41ac65f42a583da84290e0"
   ],
@@ -81,7 +93,10 @@
     "successor/rtx5060_internal.json",
     "successor/jetson_internal.json",
     "successor/rtx5060_gazebo.json",
-    "successor/pending_independent.json"
+    "successor/pending_independent.json",
+    "successor/force_gtx1070.json",
+    "successor/force_rtx5060.json",
+    "successor/force_jetson.json"
   ],
   "source_plan_notes": {
     "successor/gtx1070_internal.json": {
@@ -92,7 +107,7 @@
       "omissions": {
         "BA_seeds_alone": "Dropped; seed-to-output progress remains saved analysis",
         "Jetson_BA": "No full BA task sweep; same-candidate speedup answered by F01c",
-        "force": "Revised runtime, bounded smoke/screen and selected F* pending; see force_stages.json",
+        "force": "Separate force plans follow actual force_stages.json status and are included by successor inventory when prepared",
         "independent_studies": "No solver-change rerun of F04/Q02/X02/M02; pending M02/F04 target plans remain separate"
       }
     },
@@ -104,7 +119,7 @@
       "omissions": {
         "BA_seeds_alone": "Dropped; seed-to-output progress remains saved analysis",
         "Jetson_BA": "No full BA task sweep; same-candidate speedup answered by F01c",
-        "force": "Revised runtime, bounded smoke/screen and selected F* pending; see force_stages.json",
+        "force": "Separate force plans follow actual force_stages.json status and are included by successor inventory when prepared",
         "independent_studies": "No solver-change rerun of F04/Q02/X02/M02; pending M02/F04 target plans remain separate"
       }
     },
@@ -116,7 +131,7 @@
       "omissions": {
         "BA_seeds_alone": "Dropped; seed-to-output progress remains saved analysis",
         "Jetson_BA": "No full BA task sweep; same-candidate speedup answered by F01c",
-        "force": "Revised runtime, bounded smoke/screen and selected F* pending; see force_stages.json",
+        "force": "Separate force plans follow actual force_stages.json status and are included by successor inventory when prepared",
         "independent_studies": "No solver-change rerun of F04/Q02/X02/M02; pending M02/F04 target plans remain separate"
       }
     },
@@ -129,11 +144,62 @@
     "successor/pending_independent.json": {
       "status": "Original pending target checks; unchanged valid scientific source pins",
       "note": "Q02/M02/F04 already measured on GTX1070 are excluded; Jetson and RTX5060 unmeasured original studies retained. No pure-check rerun for solver change."
+    },
+    "successor/force_gtx1070.json": {
+      "selected_force_N": 10.0,
+      "selection_sha256": "299cc36c86650e6dc8a1ece15da19bdd693b5d6a2bfe0d08c1fe329eba65c27b",
+      "status": "prepared_target_preflight_pending",
+      "preparation": {
+        "E02_tasks": 12,
+        "E03_input_truth_pairs": 12,
+        "E03_method_cases": 24,
+        "excluded_warmups_per_case": 1,
+        "measured_ticks_per_case": 20,
+        "E01": "Derived from matched GPU prediction/selection bank; no separate runs",
+        "canonical": "Three undisturbed0N method preflights; F* actual task physical outcomes separate",
+        "timing": "Persistent estimator prediction/selection/update/TO wall; nativeTO separate; construction and memory query outside tick timing",
+        "force": "Attached pure force at last-joint origin, initially world-Z downward; changing world direction retained",
+        "Jetson": "Duration/storage discussion before execution; no silent pruning"
+      }
+    },
+    "successor/force_rtx5060.json": {
+      "selected_force_N": 10.0,
+      "selection_sha256": "299cc36c86650e6dc8a1ece15da19bdd693b5d6a2bfe0d08c1fe329eba65c27b",
+      "status": "prepared_target_preflight_pending",
+      "preparation": {
+        "E02_tasks": 12,
+        "E03_input_truth_pairs": 12,
+        "E03_method_cases": 24,
+        "excluded_warmups_per_case": 1,
+        "measured_ticks_per_case": 20,
+        "E01": "Derived from matched GPU prediction/selection bank; no separate runs",
+        "canonical": "Three undisturbed0N method preflights; F* actual task physical outcomes separate",
+        "timing": "Persistent estimator prediction/selection/update/TO wall; nativeTO separate; construction and memory query outside tick timing",
+        "force": "Attached pure force at last-joint origin, initially world-Z downward; changing world direction retained",
+        "Jetson": "Duration/storage discussion before execution; no silent pruning"
+      }
+    },
+    "successor/force_jetson.json": {
+      "selected_force_N": 10.0,
+      "selection_sha256": "299cc36c86650e6dc8a1ece15da19bdd693b5d6a2bfe0d08c1fe329eba65c27b",
+      "status": "proposed_duration_storage_discussion_pending",
+      "preparation": {
+        "E02_tasks": 12,
+        "E03_input_truth_pairs": 12,
+        "E03_method_cases": 24,
+        "excluded_warmups_per_case": 1,
+        "measured_ticks_per_case": 20,
+        "E01": "Derived from matched GPU prediction/selection bank; no separate runs",
+        "canonical": "Three undisturbed0N method preflights; F* actual task physical outcomes separate",
+        "timing": "Persistent estimator prediction/selection/update/TO wall; nativeTO separate; construction and memory query outside tick timing",
+        "force": "Attached pure force at last-joint origin, initially world-Z downward; changing world direction retained",
+        "Jetson": "Duration/storage discussion before execution; no silent pruning"
+      }
     }
   },
   "missing_plan_files": [],
   "omissions": {
-    "Force": "Held after original0N canonical physical failure; no smoke/screen or further runs authorized",
+    "Force": "smoke_screen_selected_final_plans_prepared",
     "D02 physical": "Standalone/manual; faster speeds withheld pending simulation review",
     "Solver-independent": "F04/Q02/X02/M02 not rerun solely for stopping change; pending target checks remain separate",
     "Jetson BA": "No full task sweep; F01c supplies speedup study",
@@ -143,51 +209,34 @@
   "force_readiness": {
     "version": 1,
     "experiments": [],
-    "source_commit": "bbbb047c9827beedff15b40d42aacc6389fa06ba",
-    "selected_force_N": null,
-    "held": true,
-    "status": "Held after original0N canonical physical failure; no smoke/screen or further runs authorized",
-    "canonical_evidence": {
-      "path": "/workspace/GATO/_expr_results/force-rho-policy-20261011T201734Z/canonical-original0",
-      "metrics_sha256": "d6bb3fd97923298f408a1508040e9950c38682eeed7cb03fbd4d14b1c79aeeff",
-      "provenance_sha256": "8fca76488599aaebf567b80d4054fa587377397460e950090c5a9a50975d3252",
-      "module_sha256": "a93273dc23b8e9d1c7c46d0c898599b78544948cb6e1ef8f36f8faab4ee7a526",
-      "task_success": true,
-      "physical_pass": false,
-      "physical_limit_excess": {
-        "q_rad": 0.0,
-        "v_rad_s": 0.46536199928323896,
-        "u_Nm": 0.0
-      },
-      "execution_error": null
-    },
-    "pending": {
-      "original0N_tracking_smoke": true,
-      "bounded_disturbance_screen": true,
-      "selected_Fstar": true,
-      "E02_tasks_per_machine": 12,
-      "E03_bank_inputs": 12,
-      "E03_method_cases_per_machine": 24,
-      "E01": "Derived from future GPU bank"
-    },
-    "note": "No smoke/screen/final force campaign was run. No correction, tuning, extra GPU call or solver investigation authorized by this hold record.",
+    "status": "smoke_screen_selected_final_plans_prepared",
+    "source_commit": "61a8135f6b986ef1deca1de562ac184936698133",
+    "selected_force_N": 10.0,
+    "speed_only_waiver": true,
+    "selection_sha256": "299cc36c86650e6dc8a1ece15da19bdd693b5d6a2bfe0d08c1fe329eba65c27b",
+    "final_plan_files": [
+      "successor/force_gtx1070.json",
+      "successor/force_rtx5060.json",
+      "successor/force_jetson.json"
+    ],
+    "note": "Original smoke and screen remain separate evidence; old force plans and raw outcomes are historical.",
     "retained_hold": {
       "version": 1,
       "experiments": [],
-      "source_commit": "16cc57f706ecb9fb5731297a83bc47f30632ca39",
+      "source_commit": "bbbb047c9827beedff15b40d42aacc6389fa06ba",
       "selected_force_N": null,
       "held": true,
-      "status": "Held after original0N canonical physical failure; awaiting discussion of bounded setup-only review",
+      "status": "Held after original0N canonical physical failure; no smoke/screen or further runs authorized",
       "canonical_evidence": {
-        "path": "/workspace/GATO/_expr_results/force-persistent-v2-20261011T194420Z/canonical-original0",
-        "metrics_sha256": "0702dafbae6ef7c27f8d684bf23b7c014659ee7fd4fd02025ef3aed173792322",
-        "provenance_sha256": "fc2090cdae59baeced46878617aa19cb3aaf811e0a72379252ef9c4cdb203b66",
+        "path": "/workspace/GATO/_expr_results/force-rho-policy-20261011T201734Z/canonical-original0",
+        "metrics_sha256": "d6bb3fd97923298f408a1508040e9950c38682eeed7cb03fbd4d14b1c79aeeff",
+        "provenance_sha256": "8fca76488599aaebf567b80d4054fa587377397460e950090c5a9a50975d3252",
         "module_sha256": "a93273dc23b8e9d1c7c46d0c898599b78544948cb6e1ef8f36f8faab4ee7a526",
         "task_success": true,
         "physical_pass": false,
         "physical_limit_excess": {
           "q_rad": 0.0,
-          "v_rad_s": 0.1271132353761657,
+          "v_rad_s": 0.46536199928323896,
           "u_Nm": 0.0
         },
         "execution_error": null
@@ -201,7 +250,39 @@
         "E03_method_cases_per_machine": 24,
         "E01": "Derived from future GPU bank"
       },
-      "note": "No smoke/screen/final force campaign was run. No correction, tuning, extra GPU call or solver investigation authorized by this hold record."
+      "note": "No smoke/screen/final force campaign was run. No correction, tuning, extra GPU call or solver investigation authorized by this hold record.",
+      "retained_hold": {
+        "version": 1,
+        "experiments": [],
+        "source_commit": "16cc57f706ecb9fb5731297a83bc47f30632ca39",
+        "selected_force_N": null,
+        "held": true,
+        "status": "Held after original0N canonical physical failure; awaiting discussion of bounded setup-only review",
+        "canonical_evidence": {
+          "path": "/workspace/GATO/_expr_results/force-persistent-v2-20261011T194420Z/canonical-original0",
+          "metrics_sha256": "0702dafbae6ef7c27f8d684bf23b7c014659ee7fd4fd02025ef3aed173792322",
+          "provenance_sha256": "fc2090cdae59baeced46878617aa19cb3aaf811e0a72379252ef9c4cdb203b66",
+          "module_sha256": "a93273dc23b8e9d1c7c46d0c898599b78544948cb6e1ef8f36f8faab4ee7a526",
+          "task_success": true,
+          "physical_pass": false,
+          "physical_limit_excess": {
+            "q_rad": 0.0,
+            "v_rad_s": 0.1271132353761657,
+            "u_Nm": 0.0
+          },
+          "execution_error": null
+        },
+        "pending": {
+          "original0N_tracking_smoke": true,
+          "bounded_disturbance_screen": true,
+          "selected_Fstar": true,
+          "E02_tasks_per_machine": 12,
+          "E03_bank_inputs": 12,
+          "E03_method_cases_per_machine": 24,
+          "E01": "Derived from future GPU bank"
+        },
+        "note": "No smoke/screen/final force campaign was run. No correction, tuning, extra GPU call or solver investigation authorized by this hold record."
+      }
     }
   }
 }
