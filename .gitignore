@@ -64,3 +64,8 @@ example_artifacts/
 # Local experiment runner settings and immutable source worktrees.
 /experiments/local.json
 /.worktrees/
+
+# Checkout-owned experiment results, builds and temporary development.
+/.experiment-results/
+/.experiment-cache/
+/.experiment-work/

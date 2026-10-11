@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Run committed experiment cases sequentially; receipts are the queue state."""
 import argparse
-import csv
 import fcntl
 import hashlib
 import json
+import math
 import os
 from pathlib import Path
 import platform
@@ -100,33 +100,31 @@ def command(argv, values):
     return [arg.format_map(values) for arg in argv]
 
 
-def execute(argv, cwd, output, env):
+def execute(argv, cwd, output, env, timeout=None):
     """Stop descendants too, so interrupting a build cannot leave GPU workers behind."""
     with (output / "stdout.log").open("a") as stdout, (output / "stderr.log").open("a") as stderr:
         process = subprocess.Popen(argv, cwd=cwd, env=env, stdout=stdout, stderr=stderr,
                                    start_new_session=True)
         try:
-            code = process.wait()
-        except KeyboardInterrupt:
+            code = process.wait(timeout=timeout)
+        except (KeyboardInterrupt, subprocess.TimeoutExpired) as error:
             os.killpg(process.pid, signal.SIGTERM)
             try:
                 process.wait(timeout=5)
             except subprocess.TimeoutExpired:
                 os.killpg(process.pid, signal.SIGKILL)
                 process.wait()
+            if isinstance(error, subprocess.TimeoutExpired):
+                fail(f"Execution wall-clock timeout after {timeout} s; partial output retained at {output}; "
+                     "distinct from the scientific task timeout")
             raise
     if code:
         fail(f"Command exited {code}; see {output / 'stderr.log'}")
 
 
-def worktree(commit):
-    # Use the common checkout so all agent worktrees share the same source cache.
-    common = Path(git("rev-parse", "--git-common-dir"))
-    if not common.is_absolute():
-        common = (ROOT / common).resolve()
-    else:
-        common = common.resolve()
-    path = common.parent / ".worktrees" / "experiment-runner" / commit
+def worktree(commit, cache):
+    """Each checkout owns its source cache; never use the private legacy runner."""
+    path = cache / "sources" / commit
     if not path.exists():
         path.parent.mkdir(parents=True, exist_ok=True)
         git("worktree", "add", "--detach", str(path), commit)
@@ -139,14 +137,21 @@ def worktree(commit):
     return path
 
 
+def build_key(experiment, profile, python, environment):
+    return digest({"commit": experiment["source_commit"], "recipe": experiment.get("build", {}),
+                   "cuda_arch": profile.get("cuda_arch"), "python": python,
+                   "python_abi": environment.get("python_abi")})
+
+
 def build_source(experiment, commit, profile, python, environment, cache):
-    source = worktree(commit)
     recipe = experiment.get("build", {})
+    for path, expected in recipe.get("inputs", {}).items():
+        if file_hash(HERE / relative(path)) != expected:
+            fail(f"Frozen build input hash mismatch: {path}")
+    source = worktree(commit, cache)
     if recipe.get("commands") and not recipe.get("artifacts"):
         fail("Build commands must declare their output artifact patterns")
-    key = digest({"commit": commit, "recipe": recipe, "profile": profile,
-                  "python": python, "environment": environment})
-    build = cache / "builds" / key
+    build = cache / "builds" / build_key(experiment, profile, python, environment)
     build.mkdir(parents=True, exist_ok=True)
     receipt = build / "build.json"
     if receipt.exists():
@@ -166,34 +171,108 @@ def build_source(experiment, commit, profile, python, environment, cache):
         if not matches:
             fail(f"Build produced no artifacts matching {pattern}")
         artifacts.update({str(p): file_hash(p) for p in matches})
-    saved = {"commit": commit, "recipe": recipe, "profile": profile, "artifacts": artifacts}
+    saved = {"commit": commit, "recipe": recipe, "profile": profile, "artifacts": artifacts,
+             "python": python, "environment": environment}
     write(receipt, saved)
     return source, build, saved
 
 
 def collect(output):
-    """Derive summaries from receipts, including failed and interrupted attempts."""
-    records = []
+    from collect import collect as collect_results
+    return collect_results(output)
+
+
+def scientific_identity(experiment, case, selected):
+    """Protocol/source/input revisions change evidence; bookkeeping edits do not."""
+    identity = {"machine": selected, "experiment": experiment.get("id", experiment.get("experiment")),
+                "source_commit": experiment["source_commit"], "protocol": experiment.get("protocol"),
+                "inputs": experiment.get("inputs", {}), "timing_mode": experiment.get("timing_mode"),
+                "backend": experiment.get("backend", experiment.get("execution_backend")),
+                "case": {"id": case["id"], "parameters": case.get("parameters", {}), "repeat": case["repeat"]}}
+    if experiment.get("parameters"):
+        identity["parameters"] = experiment["parameters"]
+    return identity
+
+
+def receipt_identity(receipt, metrics=None):
+    """Read old/new receipts, retaining their recorded timing and backend."""
+    identity = receipt.get("identity", {})
+    spec = identity.get("experiment") if isinstance(identity.get("experiment"), dict) else dict(identity or receipt)
+    spec = dict(spec)
+    metrics = metrics or {}
+    spec.setdefault("timing_mode", receipt.get("timing_mode", metrics.get("timing_mode")))
+    spec.setdefault("backend", spec.get("execution_backend", receipt.get("backend",
+                    receipt.get("execution_backend", metrics.get("backend", metrics.get("execution_backend"))))))
+    return scientific_identity(spec, receipt["case"], receipt["machine"])
+
+
+def discover(output):
+    latest = {}
     for path in sorted(output.glob("*/*/*/attempt-*/receipt.json")):
-        receipt = read(path)
-        metrics = path.parent / "metrics.json"
-        records.append({"machine": receipt["machine"], "experiment": receipt["experiment"],
-                        "case": receipt["case"]["id"], "repeat": receipt["case"]["repeat"],
-                        "status": receipt["status"], "attempt": str(path.parent.relative_to(output)),
-                        "metrics": read(metrics) if receipt["status"] == "completed" and metrics.exists() else {}})
-    write(output / "index.json", records)
-    with (output / "summary.csv.tmp").open("w", newline="") as stream:
-        writer = csv.DictWriter(stream, fieldnames=["machine", "experiment", "case", "repeat",
-                                                   "status", "attempt", "metrics"])
-        writer.writeheader()
-        for row in records:
-            writer.writerow(dict(row, metrics=json.dumps(row["metrics"], sort_keys=True)))
-    (output / "summary.csv.tmp").replace(output / "summary.csv")
-    lines = ["# Experiment results", "", "| Machine | Experiment | Case/repeat | Status | Artifacts |",
-             "| --- | --- | --- | --- | --- |"]
-    lines.extend(f"| {r['machine']} | {r['experiment']} | {r['case']}/{r['repeat']} | "
-                 f"{r['status']} | [attempt]({r['attempt']}/) |" for r in records)
-    (output / "README.md").write_text("\n".join(lines) + "\n")
+        try:
+            receipt = read(path)
+            if receipt.get("kind") == "preflight":
+                continue
+            metrics = {}
+            spec = receipt.get("identity", {})
+            if isinstance(spec.get("experiment"), dict):
+                spec = spec["experiment"]
+            if "timing_mode" not in spec or ("backend" not in spec and "execution_backend" not in spec):
+                metrics_path = path.parent / "metrics.json"
+                if metrics_path.exists():
+                    try:
+                        metrics = read(metrics_path)
+                    except (ValueError, OSError) as error:
+                        print(f"Warning: cannot read legacy metrics {metrics_path}: {error}", file=sys.stderr)
+            key = digest(receipt_identity(receipt, metrics))
+            previous = latest.get(key)
+            if previous is None or receipt.get("started", 0) >= previous[1].get("started", 0):
+                latest[key] = (path, receipt)
+        except (ValueError, OSError, KeyError, TypeError) as error:
+            print(f"Warning: cannot read receipt {path}: {error}", file=sys.stderr)
+    imports = output / "imports.json"
+    if imports.exists():
+        try:
+            entries = read(imports)
+            if not isinstance(entries, list):
+                fail("expected a list of imported completion registrations")
+            for entry in entries:
+                if entry.get("status") == "completed":
+                    path = output / relative(entry["path"])
+                    if not path.exists():
+                        print(f"Warning: imported path is missing; keeping its completed status: {path}", file=sys.stderr)
+                    latest[digest(scientific_identity(entry, entry["case"], entry["machine"]))] = (path, entry)
+        except (ValueError, OSError, KeyError, TypeError, AttributeError) as error:
+            fail(f"Cannot determine saved progress from {imports}: {error}; repair the registration before execution")
+    return latest
+
+
+def copy_inputs(experiment, output, selected):
+    inputs = experiment.get("inputs", {})
+    destination = output / selected / experiment["id"] / "_inputs" / digest(inputs)[:16]
+    destination.mkdir(parents=True, exist_ok=True)
+    for value, expected in inputs.items():
+        path = relative(value)
+        original = ROOT / path
+        if file_hash(original) != expected:
+            fail(f"Frozen input hash mismatch: {value}")
+        target = destination / path
+        target.parent.mkdir(parents=True, exist_ok=True)
+        if not target.exists() or file_hash(target) != expected:
+            shutil.copyfile(original, target)
+        if file_hash(target) != expected:
+            fail(f"Frozen input changed before execution: {value}")
+    return destination
+
+
+def environment_snapshot(python, profile):
+    environment = json.loads(subprocess.check_output([python, "-c",
+        "import sys, importlib.metadata as m, json; print(json.dumps({"
+        "'executable': sys.executable, 'python': sys.version, 'python_abi': list(sys.version_info[:2]), "
+        "'packages': {d.metadata['Name']: d.version for d in m.distributions()}}))"], text=True))
+    if profile.get("cuda_arch"):
+        environment["nvcc"] = subprocess.check_output(["nvcc", "--version"], text=True).strip() if shutil.which("nvcc") else "missing"
+    return environment
 
 
 def run(args):
@@ -205,23 +284,12 @@ def run(args):
     selected, hardware = machine(args.machine or config.get("machine"), profiles)
     print(f"Machine: {selected}", flush=True)
     profile = profiles[selected]
-    # A venv executable commonly symlinks to the system Python. Resolving it
-    # discards the venv and silently changes both packages and build headers.
+    # Keep the venv path: resolving executable symlinks discards its packages.
     python = str(Path(config.get("python", sys.executable)).expanduser().absolute())
-    environment = {"executable": python,
-                   "python": subprocess.check_output([python, "-c", "import sys; print(sys.version)"], text=True).strip()}
-    environment["packages"] = json.loads(subprocess.check_output([
-        python, "-c", "import importlib.metadata as m, json; "
-        "print(json.dumps({d.metadata['Name']: d.version for d in m.distributions()}))"], text=True))
-    if profile.get("cuda_arch"):
-        environment["nvcc"] = subprocess.check_output(["nvcc", "--version"], text=True).strip() if shutil.which("nvcc") else "missing"
-    output = Path(args.output or config.get("output", "~/gato-results")).expanduser().resolve()
-    cache = Path(config.get("cache", "~/.cache/gato-experiments")).expanduser().resolve()
-    runner_hashes = {str(p.relative_to(HERE)): file_hash(p) for p in
-                     [HERE / "run.py", *sorted((HERE / "adapters").glob("*.py"))]}
-    pending = []
-    seen = set()
-    failures = 0
+    output = Path(args.output or config.get("output", ROOT / ".experiment-results")).expanduser().resolve()
+    cache = Path(config.get("cache", ROOT / ".experiment-cache")).expanduser().resolve()
+    previous = discover(output)
+    pending, seen, failures = [], set(), 0
     for experiment in plan["experiments"]:
         eid = name(experiment["id"])
         if eid in seen:
@@ -231,23 +299,10 @@ def run(args):
             continue
         if args.only and eid not in args.only:
             continue
-        commit = experiment["source_commit"]
-        if not re.fullmatch(r"[0-9a-f]{40}", commit):
-            fail(f"{eid}: source_commit must be a full immutable Git commit")
-        try:
-            git("cat-file", "-e", commit + "^{commit}")
-        except subprocess.CalledProcessError:
-            git("fetch", "origin")
-            git("cat-file", "-e", commit + "^{commit}")
-        inputs = experiment.get("inputs", {})
-        for path, expected in inputs.items():
-            if file_hash(ROOT / relative(path)) != expected:
-                fail(f"Frozen input hash mismatch: {path}")
-        spec = {k: v for k, v in experiment.items() if k not in ("cases", "repeats", "enabled", "machines")}
-        case_names = set()
         repeats = experiment.get("repeats", 1)
         if not isinstance(repeats, int) or isinstance(repeats, bool) or repeats < 1:
             fail(f"{eid}: repeats must be a positive integer")
+        case_names = set()
         for case in experiment["cases"]:
             cid = name(case["id"])
             if cid in case_names:
@@ -255,16 +310,16 @@ def run(args):
             case_names.add(cid)
             for repeat in range(repeats):
                 resolved = dict(case, repeat=repeat)
-                identity = {"experiment": spec, "case": resolved, "profile": profile,
-                            "environment": environment, "runner": runner_hashes,
-                            "device": {k: hardware.get(k) for k in ("hostname", "gpu", "device_model")}}
-                folder = output / name(selected) / eid / digest(identity)
-                attempts = sorted(folder.glob("attempt-*/receipt.json"))
-                status = read(attempts[-1])["status"] if attempts else "pending"
-                if status == "completed" or (status == "failed" and not args.retry_failed):
+                identity = scientific_identity(experiment, resolved, selected)
+                key = digest(identity)
+                status = previous[key][1]["status"] if key in previous else "pending"
+                if status == "completed" or (status in ("failed", "blocked") and not args.retry_failed):
                     print(f"{status}: {eid}/{cid}/{repeat}", flush=True)
-                    failures += status == "failed"
+                    failures += status in ("failed", "blocked")
                     continue
+                folder = output / name(selected) / eid / f"{cid}-r{repeat:03d}-{key[:16]}"
+                if key in previous:
+                    folder = previous[key][0].parent.parent
                 print(f"pending: {eid}/{cid}/{repeat}", flush=True)
                 pending.append((experiment, resolved, identity, folder))
     if args.only and set(args.only) - seen:
@@ -273,60 +328,147 @@ def run(args):
         return 0
     cache.mkdir(parents=True, exist_ok=True)
     output.mkdir(parents=True, exist_ok=True)
-    build_errors = {}
-    # Shared across agent worktrees/clones using this cache. Manual GPU jobs must
-    # still be kept out of timing runs; a filesystem lock cannot control them.
-    with (cache / "runner.lock").open("a") as lock:
+    # Worktrees own their builds but share the repository's execution lock.
+    common = Path(git("rev-parse", "--git-common-dir"))
+    if not common.is_absolute():
+        common = (ROOT / common).resolve()
+    with (common / "experiment-runner.lock").open("a") as lock:
         try:
             fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except BlockingIOError:
             fail("Another experiment runner is active; wait for it to finish")
+        previous = discover(output)
+        builds, preparations, preflights = {}, {}, {}
+        environment = None
         try:
             for experiment, case, identity, folder in pending:
-                # Another invocation may have completed this case between plan
-                # inspection and acquisition of the shared lock.
-                existing = sorted(folder.glob("attempt-*/receipt.json"))
-                if existing and read(existing[-1])["status"] == "completed":
+                key = digest(identity)
+                if key in previous and previous[key][1]["status"] == "completed":
                     continue
-                if existing and read(existing[-1])["status"] == "running":
-                    abandoned = read(existing[-1])
+                if key in previous and previous[key][1]["status"] in ("failed", "blocked") and not args.retry_failed:
+                    failures += 1
+                    continue
+                if key in previous and previous[key][1]["status"] == "running":
+                    abandoned = previous[key][1]
                     abandoned.update(status="interrupted", error="Previous invocation did not finish its receipt")
-                    write(existing[-1], abandoned)
+                    write(previous[key][0], abandoned)
                 attempt = folder / f"attempt-{len(list(folder.glob('attempt-*'))) + 1:03d}"
                 attempt.mkdir(parents=True)
                 receipt = {"experiment": experiment["id"], "machine": selected, "hardware": hardware,
-                           "identity": identity, "case": case, "status": "running", "started": time.time()}
+                           "identity": identity, "case": case, "status": "running", "started": time.time(),
+                           **{field: experiment[field] for field in ("research_question", "protocol", "backend", "timing_mode")
+                              if field in experiment}}
                 write(attempt / "case.json", case)
                 write(attempt / "receipt.json", receipt)
+                stage = "preparation"
                 try:
-                    build_key = digest([experiment["source_commit"], experiment.get("build", {})])
-                    if build_key in build_errors:
-                        fail(build_errors[build_key])
-                    try:
-                        source, build, build_receipt = build_source(experiment, experiment["source_commit"],
-                                                                   profile, python, environment, cache)
-                    except (ValueError, OSError, subprocess.CalledProcessError) as error:
-                        build_errors[build_key] = str(error)
-                        raise
+                    if environment is None:
+                        environment = environment_snapshot(python, profile)
+                    receipt["environment"] = environment
+                    eid = experiment["id"]
+                    if eid not in preparations:
+                        try:
+                            commit = experiment["source_commit"]
+                            if not re.fullmatch(r"[0-9a-f]{40}", commit):
+                                fail(f"{eid}: source_commit must be a full immutable Git commit")
+                            try:
+                                git("cat-file", "-e", commit + "^{commit}")
+                            except subprocess.CalledProcessError:
+                                git("fetch", "origin")
+                                git("cat-file", "-e", experiment["source_commit"] + "^{commit}")
+                            preparations[eid] = copy_inputs(experiment, output, selected)
+                        except (ValueError, OSError, subprocess.CalledProcessError) as error:
+                            preparations[eid] = error
+                    if isinstance(preparations[eid], Exception):
+                        raise preparations[eid]
+                    input_dir = preparations[eid]
+                    stage = "build"
+                    shared = build_key(experiment, profile, python, environment)
+                    if shared not in builds:
+                        try:
+                            builds[shared] = build_source(experiment, experiment["source_commit"],
+                                                          profile, python, environment, cache)
+                        except (ValueError, OSError, subprocess.CalledProcessError) as error:
+                            builds[shared] = error
+                    if isinstance(builds[shared], Exception):
+                        raise builds[shared]
+                    source, build, build_receipt = builds[shared]
+                    # Validate the original input after a potentially long build,
+                    # once per family. Use the already frozen copy for execution.
+                    if not preparations.get((eid, "checked")):
+                        for path, expected in experiment.get("inputs", {}).items():
+                            if file_hash(ROOT / relative(path)) != expected:
+                                error = ValueError(f"Frozen input changed before execution: {path}")
+                                preparations[eid] = error
+                                raise error
+                        preparations[(eid, "checked")] = True
                     receipt["build"] = build_receipt
-                    input_dir = attempt / "inputs"
-                    input_dir.mkdir()
-                    for path, expected in experiment.get("inputs", {}).items():
-                        destination = input_dir / relative(path)
-                        destination.parent.mkdir(parents=True, exist_ok=True)
-                        shutil.copyfile(ROOT / path, destination)
-                        # A long build may allow another agent to edit an input.
-                        if file_hash(destination) != expected:
-                            fail(f"Frozen input changed before execution: {path}")
+                    receipt["inputs_path"] = str(input_dir.relative_to(output))
                     values = dict(source=str(source), build=str(build), python=python, runner=str(HERE),
                                   case=str(attempt / "case.json"), output=str(attempt), inputs=str(input_dir),
                                   cuda_arch=str(profile.get("cuda_arch", "")))
+                    preflight = experiment.get("preflight")
+                    if preflight:
+                        stage = "preflight"
+                        group = name(preflight.get("group", eid))
+                        signature = digest({"source": experiment["source_commit"], "build": shared,
+                                            "inputs": experiment.get("inputs", {}), "preflight": preflight,
+                                            "parameters": experiment.get("parameters", {}),
+                                            "timing_mode": identity["timing_mode"], "backend": identity["backend"],
+                                            "artifacts": {str(Path(p).relative_to(build)): h for p, h in build_receipt["artifacts"].items()},
+                                            "case_parameters": case.get("parameters", {})
+                                            if "group" in preflight and any("{case}" in arg for arg in preflight["command"]) else None})
+                        if group in preflights and preflights[group][0] != signature:
+                            fail(f"Preflight group {group} has conflicting configuration")
+                        root = output / selected / "_preflight" / group
+                        if group not in preflights:
+                            for previous_pf in sorted(root.glob("attempt-*/receipt.json"), reverse=True):
+                                saved = read(previous_pf)
+                                if saved.get("signature") != signature:
+                                    continue
+                                if saved["status"] == "completed":
+                                    preflights[group] = (signature, None, previous_pf.parent)
+                                elif saved["status"] == "failed" and not args.retry_failed:
+                                    preflights[group] = (signature, ValueError(saved.get("error", "Prior preflight failed")), previous_pf.parent)
+                                break
+                        if group not in preflights:
+                            pf_output = root / f"attempt-{len(list(root.glob('attempt-*'))) + 1:03d}"
+                            pf_output.mkdir(parents=True)
+                            pf_receipt = {"kind": "preflight", "group": group, "status": "running",
+                                          "started": time.time(), "machine": selected, "source_commit": experiment["source_commit"],
+                                          "experiment": eid, "signature": signature,
+                                          "case": {"id": "preflight", "repeat": 0}}
+                            write(pf_output / "receipt.json", pf_receipt)
+                            try:
+                                argv = command(preflight["command"], dict(values, output=str(pf_output)))
+                                pf_receipt["command"] = argv
+                                execute(argv, source, pf_output, dict(os.environ, GATO_BUILD_DIR=str(build),
+                                                                    GATO_SOURCE_DIR=str(source), GATO_MACHINE=selected))
+                                pf_receipt["status"] = "completed"
+                                preflights[group] = (signature, None, pf_output)
+                            except (ValueError, OSError, subprocess.CalledProcessError) as error:
+                                pf_receipt.update(status="failed", error=str(error))
+                                preflights[group] = (signature, error, pf_output)
+                            except KeyboardInterrupt:
+                                pf_receipt["status"] = "interrupted"
+                                raise
+                            finally:
+                                pf_receipt["finished"] = time.time()
+                                write(pf_output / "receipt.json", pf_receipt)
+                        receipt["preflight_path"] = str(preflights[group][2].relative_to(output))
+                        if preflights[group][1]:
+                            raise preflights[group][1]
+                    stage = "execution"
                     argv = command(experiment["command"], values)
                     receipt["command"] = argv
                     write(attempt / "receipt.json", receipt)
-                    print(f"Running {experiment['id']}/{case['id']}/{case['repeat']}; logs: {attempt}", flush=True)
+                    print(f"Running {eid}/{case['id']}/{case['repeat']}; logs: {attempt}", flush=True)
+                    timeout = experiment.get("timeout_seconds")
+                    if timeout is not None and (not isinstance(timeout, (float, int)) or isinstance(timeout, bool) or not math.isfinite(timeout) or timeout <= 0):
+                        fail("timeout_seconds must be a positive number")
+                    receipt["timeout_seconds"] = timeout
                     execute(argv, source, attempt, dict(os.environ, GATO_BUILD_DIR=str(build),
-                                                       GATO_SOURCE_DIR=str(source), GATO_MACHINE=selected))
+                                                       GATO_SOURCE_DIR=str(source), GATO_MACHINE=selected), timeout=timeout)
                     metrics = read(attempt / "metrics.json")
                     if not isinstance(metrics, dict):
                         fail("Experiment must write a JSON object to metrics.json")
@@ -334,47 +476,59 @@ def run(args):
                 except KeyboardInterrupt:
                     receipt["status"] = "interrupted"
                     raise
-                except (ValueError, OSError, subprocess.CalledProcessError) as error:
-                    receipt.update(status="failed", error=str(error))
+                except (ValueError, OSError, subprocess.CalledProcessError, KeyError, TypeError) as error:
+                    receipt.update(status="failed" if stage == "execution" else "blocked", error=str(error),
+                                   failure_stage=stage)
                     failures += 1
                 finally:
                     receipt["finished"] = time.time()
-                    receipt["hardware_after"] = machine(selected, profiles)[1]
-                    receipt["artifacts"] = {str(p.relative_to(attempt)): file_hash(p) for p in attempt.rglob("*")
-                                             if p.is_file() and p.name != "receipt.json"}
+                    # Metadata failures must not erase a valid measured outcome.
+                    try:
+                        receipt["artifacts"] = {filename: file_hash(attempt / filename)
+                                                for filename in ("case.json", "metrics.json", "stdout.log", "stderr.log")
+                                                if (attempt / filename).is_file()}
+                    except OSError as error:
+                        receipt["metadata_warning"] = str(error)
                     write(attempt / "receipt.json", receipt)
                     print(f"{receipt['status']}: {experiment['id']}/{case['id']}/{case['repeat']}", flush=True)
         finally:
-            collect(output)
+            try:
+                collect(output)
+            except (ValueError, OSError, KeyError, TypeError) as error:
+                print(f"Collection failed; raw receipts retained: {error}", file=sys.stderr)
+                failures += 1
         if config.get("sync_to"):
-            # rsync updates preserved attempts without deleting the receiver's
-            # other machines. Delivery failure never invalidates local results.
             destination = config["sync_to"].rstrip("/") + "/" + selected + "/"
             (output / selected).mkdir(exist_ok=True)
-            result = subprocess.run(["rsync", "-a", str(output / selected) + "/", destination])
-            if result.returncode:
-                print("Result upload failed; run again to retry delivery", file=sys.stderr)
+            try:
+                result = subprocess.run(["rsync", "-a", str(output / selected) + "/", destination])
+                if result.returncode:
+                    fail(f"rsync exited {result.returncode}")
+            except (ValueError, OSError) as error:
+                print(f"Result upload failed; local results retained: {error}", file=sys.stderr)
                 failures += 1
-    print(f"Results: {output / 'README.md'}", flush=True)
+    print(f"Results: {output}", flush=True)
     return 1 if failures else 0
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--plan", type=Path, default=HERE / "plan.json")
+    parser.add_argument("--plan", type=Path, help="Explicit reviewed experiment plan (required for runs)")
     parser.add_argument("--machine", help="Override automatic machine detection")
     parser.add_argument("--output", help="Override local.json/default output folder")
     parser.add_argument("--only", nargs="+", help="Run only these experiment ids")
-    parser.add_argument("--dry-run", action="store_true", help="List pending cases without builds or execution")
-    parser.add_argument("--retry-failed", action="store_true", help="Make new attempts for failed executions")
+    parser.add_argument("--dry-run", action="store_true", help="List pending cases without fetching, builds or execution")
+    parser.add_argument("--retry-failed", action="store_true", help="Make new attempts for failed/blocked executions")
     parser.add_argument("--collect-only", action="store_true", help="Regenerate the index after combining machine folders")
     args = parser.parse_args()
     if args.collect_only:
         config = read(HERE / "local.json") if (HERE / "local.json").exists() else {}
-        output = Path(args.output or config.get("output", "~/gato-results")).expanduser().resolve()
+        output = Path(args.output or config.get("output", ROOT / ".experiment-results")).expanduser().resolve()
         output.mkdir(parents=True, exist_ok=True)
         collect(output)
         return 0
+    if args.plan is None:
+        parser.error("--plan is required; the legacy default queue is not the campaign")
     return run(args)
 
 

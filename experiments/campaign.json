@@ -1,0 +1,935 @@
+{
+  "version": 1,
+  "experiments": [
+    {
+      "source_commit": "502fa29c8b0d649dcb347f9534bf29c6935fa6dd",
+      "protocol": "simple-harness-v1",
+      "backend": "internal",
+      "machines": [
+        "rtx5060"
+      ],
+      "build": {
+        "inputs": {
+          "native/CMakeLists.txt": "07c285afa3d2055c2c8f64c4645bdad01bdeb3391e77f2082aff3c70443df1e2"
+        },
+        "commands": [
+          [
+            "cmake",
+            "-S",
+            "{runner}/native",
+            "-B",
+            "{build}",
+            "-DGATO_SOURCE_DIR={source}",
+            "-DKNOTS=16;32;64;128",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DGATO_EXPERIMENT_TELEMETRY=ON",
+            "-DCMAKE_CUDA_ARCHITECTURES={cuda_arch}-real",
+            "-DPython3_EXECUTABLE={python}"
+          ],
+          [
+            "cmake",
+            "--build",
+            "{build}",
+            "--parallel",
+            "2"
+          ]
+        ],
+        "artifacts": [
+          "modules/bsqpN16_tiago_right*.so",
+          "modules/bsqpN32_tiago_right*.so",
+          "modules/bsqpN64_tiago_right*.so",
+          "modules/bsqpN128_tiago_right*.so"
+        ]
+      },
+      "inputs": {
+        "experiments/inputs/t01/v01.json": "20920040853786cf3d96f13ba240f82918a9f0f5020270fbe67715666477cc81",
+        "experiments/inputs/t01/t01.json": "aec47cfa3819de5adbb8633b637f5bd9bcd327cb3afc5043a856b323af5aac41",
+        "experiments/inputs/f01ab/bank.json": "9c3a3a06b53079af04ca99a6d4146ff741161d1bf82013283447ab2d5422d7b9",
+        "experiments/inputs/f01ab/arrays.npz": "a674b748a058538fe7c6b0e93a836a0b82394196028788f09284d29b5dd13ed4",
+        "experiments/inputs/f01ab/model.urdf": "8e1fd973a1d1c3fbddd55039e6eb17b355ebb29f46e1bd8c774b7879c2cdc5bb"
+      },
+      "id": "T01",
+      "research_question": "RQ-control",
+      "timing_mode": "B",
+      "description": "Six existing frozen reaching/tracking tasks, computation time paid; desktop internal cohort.",
+      "preflight": {
+        "command": [
+          "{python}",
+          "{runner}/adapters/task.py",
+          "--source",
+          "{source}",
+          "--build",
+          "{build}",
+          "--output",
+          "{output}",
+          "--inputs",
+          "{inputs}/experiments/inputs/t01",
+          "--preflight",
+          "--timing-mode",
+          "B"
+        ],
+        "group": "T01-B"
+      },
+      "command": [
+        "{python}",
+        "{runner}/adapters/task.py",
+        "--source",
+        "{source}",
+        "--build",
+        "{build}",
+        "--output",
+        "{output}",
+        "--inputs",
+        "{inputs}/experiments/inputs/t01",
+        "--case",
+        "{case}",
+        "--timing-mode",
+        "B"
+      ],
+      "cases": [
+        {
+          "id": "goal-1",
+          "parameters": {
+            "protocol": "T01",
+            "offline_timing": "solve_time"
+          }
+        },
+        {
+          "id": "goal-2",
+          "parameters": {
+            "protocol": "T01",
+            "offline_timing": "solve_time"
+          }
+        },
+        {
+          "id": "goal-3",
+          "parameters": {
+            "protocol": "T01",
+            "offline_timing": "solve_time"
+          }
+        },
+        {
+          "id": "figure8-24s",
+          "parameters": {
+            "protocol": "T01",
+            "offline_timing": "solve_time"
+          }
+        },
+        {
+          "id": "figure8-18s",
+          "parameters": {
+            "protocol": "T01",
+            "offline_timing": "solve_time"
+          }
+        },
+        {
+          "id": "figure8-12s",
+          "parameters": {
+            "protocol": "T01",
+            "offline_timing": "solve_time"
+          }
+        }
+      ]
+    },
+    {
+      "source_commit": "502fa29c8b0d649dcb347f9534bf29c6935fa6dd",
+      "protocol": "simple-harness-v1",
+      "backend": "internal",
+      "machines": [
+        "rtx5060"
+      ],
+      "build": {
+        "inputs": {
+          "native/CMakeLists.txt": "07c285afa3d2055c2c8f64c4645bdad01bdeb3391e77f2082aff3c70443df1e2"
+        },
+        "commands": [
+          [
+            "cmake",
+            "-S",
+            "{runner}/native",
+            "-B",
+            "{build}",
+            "-DGATO_SOURCE_DIR={source}",
+            "-DKNOTS=16;32;64;128",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DGATO_EXPERIMENT_TELEMETRY=ON",
+            "-DCMAKE_CUDA_ARCHITECTURES={cuda_arch}-real",
+            "-DPython3_EXECUTABLE={python}"
+          ],
+          [
+            "cmake",
+            "--build",
+            "{build}",
+            "--parallel",
+            "2"
+          ]
+        ],
+        "artifacts": [
+          "modules/bsqpN16_tiago_right*.so",
+          "modules/bsqpN32_tiago_right*.so",
+          "modules/bsqpN64_tiago_right*.so",
+          "modules/bsqpN128_tiago_right*.so"
+        ]
+      },
+      "inputs": {
+        "experiments/inputs/t01/v01.json": "20920040853786cf3d96f13ba240f82918a9f0f5020270fbe67715666477cc81",
+        "experiments/inputs/t01/t01.json": "aec47cfa3819de5adbb8633b637f5bd9bcd327cb3afc5043a856b323af5aac41",
+        "experiments/inputs/f01ab/bank.json": "9c3a3a06b53079af04ca99a6d4146ff741161d1bf82013283447ab2d5422d7b9",
+        "experiments/inputs/f01ab/arrays.npz": "a674b748a058538fe7c6b0e93a836a0b82394196028788f09284d29b5dd13ed4",
+        "experiments/inputs/f01ab/model.urdf": "8e1fd973a1d1c3fbddd55039e6eb17b355ebb29f46e1bd8c774b7879c2cdc5bb"
+      },
+      "id": "F01ab",
+      "research_question": "RQ-timing",
+      "timing_mode": "A",
+      "description": "Frozen short12 cold/warm/goal-switch timings; completed 1070/Jetson are imported, not rerun.",
+      "preflight": {
+        "command": [
+          "{python}",
+          "{runner}/adapters/task.py",
+          "--source",
+          "{source}",
+          "--build",
+          "{build}",
+          "--output",
+          "{output}",
+          "--inputs",
+          "{inputs}/experiments/inputs/t01",
+          "--preflight",
+          "--timing-mode",
+          "A"
+        ],
+        "group": "F01ab-A"
+      },
+      "command": [
+        "{python}",
+        "{runner}/adapters/f01ab.py",
+        "--source",
+        "{source}",
+        "--build",
+        "{build}",
+        "--case",
+        "{case}",
+        "--output",
+        "{output}",
+        "--inputs",
+        "{inputs}/experiments/inputs/f01ab"
+      ],
+      "cases": [
+        {
+          "id": "N16-SQP1-PCG100",
+          "parameters": {
+            "variant": "short12",
+            "N": 16,
+            "SQP": 1,
+            "PCG": 100,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N16-SQP1-PCG200",
+          "parameters": {
+            "variant": "short12",
+            "N": 16,
+            "SQP": 1,
+            "PCG": 200,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N16-SQP1-PCG400",
+          "parameters": {
+            "variant": "short12",
+            "N": 16,
+            "SQP": 1,
+            "PCG": 400,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N16-SQP1-PCG800",
+          "parameters": {
+            "variant": "short12",
+            "N": 16,
+            "SQP": 1,
+            "PCG": 800,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N16-SQP2-PCG100",
+          "parameters": {
+            "variant": "short12",
+            "N": 16,
+            "SQP": 2,
+            "PCG": 100,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N16-SQP2-PCG200",
+          "parameters": {
+            "variant": "short12",
+            "N": 16,
+            "SQP": 2,
+            "PCG": 200,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N16-SQP2-PCG400",
+          "parameters": {
+            "variant": "short12",
+            "N": 16,
+            "SQP": 2,
+            "PCG": 400,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N16-SQP2-PCG800",
+          "parameters": {
+            "variant": "short12",
+            "N": 16,
+            "SQP": 2,
+            "PCG": 800,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N16-SQP5-PCG100",
+          "parameters": {
+            "variant": "short12",
+            "N": 16,
+            "SQP": 5,
+            "PCG": 100,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N16-SQP5-PCG200",
+          "parameters": {
+            "variant": "short12",
+            "N": 16,
+            "SQP": 5,
+            "PCG": 200,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N16-SQP5-PCG400",
+          "parameters": {
+            "variant": "short12",
+            "N": 16,
+            "SQP": 5,
+            "PCG": 400,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N16-SQP5-PCG800",
+          "parameters": {
+            "variant": "short12",
+            "N": 16,
+            "SQP": 5,
+            "PCG": 800,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N16-SQP10-PCG100",
+          "parameters": {
+            "variant": "short12",
+            "N": 16,
+            "SQP": 10,
+            "PCG": 100,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N16-SQP10-PCG200",
+          "parameters": {
+            "variant": "short12",
+            "N": 16,
+            "SQP": 10,
+            "PCG": 200,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N16-SQP10-PCG400",
+          "parameters": {
+            "variant": "short12",
+            "N": 16,
+            "SQP": 10,
+            "PCG": 400,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N16-SQP10-PCG800",
+          "parameters": {
+            "variant": "short12",
+            "N": 16,
+            "SQP": 10,
+            "PCG": 800,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-SQP1-PCG100",
+          "parameters": {
+            "variant": "short12",
+            "N": 32,
+            "SQP": 1,
+            "PCG": 100,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-SQP1-PCG200",
+          "parameters": {
+            "variant": "short12",
+            "N": 32,
+            "SQP": 1,
+            "PCG": 200,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-SQP1-PCG400",
+          "parameters": {
+            "variant": "short12",
+            "N": 32,
+            "SQP": 1,
+            "PCG": 400,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-SQP1-PCG800",
+          "parameters": {
+            "variant": "short12",
+            "N": 32,
+            "SQP": 1,
+            "PCG": 800,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-SQP2-PCG100",
+          "parameters": {
+            "variant": "short12",
+            "N": 32,
+            "SQP": 2,
+            "PCG": 100,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-SQP2-PCG200",
+          "parameters": {
+            "variant": "short12",
+            "N": 32,
+            "SQP": 2,
+            "PCG": 200,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-SQP2-PCG400",
+          "parameters": {
+            "variant": "short12",
+            "N": 32,
+            "SQP": 2,
+            "PCG": 400,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-SQP2-PCG800",
+          "parameters": {
+            "variant": "short12",
+            "N": 32,
+            "SQP": 2,
+            "PCG": 800,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-SQP5-PCG100",
+          "parameters": {
+            "variant": "short12",
+            "N": 32,
+            "SQP": 5,
+            "PCG": 100,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-SQP5-PCG200",
+          "parameters": {
+            "variant": "short12",
+            "N": 32,
+            "SQP": 5,
+            "PCG": 200,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-SQP5-PCG400",
+          "parameters": {
+            "variant": "short12",
+            "N": 32,
+            "SQP": 5,
+            "PCG": 400,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-SQP5-PCG800",
+          "parameters": {
+            "variant": "short12",
+            "N": 32,
+            "SQP": 5,
+            "PCG": 800,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-SQP10-PCG100",
+          "parameters": {
+            "variant": "short12",
+            "N": 32,
+            "SQP": 10,
+            "PCG": 100,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-SQP10-PCG200",
+          "parameters": {
+            "variant": "short12",
+            "N": 32,
+            "SQP": 10,
+            "PCG": 200,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-SQP10-PCG400",
+          "parameters": {
+            "variant": "short12",
+            "N": 32,
+            "SQP": 10,
+            "PCG": 400,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-SQP10-PCG800",
+          "parameters": {
+            "variant": "short12",
+            "N": 32,
+            "SQP": 10,
+            "PCG": 800,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N64-SQP1-PCG100",
+          "parameters": {
+            "variant": "short12",
+            "N": 64,
+            "SQP": 1,
+            "PCG": 100,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N64-SQP1-PCG200",
+          "parameters": {
+            "variant": "short12",
+            "N": 64,
+            "SQP": 1,
+            "PCG": 200,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N64-SQP1-PCG400",
+          "parameters": {
+            "variant": "short12",
+            "N": 64,
+            "SQP": 1,
+            "PCG": 400,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N64-SQP1-PCG800",
+          "parameters": {
+            "variant": "short12",
+            "N": 64,
+            "SQP": 1,
+            "PCG": 800,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N64-SQP2-PCG100",
+          "parameters": {
+            "variant": "short12",
+            "N": 64,
+            "SQP": 2,
+            "PCG": 100,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N64-SQP2-PCG200",
+          "parameters": {
+            "variant": "short12",
+            "N": 64,
+            "SQP": 2,
+            "PCG": 200,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N64-SQP2-PCG400",
+          "parameters": {
+            "variant": "short12",
+            "N": 64,
+            "SQP": 2,
+            "PCG": 400,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N64-SQP2-PCG800",
+          "parameters": {
+            "variant": "short12",
+            "N": 64,
+            "SQP": 2,
+            "PCG": 800,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N64-SQP5-PCG100",
+          "parameters": {
+            "variant": "short12",
+            "N": 64,
+            "SQP": 5,
+            "PCG": 100,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N64-SQP5-PCG200",
+          "parameters": {
+            "variant": "short12",
+            "N": 64,
+            "SQP": 5,
+            "PCG": 200,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N64-SQP5-PCG400",
+          "parameters": {
+            "variant": "short12",
+            "N": 64,
+            "SQP": 5,
+            "PCG": 400,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N64-SQP5-PCG800",
+          "parameters": {
+            "variant": "short12",
+            "N": 64,
+            "SQP": 5,
+            "PCG": 800,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N64-SQP10-PCG100",
+          "parameters": {
+            "variant": "short12",
+            "N": 64,
+            "SQP": 10,
+            "PCG": 100,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N64-SQP10-PCG200",
+          "parameters": {
+            "variant": "short12",
+            "N": 64,
+            "SQP": 10,
+            "PCG": 200,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N64-SQP10-PCG400",
+          "parameters": {
+            "variant": "short12",
+            "N": 64,
+            "SQP": 10,
+            "PCG": 400,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N64-SQP10-PCG800",
+          "parameters": {
+            "variant": "short12",
+            "N": 64,
+            "SQP": 10,
+            "PCG": 800,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N128-SQP1-PCG100",
+          "parameters": {
+            "variant": "short12",
+            "N": 128,
+            "SQP": 1,
+            "PCG": 100,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N128-SQP1-PCG200",
+          "parameters": {
+            "variant": "short12",
+            "N": 128,
+            "SQP": 1,
+            "PCG": 200,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N128-SQP1-PCG400",
+          "parameters": {
+            "variant": "short12",
+            "N": 128,
+            "SQP": 1,
+            "PCG": 400,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N128-SQP1-PCG800",
+          "parameters": {
+            "variant": "short12",
+            "N": 128,
+            "SQP": 1,
+            "PCG": 800,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N128-SQP2-PCG100",
+          "parameters": {
+            "variant": "short12",
+            "N": 128,
+            "SQP": 2,
+            "PCG": 100,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N128-SQP2-PCG200",
+          "parameters": {
+            "variant": "short12",
+            "N": 128,
+            "SQP": 2,
+            "PCG": 200,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N128-SQP2-PCG400",
+          "parameters": {
+            "variant": "short12",
+            "N": 128,
+            "SQP": 2,
+            "PCG": 400,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N128-SQP2-PCG800",
+          "parameters": {
+            "variant": "short12",
+            "N": 128,
+            "SQP": 2,
+            "PCG": 800,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N128-SQP5-PCG100",
+          "parameters": {
+            "variant": "short12",
+            "N": 128,
+            "SQP": 5,
+            "PCG": 100,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N128-SQP5-PCG200",
+          "parameters": {
+            "variant": "short12",
+            "N": 128,
+            "SQP": 5,
+            "PCG": 200,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N128-SQP5-PCG400",
+          "parameters": {
+            "variant": "short12",
+            "N": 128,
+            "SQP": 5,
+            "PCG": 400,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N128-SQP5-PCG800",
+          "parameters": {
+            "variant": "short12",
+            "N": 128,
+            "SQP": 5,
+            "PCG": 800,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N128-SQP10-PCG100",
+          "parameters": {
+            "variant": "short12",
+            "N": 128,
+            "SQP": 10,
+            "PCG": 100,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N128-SQP10-PCG200",
+          "parameters": {
+            "variant": "short12",
+            "N": 128,
+            "SQP": 10,
+            "PCG": 200,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N128-SQP10-PCG400",
+          "parameters": {
+            "variant": "short12",
+            "N": 128,
+            "SQP": 10,
+            "PCG": 400,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N128-SQP10-PCG800",
+          "parameters": {
+            "variant": "short12",
+            "N": 128,
+            "SQP": 10,
+            "PCG": 800,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        }
+      ]
+    }
+  ],
+  "retained_results": {
+    "F01ab": {
+      "gtx1070": "completed historical cohort; import existing results",
+      "jetson": "Felix reports completed; awaiting manual collection; do not rerun"
+    },
+    "T01": {
+      "gtx1070": "six completed task/physical passes; preserve original cohort"
+    }
+  },
+  "note": "No GPU execution during plan generation. Jetson T01 repeat/duration decisions remain separate. D02 remains manual."
+}
