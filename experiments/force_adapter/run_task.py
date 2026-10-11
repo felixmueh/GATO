@@ -118,7 +118,8 @@ def run_case(case,output,inputs,module,recorder_class,sha,write_json,*,preflight
                 above_nominal_share=float(np.mean(np.asarray(stats['requested_update_intervals_s'])>.03)),
                 timing_scope='full persistent force-algorithm wall advances old plan; construction/memory queries excluded',
                 maximum_applied_torque_Nm=maximum_applied_torque,maximum_selected_plan_torque_Nm=maximum_planned_torque,
-                maximum_sampled_effort_ratio=effort_ratio,construction=force.construction)
+                maximum_sampled_effort_ratio=effort_ratio,construction=force.construction,
+                executed_duration_s=float(stats['terminal_time_s']),requested_duration_s=8. if preflight else float(task['duration_s']))
             metrics['force_estimation_errors_SI']=estimation_errors
             metrics['force_estimation_error_note']='Euclidean norm of six declared SI wrench components; report force/torque components from raw separately, not a unitless accuracy score.'
             write_json(output/'controller_stats.json',stats)
