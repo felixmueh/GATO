@@ -64,3 +64,6 @@ example_artifacts/
 # Local experiment runner settings and immutable source worktrees.
 /experiments/local.json
 /.worktrees/
+
+/jetson-f01ab-results.tar.gz
+/jetson-f01ab-results.tar.gz.tmp

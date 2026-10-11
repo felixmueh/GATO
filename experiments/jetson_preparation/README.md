@@ -112,3 +112,27 @@ mkdir -p example_artifacts/jetson_f01ab-tests
 PYTHONDONTWRITEBYTECODE=1 python3 -B -m pytest -q experiments/jetson_preparation/test_full_pipeline.py experiments/jetson_preparation/test_target.py experiments/jetson_preparation/test_bank_reuse.py --basetemp=example_artifacts/jetson_f01ab-tests/tmp -o cache_dir=example_artifacts/jetson_f01ab-tests/cache
 python3 -B experiments/jetson_preparation/check_artifact_retention.py
 ```
+
+## Download results
+
+Successful runs automatically write `jetson-f01ab-results.tar.gz` in the checkout
+root. This single portable archive includes all cell raw data, summaries, readiness,
+logs, frozen inputs and compact provenance; it excludes builds, source checkouts
+and caches. `EXPORT.json` records file hashes and maps original Jetson paths to
+archive paths. The latest export replaces this convenience archive; original
+timestamped run directories remain unchanged.
+
+To package an already completed run without rebuilding or rerunning anything:
+
+```bash
+python3 experiments/jetson_preparation/export_results.py
+```
+
+From the destination computer, using the configured `jetson` SSH alias:
+
+```bash
+rsync -avP jetson:/home/pal/FelixGATO/GATO/.worktrees/jetson-f01ab/jetson-f01ab-results.tar.gz .
+```
+
+Extract with `tar -xzf jetson-f01ab-results.tar.gz`. Pass `--run PATH` to export
+a specific run, including partial/failed evidence; its status is retained.

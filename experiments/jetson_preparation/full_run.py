@@ -162,12 +162,20 @@ def run_campaign(source,work,python,sha,write,command,*,prepared=None,parent=Non
         if len(completed)!=64 or sum(x['native_calls'] for x in completed)!=15424:raise RuntimeError('Matrix coverage incomplete')
         files=[p for p in work.rglob('*') if p.is_file() and not p.is_symlink()]
         write(state,dict(status='completed',elapsed_campaign_wall_s=time.time()-started,storage_bytes=sum(p.stat().st_size for p in files),storage_files=len(files),finished=time.time(),plan=pin(plan,sha),release=pin(manifest,sha),parent_failed_attempt=parent,cells=completed,native_calls=15424,automated_target_validation=pin(work/'automated-target-validation.json',sha) if (work/'automated-target-validation.json').exists() else None,canonical_A_readiness=pin(family,sha),dry_run=pin(work/'runner-dry-run.json',sha)))
-        print('F01ab complete:64cells,15424calls. All logs/builds/raw/results retained in',work,flush=True)
+        print('F01ab complete:64cells,15424calls.',flush=True)
     except BaseException as error:
         if context is not None:R.write_state(family,context,'held',reason=str(error),failed_attempt=str(work))
         previous=json.loads(state.read_text()) if state.exists() else {}
         write(state,dict(previous,status='held',error_type=type(error).__name__,error=str(error)))
         raise
+    # Packaging cannot invalidate a completed measurement cohort. It can also
+    # be repeated independently with export_results.py without running experiments.
+    try:
+        from export_results import export_results
+        export_results(work, ROOT/'jetson-f01ab-results.tar.gz')
+    except Exception as error:
+        print('Measurements completed; results export failed:', error, flush=True)
+        print('Run python3 experiments/jetson_preparation/export_results.py to retry packaging.', flush=True)
 
 
 def continue_prepared(work,python,sha,write,command,device=None):
