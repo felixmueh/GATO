@@ -1,0 +1,83 @@
+{
+  "name": "Square poses and upward-tool figure-eight CPU preparation",
+  "square": {
+    "side_m": 0.3,
+    "center_torso_m": [
+      0.5,
+      -0.4,
+      0.0
+    ],
+    "endpoint_clearance_mm": [
+      60.6239,
+      73.8275,
+      73.7283,
+      42.2361,
+      48.4539
+    ],
+    "center_minimum_joint_margin_rad": 0.296558,
+    "selection": "8placement centers total, original24 + second46 IKattempts;3centerbranchalternatives only; allrejected retained",
+    "dynamic_witness": "15s per sequentialsegment,31quintic inverse-dynamics samples; sampledq/v/effort pass all5; not MPC/sweptcollision evidence"
+  },
+  "upward_figure8": {
+    "orientation": "toolXcomfortable horizontalprojection,toolZup,yaw-2.9952758rad",
+    "translation_m": [
+      0.08,
+      0.0,
+      0.0
+    ],
+    "shared_shape": "public32cmx16cm XYfigure8,24/18/12s unchanged; arbitraryyaw0/original/translated negatives preserved",
+    "sparse_endpoint_clearance_mm": [
+      42.2,
+      47.5,
+      63.5,
+      51.2,
+      46.7,
+      52.4,
+      63.7,
+      63.8
+    ],
+    "scope": "8phaseIK endpoints per geometry, no trackingdynamic/swept certificate"
+  },
+  "artifacts": [
+    {
+      "path": "/workspace/GATO-eval-deployment/.experiment-work/demo-square-screen-v1/screen.json",
+      "sha256": "24396e3fc5ccbb6fab752cf09bc2c063c676e089e2de12ac5d2d46620e40b2aa",
+      "bytes": 34361
+    },
+    {
+      "path": "/workspace/GATO-eval-deployment/.experiment-work/demo-square-screen-v2/center_variants.json",
+      "sha256": "b4f6b438b77bd8cd4ff706c8773c635796519a8f2f7c12433b65c43adc047b3f",
+      "bytes": 5686
+    },
+    {
+      "path": "/workspace/GATO-eval-deployment/.experiment-work/demo-square-screen-v2/proposal.json",
+      "sha256": "f0fe6d1f6a4704caa9f048aa64c999c1aa77edf2c4d7d16062c3135eec6b3dc9",
+      "bytes": 85996
+    },
+    {
+      "path": "/workspace/GATO-eval-deployment/.experiment-work/demo-square-screen-v2/screen.json",
+      "sha256": "fc633b043579159bbf39c1e8a625a8ca256f09d8c31c513a45e56502ec4aab78",
+      "bytes": 60015
+    },
+    {
+      "path": "/workspace/GATO-eval-deployment/.experiment-work/demo-upward-figure8-screen-v1/screen.json",
+      "sha256": "5ce042f3199473eca32731783f11a1942c36153797164dd3b0adaded91649930",
+      "bytes": 21775
+    },
+    {
+      "path": "/workspace/GATO-eval-deployment/.experiment-work/demo-upward-figure8-screen-v2/screen.json",
+      "sha256": "d85e77ff66767f0f10d7199b0054d5188b679839a908777d9a9d514aae05e147",
+      "bytes": 35701
+    }
+  ],
+  "runtime_pins": {
+    "internal": "502fa29",
+    "gazebo": "63940f7",
+    "physical_robot": "63940f7"
+  },
+  "runtime_source_changes": false,
+  "full_motion_execution": false,
+  "validation": "6 focusedCPU no-native/ROS tests; public8deploymentchecks reused/passed earlier",
+  "collision_model_sha256": "98d18490cdf1ec9e9f3f749f43d96d0203d598344f47425e0287d1029b3894fd",
+  "blacklist_sha256": "af70b26bd0ab6936a1d928b8e580d805097d914129f349dd351cb8d77b663e75"
+}
