@@ -191,7 +191,9 @@ class BSQP {
                                 // Preserve the existing once-per-lane outer count.
                                 h_sqp_iters_B_[b] += 1;
 
-                                if (h_kkt_converged_batch_[b]) {
+                                // Zero inner work restores the practical SQP
+                                // shortcut without certifying residual convergence.
+                                if (h_kkt_converged_batch_[b] || pcg_stats.num_iterations[b] == 0) {
                                         num_solved++;
                                 }
                         }
