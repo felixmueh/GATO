@@ -7,6 +7,10 @@
 
 namespace py = pybind11;
 
+#if defined(PLANT_TIAGO_RIGHT)
+#include "simulation_bindings.cuh"
+#endif
+
 template<typename T, uint32_t BatchSize>
 class PyBSQP {
       public:
@@ -216,6 +220,30 @@ class PyBSQP {
         void reset_rho() { solver_.reset_rho(); }
         void set_rho_adaptation(bool enabled) { solver_.set_rho_adaptation(enabled); }
 
+#if defined(PLANT_TIAGO_RIGHT)
+        py::dict workspace_bytes() const
+        {
+                // Exact sizes of the existing BSQP and PyBSQP cudaMalloc calls.
+                const size_t scalar_count = 3*STATE_SQ_P_KNOTS + 2*CONTROL_SQ_P_KNOTS +
+                    2*STATE_P_KNOTS + CONTROL_P_KNOTS + STATE_P_CONTROL_P_KNOTS +
+                    TRAJ_SIZE + 2*VEC_SIZE_PADDED + 2*B3D_MATRIX_SIZE_PADDED + 2 + NUM_ALPHAS + 11;
+                const size_t solver = scalar_count*BatchSize*sizeof(T) +
+                    3*BatchSize*sizeof(uint32_t) + sizeof(int32_t);
+                const size_t binding = (TRAJ_SIZE + REFERENCE_TRAJ_SIZE + 2*STATE_SIZE)*BatchSize*sizeof(T) +
+                    (STATE_SIZE+CONTROL_SIZE)*sizeof(T);
+                const size_t pinned = (2*STATE_P_KNOTS+CONTROL_P_KNOTS)*BatchSize*sizeof(T) +
+                    2*BatchSize*sizeof(uint32_t);
+                py::dict result;
+                result["device_bytes"] = solver + binding + tiagoModelDeviceBytes<T>();
+                result["pinned_host_bytes"] = pinned;
+                result["solver_device_bytes"] = solver;
+                result["binding_device_bytes"] = binding;
+                result["model_device_bytes"] = tiagoModelDeviceBytes<T>();
+                result["scope"] = "requested persistent allocations; includes model and existing simulation buffers, excludes CUDA context/allocator overhead and ordinary heap";
+                return result;
+        }
+#endif
+
       private:
         BSQP<T, BatchSize> solver_;
         T*                 d_xu_traj_batch_;
@@ -261,6 +289,12 @@ class PyBSQP {
             .def("reset_rho", &PyBSQP<Type, BatchSize>::reset_rho)                                                                                                                                \
             .def("set_rho_adaptation", &PyBSQP<Type, BatchSize>::set_rho_adaptation)
 
+#if defined(PLANT_TIAGO_RIGHT)
+#define REGISTER_FORCE_WORKSPACE(Type, BatchSize) \
+        m.attr("BSQP_" #BatchSize "_" #Type).attr("workspace_bytes") = py::cpp_function( \
+            &PyBSQP<Type, BatchSize>::workspace_bytes, py::is_method(m.attr("BSQP_" #BatchSize "_" #Type)))
+#endif
+
 PYBIND11_MODULE(MODULE_NAME(KNOT_POINTS, PLANT_SUFFIX), m)
 {
         m.attr("KNOT_POINTS") = KNOT_POINTS;  // to check num knots for current module
@@ -287,5 +321,19 @@ PYBIND11_MODULE(MODULE_NAME(KNOT_POINTS, PLANT_SUFFIX), m)
         REGISTER_BSQP_CLASS(float, 256);
         REGISTER_BSQP_CLASS(float, 512);
         REGISTER_BSQP_CLASS(float, 1024);
+#endif
+#if defined(PLANT_TIAGO_RIGHT)
+#ifdef USE_DOUBLES
+        REGISTER_FORCE_WORKSPACE(double, 1);
+        REGISTER_FORCE_WORKSPACE(double, 16);
+#else
+        REGISTER_FORCE_WORKSPACE(float, 1);
+        REGISTER_FORCE_WORKSPACE(float, 16);
+#endif
+        py::class_<PySimulation<float,16>>(m, "Simulation16_float")
+            .def(py::init<>())
+            .def("sim_forward", &PySimulation<float,16>::sim_forward,
+                 py::arg("state"), py::arg("control"), py::arg("linear_first_wrenches"), py::arg("dt"))
+            .def("workspace_bytes", &PySimulation<float,16>::workspace_bytes);
 #endif
 }
