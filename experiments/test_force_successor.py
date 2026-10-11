@@ -1,0 +1,54 @@
+"""Saved-only force screen and revised-plan checks; no GPU/process launches."""
+import hashlib
+import json
+from pathlib import Path
+import pytest
+import force_screen as S
+import force_successor_plan as P
+
+def put(path,value):path.parent.mkdir(parents=True,exist_ok=True);path.write_text(json.dumps(value))
+def smoke(root,crash=False):
+    p=root/'smoke';c=root/'canonical'
+    put(c/'metrics.json',dict(task_success=True,physical_pass=True))
+    put(p/'smoke_receipt.json',dict(status='completed',canonical_output=str(c)))
+    put(p/'metrics.json',dict(outcome='force_task_completed',parameters=dict(mode='original',force_N=0),
+        execution_error='native crash' if crash else None,physical_pass=True,task_success=False,
+        tracking_RMS_error_m=.026,tracking_max_error_m=.045,executed_duration_s=24.))
+    return p
+
+def test_screen_selects_smallest_physical_qualifier_and_retains_failure(tmp_path):
+    original=smoke(tmp_path)
+    for f,rms,physical,status in [(0,.025,True,'completed'),(5,.036,False,'completed'),(10,None,None,'failed'),(20,.04,True,'completed')]:
+        p=tmp_path/'screen'/str(f)
+        params=dict(mode='no_estimator',force_N=f,stage='screen')
+        put(p/'receipt.json',dict(status=status,case=dict(parameters=params)))
+        put(p/'metrics.json',dict(parameters=params,tracking_RMS_error_m=rms,physical_pass=physical,
+            task_success=False,maximum_sampled_effort_ratio=.8,execution_error='retained error' if status=='failed' else None))
+        put(p/'provenance.json',dict(source_commit='same-source',module_sha256='same-module',input_sha256={'t01.json':'same-settings-and-reference'}))
+    d=S.select(tmp_path/'screen',original,tmp_path/'selection.json')
+    assert d['selected_force_N']==20 and len(d['all_attempts'])==4
+    assert d['all_attempts'][1]['execution_error']=='retained error' # Sorted paths0,10,20,5.
+    assert d['original_smoke']['task_success'] is False # Old tracking gate is not smoke gate.
+    with pytest.raises(ValueError,match='crashed'):
+        S.smoke_evidence(smoke(tmp_path/'crashed',True))
+
+def test_final_shapes_and_selected_bank_identity(tmp_path,monkeypatch):
+    monkeypatch.setattr(P,'ROOT',tmp_path)
+    monkeypatch.setattr(P,'task_inputs',lambda source:{})
+    put(tmp_path/'experiments/successor/inventory.json',dict(plan_files=['successor/gtx1070_internal.json']))
+    selection=tmp_path/'selection.json';put(selection,dict(selected_force_N=10,outcome='selected_smallest_qualifying_force'))
+    bank=tmp_path/'bank';bank.mkdir();put(bank/'protocol.json',dict(protocol_id='force-persistent-grid-native-v2',selected_force_N=10))
+    (bank/'arrays.npz').write_bytes(b'synthetic-bank')
+    put(bank/'SHA256SUMS.json',{name:hashlib.sha256((bank/name).read_bytes()).hexdigest() for name in ('arrays.npz','protocol.json')})
+    files=P.prepare_final('a'*40,selection,bank)
+    assert len(files)==3
+    for filename in files:
+        d=json.loads((tmp_path/'experiments'/filename).read_text());native,*tasks=d['experiments']
+        assert len(native['cases'])==24 and sum(len(e['cases']) for e in tasks)==12
+        assert native['preflight']['command']==['{build}/cuda_access_smoke']
+        for e in tasks:
+            assert len(e['cases'])==4 and '--mode' in e['preflight']['command']
+            assert [c['parameters']['force_N'] for c in e['cases']]==[0,10,10,10]
+            assert [c['parameters']['repeat'] for c in e['cases']]==[0,0,1,2]
+    put(selection,dict(selected_force_N=None,outcome='no_qualifying_force_report_before_expansion'))
+    with pytest.raises(ValueError,match='No bounded'):P.prepare_final('a'*40,selection,bank)

@@ -1,20 +1,32 @@
 {
   "version": 1,
   "experiments": [],
-  "status": "staged_prerequisites_not_execution_ready",
-  "stages": [
-    "Original-arm GTX1070 0N smoke; repeat crash holds force study",
-    "New same-policy no-estimator0N baseline and5/10/20N modeB screen; frozen degradation criterion; choose smallest qualifying force within effort limits",
-    "Freeze selectedF* and revised12input bank: sixstarts x{0,F*}",
-    "E02 three methods x(one0N +threeF* repeats)=12tasks/machine; E03 bank one excluded warmup+20ticks/input/method; derive E01"
-  ],
-  "source_commit": null,
+  "source_commit": "16cc57f706ecb9fb5731297a83bc47f30632ca39",
   "selected_force_N": null,
-  "machines": [
-    "gtx1070",
-    "rtx5060",
-    "jetson"
-  ],
-  "stopping_policy": "zero_pcg_or_finite_kkt",
-  "limitation": "This file cannot run old force adapters; revised source and F* must be supplied by force owner."
+  "held": true,
+  "status": "Held after original0N canonical physical failure; awaiting discussion of bounded setup-only review",
+  "canonical_evidence": {
+    "path": "/workspace/GATO/_expr_results/force-persistent-v2-20261011T194420Z/canonical-original0",
+    "metrics_sha256": "0702dafbae6ef7c27f8d684bf23b7c014659ee7fd4fd02025ef3aed173792322",
+    "provenance_sha256": "fc2090cdae59baeced46878617aa19cb3aaf811e0a72379252ef9c4cdb203b66",
+    "module_sha256": "a93273dc23b8e9d1c7c46d0c898599b78544948cb6e1ef8f36f8faab4ee7a526",
+    "task_success": true,
+    "physical_pass": false,
+    "physical_limit_excess": {
+      "q_rad": 0.0,
+      "v_rad_s": 0.1271132353761657,
+      "u_Nm": 0.0
+    },
+    "execution_error": null
+  },
+  "pending": {
+    "original0N_tracking_smoke": true,
+    "bounded_disturbance_screen": true,
+    "selected_Fstar": true,
+    "E02_tasks_per_machine": 12,
+    "E03_bank_inputs": 12,
+    "E03_method_cases_per_machine": 24,
+    "E01": "Derived from future GPU bank"
+  },
+  "note": "No smoke/screen/final force campaign was run. No correction, tuning, extra GPU call or solver investigation authorized by this hold record."
 }

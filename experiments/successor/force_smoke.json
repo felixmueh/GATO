@@ -1,0 +1,129 @@
+{
+  "version": 1,
+  "experiments": [
+    {
+      "id": "ForceOriginal0Smoke",
+      "research_question": "RQ-force",
+      "protocol": "force-persistent-grid-v2",
+      "cohort_id": "force-grid-zero-pcg-v2",
+      "stopping_policy": "zero_pcg_or_finite_kkt",
+      "source_commit": "16cc57f706ecb9fb5731297a83bc47f30632ca39",
+      "machines": [
+        "gtx1070"
+      ],
+      "timing_mode": "B",
+      "backend": "internal",
+      "inputs": {
+        "experiments/inputs/force_v2/task_inputs/v01.json": "20920040853786cf3d96f13ba240f82918a9f0f5020270fbe67715666477cc81",
+        "experiments/inputs/force_v2/task_inputs/t01.json": "aec47cfa3819de5adbb8633b637f5bd9bcd327cb3afc5043a856b323af5aac41",
+        "experiments/inputs/force_v2/task_inputs/SHA256SUMS.json": "7835ecd62576737334582d50e724a4be83b4bd2878d2085143b76ec0eb44b8b1"
+      },
+      "build": {
+        "commands": [
+          [
+            "cmake",
+            "-S",
+            "{source}/experiments/force_adapter/native",
+            "-B",
+            "{build}",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DCMAKE_CUDA_ARCHITECTURES={cuda_arch}-real",
+            "-DPython3_EXECUTABLE={python}"
+          ],
+          [
+            "cmake",
+            "--build",
+            "{build}",
+            "--target",
+            "bsqpN32_tiago_right",
+            "cuda_access_smoke",
+            "--parallel",
+            "2"
+          ]
+        ],
+        "artifacts": [
+          "modules/bsqpN32_tiago_right*.so",
+          "cuda_access_smoke"
+        ]
+      },
+      "command": [
+        "{python}",
+        "{runner}/adapters/force.py",
+        "--source",
+        "{source}",
+        "--build",
+        "{build}",
+        "--inputs",
+        "{inputs}/experiments/inputs/force_v2/task_inputs",
+        "--output",
+        "{output}",
+        "--case",
+        "{case}"
+      ],
+      "timeout_seconds": 900,
+      "cases": [
+        {
+          "id": "original-0N-24s",
+          "parameters": {
+            "study": "E02",
+            "stage": "smoke",
+            "mode": "original",
+            "force_N": 0.0,
+            "repeat": 0,
+            "timing_mode": "B",
+            "backend": "internal",
+            "machine": "gtx1070"
+          }
+        }
+      ],
+      "preflight": {
+        "group": "force-grid-B-original",
+        "command": [
+          "{python}",
+          "{runner}/adapters/force.py",
+          "--source",
+          "{source}",
+          "--build",
+          "{build}",
+          "--inputs",
+          "{inputs}/experiments/inputs/force_v2/task_inputs",
+          "--output",
+          "{output}",
+          "--preflight",
+          "--mode",
+          "original"
+        ],
+        "scope": "Undisturbed0N rough-reaching readiness, shared across0/F*; disturbance physical compliance measured in task runs"
+      },
+      "enabled": false,
+      "held_reason": "Held after original0N canonical physical failure; awaiting discussion of bounded setup-only review",
+      "hold_evidence": {
+        "path": "/workspace/GATO/_expr_results/force-persistent-v2-20261011T194420Z/canonical-original0",
+        "metrics_sha256": "0702dafbae6ef7c27f8d684bf23b7c014659ee7fd4fd02025ef3aed173792322",
+        "provenance_sha256": "fc2090cdae59baeced46878617aa19cb3aaf811e0a72379252ef9c4cdb203b66",
+        "module_sha256": "a93273dc23b8e9d1c7c46d0c898599b78544948cb6e1ef8f36f8faab4ee7a526",
+        "task_success": true,
+        "physical_pass": false,
+        "physical_limit_excess": {
+          "q_rad": 0.0,
+          "v_rad_s": 0.1271132353761657,
+          "u_Nm": 0.0
+        },
+        "execution_error": null
+      }
+    }
+  ],
+  "stage": "smoke",
+  "status": "Held after original0N canonical physical failure; awaiting discussion of bounded setup-only review",
+  "original_smoke": null,
+  "screen_criterion": {
+    "RMS_degradation_m": 0.01,
+    "forces_N": [
+      5,
+      10,
+      20
+    ],
+    "selection": "smallest qualifying force within sampled effort and physical limits; no expansion"
+  },
+  "note": "One original0N tracking smoke first after canonical; crash/physical failure holds force study. Historical tracking task gate remains separately reported. No automatic screen or study continuation."
+}

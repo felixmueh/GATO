@@ -64,6 +64,7 @@
     }
   },
   "source_commits": [
+    "16cc57f706ecb9fb5731297a83bc47f30632ca39",
     "2c7e2b11bd5bab8fa3a761d17cf55c1aa9cff55e",
     "2db284ca8e11f42f8f3248403b879652966893ed",
     "4e5301feaea5f2d06530922ba46aa543e1995d47",
@@ -132,11 +133,43 @@
   },
   "missing_plan_files": [],
   "omissions": {
-    "Force": "Revised force source, smoke/screen and F* freeze pending; no old force adapter queued",
+    "Force": "Held after original0N canonical physical failure; awaiting discussion of bounded setup-only review",
     "D02 physical": "Standalone/manual; faster speeds withheld pending simulation review",
     "Solver-independent": "F04/Q02/X02/M02 not rerun solely for stopping change; pending target checks remain separate",
     "Jetson BA": "No full task sweep; F01c supplies speedup study",
     "Historical studies": "Retained unchanged; no format migration reruns"
   },
-  "readiness": "Preparation inventory, not a statement that all experiments or targets are execution-ready."
+  "readiness": "Preparation inventory, not a statement that all experiments or targets are execution-ready.",
+  "force_readiness": {
+    "version": 1,
+    "experiments": [],
+    "source_commit": "16cc57f706ecb9fb5731297a83bc47f30632ca39",
+    "selected_force_N": null,
+    "held": true,
+    "status": "Held after original0N canonical physical failure; awaiting discussion of bounded setup-only review",
+    "canonical_evidence": {
+      "path": "/workspace/GATO/_expr_results/force-persistent-v2-20261011T194420Z/canonical-original0",
+      "metrics_sha256": "0702dafbae6ef7c27f8d684bf23b7c014659ee7fd4fd02025ef3aed173792322",
+      "provenance_sha256": "fc2090cdae59baeced46878617aa19cb3aaf811e0a72379252ef9c4cdb203b66",
+      "module_sha256": "a93273dc23b8e9d1c7c46d0c898599b78544948cb6e1ef8f36f8faab4ee7a526",
+      "task_success": true,
+      "physical_pass": false,
+      "physical_limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.1271132353761657,
+        "u_Nm": 0.0
+      },
+      "execution_error": null
+    },
+    "pending": {
+      "original0N_tracking_smoke": true,
+      "bounded_disturbance_screen": true,
+      "selected_Fstar": true,
+      "E02_tasks_per_machine": 12,
+      "E03_bank_inputs": 12,
+      "E03_method_cases_per_machine": 24,
+      "E01": "Derived from future GPU bank"
+    },
+    "note": "No smoke/screen/final force campaign was run. No correction, tuning, extra GPU call or solver investigation authorized by this hold record."
+  }
 }

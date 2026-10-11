@@ -64,7 +64,10 @@ def merge(output,plan_files=None):
             if not experiment.get('enabled',True):continue
             definitions.append((filename,experiment))
     successor=any(e.get('stopping_policy')=='zero_pcg_or_finite_kkt' for _,e in definitions)
-    omissions=SUCCESSOR_OMISSIONS if successor else OMISSIONS
+    omissions=deepcopy(SUCCESSOR_OMISSIONS if successor else OMISSIONS)
+    force_stage=ROOT/'experiments/successor/force_stages.json'
+    force_readiness=json.loads(force_stage.read_text()) if successor and force_stage.exists() else None
+    if force_readiness:omissions['Force']=force_readiness['status']
     targets={}
     for machine in ('gtx1070','rtx5060','jetson'):
         for backend_group in ('desktop','gazebo'):
@@ -94,6 +97,10 @@ def merge(output,plan_files=None):
         cases=sum(len(e.get('cases',[]))*e.get('repeats',1) for e in p['experiments']),status=p['status']) for name,p in targets.items()},
         source_commits=sources(all_experiments),source_plan_files=list(plan_files or PLANS),source_plan_notes=source_notes,missing_plan_files=missing,omissions=omissions,
         readiness='Preparation inventory, not a statement that all experiments or targets are execution-ready.')
+    if force_readiness:
+        inventory['force_readiness']=force_readiness
+        if force_readiness.get('source_commit'):
+            inventory['source_commits']=sorted(set(inventory['source_commits']+[force_readiness['source_commit']]))
     write(output/'inventory.json',inventory)
     return inventory
 

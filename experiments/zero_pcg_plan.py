@@ -79,6 +79,11 @@ def faster_inputs():
 
 def prepare():
     output=ROOT/'experiments/successor';files=[]
+    installed=json.loads((output/'inventory.json').read_text()) if (output/'inventory.json').exists() else {}
+    installed_force=installed.get('force')
+    force_files=[f for f in installed.get('plan_files',[]) if f.startswith('successor/force_')]
+    if any(not (ROOT/'experiments'/f).is_file() for f in force_files):
+        raise ValueError('Installed force successor plan is missing; do not silently drop it')
     faster_hashes,faster=faster_inputs()
     original_campaign=read('campaign.json')['experiments']
     templates=[]
@@ -130,13 +135,14 @@ def prepare():
     write(output/'rtx5060_gazebo.json',dict(version=1,cohort_id=COHORT,stopping_policy=POLICY,experiments=live,
         status='live_setup_and_prior_simulation_review_pending',prerequisites='Jetson V01/T01 B and Felix review before live; faster tracking not included. Manual D02 outside runner.'))
     files.append('successor/rtx5060_gazebo.json')
-    write(output/'force_stages.json',dict(version=1,experiments=[],status='staged_prerequisites_not_execution_ready',
+    if not (output/'force_stages.json').exists() or not json.loads((output/'force_stages.json').read_text()).get('source_commit'):
+        write(output/'force_stages.json',dict(version=1,experiments=[],status='staged_prerequisites_not_execution_ready',
         stages=['Original-arm GTX1070 0N smoke; repeat crash holds force study',
             'New same-policy no-estimator0N baseline and5/10/20N modeB screen; frozen degradation criterion; choose smallest qualifying force within effort limits',
             'Freeze selectedF* and revised12input bank: sixstarts x{0,F*}',
             'E02 three methods x(one0N +threeF* repeats)=12tasks/machine; E03 bank one excluded warmup+20ticks/input/method; derive E01'],
         source_commit=None,selected_force_N=None,machines=['gtx1070','rtx5060','jetson'],stopping_policy=POLICY,
-        limitation='This file cannot run old force adapters; revised source and F* must be supplied by force owner.'))
+            limitation='This file cannot run old force adapters; revised source and F* must be supplied by force owner.'))
     independent=[]
     for filename in ('model_checks.json','collision_monitor.json','collision_monitor_jetson_proposed.json','resource_profiles.json','resource_profiles-jetson-proposed.json'):
         for e in read(filename)['experiments']:
@@ -149,9 +155,16 @@ def prepare():
         status='Original pending target checks; unchanged valid scientific source pins',
         note='Q02/M02/F04 already measured on GTX1070 are excluded; Jetson and RTX5060 unmeasured original studies retained. No pure-check rerun for solver change.'))
     files.append('successor/pending_independent.json')
-    write(output/'inventory.json',dict(cohort_id=COHORT,plan_files=files,source_map=PINS,
-        status='Non-force plans prepared; force explicitly staged; no package or measurements generated',
-        retained='All old plans, input banks, raw attempts and scientific failures remain unchanged'))
+    files+=force_files
+    stage=json.loads((output/'force_stages.json').read_text())
+    inventory=dict(cohort_id=COHORT,plan_files=files,source_map=PINS,
+        status='Explicit successor plans prepared; target family preflights and campaign measurements pending',
+        force_stage_status=stage.get('status'),
+        retained='All old plans, input banks, raw attempts and scientific failures remain unchanged')
+    if installed_force:inventory['force']=installed_force
+    if stage.get('source_commit'):inventory['force_readiness']=stage
+    if installed.get('force_stage_plans'):inventory['force_stage_plans']=installed['force_stage_plans']
+    write(output/'inventory.json',inventory)
     return files
 
 if __name__=='__main__':
