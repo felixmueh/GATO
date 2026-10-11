@@ -360,6 +360,22 @@ The same commands without `--dry-run` execute the selected plan on that machine.
 CPU preparation is not target qualification. Shared readiness supports the
 repository's namespace package and requires the selected native module.
 
+## Saved visual demonstration review
+
+After internal or Gazebo recording, render the actual feedback path, active
+goal/tool axes, position/axis errors and the existing arm skeleton animation:
+
+```sh
+python3 experiments/analysis/demo_visual.py --raw RESULT_COLLECTION --source PINNED_RUNTIME_SOURCE --output NEW_DIRECTORY
+```
+
+The output keeps attempts, backends, task/settling/physical outcomes and explicit
+skipped/held selections separate. Every feedback row is exported; the GIF uses
+at most 220 display frames. These drawings do not establish swept collision
+clearance. Add `--no-gifs` for paths/error traces only. The source supplies the
+recorded model and existing `tiago_reach_target.py` animation helper; no native
+solver or robot motion is invoked.
+
 ## Remaining Jetson proposals
 
 `jetson_remaining_plan.py` copies unchanged study definitions into
