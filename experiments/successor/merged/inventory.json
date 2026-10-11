@@ -1,0 +1,142 @@
+{
+  "plans": {
+    "gtx1070_desktop.json": {
+      "experiments": [
+        "T01",
+        "T01-faster-proposal",
+        "F01ab",
+        "F01c",
+        "F05-stageOFF",
+        "F05-stageON",
+        "BB",
+        "BA",
+        "ControlChoices",
+        "CylinderTasks",
+        "demo_visual_square_internal"
+      ],
+      "cases": 668,
+      "status": "prepared_not_executed"
+    },
+    "rtx5060_desktop.json": {
+      "experiments": [
+        "T01",
+        "T01-faster-proposal",
+        "F01ab",
+        "F01c",
+        "F05-stageOFF",
+        "F05-stageON",
+        "BB",
+        "BA",
+        "ControlChoices",
+        "CylinderTasks",
+        "demo_visual_square_internal",
+        "Q02",
+        "M02",
+        "F04-stageOFF"
+      ],
+      "cases": 681,
+      "status": "prepared_not_executed"
+    },
+    "rtx5060_gazebo.json": {
+      "experiments": [
+        "D01",
+        "demo_visual_square_gazebo",
+        "M03"
+      ],
+      "cases": 27,
+      "status": "prepared_not_executed"
+    },
+    "jetson_proposed.json": {
+      "experiments": [
+        "T01",
+        "T01-faster-proposal",
+        "F01ab",
+        "F01c",
+        "F05-stageOFF",
+        "F05-stageON",
+        "BB",
+        "CylinderTasks",
+        "M02",
+        "F04-stageOFF"
+      ],
+      "cases": 338,
+      "status": "proposed_duration_discussion_and_target_review_pending"
+    }
+  },
+  "source_commits": [
+    "2c7e2b11bd5bab8fa3a761d17cf55c1aa9cff55e",
+    "2db284ca8e11f42f8f3248403b879652966893ed",
+    "4e5301feaea5f2d06530922ba46aa543e1995d47",
+    "502fa29c8b0d649dcb347f9534bf29c6935fa6dd",
+    "84bad9ad3d88b1b50d01f4d7aa3721bbc31ea210",
+    "852b0cbcfe6e56fe5337a3b6e5fe8e777f959b77",
+    "8dbb8b8d6dc1d65e902373a9aa58693e33329c14",
+    "b931bbdd41303f1456ce3242045ebe48b241600a",
+    "c887bea29d3ed8a24de339478a7390bd4bac1915",
+    "fa6f6bede286c122cc41ac65f42a583da84290e0"
+  ],
+  "source_plan_files": [
+    "successor/gtx1070_internal.json",
+    "successor/rtx5060_internal.json",
+    "successor/jetson_internal.json",
+    "successor/rtx5060_gazebo.json",
+    "successor/pending_independent.json"
+  ],
+  "source_plan_notes": {
+    "successor/gtx1070_internal.json": {
+      "cohort_id": "zero-pcg-20261011",
+      "stopping_policy": "zero_pcg_or_finite_kkt",
+      "status": "prepared_target_build_preflight_pending",
+      "note": "New solver cohort, full frozen coverage; historical results/failed attempts and gates unchanged. Faster tracking simulation only; no physical robot queue.",
+      "omissions": {
+        "BA_seeds_alone": "Dropped; seed-to-output progress remains saved analysis",
+        "Jetson_BA": "No full BA task sweep; same-candidate speedup answered by F01c",
+        "force": "Revised runtime, bounded smoke/screen and selected F* pending; see force_stages.json",
+        "independent_studies": "No solver-change rerun of F04/Q02/X02/M02; pending M02/F04 target plans remain separate"
+      }
+    },
+    "successor/rtx5060_internal.json": {
+      "cohort_id": "zero-pcg-20261011",
+      "stopping_policy": "zero_pcg_or_finite_kkt",
+      "status": "prepared_target_build_preflight_pending",
+      "note": "New solver cohort, full frozen coverage; historical results/failed attempts and gates unchanged. Faster tracking simulation only; no physical robot queue.",
+      "omissions": {
+        "BA_seeds_alone": "Dropped; seed-to-output progress remains saved analysis",
+        "Jetson_BA": "No full BA task sweep; same-candidate speedup answered by F01c",
+        "force": "Revised runtime, bounded smoke/screen and selected F* pending; see force_stages.json",
+        "independent_studies": "No solver-change rerun of F04/Q02/X02/M02; pending M02/F04 target plans remain separate"
+      }
+    },
+    "successor/jetson_internal.json": {
+      "cohort_id": "zero-pcg-20261011",
+      "stopping_policy": "zero_pcg_or_finite_kkt",
+      "status": "proposed_duration_storage_discussion_pending",
+      "note": "New solver cohort, full frozen coverage; historical results/failed attempts and gates unchanged. Faster tracking simulation only; no physical robot queue.",
+      "omissions": {
+        "BA_seeds_alone": "Dropped; seed-to-output progress remains saved analysis",
+        "Jetson_BA": "No full BA task sweep; same-candidate speedup answered by F01c",
+        "force": "Revised runtime, bounded smoke/screen and selected F* pending; see force_stages.json",
+        "independent_studies": "No solver-change rerun of F04/Q02/X02/M02; pending M02/F04 target plans remain separate"
+      }
+    },
+    "successor/rtx5060_gazebo.json": {
+      "cohort_id": "zero-pcg-20261011",
+      "stopping_policy": "zero_pcg_or_finite_kkt",
+      "status": "live_setup_and_prior_simulation_review_pending",
+      "prerequisites": "Jetson V01/T01 B and Felix review before live; faster tracking not included. Manual D02 outside runner."
+    },
+    "successor/pending_independent.json": {
+      "status": "Original pending target checks; unchanged valid scientific source pins",
+      "note": "Q02/M02/F04 already measured on GTX1070 are excluded; Jetson and RTX5060 unmeasured original studies retained. No pure-check rerun for solver change."
+    }
+  },
+  "missing_plan_files": [],
+  "omissions": {
+    "Force": "Revised force source, smoke/screen and F* freeze pending; no old force adapter queued",
+    "D02 physical": "Standalone/manual; faster speeds withheld pending simulation review",
+    "Solver-independent": "F04/Q02/X02/M02 not rerun solely for stopping change; pending target checks remain separate",
+    "Jetson BA": "No full task sweep; F01c supplies speedup study",
+    "Historical studies": "Retained unchanged; no format migration reruns"
+  },
+  "readiness": "Preparation inventory, not a statement that all experiments or targets are execution-ready."
+}

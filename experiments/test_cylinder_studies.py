@@ -60,7 +60,9 @@ def test_seed_sources_and_current_source_unchanged():
     old=ast.parse(subprocess.check_output(['git','-C',str(SOURCE),'show','c084033b4147d267e094dd7699e0f31dd0b7ba6a:examples/randomized_multimodal/tiago_moving_pillar.py'],text=True))
     functions={n.name:ast.dump(n) for n in old.body if isinstance(n,ast.FunctionDef)}
     assert all(ast.dump(n)==functions[n.name] for n in saved.body if isinstance(n,ast.FunctionDef))
-    assert not subprocess.check_output(['git','-C',str(SOURCE),'diff','--name-only','4f6c8fd','--','gato','python','tiago_src','tests'],text=True)
+    # This assertion belongs to the frozen pre-restoration source, rather
+    # than the branch HEAD which now contains authorized zero-PCG stopping.
+    assert not subprocess.check_output(['git','-C',str(SOURCE),'diff','--name-only','4f6c8fd','d6c827842c6ed65d455472063bcf77f5498efd46','--','gato','python','tiago_src','tests'],text=True)
     import json
     root=Path(__file__).resolve().parent
     desktop=json.loads((root/'cylinder_studies.json').read_text())['experiments']

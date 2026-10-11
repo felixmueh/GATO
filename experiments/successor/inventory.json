@@ -1,0 +1,20 @@
+{
+  "cohort_id": "zero-pcg-20261011",
+  "plan_files": [
+    "successor/gtx1070_internal.json",
+    "successor/rtx5060_internal.json",
+    "successor/jetson_internal.json",
+    "successor/rtx5060_gazebo.json",
+    "successor/pending_independent.json"
+  ],
+  "source_map": {
+    "502fa29c8b0d649dcb347f9534bf29c6935fa6dd": "fa6f6bede286c122cc41ac65f42a583da84290e0",
+    "4e5301feaea5f2d06530922ba46aa543e1995d47": "852b0cbcfe6e56fe5337a3b6e5fe8e777f959b77",
+    "4f6c8fd4be428c135fc16564c5dd56eb61ce5660": "84bad9ad3d88b1b50d01f4d7aa3721bbc31ea210",
+    "63940f7a5c724c84c731a6a1edbc49a094f3b806": "8dbb8b8d6dc1d65e902373a9aa58693e33329c14",
+    "d6c827842c6ed65d455472063bcf77f5498efd46": "b931bbdd41303f1456ce3242045ebe48b241600a",
+    "a3a96ad3deabea5c0165da69addd1c55406710a9": "c887bea29d3ed8a24de339478a7390bd4bac1915"
+  },
+  "status": "Non-force plans prepared; force explicitly staged; no package or measurements generated",
+  "retained": "All old plans, input banks, raw attempts and scientific failures remain unchanged"
+}

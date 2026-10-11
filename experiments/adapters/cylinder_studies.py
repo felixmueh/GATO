@@ -16,12 +16,12 @@ from adapters import task,task_suite,control_studies
 ORDINARY_RUNTIME='502fa29c8b0d649dcb347f9534bf29c6935fa6dd'
 
 
-def ordinary_preflight(source,build,inputs,output):
+def ordinary_preflight(source,build,inputs,output,runtime_commit=ORDINARY_RUNTIME):
     # The cylinder source retains its reviewed custom paid-plan worker. Its
     # ordinary controller predates mode B, so run the unchanged accepted frontend
     # in this separate process with the already-built ordinary native module.
     from run import worktree
-    runtime=worktree(ORDINARY_RUNTIME,Path(build)/'prerequisite-cache')
+    runtime=worktree(runtime_commit,Path(build)/'prerequisite-cache')
     original=task.native_module
     def ordinary(src,bld,N=32):
         path=exact_module(bld,'bsqpN32_tiago_right.')
@@ -68,7 +68,7 @@ def scene_for(inputs,case):
     return json.loads((inputs/(case['parameters']['scene']+'.json')).read_text()),None
 
 
-def run(source,build,inputs,output,case=None,preflight=False):
+def run(source,build,inputs,output,case=None,preflight=False,ordinary_runtime=ORDINARY_RUNTIME):
     source,build,inputs,output=map(lambda p:Path(p).resolve(),(source,build,inputs,output))
     if preflight:
         # Both modules live in this build; existing helpers select ordinary exact name.
@@ -82,7 +82,7 @@ def run(source,build,inputs,output,case=None,preflight=False):
             return code
         # Prerequisite imports must not enter the custom cylinder worker process.
         code=subprocess.run([sys.executable,str(Path(__file__).resolve()),'--source',str(source),
-            '--build',str(build),'--inputs',str(inputs),'--output',str(output/'ordinary-canonical'),
+            '--build',str(build),'--inputs',str(inputs),'--output',str(output/'ordinary-canonical'),'--ordinary-runtime',ordinary_runtime,
             '--ordinary-preflight']).returncode
         if code:
             write_json(output/'metrics.json',dict(task_success=None,physical_pass=None,execution_error='Ordinary canonical preflight failed',ordinary_evidence=str(output/'ordinary-canonical')))
@@ -139,6 +139,6 @@ if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__)
     for name in ('source','build','inputs','output'):p.add_argument('--'+name,type=Path,required=True)
     p.add_argument('--case',type=Path);p.add_argument('--preflight',action='store_true')
-    p.add_argument('--ordinary-preflight',action='store_true');a=p.parse_args()
-    if a.ordinary_preflight:raise SystemExit(ordinary_preflight(a.source,a.build,a.inputs,a.output))
-    raise SystemExit(run(a.source,a.build,a.inputs,a.output,json.loads(a.case.read_text()) if a.case else None,a.preflight))
+    p.add_argument('--ordinary-preflight',action='store_true');p.add_argument('--ordinary-runtime',default=ORDINARY_RUNTIME);a=p.parse_args()
+    if a.ordinary_preflight:raise SystemExit(ordinary_preflight(a.source,a.build,a.inputs,a.output,a.ordinary_runtime))
+    raise SystemExit(run(a.source,a.build,a.inputs,a.output,json.loads(a.case.read_text()) if a.case else None,a.preflight,a.ordinary_runtime))

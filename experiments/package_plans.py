@@ -29,6 +29,12 @@ OMISSIONS={
  'Historical M01/F02/F03/C02/C07/L00/X03-IIWA':'Record-only; exact result locations retained in tracker/evidence ledger.',
  'L01 learning':'Deferred.',
 }
+SUCCESSOR_OMISSIONS={
+ 'Force':'Revised force source, smoke/screen and F* freeze pending; no old force adapter queued',
+ 'D02 physical':'Standalone/manual; faster speeds withheld pending simulation review',
+ 'Solver-independent':'F04/Q02/X02/M02 not rerun solely for stopping change; pending target checks remain separate',
+ 'Jetson BA':'No full task sweep; F01c supplies speedup study',
+ 'Historical studies':'Retained unchanged; no format migration reruns'}
 
 
 def write(path,value):
@@ -57,6 +63,8 @@ def merge(output,plan_files=None):
         for experiment in plan['experiments']:
             if not experiment.get('enabled',True):continue
             definitions.append((filename,experiment))
+    successor=any(e.get('stopping_policy')=='zero_pcg_or_finite_kkt' for _,e in definitions)
+    omissions=SUCCESSOR_OMISSIONS if successor else OMISSIONS
     targets={}
     for machine in ('gtx1070','rtx5060','jetson'):
         for backend_group in ('desktop','gazebo'):
@@ -69,20 +77,22 @@ def merge(output,plan_files=None):
                 gazebo='gazebo' in backend
                 if gazebo!=(backend_group=='gazebo'):continue
                 if 'robot' in backend or 'physical' in backend:raise ValueError('Physical robot cannot enter automatic merged plans')
-                if machine=='jetson' and 'f01ab' in original['id'].lower():raise ValueError('Completed Jetson F01ab must never be queued')
+                if machine=='jetson' and 'f01ab' in original['id'].lower() and original.get('stopping_policy')!='zero_pcg_or_finite_kkt':
+                    raise ValueError('Completed Jetson F01ab must never be queued for migration; restored-solver cohort must be explicit')
                 if original['id'] in seen:raise ValueError('Conflicting duplicate experiment ID: '+original['id'])
                 seen.add(original['id']);experiment=deepcopy(original);experiment['machines']=[machine];selected.append(experiment)
                 origins.append(dict(plan=filename,experiment=original['id']))
             name='jetson_proposed.json' if machine=='jetson' else f'{machine}_{backend_group}.json'
             plan=dict(version=1,status='proposed_duration_discussion_and_target_review_pending' if machine=='jetson' else 'prepared_not_executed',
                 experiments=selected,source_plans=origins,source_plan_notes={name:source_notes[name] for name in dict.fromkeys(r['plan'] for r in origins)},retained_results=retained,
-                omissions=OMISSIONS,missing_plan_files=missing,
-                note='Explicit prepared coverage only. Canonical preflights and actual task/physical gates retained; GPU use sequential. No physical robot queue or completed-study reruns.')
+                omissions=omissions,missing_plan_files=missing,
+                note='Explicit successor solver cohorts; previous results remain historical. Fresh matching builds/preflights pending; faster tracking is simulation only. No physical robot queue.' if successor else
+                    'Explicit prepared coverage only. Canonical preflights and actual task/physical gates retained; GPU use sequential. No physical robot queue or completed-study reruns.')
             write(output/name,plan);targets[name]=plan
     all_experiments=[e for p in targets.values() for e in p['experiments']]
     inventory=dict(plans={name:dict(experiments=[e['id'] for e in p['experiments']],
         cases=sum(len(e.get('cases',[]))*e.get('repeats',1) for e in p['experiments']),status=p['status']) for name,p in targets.items()},
-        source_commits=sources(all_experiments),source_plan_files=list(plan_files or PLANS),source_plan_notes=source_notes,missing_plan_files=missing,omissions=OMISSIONS,
+        source_commits=sources(all_experiments),source_plan_files=list(plan_files or PLANS),source_plan_notes=source_notes,missing_plan_files=missing,omissions=omissions,
         readiness='Preparation inventory, not a statement that all experiments or targets are execution-ready.')
     write(output/'inventory.json',inventory)
     return inventory
@@ -134,7 +144,12 @@ if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output',type=Path,default=ROOT/'experiments/merged')
     parser.add_argument('--plan-files',nargs='+',help='Explicit alternate source-plan filenames; omitted uses the declared inventory')
+    parser.add_argument('--cohort',choices=('legacy','zero-pcg'),default='legacy',help='Use explicit successor inventory, preserving historical plans')
     parser.add_argument('--package',type=Path,help='Fresh package directory; invoke only after implementation/source pins are checkpointed')
-    args=parser.parse_args();inventory=merge(args.output,args.plan_files)
+    args=parser.parse_args()
+    selected=args.plan_files
+    if args.cohort=='zero-pcg' and selected is None:
+        selected=json.loads((ROOT/'experiments/successor/inventory.json').read_text())['plan_files']
+    inventory=merge(args.output,selected)
     print(json.dumps(inventory,indent=2))
     if args.package:package(args.package,inventory,args.output)

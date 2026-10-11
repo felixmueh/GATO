@@ -1,0 +1,7114 @@
+{
+  "version": 1,
+  "status": "prepared_not_executed",
+  "experiments": [
+    {
+      "source_commit": "fa6f6bede286c122cc41ac65f42a583da84290e0",
+      "protocol": "simple-harness-v1-zero-pcg-20261011",
+      "backend": "internal",
+      "machines": [
+        "gtx1070"
+      ],
+      "build": {
+        "inputs": {
+          "native/CMakeLists.txt": "07c285afa3d2055c2c8f64c4645bdad01bdeb3391e77f2082aff3c70443df1e2",
+          "native/qualified/CMakeLists.txt": "9bdaae9f2d3991a3c567666bf77d8a253666c3adee9b4e66598c83f647dc41c7",
+          "native/task_readiness/CMakeLists.txt": "90abec70a6f830071843841791f13b995cf963118659b7001d8ed0085a8da6a6"
+        },
+        "commands": [
+          [
+            "cmake",
+            "-S",
+            "{runner}/native/qualified",
+            "-B",
+            "{build}",
+            "-DGATO_SOURCE_DIR={source}",
+            "-DKNOTS=16;32;64;128",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DGATO_EXPERIMENT_TELEMETRY=ON",
+            "-DCMAKE_CUDA_ARCHITECTURES={cuda_arch}-real",
+            "-DPython3_EXECUTABLE={python}"
+          ],
+          [
+            "cmake",
+            "--build",
+            "{build}",
+            "--parallel",
+            "2"
+          ]
+        ],
+        "artifacts": [
+          "modules/bsqpN16_tiago_right*.so",
+          "modules/bsqpN32_tiago_right*.so",
+          "modules/bsqpN64_tiago_right*.so",
+          "modules/bsqpN128_tiago_right*.so",
+          "cuda_access_smoke"
+        ]
+      },
+      "inputs": {
+        "experiments/inputs/t01/v01.json": "20920040853786cf3d96f13ba240f82918a9f0f5020270fbe67715666477cc81",
+        "experiments/inputs/t01/t01.json": "aec47cfa3819de5adbb8633b637f5bd9bcd327cb3afc5043a856b323af5aac41",
+        "experiments/inputs/f01ab/bank.json": "9c3a3a06b53079af04ca99a6d4146ff741161d1bf82013283447ab2d5422d7b9",
+        "experiments/inputs/f01ab/arrays.npz": "a674b748a058538fe7c6b0e93a836a0b82394196028788f09284d29b5dd13ed4",
+        "experiments/inputs/f01ab/model.urdf": "8e1fd973a1d1c3fbddd55039e6eb17b355ebb29f46e1bd8c774b7879c2cdc5bb"
+      },
+      "id": "T01",
+      "research_question": "RQ-control",
+      "timing_mode": "B",
+      "preflight": {
+        "command": [
+          "{python}",
+          "{runner}/adapters/successor_preflight.py",
+          "--source",
+          "{source}",
+          "--build",
+          "{build}",
+          "--output",
+          "{output}",
+          "--",
+          "{python}",
+          "{runner}/adapters/task.py",
+          "--source",
+          "{source}",
+          "--build",
+          "{build}",
+          "--output",
+          "@canonical-output@",
+          "--inputs",
+          "{inputs}/experiments/inputs/t01",
+          "--preflight",
+          "--timing-mode",
+          "B"
+        ],
+        "group": "T01-B-zero-pcg-20261011"
+      },
+      "command": [
+        "{python}",
+        "{runner}/adapters/task.py",
+        "--source",
+        "{source}",
+        "--build",
+        "{build}",
+        "--output",
+        "{output}",
+        "--inputs",
+        "{inputs}/experiments/inputs/t01",
+        "--case",
+        "{case}",
+        "--timing-mode",
+        "B"
+      ],
+      "cases": [
+        {
+          "id": "goal-1",
+          "parameters": {
+            "protocol": "T01",
+            "offline_timing": "solve_time"
+          }
+        },
+        {
+          "id": "goal-2",
+          "parameters": {
+            "protocol": "T01",
+            "offline_timing": "solve_time"
+          }
+        },
+        {
+          "id": "goal-3",
+          "parameters": {
+            "protocol": "T01",
+            "offline_timing": "solve_time"
+          }
+        },
+        {
+          "id": "figure8-24s",
+          "parameters": {
+            "protocol": "T01",
+            "offline_timing": "solve_time"
+          }
+        },
+        {
+          "id": "figure8-18s",
+          "parameters": {
+            "protocol": "T01",
+            "offline_timing": "solve_time"
+          }
+        },
+        {
+          "id": "figure8-12s",
+          "parameters": {
+            "protocol": "T01",
+            "offline_timing": "solve_time"
+          }
+        }
+      ],
+      "cohort_id": "zero-pcg-20261011",
+      "stopping_policy": "zero_pcg_or_finite_kkt",
+      "original_runtime_source_commit": "502fa29c8b0d649dcb347f9534bf29c6935fa6dd",
+      "original_scientific_protocol": "simple-harness-v1",
+      "preparation_status": "fresh matching build and target preflight pending"
+    },
+    {
+      "source_commit": "fa6f6bede286c122cc41ac65f42a583da84290e0",
+      "protocol": "simple-harness-v1-zero-pcg-20261011",
+      "backend": "internal",
+      "machines": [
+        "gtx1070"
+      ],
+      "build": {
+        "inputs": {
+          "native/CMakeLists.txt": "07c285afa3d2055c2c8f64c4645bdad01bdeb3391e77f2082aff3c70443df1e2",
+          "native/qualified/CMakeLists.txt": "9bdaae9f2d3991a3c567666bf77d8a253666c3adee9b4e66598c83f647dc41c7",
+          "native/task_readiness/CMakeLists.txt": "90abec70a6f830071843841791f13b995cf963118659b7001d8ed0085a8da6a6"
+        },
+        "commands": [
+          [
+            "cmake",
+            "-S",
+            "{runner}/native/qualified",
+            "-B",
+            "{build}",
+            "-DGATO_SOURCE_DIR={source}",
+            "-DKNOTS=16;32;64;128",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DGATO_EXPERIMENT_TELEMETRY=ON",
+            "-DCMAKE_CUDA_ARCHITECTURES={cuda_arch}-real",
+            "-DPython3_EXECUTABLE={python}"
+          ],
+          [
+            "cmake",
+            "--build",
+            "{build}",
+            "--parallel",
+            "2"
+          ]
+        ],
+        "artifacts": [
+          "modules/bsqpN16_tiago_right*.so",
+          "modules/bsqpN32_tiago_right*.so",
+          "modules/bsqpN64_tiago_right*.so",
+          "modules/bsqpN128_tiago_right*.so",
+          "cuda_access_smoke"
+        ]
+      },
+      "inputs": {
+        "experiments/inputs/t01_faster/t01.json": "d4d7c37bf5b6b7ded125b121c6212e121eccbbae193c39892faa0b2e1b8ef133",
+        "experiments/inputs/t01_faster/v01.json": "20920040853786cf3d96f13ba240f82918a9f0f5020270fbe67715666477cc81"
+      },
+      "id": "T01-faster-proposal",
+      "research_question": "RQ-control",
+      "timing_mode": "B",
+      "preflight": {
+        "command": [
+          "{python}",
+          "{runner}/adapters/successor_preflight.py",
+          "--source",
+          "{source}",
+          "--build",
+          "{build}",
+          "--output",
+          "{output}",
+          "--",
+          "{python}",
+          "{runner}/adapters/task.py",
+          "--source",
+          "{source}",
+          "--build",
+          "{build}",
+          "--output",
+          "@canonical-output@",
+          "--inputs",
+          "{inputs}/experiments/inputs/t01_faster",
+          "--preflight",
+          "--timing-mode",
+          "B"
+        ],
+        "group": "T01-B-zero-pcg-20261011"
+      },
+      "command": [
+        "{python}",
+        "{runner}/adapters/task.py",
+        "--source",
+        "{source}",
+        "--build",
+        "{build}",
+        "--output",
+        "{output}",
+        "--inputs",
+        "{inputs}/experiments/inputs/t01_faster",
+        "--case",
+        "{case}",
+        "--timing-mode",
+        "B"
+      ],
+      "cases": [
+        {
+          "id": "figure8-8s-proposal",
+          "parameters": {
+            "simulation_only": true,
+            "provisional_gate": true
+          }
+        },
+        {
+          "id": "figure8-6s-proposal",
+          "parameters": {
+            "simulation_only": true,
+            "provisional_gate": true
+          }
+        },
+        {
+          "id": "figure8-4s-proposal",
+          "parameters": {
+            "simulation_only": true,
+            "provisional_gate": true
+          }
+        }
+      ],
+      "cohort_id": "zero-pcg-20261011",
+      "stopping_policy": "zero_pcg_or_finite_kkt",
+      "original_runtime_source_commit": "502fa29c8b0d649dcb347f9534bf29c6935fa6dd",
+      "original_scientific_protocol": "simple-harness-v1",
+      "preparation_status": "fresh matching build and target preflight pending",
+      "faster_tracking_proposal": true,
+      "live_release": "Held pending Felix simulation review"
+    },
+    {
+      "source_commit": "fa6f6bede286c122cc41ac65f42a583da84290e0",
+      "protocol": "simple-harness-v1-zero-pcg-20261011",
+      "backend": "internal",
+      "machines": [
+        "gtx1070"
+      ],
+      "build": {
+        "inputs": {
+          "native/CMakeLists.txt": "07c285afa3d2055c2c8f64c4645bdad01bdeb3391e77f2082aff3c70443df1e2",
+          "native/qualified/CMakeLists.txt": "9bdaae9f2d3991a3c567666bf77d8a253666c3adee9b4e66598c83f647dc41c7",
+          "native/task_readiness/CMakeLists.txt": "90abec70a6f830071843841791f13b995cf963118659b7001d8ed0085a8da6a6"
+        },
+        "commands": [
+          [
+            "cmake",
+            "-S",
+            "{runner}/native/qualified",
+            "-B",
+            "{build}",
+            "-DGATO_SOURCE_DIR={source}",
+            "-DKNOTS=16;32;64;128",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DGATO_EXPERIMENT_TELEMETRY=ON",
+            "-DCMAKE_CUDA_ARCHITECTURES={cuda_arch}-real",
+            "-DPython3_EXECUTABLE={python}"
+          ],
+          [
+            "cmake",
+            "--build",
+            "{build}",
+            "--parallel",
+            "2"
+          ]
+        ],
+        "artifacts": [
+          "modules/bsqpN16_tiago_right*.so",
+          "modules/bsqpN32_tiago_right*.so",
+          "modules/bsqpN64_tiago_right*.so",
+          "modules/bsqpN128_tiago_right*.so",
+          "cuda_access_smoke"
+        ]
+      },
+      "inputs": {
+        "experiments/inputs/t01/v01.json": "20920040853786cf3d96f13ba240f82918a9f0f5020270fbe67715666477cc81",
+        "experiments/inputs/t01/t01.json": "aec47cfa3819de5adbb8633b637f5bd9bcd327cb3afc5043a856b323af5aac41",
+        "experiments/inputs/f01ab/bank.json": "9c3a3a06b53079af04ca99a6d4146ff741161d1bf82013283447ab2d5422d7b9",
+        "experiments/inputs/f01ab/arrays.npz": "a674b748a058538fe7c6b0e93a836a0b82394196028788f09284d29b5dd13ed4",
+        "experiments/inputs/f01ab/model.urdf": "8e1fd973a1d1c3fbddd55039e6eb17b355ebb29f46e1bd8c774b7879c2cdc5bb"
+      },
+      "id": "F01ab",
+      "research_question": "RQ-timing",
+      "timing_mode": "A",
+      "preflight": {
+        "command": [
+          "{python}",
+          "{runner}/adapters/successor_preflight.py",
+          "--source",
+          "{source}",
+          "--build",
+          "{build}",
+          "--output",
+          "{output}",
+          "--",
+          "{python}",
+          "{runner}/adapters/task.py",
+          "--source",
+          "{source}",
+          "--build",
+          "{build}",
+          "--output",
+          "@canonical-output@",
+          "--inputs",
+          "{inputs}/experiments/inputs/t01",
+          "--preflight",
+          "--timing-mode",
+          "A"
+        ],
+        "group": "F01ab-A-zero-pcg-20261011"
+      },
+      "command": [
+        "{python}",
+        "{runner}/adapters/f01ab.py",
+        "--source",
+        "{source}",
+        "--build",
+        "{build}",
+        "--case",
+        "{case}",
+        "--output",
+        "{output}",
+        "--inputs",
+        "{inputs}/experiments/inputs/f01ab"
+      ],
+      "cases": [
+        {
+          "id": "N16-SQP1-PCG100",
+          "parameters": {
+            "variant": "short12",
+            "N": 16,
+            "SQP": 1,
+            "PCG": 100,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N16-SQP1-PCG200",
+          "parameters": {
+            "variant": "short12",
+            "N": 16,
+            "SQP": 1,
+            "PCG": 200,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N16-SQP1-PCG400",
+          "parameters": {
+            "variant": "short12",
+            "N": 16,
+            "SQP": 1,
+            "PCG": 400,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N16-SQP1-PCG800",
+          "parameters": {
+            "variant": "short12",
+            "N": 16,
+            "SQP": 1,
+            "PCG": 800,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N16-SQP2-PCG100",
+          "parameters": {
+            "variant": "short12",
+            "N": 16,
+            "SQP": 2,
+            "PCG": 100,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N16-SQP2-PCG200",
+          "parameters": {
+            "variant": "short12",
+            "N": 16,
+            "SQP": 2,
+            "PCG": 200,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N16-SQP2-PCG400",
+          "parameters": {
+            "variant": "short12",
+            "N": 16,
+            "SQP": 2,
+            "PCG": 400,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N16-SQP2-PCG800",
+          "parameters": {
+            "variant": "short12",
+            "N": 16,
+            "SQP": 2,
+            "PCG": 800,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N16-SQP5-PCG100",
+          "parameters": {
+            "variant": "short12",
+            "N": 16,
+            "SQP": 5,
+            "PCG": 100,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N16-SQP5-PCG200",
+          "parameters": {
+            "variant": "short12",
+            "N": 16,
+            "SQP": 5,
+            "PCG": 200,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N16-SQP5-PCG400",
+          "parameters": {
+            "variant": "short12",
+            "N": 16,
+            "SQP": 5,
+            "PCG": 400,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N16-SQP5-PCG800",
+          "parameters": {
+            "variant": "short12",
+            "N": 16,
+            "SQP": 5,
+            "PCG": 800,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N16-SQP10-PCG100",
+          "parameters": {
+            "variant": "short12",
+            "N": 16,
+            "SQP": 10,
+            "PCG": 100,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N16-SQP10-PCG200",
+          "parameters": {
+            "variant": "short12",
+            "N": 16,
+            "SQP": 10,
+            "PCG": 200,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N16-SQP10-PCG400",
+          "parameters": {
+            "variant": "short12",
+            "N": 16,
+            "SQP": 10,
+            "PCG": 400,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N16-SQP10-PCG800",
+          "parameters": {
+            "variant": "short12",
+            "N": 16,
+            "SQP": 10,
+            "PCG": 800,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-SQP1-PCG100",
+          "parameters": {
+            "variant": "short12",
+            "N": 32,
+            "SQP": 1,
+            "PCG": 100,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-SQP1-PCG200",
+          "parameters": {
+            "variant": "short12",
+            "N": 32,
+            "SQP": 1,
+            "PCG": 200,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-SQP1-PCG400",
+          "parameters": {
+            "variant": "short12",
+            "N": 32,
+            "SQP": 1,
+            "PCG": 400,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-SQP1-PCG800",
+          "parameters": {
+            "variant": "short12",
+            "N": 32,
+            "SQP": 1,
+            "PCG": 800,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-SQP2-PCG100",
+          "parameters": {
+            "variant": "short12",
+            "N": 32,
+            "SQP": 2,
+            "PCG": 100,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-SQP2-PCG200",
+          "parameters": {
+            "variant": "short12",
+            "N": 32,
+            "SQP": 2,
+            "PCG": 200,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-SQP2-PCG400",
+          "parameters": {
+            "variant": "short12",
+            "N": 32,
+            "SQP": 2,
+            "PCG": 400,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-SQP2-PCG800",
+          "parameters": {
+            "variant": "short12",
+            "N": 32,
+            "SQP": 2,
+            "PCG": 800,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-SQP5-PCG100",
+          "parameters": {
+            "variant": "short12",
+            "N": 32,
+            "SQP": 5,
+            "PCG": 100,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-SQP5-PCG200",
+          "parameters": {
+            "variant": "short12",
+            "N": 32,
+            "SQP": 5,
+            "PCG": 200,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-SQP5-PCG400",
+          "parameters": {
+            "variant": "short12",
+            "N": 32,
+            "SQP": 5,
+            "PCG": 400,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-SQP5-PCG800",
+          "parameters": {
+            "variant": "short12",
+            "N": 32,
+            "SQP": 5,
+            "PCG": 800,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-SQP10-PCG100",
+          "parameters": {
+            "variant": "short12",
+            "N": 32,
+            "SQP": 10,
+            "PCG": 100,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-SQP10-PCG200",
+          "parameters": {
+            "variant": "short12",
+            "N": 32,
+            "SQP": 10,
+            "PCG": 200,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-SQP10-PCG400",
+          "parameters": {
+            "variant": "short12",
+            "N": 32,
+            "SQP": 10,
+            "PCG": 400,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-SQP10-PCG800",
+          "parameters": {
+            "variant": "short12",
+            "N": 32,
+            "SQP": 10,
+            "PCG": 800,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N64-SQP1-PCG100",
+          "parameters": {
+            "variant": "short12",
+            "N": 64,
+            "SQP": 1,
+            "PCG": 100,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N64-SQP1-PCG200",
+          "parameters": {
+            "variant": "short12",
+            "N": 64,
+            "SQP": 1,
+            "PCG": 200,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N64-SQP1-PCG400",
+          "parameters": {
+            "variant": "short12",
+            "N": 64,
+            "SQP": 1,
+            "PCG": 400,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N64-SQP1-PCG800",
+          "parameters": {
+            "variant": "short12",
+            "N": 64,
+            "SQP": 1,
+            "PCG": 800,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N64-SQP2-PCG100",
+          "parameters": {
+            "variant": "short12",
+            "N": 64,
+            "SQP": 2,
+            "PCG": 100,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N64-SQP2-PCG200",
+          "parameters": {
+            "variant": "short12",
+            "N": 64,
+            "SQP": 2,
+            "PCG": 200,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N64-SQP2-PCG400",
+          "parameters": {
+            "variant": "short12",
+            "N": 64,
+            "SQP": 2,
+            "PCG": 400,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N64-SQP2-PCG800",
+          "parameters": {
+            "variant": "short12",
+            "N": 64,
+            "SQP": 2,
+            "PCG": 800,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N64-SQP5-PCG100",
+          "parameters": {
+            "variant": "short12",
+            "N": 64,
+            "SQP": 5,
+            "PCG": 100,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N64-SQP5-PCG200",
+          "parameters": {
+            "variant": "short12",
+            "N": 64,
+            "SQP": 5,
+            "PCG": 200,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N64-SQP5-PCG400",
+          "parameters": {
+            "variant": "short12",
+            "N": 64,
+            "SQP": 5,
+            "PCG": 400,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N64-SQP5-PCG800",
+          "parameters": {
+            "variant": "short12",
+            "N": 64,
+            "SQP": 5,
+            "PCG": 800,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N64-SQP10-PCG100",
+          "parameters": {
+            "variant": "short12",
+            "N": 64,
+            "SQP": 10,
+            "PCG": 100,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N64-SQP10-PCG200",
+          "parameters": {
+            "variant": "short12",
+            "N": 64,
+            "SQP": 10,
+            "PCG": 200,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N64-SQP10-PCG400",
+          "parameters": {
+            "variant": "short12",
+            "N": 64,
+            "SQP": 10,
+            "PCG": 400,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N64-SQP10-PCG800",
+          "parameters": {
+            "variant": "short12",
+            "N": 64,
+            "SQP": 10,
+            "PCG": 800,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N128-SQP1-PCG100",
+          "parameters": {
+            "variant": "short12",
+            "N": 128,
+            "SQP": 1,
+            "PCG": 100,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N128-SQP1-PCG200",
+          "parameters": {
+            "variant": "short12",
+            "N": 128,
+            "SQP": 1,
+            "PCG": 200,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N128-SQP1-PCG400",
+          "parameters": {
+            "variant": "short12",
+            "N": 128,
+            "SQP": 1,
+            "PCG": 400,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N128-SQP1-PCG800",
+          "parameters": {
+            "variant": "short12",
+            "N": 128,
+            "SQP": 1,
+            "PCG": 800,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N128-SQP2-PCG100",
+          "parameters": {
+            "variant": "short12",
+            "N": 128,
+            "SQP": 2,
+            "PCG": 100,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N128-SQP2-PCG200",
+          "parameters": {
+            "variant": "short12",
+            "N": 128,
+            "SQP": 2,
+            "PCG": 200,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N128-SQP2-PCG400",
+          "parameters": {
+            "variant": "short12",
+            "N": 128,
+            "SQP": 2,
+            "PCG": 400,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N128-SQP2-PCG800",
+          "parameters": {
+            "variant": "short12",
+            "N": 128,
+            "SQP": 2,
+            "PCG": 800,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N128-SQP5-PCG100",
+          "parameters": {
+            "variant": "short12",
+            "N": 128,
+            "SQP": 5,
+            "PCG": 100,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N128-SQP5-PCG200",
+          "parameters": {
+            "variant": "short12",
+            "N": 128,
+            "SQP": 5,
+            "PCG": 200,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N128-SQP5-PCG400",
+          "parameters": {
+            "variant": "short12",
+            "N": 128,
+            "SQP": 5,
+            "PCG": 400,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N128-SQP5-PCG800",
+          "parameters": {
+            "variant": "short12",
+            "N": 128,
+            "SQP": 5,
+            "PCG": 800,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N128-SQP10-PCG100",
+          "parameters": {
+            "variant": "short12",
+            "N": 128,
+            "SQP": 10,
+            "PCG": 100,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N128-SQP10-PCG200",
+          "parameters": {
+            "variant": "short12",
+            "N": 128,
+            "SQP": 10,
+            "PCG": 200,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N128-SQP10-PCG400",
+          "parameters": {
+            "variant": "short12",
+            "N": 128,
+            "SQP": 10,
+            "PCG": 400,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N128-SQP10-PCG800",
+          "parameters": {
+            "variant": "short12",
+            "N": 128,
+            "SQP": 10,
+            "PCG": 800,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        }
+      ],
+      "cohort_id": "zero-pcg-20261011",
+      "stopping_policy": "zero_pcg_or_finite_kkt",
+      "original_runtime_source_commit": "502fa29c8b0d649dcb347f9534bf29c6935fa6dd",
+      "original_scientific_protocol": "simple-harness-v1",
+      "preparation_status": "fresh matching build and target preflight pending"
+    },
+    {
+      "id": "F01c",
+      "research_question": "RQ-timing",
+      "source_commit": "fa6f6bede286c122cc41ac65f42a583da84290e0",
+      "protocol": "simple-f01c-v1-zero-pcg-20261011",
+      "timing_mode": "A",
+      "backend": "internal",
+      "machines": [
+        "gtx1070"
+      ],
+      "original_collector_source_commit": "9f2ab6f3dfd324e397fd4d6909f70284558c8d76",
+      "build": {
+        "inputs": {
+          "native/CMakeLists.txt": "07c285afa3d2055c2c8f64c4645bdad01bdeb3391e77f2082aff3c70443df1e2",
+          "native/qualified/CMakeLists.txt": "9bdaae9f2d3991a3c567666bf77d8a253666c3adee9b4e66598c83f647dc41c7",
+          "native/task_readiness/CMakeLists.txt": "90abec70a6f830071843841791f13b995cf963118659b7001d8ed0085a8da6a6"
+        },
+        "commands": [
+          [
+            "cmake",
+            "-S",
+            "{runner}/native/qualified",
+            "-B",
+            "{build}",
+            "-DGATO_SOURCE_DIR={source}",
+            "-DKNOTS=16;32;64;128",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DGATO_EXPERIMENT_TELEMETRY=ON",
+            "-DCMAKE_CUDA_ARCHITECTURES={cuda_arch}-real",
+            "-DPython3_EXECUTABLE={python}"
+          ],
+          [
+            "cmake",
+            "--build",
+            "{build}",
+            "--parallel",
+            "2"
+          ]
+        ],
+        "artifacts": [
+          "modules/bsqpN16_tiago_right*.so",
+          "modules/bsqpN32_tiago_right*.so",
+          "modules/bsqpN64_tiago_right*.so",
+          "modules/bsqpN128_tiago_right*.so",
+          "cuda_access_smoke"
+        ]
+      },
+      "inputs": {
+        "experiments/inputs/f01c/bank.json": "50210ac0701d63bb1e63981748010d430092c404c82015b2a4e549c94ba526a3",
+        "experiments/inputs/f01c/arrays.npz": "eefdc3644f4f884e60353349312999eeca446e5e703a794b9f9e3058791e4d40",
+        "experiments/inputs/f01c/preparation.json": "a79f1450e3a9c2a61e349de439cff5df4abf46285c7e3e6f014566da66f7fada",
+        "experiments/inputs/f01c/seed_diagnostics.json": "2d29f523f2c943123fd759f0889ffd081d97d8d7e7de4171d00da067a1aabf9d",
+        "experiments/inputs/f01c/SHA256SUMS.json": "f8a8217982f3fa2b1b4fd2629e8cb45949d372f6d43c6137bbdaa7e52acc7007",
+        "experiments/inputs/t01/v01.json": "20920040853786cf3d96f13ba240f82918a9f0f5020270fbe67715666477cc81",
+        "experiments/inputs/t01/t01.json": "aec47cfa3819de5adbb8633b637f5bd9bcd327cb3afc5043a856b323af5aac41"
+      },
+      "preflight": {
+        "group": "F01c-A-zero-pcg-20261011",
+        "command": [
+          "{python}",
+          "{runner}/adapters/successor_preflight.py",
+          "--source",
+          "{source}",
+          "--build",
+          "{build}",
+          "--output",
+          "{output}",
+          "--",
+          "{python}",
+          "{runner}/adapters/task.py",
+          "--source",
+          "{source}",
+          "--build",
+          "{build}",
+          "--output",
+          "@canonical-output@",
+          "--inputs",
+          "{inputs}/experiments/inputs/t01",
+          "--preflight",
+          "--timing-mode",
+          "A"
+        ]
+      },
+      "command": [
+        "{python}",
+        "{runner}/adapters/f01c.py",
+        "--source",
+        "{source}",
+        "--build",
+        "{build}",
+        "--case",
+        "{case}",
+        "--output",
+        "{output}",
+        "--inputs",
+        "{inputs}/experiments/inputs/f01c"
+      ],
+      "cases": [
+        {
+          "id": "N32-B1-SQP1-PCG100",
+          "parameters": {
+            "N": 32,
+            "B": 1,
+            "SQP": 1,
+            "PCG": 100,
+            "diagnostics": false,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-B2-SQP1-PCG100",
+          "parameters": {
+            "N": 32,
+            "B": 2,
+            "SQP": 1,
+            "PCG": 100,
+            "diagnostics": false,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-B4-SQP1-PCG100",
+          "parameters": {
+            "N": 32,
+            "B": 4,
+            "SQP": 1,
+            "PCG": 100,
+            "diagnostics": false,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-B8-SQP1-PCG100",
+          "parameters": {
+            "N": 32,
+            "B": 8,
+            "SQP": 1,
+            "PCG": 100,
+            "diagnostics": false,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-B16-SQP1-PCG100",
+          "parameters": {
+            "N": 32,
+            "B": 16,
+            "SQP": 1,
+            "PCG": 100,
+            "diagnostics": false,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-B1-SQP5-PCG100",
+          "parameters": {
+            "N": 32,
+            "B": 1,
+            "SQP": 5,
+            "PCG": 100,
+            "diagnostics": false,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-B2-SQP5-PCG100",
+          "parameters": {
+            "N": 32,
+            "B": 2,
+            "SQP": 5,
+            "PCG": 100,
+            "diagnostics": false,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-B4-SQP5-PCG100",
+          "parameters": {
+            "N": 32,
+            "B": 4,
+            "SQP": 5,
+            "PCG": 100,
+            "diagnostics": false,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-B8-SQP5-PCG100",
+          "parameters": {
+            "N": 32,
+            "B": 8,
+            "SQP": 5,
+            "PCG": 100,
+            "diagnostics": false,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-B16-SQP5-PCG100",
+          "parameters": {
+            "N": 32,
+            "B": 16,
+            "SQP": 5,
+            "PCG": 100,
+            "diagnostics": true,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-B1-SQP10-PCG800",
+          "parameters": {
+            "N": 32,
+            "B": 1,
+            "SQP": 10,
+            "PCG": 800,
+            "diagnostics": false,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-B2-SQP10-PCG800",
+          "parameters": {
+            "N": 32,
+            "B": 2,
+            "SQP": 10,
+            "PCG": 800,
+            "diagnostics": false,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-B4-SQP10-PCG800",
+          "parameters": {
+            "N": 32,
+            "B": 4,
+            "SQP": 10,
+            "PCG": 800,
+            "diagnostics": false,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-B8-SQP10-PCG800",
+          "parameters": {
+            "N": 32,
+            "B": 8,
+            "SQP": 10,
+            "PCG": 800,
+            "diagnostics": false,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "N32-B16-SQP10-PCG800",
+          "parameters": {
+            "N": 32,
+            "B": 16,
+            "SQP": 10,
+            "PCG": 800,
+            "diagnostics": false,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        }
+      ],
+      "cohort_id": "zero-pcg-20261011",
+      "stopping_policy": "zero_pcg_or_finite_kkt",
+      "original_runtime_source_commit": "502fa29c8b0d649dcb347f9534bf29c6935fa6dd",
+      "original_scientific_protocol": "simple-f01c-v1",
+      "preparation_status": "fresh matching build and target preflight pending"
+    },
+    {
+      "id": "F05-stageOFF",
+      "research_question": "RQ-timing",
+      "protocol": "simple-resource-profiles-v1-zero-pcg-20261011",
+      "source_commit": "852b0cbcfe6e56fe5337a3b6e5fe8e777f959b77",
+      "machines": [
+        "gtx1070"
+      ],
+      "prepared_machines": [
+        "rtx5060"
+      ],
+      "preparation_status": "fresh matching build and target preflight pending",
+      "timing_mode": "A",
+      "backend": "internal",
+      "build": {
+        "inputs": {
+          "native/CMakeLists.txt": "07c285afa3d2055c2c8f64c4645bdad01bdeb3391e77f2082aff3c70443df1e2",
+          "native/resource_profiles/CMakeLists.txt": "0fea6251bccbd1ca04166b3d7ce4d6aef43e61ebaa138a2c46d160324b7cc7d2",
+          "native/task_readiness/CMakeLists.txt": "90abec70a6f830071843841791f13b995cf963118659b7001d8ed0085a8da6a6"
+        },
+        "commands": [
+          [
+            "cmake",
+            "-S",
+            "{runner}/native/resource_profiles",
+            "-B",
+            "{build}",
+            "-DGATO_SOURCE_DIR={source}",
+            "-DKNOTS=16;32;64;128",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DGATO_EXPERIMENT_TELEMETRY=ON",
+            "-DGATO_EXPERIMENT_STAGE_TIMING=OFF",
+            "-DCMAKE_CUDA_ARCHITECTURES={cuda_arch}-real",
+            "-DPython3_EXECUTABLE={python}"
+          ],
+          [
+            "cmake",
+            "--build",
+            "{build}",
+            "--parallel",
+            "2"
+          ]
+        ],
+        "artifacts": [
+          "modules/bsqpN16_tiago_right*.so",
+          "modules/bsqpN32_tiago_right*.so",
+          "modules/bsqpN64_tiago_right*.so",
+          "modules/bsqpN128_tiago_right*.so",
+          "cuda_access_smoke"
+        ]
+      },
+      "inputs": {
+        "experiments/inputs/f01c/bank.json": "50210ac0701d63bb1e63981748010d430092c404c82015b2a4e549c94ba526a3",
+        "experiments/inputs/f01c/arrays.npz": "eefdc3644f4f884e60353349312999eeca446e5e703a794b9f9e3058791e4d40",
+        "experiments/inputs/f01c/preparation.json": "a79f1450e3a9c2a61e349de439cff5df4abf46285c7e3e6f014566da66f7fada",
+        "experiments/inputs/f01c/seed_diagnostics.json": "2d29f523f2c943123fd759f0889ffd081d97d8d7e7de4171d00da067a1aabf9d",
+        "experiments/inputs/f01c/SHA256SUMS.json": "f8a8217982f3fa2b1b4fd2629e8cb45949d372f6d43c6137bbdaa7e52acc7007",
+        "experiments/inputs/t01/v01.json": "20920040853786cf3d96f13ba240f82918a9f0f5020270fbe67715666477cc81",
+        "experiments/inputs/t01/t01.json": "aec47cfa3819de5adbb8633b637f5bd9bcd327cb3afc5043a856b323af5aac41"
+      },
+      "preflight": {
+        "group": "resources-A-stageOFF-zero-pcg-20261011",
+        "command": [
+          "{python}",
+          "{runner}/adapters/task.py",
+          "--source",
+          "{source}",
+          "--build",
+          "{build}",
+          "--inputs",
+          "{inputs}/experiments/inputs/t01",
+          "--output",
+          "{output}",
+          "--preflight",
+          "--timing-mode",
+          "A"
+        ]
+      },
+      "command": [
+        "{python}",
+        "{runner}/adapters/resource_profiles.py",
+        "--source",
+        "{source}",
+        "--build",
+        "{build}",
+        "--inputs",
+        "{inputs}/experiments/inputs/f01c",
+        "--case",
+        "{case}",
+        "--output",
+        "{output}"
+      ],
+      "cases": [
+        {
+          "id": "first_response-N32-B1-SQP1-PCG100-r0",
+          "parameters": {
+            "study": "F05",
+            "N": 32,
+            "B": 1,
+            "SQP": 1,
+            "PCG": 100,
+            "arm": "first_response",
+            "replicate": 0,
+            "stage_timing": false,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "first_response-N32-B1-SQP1-PCG100-r1",
+          "parameters": {
+            "study": "F05",
+            "N": 32,
+            "B": 1,
+            "SQP": 1,
+            "PCG": 100,
+            "arm": "first_response",
+            "replicate": 1,
+            "stage_timing": false,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "first_response-N32-B1-SQP1-PCG100-r2",
+          "parameters": {
+            "study": "F05",
+            "N": 32,
+            "B": 1,
+            "SQP": 1,
+            "PCG": 100,
+            "arm": "first_response",
+            "replicate": 2,
+            "stage_timing": false,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "sustained-N32-B1-SQP1-PCG100",
+          "parameters": {
+            "study": "F05",
+            "N": 32,
+            "B": 1,
+            "SQP": 1,
+            "PCG": 100,
+            "arm": "sustained",
+            "duration_s": 120,
+            "stage_timing": false,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "first_response-N32-B16-SQP1-PCG100-r0",
+          "parameters": {
+            "study": "F05",
+            "N": 32,
+            "B": 16,
+            "SQP": 1,
+            "PCG": 100,
+            "arm": "first_response",
+            "replicate": 0,
+            "stage_timing": false,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "first_response-N32-B16-SQP1-PCG100-r1",
+          "parameters": {
+            "study": "F05",
+            "N": 32,
+            "B": 16,
+            "SQP": 1,
+            "PCG": 100,
+            "arm": "first_response",
+            "replicate": 1,
+            "stage_timing": false,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "first_response-N32-B16-SQP1-PCG100-r2",
+          "parameters": {
+            "study": "F05",
+            "N": 32,
+            "B": 16,
+            "SQP": 1,
+            "PCG": 100,
+            "arm": "first_response",
+            "replicate": 2,
+            "stage_timing": false,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "sustained-N32-B16-SQP1-PCG100",
+          "parameters": {
+            "study": "F05",
+            "N": 32,
+            "B": 16,
+            "SQP": 1,
+            "PCG": 100,
+            "arm": "sustained",
+            "duration_s": 120,
+            "stage_timing": false,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "first_response-N32-B1-SQP5-PCG100-r0",
+          "parameters": {
+            "study": "F05",
+            "N": 32,
+            "B": 1,
+            "SQP": 5,
+            "PCG": 100,
+            "arm": "first_response",
+            "replicate": 0,
+            "stage_timing": false,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "first_response-N32-B1-SQP5-PCG100-r1",
+          "parameters": {
+            "study": "F05",
+            "N": 32,
+            "B": 1,
+            "SQP": 5,
+            "PCG": 100,
+            "arm": "first_response",
+            "replicate": 1,
+            "stage_timing": false,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "first_response-N32-B1-SQP5-PCG100-r2",
+          "parameters": {
+            "study": "F05",
+            "N": 32,
+            "B": 1,
+            "SQP": 5,
+            "PCG": 100,
+            "arm": "first_response",
+            "replicate": 2,
+            "stage_timing": false,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "sustained-N32-B1-SQP5-PCG100",
+          "parameters": {
+            "study": "F05",
+            "N": 32,
+            "B": 1,
+            "SQP": 5,
+            "PCG": 100,
+            "arm": "sustained",
+            "duration_s": 120,
+            "stage_timing": false,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "first_response-N32-B16-SQP5-PCG100-r0",
+          "parameters": {
+            "study": "F05",
+            "N": 32,
+            "B": 16,
+            "SQP": 5,
+            "PCG": 100,
+            "arm": "first_response",
+            "replicate": 0,
+            "stage_timing": false,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "first_response-N32-B16-SQP5-PCG100-r1",
+          "parameters": {
+            "study": "F05",
+            "N": 32,
+            "B": 16,
+            "SQP": 5,
+            "PCG": 100,
+            "arm": "first_response",
+            "replicate": 1,
+            "stage_timing": false,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "first_response-N32-B16-SQP5-PCG100-r2",
+          "parameters": {
+            "study": "F05",
+            "N": 32,
+            "B": 16,
+            "SQP": 5,
+            "PCG": 100,
+            "arm": "first_response",
+            "replicate": 2,
+            "stage_timing": false,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "sustained-N32-B16-SQP5-PCG100",
+          "parameters": {
+            "study": "F05",
+            "N": 32,
+            "B": 16,
+            "SQP": 5,
+            "PCG": 100,
+            "arm": "sustained",
+            "duration_s": 120,
+            "stage_timing": false,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "first_response-N32-B1-SQP10-PCG800-r0",
+          "parameters": {
+            "study": "F05",
+            "N": 32,
+            "B": 1,
+            "SQP": 10,
+            "PCG": 800,
+            "arm": "first_response",
+            "replicate": 0,
+            "stage_timing": false,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "first_response-N32-B1-SQP10-PCG800-r1",
+          "parameters": {
+            "study": "F05",
+            "N": 32,
+            "B": 1,
+            "SQP": 10,
+            "PCG": 800,
+            "arm": "first_response",
+            "replicate": 1,
+            "stage_timing": false,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "first_response-N32-B1-SQP10-PCG800-r2",
+          "parameters": {
+            "study": "F05",
+            "N": 32,
+            "B": 1,
+            "SQP": 10,
+            "PCG": 800,
+            "arm": "first_response",
+            "replicate": 2,
+            "stage_timing": false,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "sustained-N32-B1-SQP10-PCG800",
+          "parameters": {
+            "study": "F05",
+            "N": 32,
+            "B": 1,
+            "SQP": 10,
+            "PCG": 800,
+            "arm": "sustained",
+            "duration_s": 120,
+            "stage_timing": false,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "first_response-N32-B16-SQP10-PCG800-r0",
+          "parameters": {
+            "study": "F05",
+            "N": 32,
+            "B": 16,
+            "SQP": 10,
+            "PCG": 800,
+            "arm": "first_response",
+            "replicate": 0,
+            "stage_timing": false,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "first_response-N32-B16-SQP10-PCG800-r1",
+          "parameters": {
+            "study": "F05",
+            "N": 32,
+            "B": 16,
+            "SQP": 10,
+            "PCG": 800,
+            "arm": "first_response",
+            "replicate": 1,
+            "stage_timing": false,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "first_response-N32-B16-SQP10-PCG800-r2",
+          "parameters": {
+            "study": "F05",
+            "N": 32,
+            "B": 16,
+            "SQP": 10,
+            "PCG": 800,
+            "arm": "first_response",
+            "replicate": 2,
+            "stage_timing": false,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "sustained-N32-B16-SQP10-PCG800",
+          "parameters": {
+            "study": "F05",
+            "N": 32,
+            "B": 16,
+            "SQP": 10,
+            "PCG": 800,
+            "arm": "sustained",
+            "duration_s": 120,
+            "stage_timing": false,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        }
+      ],
+      "cohort_id": "zero-pcg-20261011",
+      "stopping_policy": "zero_pcg_or_finite_kkt",
+      "original_runtime_source_commit": "4e5301feaea5f2d06530922ba46aa543e1995d47",
+      "original_scientific_protocol": "simple-resource-profiles-v1"
+    },
+    {
+      "id": "F05-stageON",
+      "research_question": "RQ-timing",
+      "protocol": "simple-resource-profiles-v1-zero-pcg-20261011",
+      "source_commit": "852b0cbcfe6e56fe5337a3b6e5fe8e777f959b77",
+      "machines": [
+        "gtx1070"
+      ],
+      "prepared_machines": [
+        "rtx5060"
+      ],
+      "preparation_status": "fresh matching build and target preflight pending",
+      "timing_mode": "A",
+      "backend": "internal",
+      "build": {
+        "inputs": {
+          "native/CMakeLists.txt": "07c285afa3d2055c2c8f64c4645bdad01bdeb3391e77f2082aff3c70443df1e2",
+          "native/resource_profiles/CMakeLists.txt": "0fea6251bccbd1ca04166b3d7ce4d6aef43e61ebaa138a2c46d160324b7cc7d2",
+          "native/task_readiness/CMakeLists.txt": "90abec70a6f830071843841791f13b995cf963118659b7001d8ed0085a8da6a6"
+        },
+        "commands": [
+          [
+            "cmake",
+            "-S",
+            "{runner}/native/resource_profiles",
+            "-B",
+            "{build}",
+            "-DGATO_SOURCE_DIR={source}",
+            "-DKNOTS=32",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DGATO_EXPERIMENT_TELEMETRY=ON",
+            "-DGATO_EXPERIMENT_STAGE_TIMING=ON",
+            "-DCMAKE_CUDA_ARCHITECTURES={cuda_arch}-real",
+            "-DPython3_EXECUTABLE={python}"
+          ],
+          [
+            "cmake",
+            "--build",
+            "{build}",
+            "--parallel",
+            "2"
+          ]
+        ],
+        "artifacts": [
+          "modules/bsqpN32_tiago_right*.so",
+          "cuda_access_smoke"
+        ]
+      },
+      "inputs": {
+        "experiments/inputs/f01c/bank.json": "50210ac0701d63bb1e63981748010d430092c404c82015b2a4e549c94ba526a3",
+        "experiments/inputs/f01c/arrays.npz": "eefdc3644f4f884e60353349312999eeca446e5e703a794b9f9e3058791e4d40",
+        "experiments/inputs/f01c/preparation.json": "a79f1450e3a9c2a61e349de439cff5df4abf46285c7e3e6f014566da66f7fada",
+        "experiments/inputs/f01c/seed_diagnostics.json": "2d29f523f2c943123fd759f0889ffd081d97d8d7e7de4171d00da067a1aabf9d",
+        "experiments/inputs/f01c/SHA256SUMS.json": "f8a8217982f3fa2b1b4fd2629e8cb45949d372f6d43c6137bbdaa7e52acc7007",
+        "experiments/inputs/t01/v01.json": "20920040853786cf3d96f13ba240f82918a9f0f5020270fbe67715666477cc81",
+        "experiments/inputs/t01/t01.json": "aec47cfa3819de5adbb8633b637f5bd9bcd327cb3afc5043a856b323af5aac41"
+      },
+      "preflight": {
+        "group": "resources-A-stageON-zero-pcg-20261011",
+        "command": [
+          "{python}",
+          "{runner}/adapters/task_suite.py",
+          "--source",
+          "{source}",
+          "--build",
+          "{build}",
+          "--output",
+          "{output}"
+        ]
+      },
+      "command": [
+        "{python}",
+        "{runner}/adapters/resource_profiles.py",
+        "--source",
+        "{source}",
+        "--build",
+        "{build}",
+        "--inputs",
+        "{inputs}/experiments/inputs/f01c",
+        "--case",
+        "{case}",
+        "--output",
+        "{output}"
+      ],
+      "cases": [
+        {
+          "id": "profile-N32-B1-SQP1-PCG100",
+          "parameters": {
+            "study": "F05",
+            "N": 32,
+            "B": 1,
+            "SQP": 1,
+            "PCG": 100,
+            "arm": "profile",
+            "stage_timing": true,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "profile-N32-B16-SQP1-PCG100",
+          "parameters": {
+            "study": "F05",
+            "N": 32,
+            "B": 16,
+            "SQP": 1,
+            "PCG": 100,
+            "arm": "profile",
+            "stage_timing": true,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "profile-N32-B1-SQP5-PCG100",
+          "parameters": {
+            "study": "F05",
+            "N": 32,
+            "B": 1,
+            "SQP": 5,
+            "PCG": 100,
+            "arm": "profile",
+            "stage_timing": true,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "profile-N32-B16-SQP5-PCG100",
+          "parameters": {
+            "study": "F05",
+            "N": 32,
+            "B": 16,
+            "SQP": 5,
+            "PCG": 100,
+            "arm": "profile",
+            "stage_timing": true,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "profile-N32-B1-SQP10-PCG800",
+          "parameters": {
+            "study": "F05",
+            "N": 32,
+            "B": 1,
+            "SQP": 10,
+            "PCG": 800,
+            "arm": "profile",
+            "stage_timing": true,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "profile-N32-B16-SQP10-PCG800",
+          "parameters": {
+            "study": "F05",
+            "N": 32,
+            "B": 16,
+            "SQP": 10,
+            "PCG": 800,
+            "arm": "profile",
+            "stage_timing": true,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        }
+      ],
+      "cohort_id": "zero-pcg-20261011",
+      "stopping_policy": "zero_pcg_or_finite_kkt",
+      "original_runtime_source_commit": "4e5301feaea5f2d06530922ba46aa543e1995d47",
+      "original_scientific_protocol": "simple-resource-profiles-v1"
+    },
+    {
+      "id": "BB",
+      "research_question": "RQ-batching",
+      "protocol": "simple-bb-recording-v1-zero-pcg-20261011",
+      "source_commit": "84bad9ad3d88b1b50d01f4d7aa3721bbc31ea210",
+      "timing_mode": "B",
+      "backend": "internal",
+      "machines": [
+        "gtx1070"
+      ],
+      "inputs": {
+        "experiments/inputs/batching/pool.npz": "e3cf5bbd3385eed74a8ccfb6fa341787b0d1b1c5f8514d08437c8640916e98b3",
+        "experiments/inputs/batching/pairs.npz": "a5fbf2b7897a0e104b98a86d792690e12c29e1b755108548a45aa058eeb26aa7",
+        "experiments/inputs/batching/bb_protocol.json": "d62049ee86c84ef493f984ac55073f7e5307fb8435f7d7d90a5e729106cd8da5",
+        "experiments/inputs/batching/bb_preflight.json": "9389e336eab0abc261fb4513e576490c13317e4f34f6df4acfdc7688db65e737"
+      },
+      "build": {
+        "inputs": {
+          "bb_prepare.py": "d962501cb4ae2ba287430b7e155c677c423f41d60c833cfd9d33189e3ac2026c",
+          "native/CMakeLists.txt": "07c285afa3d2055c2c8f64c4645bdad01bdeb3391e77f2082aff3c70443df1e2",
+          "native/qualified/CMakeLists.txt": "9bdaae9f2d3991a3c567666bf77d8a253666c3adee9b4e66598c83f647dc41c7",
+          "native/task_readiness/CMakeLists.txt": "90abec70a6f830071843841791f13b995cf963118659b7001d8ed0085a8da6a6"
+        },
+        "commands": [
+          [
+            "cmake",
+            "-S",
+            "{runner}/native/qualified",
+            "-B",
+            "{build}",
+            "-DGATO_SOURCE_DIR={source}",
+            "-DKNOTS=32",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DGATO_EXPERIMENT_TELEMETRY=ON",
+            "-DCMAKE_CUDA_ARCHITECTURES={cuda_arch}-real",
+            "-DPython3_EXECUTABLE={python}"
+          ],
+          [
+            "cmake",
+            "--build",
+            "{build}",
+            "--parallel",
+            "2"
+          ]
+        ],
+        "artifacts": [
+          "modules/bsqpN32_tiago_right*.so",
+          "cuda_access_smoke"
+        ]
+      },
+      "preflight": {
+        "group": "BB-B-zero-pcg-20261011",
+        "command": [
+          "{python}",
+          "{runner}/adapters/successor_preflight.py",
+          "--source",
+          "{source}",
+          "--build",
+          "{build}",
+          "--output",
+          "{output}",
+          "--",
+          "{python}",
+          "{runner}/bb_prepare.py",
+          "preflight",
+          "--source",
+          "{source}",
+          "--build",
+          "{build}",
+          "--inputs",
+          "{inputs}/experiments/inputs/batching",
+          "--output",
+          "@canonical-output@"
+        ]
+      },
+      "command": [
+        "{python}",
+        "{runner}/adapters/bb.py",
+        "--source",
+        "{source}",
+        "--build",
+        "{build}",
+        "--pool",
+        "{inputs}/experiments/inputs/batching",
+        "--protocol",
+        "{inputs}/experiments/inputs/batching/bb_protocol.json",
+        "--case",
+        "{case}",
+        "--output",
+        "{output}"
+      ],
+      "timeout_seconds": 600,
+      "original_source_commit": "aa241da65fce3e062e62168846b8d5d589b5cd90",
+      "cases": [
+        {
+          "id": "pair-03626-B1",
+          "parameters": {
+            "pair_id": 3626,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-03626-B16",
+          "parameters": {
+            "pair_id": 3626,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-07733-B1",
+          "parameters": {
+            "pair_id": 7733,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-07733-B16",
+          "parameters": {
+            "pair_id": 7733,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-07132-B1",
+          "parameters": {
+            "pair_id": 7132,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-07132-B16",
+          "parameters": {
+            "pair_id": 7132,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-07093-B1",
+          "parameters": {
+            "pair_id": 7093,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-07093-B16",
+          "parameters": {
+            "pair_id": 7093,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-01265-B1",
+          "parameters": {
+            "pair_id": 1265,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-01265-B16",
+          "parameters": {
+            "pair_id": 1265,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-09651-B1",
+          "parameters": {
+            "pair_id": 9651,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-09651-B16",
+          "parameters": {
+            "pair_id": 9651,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-05264-B1",
+          "parameters": {
+            "pair_id": 5264,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-05264-B16",
+          "parameters": {
+            "pair_id": 5264,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-00279-B1",
+          "parameters": {
+            "pair_id": 279,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-00279-B16",
+          "parameters": {
+            "pair_id": 279,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-08054-B1",
+          "parameters": {
+            "pair_id": 8054,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-08054-B16",
+          "parameters": {
+            "pair_id": 8054,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-08270-B1",
+          "parameters": {
+            "pair_id": 8270,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-08270-B16",
+          "parameters": {
+            "pair_id": 8270,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-02497-B1",
+          "parameters": {
+            "pair_id": 2497,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-02497-B16",
+          "parameters": {
+            "pair_id": 2497,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-02342-B1",
+          "parameters": {
+            "pair_id": 2342,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-02342-B16",
+          "parameters": {
+            "pair_id": 2342,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-06503-B1",
+          "parameters": {
+            "pair_id": 6503,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-06503-B16",
+          "parameters": {
+            "pair_id": 6503,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-06155-B1",
+          "parameters": {
+            "pair_id": 6155,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-06155-B16",
+          "parameters": {
+            "pair_id": 6155,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-01161-B1",
+          "parameters": {
+            "pair_id": 1161,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-01161-B16",
+          "parameters": {
+            "pair_id": 1161,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-01600-B1",
+          "parameters": {
+            "pair_id": 1600,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-01600-B16",
+          "parameters": {
+            "pair_id": 1600,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-06892-B1",
+          "parameters": {
+            "pair_id": 6892,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-06892-B16",
+          "parameters": {
+            "pair_id": 6892,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-05809-B1",
+          "parameters": {
+            "pair_id": 5809,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-05809-B16",
+          "parameters": {
+            "pair_id": 5809,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-03678-B1",
+          "parameters": {
+            "pair_id": 3678,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-03678-B16",
+          "parameters": {
+            "pair_id": 3678,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-09059-B1",
+          "parameters": {
+            "pair_id": 9059,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-09059-B16",
+          "parameters": {
+            "pair_id": 9059,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-02112-B1",
+          "parameters": {
+            "pair_id": 2112,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-02112-B16",
+          "parameters": {
+            "pair_id": 2112,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-09107-B1",
+          "parameters": {
+            "pair_id": 9107,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-09107-B16",
+          "parameters": {
+            "pair_id": 9107,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-00870-B1",
+          "parameters": {
+            "pair_id": 870,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-00870-B16",
+          "parameters": {
+            "pair_id": 870,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-00789-B1",
+          "parameters": {
+            "pair_id": 789,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-00789-B16",
+          "parameters": {
+            "pair_id": 789,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-00975-B1",
+          "parameters": {
+            "pair_id": 975,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-00975-B16",
+          "parameters": {
+            "pair_id": 975,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-07184-B1",
+          "parameters": {
+            "pair_id": 7184,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-07184-B16",
+          "parameters": {
+            "pair_id": 7184,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-07736-B1",
+          "parameters": {
+            "pair_id": 7736,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-07736-B16",
+          "parameters": {
+            "pair_id": 7736,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-09961-B1",
+          "parameters": {
+            "pair_id": 9961,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-09961-B16",
+          "parameters": {
+            "pair_id": 9961,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-01976-B1",
+          "parameters": {
+            "pair_id": 1976,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-01976-B16",
+          "parameters": {
+            "pair_id": 1976,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-06352-B1",
+          "parameters": {
+            "pair_id": 6352,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-06352-B16",
+          "parameters": {
+            "pair_id": 6352,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-07463-B1",
+          "parameters": {
+            "pair_id": 7463,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-07463-B16",
+          "parameters": {
+            "pair_id": 7463,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-02406-B1",
+          "parameters": {
+            "pair_id": 2406,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-02406-B16",
+          "parameters": {
+            "pair_id": 2406,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-06340-B1",
+          "parameters": {
+            "pair_id": 6340,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-06340-B16",
+          "parameters": {
+            "pair_id": 6340,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-03987-B1",
+          "parameters": {
+            "pair_id": 3987,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-03987-B16",
+          "parameters": {
+            "pair_id": 3987,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-09888-B1",
+          "parameters": {
+            "pair_id": 9888,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-09888-B16",
+          "parameters": {
+            "pair_id": 9888,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-06618-B1",
+          "parameters": {
+            "pair_id": 6618,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-06618-B16",
+          "parameters": {
+            "pair_id": 6618,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-04972-B1",
+          "parameters": {
+            "pair_id": 4972,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-04972-B16",
+          "parameters": {
+            "pair_id": 4972,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-08276-B1",
+          "parameters": {
+            "pair_id": 8276,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-08276-B16",
+          "parameters": {
+            "pair_id": 8276,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-03069-B1",
+          "parameters": {
+            "pair_id": 3069,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-03069-B16",
+          "parameters": {
+            "pair_id": 3069,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-00320-B1",
+          "parameters": {
+            "pair_id": 320,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-00320-B16",
+          "parameters": {
+            "pair_id": 320,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-02295-B1",
+          "parameters": {
+            "pair_id": 2295,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-02295-B16",
+          "parameters": {
+            "pair_id": 2295,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-05995-B1",
+          "parameters": {
+            "pair_id": 5995,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-05995-B16",
+          "parameters": {
+            "pair_id": 5995,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-01273-B1",
+          "parameters": {
+            "pair_id": 1273,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-01273-B16",
+          "parameters": {
+            "pair_id": 1273,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-03012-B1",
+          "parameters": {
+            "pair_id": 3012,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-03012-B16",
+          "parameters": {
+            "pair_id": 3012,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-04663-B1",
+          "parameters": {
+            "pair_id": 4663,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-04663-B16",
+          "parameters": {
+            "pair_id": 4663,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-02696-B1",
+          "parameters": {
+            "pair_id": 2696,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-02696-B16",
+          "parameters": {
+            "pair_id": 2696,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-05681-B1",
+          "parameters": {
+            "pair_id": 5681,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-05681-B16",
+          "parameters": {
+            "pair_id": 5681,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-07601-B1",
+          "parameters": {
+            "pair_id": 7601,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-07601-B16",
+          "parameters": {
+            "pair_id": 7601,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-02641-B1",
+          "parameters": {
+            "pair_id": 2641,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-02641-B16",
+          "parameters": {
+            "pair_id": 2641,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-07221-B1",
+          "parameters": {
+            "pair_id": 7221,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-07221-B16",
+          "parameters": {
+            "pair_id": 7221,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-03284-B1",
+          "parameters": {
+            "pair_id": 3284,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-03284-B16",
+          "parameters": {
+            "pair_id": 3284,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-04007-B1",
+          "parameters": {
+            "pair_id": 4007,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-04007-B16",
+          "parameters": {
+            "pair_id": 4007,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-07443-B1",
+          "parameters": {
+            "pair_id": 7443,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-07443-B16",
+          "parameters": {
+            "pair_id": 7443,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-08369-B1",
+          "parameters": {
+            "pair_id": 8369,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-08369-B16",
+          "parameters": {
+            "pair_id": 8369,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-02289-B1",
+          "parameters": {
+            "pair_id": 2289,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-02289-B16",
+          "parameters": {
+            "pair_id": 2289,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-01934-B1",
+          "parameters": {
+            "pair_id": 1934,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-01934-B16",
+          "parameters": {
+            "pair_id": 1934,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-03110-B1",
+          "parameters": {
+            "pair_id": 3110,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-03110-B16",
+          "parameters": {
+            "pair_id": 3110,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-09801-B1",
+          "parameters": {
+            "pair_id": 9801,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-09801-B16",
+          "parameters": {
+            "pair_id": 9801,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-03239-B1",
+          "parameters": {
+            "pair_id": 3239,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-03239-B16",
+          "parameters": {
+            "pair_id": 3239,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-00042-B1",
+          "parameters": {
+            "pair_id": 42,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-00042-B16",
+          "parameters": {
+            "pair_id": 42,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-07156-B1",
+          "parameters": {
+            "pair_id": 7156,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-07156-B16",
+          "parameters": {
+            "pair_id": 7156,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-01831-B1",
+          "parameters": {
+            "pair_id": 1831,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-01831-B16",
+          "parameters": {
+            "pair_id": 1831,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-02184-B1",
+          "parameters": {
+            "pair_id": 2184,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-02184-B16",
+          "parameters": {
+            "pair_id": 2184,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-09136-B1",
+          "parameters": {
+            "pair_id": 9136,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-09136-B16",
+          "parameters": {
+            "pair_id": 9136,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-08175-B1",
+          "parameters": {
+            "pair_id": 8175,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-08175-B16",
+          "parameters": {
+            "pair_id": 8175,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-02205-B1",
+          "parameters": {
+            "pair_id": 2205,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-02205-B16",
+          "parameters": {
+            "pair_id": 2205,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-01029-B1",
+          "parameters": {
+            "pair_id": 1029,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-01029-B16",
+          "parameters": {
+            "pair_id": 1029,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-01114-B1",
+          "parameters": {
+            "pair_id": 1114,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-01114-B16",
+          "parameters": {
+            "pair_id": 1114,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-05413-B1",
+          "parameters": {
+            "pair_id": 5413,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-05413-B16",
+          "parameters": {
+            "pair_id": 5413,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-02119-B1",
+          "parameters": {
+            "pair_id": 2119,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-02119-B16",
+          "parameters": {
+            "pair_id": 2119,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-00318-B1",
+          "parameters": {
+            "pair_id": 318,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-00318-B16",
+          "parameters": {
+            "pair_id": 318,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-03255-B1",
+          "parameters": {
+            "pair_id": 3255,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-03255-B16",
+          "parameters": {
+            "pair_id": 3255,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-07375-B1",
+          "parameters": {
+            "pair_id": 7375,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-07375-B16",
+          "parameters": {
+            "pair_id": 7375,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-01497-B1",
+          "parameters": {
+            "pair_id": 1497,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-01497-B16",
+          "parameters": {
+            "pair_id": 1497,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-04786-B1",
+          "parameters": {
+            "pair_id": 4786,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-04786-B16",
+          "parameters": {
+            "pair_id": 4786,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-02931-B1",
+          "parameters": {
+            "pair_id": 2931,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-02931-B16",
+          "parameters": {
+            "pair_id": 2931,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-09913-B1",
+          "parameters": {
+            "pair_id": 9913,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-09913-B16",
+          "parameters": {
+            "pair_id": 9913,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-02238-B1",
+          "parameters": {
+            "pair_id": 2238,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-02238-B16",
+          "parameters": {
+            "pair_id": 2238,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-02036-B1",
+          "parameters": {
+            "pair_id": 2036,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-02036-B16",
+          "parameters": {
+            "pair_id": 2036,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-07206-B1",
+          "parameters": {
+            "pair_id": 7206,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-07206-B16",
+          "parameters": {
+            "pair_id": 7206,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-02548-B1",
+          "parameters": {
+            "pair_id": 2548,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-02548-B16",
+          "parameters": {
+            "pair_id": 2548,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-07660-B1",
+          "parameters": {
+            "pair_id": 7660,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-07660-B16",
+          "parameters": {
+            "pair_id": 7660,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-05104-B1",
+          "parameters": {
+            "pair_id": 5104,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-05104-B16",
+          "parameters": {
+            "pair_id": 5104,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-09844-B1",
+          "parameters": {
+            "pair_id": 9844,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-09844-B16",
+          "parameters": {
+            "pair_id": 9844,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-02204-B1",
+          "parameters": {
+            "pair_id": 2204,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-02204-B16",
+          "parameters": {
+            "pair_id": 2204,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-03506-B1",
+          "parameters": {
+            "pair_id": 3506,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-03506-B16",
+          "parameters": {
+            "pair_id": 3506,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-06166-B1",
+          "parameters": {
+            "pair_id": 6166,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-06166-B16",
+          "parameters": {
+            "pair_id": 6166,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-05089-B1",
+          "parameters": {
+            "pair_id": 5089,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-05089-B16",
+          "parameters": {
+            "pair_id": 5089,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-00047-B1",
+          "parameters": {
+            "pair_id": 47,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-00047-B16",
+          "parameters": {
+            "pair_id": 47,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-02161-B1",
+          "parameters": {
+            "pair_id": 2161,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-02161-B16",
+          "parameters": {
+            "pair_id": 2161,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-04656-B1",
+          "parameters": {
+            "pair_id": 4656,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-04656-B16",
+          "parameters": {
+            "pair_id": 4656,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-03377-B1",
+          "parameters": {
+            "pair_id": 3377,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-03377-B16",
+          "parameters": {
+            "pair_id": 3377,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-04466-B1",
+          "parameters": {
+            "pair_id": 4466,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-04466-B16",
+          "parameters": {
+            "pair_id": 4466,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-06921-B1",
+          "parameters": {
+            "pair_id": 6921,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-06921-B16",
+          "parameters": {
+            "pair_id": 6921,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-03974-B1",
+          "parameters": {
+            "pair_id": 3974,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-03974-B16",
+          "parameters": {
+            "pair_id": 3974,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-08607-B1",
+          "parameters": {
+            "pair_id": 8607,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-08607-B16",
+          "parameters": {
+            "pair_id": 8607,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-05510-B1",
+          "parameters": {
+            "pair_id": 5510,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-05510-B16",
+          "parameters": {
+            "pair_id": 5510,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-08981-B1",
+          "parameters": {
+            "pair_id": 8981,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-08981-B16",
+          "parameters": {
+            "pair_id": 8981,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-09288-B1",
+          "parameters": {
+            "pair_id": 9288,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-09288-B16",
+          "parameters": {
+            "pair_id": 9288,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-04434-B1",
+          "parameters": {
+            "pair_id": 4434,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-04434-B16",
+          "parameters": {
+            "pair_id": 4434,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        }
+      ],
+      "cohort_id": "zero-pcg-20261011",
+      "stopping_policy": "zero_pcg_or_finite_kkt",
+      "original_runtime_source_commit": "4f6c8fd4be428c135fc16564c5dd56eb61ce5660",
+      "original_scientific_protocol": "simple-bb-recording-v1",
+      "preparation_status": "fresh matching build and target preflight pending"
+    },
+    {
+      "id": "BA",
+      "research_question": "RQ-batching",
+      "protocol": "simple-ba-nominal16x-v1-zero-pcg-20261011",
+      "source_commit": "84bad9ad3d88b1b50d01f4d7aa3721bbc31ea210",
+      "timing_mode": "A",
+      "backend": "internal",
+      "machines": [
+        "gtx1070"
+      ],
+      "inputs": {
+        "experiments/inputs/batching/pool.npz": "e3cf5bbd3385eed74a8ccfb6fa341787b0d1b1c5f8514d08437c8640916e98b3",
+        "experiments/inputs/batching/pairs.npz": "a5fbf2b7897a0e104b98a86d792690e12c29e1b755108548a45aa058eeb26aa7",
+        "experiments/inputs/batching/ba_protocol.json": "535a3d8e6436d2d7861f964ab99752d497da1923c23739dbfb385e7a785c782b",
+        "experiments/inputs/batching/ba_preflight.json": "5bc199b3f4a2ccb256ed1a9dbd18a027533ac41c73bc2ae8958f55a4765587f6",
+        "experiments/inputs/batching/ba_nominal16x.json": "2db2ef67d60e57f82086c845f22d9072098c523319e4179085f3d86f24e8b0f6",
+        "experiments/inputs/batching/ba_nominal16x_preflight.json": "e1eb655d35f870c63f0dd08703d62dbc4899cba3e0b21c330ac02aa5a58738b4"
+      },
+      "build": {
+        "inputs": {
+          "bb_prepare.py": "d962501cb4ae2ba287430b7e155c677c423f41d60c833cfd9d33189e3ac2026c",
+          "native/CMakeLists.txt": "07c285afa3d2055c2c8f64c4645bdad01bdeb3391e77f2082aff3c70443df1e2",
+          "native/qualified/CMakeLists.txt": "9bdaae9f2d3991a3c567666bf77d8a253666c3adee9b4e66598c83f647dc41c7",
+          "native/task_readiness/CMakeLists.txt": "90abec70a6f830071843841791f13b995cf963118659b7001d8ed0085a8da6a6"
+        },
+        "commands": [
+          [
+            "cmake",
+            "-S",
+            "{runner}/native/qualified",
+            "-B",
+            "{build}",
+            "-DGATO_SOURCE_DIR={source}",
+            "-DKNOTS=32",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DGATO_EXPERIMENT_TELEMETRY=ON",
+            "-DCMAKE_CUDA_ARCHITECTURES={cuda_arch}-real",
+            "-DPython3_EXECUTABLE={python}"
+          ],
+          [
+            "cmake",
+            "--build",
+            "{build}",
+            "--parallel",
+            "2"
+          ]
+        ],
+        "artifacts": [
+          "modules/bsqpN32_tiago_right*.so",
+          "cuda_access_smoke"
+        ]
+      },
+      "preflight": {
+        "group": "BA-A-zero-pcg-20261011",
+        "command": [
+          "{python}",
+          "{runner}/adapters/successor_preflight.py",
+          "--source",
+          "{source}",
+          "--build",
+          "{build}",
+          "--output",
+          "{output}",
+          "--",
+          "{python}",
+          "{runner}/bb_prepare.py",
+          "preflight",
+          "--source",
+          "{source}",
+          "--build",
+          "{build}",
+          "--inputs",
+          "{inputs}/experiments/inputs/batching",
+          "--output",
+          "@canonical-output@",
+          "--mode",
+          "A",
+          "--ba-nominal-preflight"
+        ]
+      },
+      "timeout_seconds": 600,
+      "command": [
+        "{python}",
+        "{runner}/adapters/ba.py",
+        "--source",
+        "{source}",
+        "--build",
+        "{build}",
+        "--inputs",
+        "{inputs}/experiments/inputs/batching",
+        "--case",
+        "{case}",
+        "--output",
+        "{output}"
+      ],
+      "cases": [
+        {
+          "id": "pair-03626-B1-default",
+          "parameters": {
+            "pair_id": 3626,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-03626-B16-default",
+          "parameters": {
+            "pair_id": 3626,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-03626-B1-nominal16x",
+          "parameters": {
+            "pair_id": 3626,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-07733-B1-default",
+          "parameters": {
+            "pair_id": 7733,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-07733-B16-default",
+          "parameters": {
+            "pair_id": 7733,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-07733-B1-nominal16x",
+          "parameters": {
+            "pair_id": 7733,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-07132-B1-default",
+          "parameters": {
+            "pair_id": 7132,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-07132-B16-default",
+          "parameters": {
+            "pair_id": 7132,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-07132-B1-nominal16x",
+          "parameters": {
+            "pair_id": 7132,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-07093-B1-default",
+          "parameters": {
+            "pair_id": 7093,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-07093-B16-default",
+          "parameters": {
+            "pair_id": 7093,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-07093-B1-nominal16x",
+          "parameters": {
+            "pair_id": 7093,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-01265-B1-default",
+          "parameters": {
+            "pair_id": 1265,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-01265-B16-default",
+          "parameters": {
+            "pair_id": 1265,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-01265-B1-nominal16x",
+          "parameters": {
+            "pair_id": 1265,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-09651-B1-default",
+          "parameters": {
+            "pair_id": 9651,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-09651-B16-default",
+          "parameters": {
+            "pair_id": 9651,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-09651-B1-nominal16x",
+          "parameters": {
+            "pair_id": 9651,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-05264-B1-default",
+          "parameters": {
+            "pair_id": 5264,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-05264-B16-default",
+          "parameters": {
+            "pair_id": 5264,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-05264-B1-nominal16x",
+          "parameters": {
+            "pair_id": 5264,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-00279-B1-default",
+          "parameters": {
+            "pair_id": 279,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-00279-B16-default",
+          "parameters": {
+            "pair_id": 279,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-00279-B1-nominal16x",
+          "parameters": {
+            "pair_id": 279,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-08054-B1-default",
+          "parameters": {
+            "pair_id": 8054,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-08054-B16-default",
+          "parameters": {
+            "pair_id": 8054,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-08054-B1-nominal16x",
+          "parameters": {
+            "pair_id": 8054,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-08270-B1-default",
+          "parameters": {
+            "pair_id": 8270,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-08270-B16-default",
+          "parameters": {
+            "pair_id": 8270,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-08270-B1-nominal16x",
+          "parameters": {
+            "pair_id": 8270,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-02497-B1-default",
+          "parameters": {
+            "pair_id": 2497,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-02497-B16-default",
+          "parameters": {
+            "pair_id": 2497,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-02497-B1-nominal16x",
+          "parameters": {
+            "pair_id": 2497,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-02342-B1-default",
+          "parameters": {
+            "pair_id": 2342,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-02342-B16-default",
+          "parameters": {
+            "pair_id": 2342,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-02342-B1-nominal16x",
+          "parameters": {
+            "pair_id": 2342,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-06503-B1-default",
+          "parameters": {
+            "pair_id": 6503,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-06503-B16-default",
+          "parameters": {
+            "pair_id": 6503,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-06503-B1-nominal16x",
+          "parameters": {
+            "pair_id": 6503,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-06155-B1-default",
+          "parameters": {
+            "pair_id": 6155,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-06155-B16-default",
+          "parameters": {
+            "pair_id": 6155,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-06155-B1-nominal16x",
+          "parameters": {
+            "pair_id": 6155,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-01161-B1-default",
+          "parameters": {
+            "pair_id": 1161,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-01161-B16-default",
+          "parameters": {
+            "pair_id": 1161,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-01161-B1-nominal16x",
+          "parameters": {
+            "pair_id": 1161,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-01600-B1-default",
+          "parameters": {
+            "pair_id": 1600,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-01600-B16-default",
+          "parameters": {
+            "pair_id": 1600,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-01600-B1-nominal16x",
+          "parameters": {
+            "pair_id": 1600,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-06892-B1-default",
+          "parameters": {
+            "pair_id": 6892,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-06892-B16-default",
+          "parameters": {
+            "pair_id": 6892,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-06892-B1-nominal16x",
+          "parameters": {
+            "pair_id": 6892,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-05809-B1-default",
+          "parameters": {
+            "pair_id": 5809,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-05809-B16-default",
+          "parameters": {
+            "pair_id": 5809,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-05809-B1-nominal16x",
+          "parameters": {
+            "pair_id": 5809,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-03678-B1-default",
+          "parameters": {
+            "pair_id": 3678,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-03678-B16-default",
+          "parameters": {
+            "pair_id": 3678,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-03678-B1-nominal16x",
+          "parameters": {
+            "pair_id": 3678,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-09059-B1-default",
+          "parameters": {
+            "pair_id": 9059,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-09059-B16-default",
+          "parameters": {
+            "pair_id": 9059,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-09059-B1-nominal16x",
+          "parameters": {
+            "pair_id": 9059,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-02112-B1-default",
+          "parameters": {
+            "pair_id": 2112,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-02112-B16-default",
+          "parameters": {
+            "pair_id": 2112,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-02112-B1-nominal16x",
+          "parameters": {
+            "pair_id": 2112,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-09107-B1-default",
+          "parameters": {
+            "pair_id": 9107,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-09107-B16-default",
+          "parameters": {
+            "pair_id": 9107,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-09107-B1-nominal16x",
+          "parameters": {
+            "pair_id": 9107,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-00870-B1-default",
+          "parameters": {
+            "pair_id": 870,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-00870-B16-default",
+          "parameters": {
+            "pair_id": 870,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-00870-B1-nominal16x",
+          "parameters": {
+            "pair_id": 870,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-00789-B1-default",
+          "parameters": {
+            "pair_id": 789,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-00789-B16-default",
+          "parameters": {
+            "pair_id": 789,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-00789-B1-nominal16x",
+          "parameters": {
+            "pair_id": 789,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-00975-B1-default",
+          "parameters": {
+            "pair_id": 975,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-00975-B16-default",
+          "parameters": {
+            "pair_id": 975,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-00975-B1-nominal16x",
+          "parameters": {
+            "pair_id": 975,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-07184-B1-default",
+          "parameters": {
+            "pair_id": 7184,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-07184-B16-default",
+          "parameters": {
+            "pair_id": 7184,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-07184-B1-nominal16x",
+          "parameters": {
+            "pair_id": 7184,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-07736-B1-default",
+          "parameters": {
+            "pair_id": 7736,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-07736-B16-default",
+          "parameters": {
+            "pair_id": 7736,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-07736-B1-nominal16x",
+          "parameters": {
+            "pair_id": 7736,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-09961-B1-default",
+          "parameters": {
+            "pair_id": 9961,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-09961-B16-default",
+          "parameters": {
+            "pair_id": 9961,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-09961-B1-nominal16x",
+          "parameters": {
+            "pair_id": 9961,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-01976-B1-default",
+          "parameters": {
+            "pair_id": 1976,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-01976-B16-default",
+          "parameters": {
+            "pair_id": 1976,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-01976-B1-nominal16x",
+          "parameters": {
+            "pair_id": 1976,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-06352-B1-default",
+          "parameters": {
+            "pair_id": 6352,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-06352-B16-default",
+          "parameters": {
+            "pair_id": 6352,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-06352-B1-nominal16x",
+          "parameters": {
+            "pair_id": 6352,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-07463-B1-default",
+          "parameters": {
+            "pair_id": 7463,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-07463-B16-default",
+          "parameters": {
+            "pair_id": 7463,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-07463-B1-nominal16x",
+          "parameters": {
+            "pair_id": 7463,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-02406-B1-default",
+          "parameters": {
+            "pair_id": 2406,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-02406-B16-default",
+          "parameters": {
+            "pair_id": 2406,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-02406-B1-nominal16x",
+          "parameters": {
+            "pair_id": 2406,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-06340-B1-default",
+          "parameters": {
+            "pair_id": 6340,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-06340-B16-default",
+          "parameters": {
+            "pair_id": 6340,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-06340-B1-nominal16x",
+          "parameters": {
+            "pair_id": 6340,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-03987-B1-default",
+          "parameters": {
+            "pair_id": 3987,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-03987-B16-default",
+          "parameters": {
+            "pair_id": 3987,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-03987-B1-nominal16x",
+          "parameters": {
+            "pair_id": 3987,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-09888-B1-default",
+          "parameters": {
+            "pair_id": 9888,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-09888-B16-default",
+          "parameters": {
+            "pair_id": 9888,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-09888-B1-nominal16x",
+          "parameters": {
+            "pair_id": 9888,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-06618-B1-default",
+          "parameters": {
+            "pair_id": 6618,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-06618-B16-default",
+          "parameters": {
+            "pair_id": 6618,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-06618-B1-nominal16x",
+          "parameters": {
+            "pair_id": 6618,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-04972-B1-default",
+          "parameters": {
+            "pair_id": 4972,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-04972-B16-default",
+          "parameters": {
+            "pair_id": 4972,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-04972-B1-nominal16x",
+          "parameters": {
+            "pair_id": 4972,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-08276-B1-default",
+          "parameters": {
+            "pair_id": 8276,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-08276-B16-default",
+          "parameters": {
+            "pair_id": 8276,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-08276-B1-nominal16x",
+          "parameters": {
+            "pair_id": 8276,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-03069-B1-default",
+          "parameters": {
+            "pair_id": 3069,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-03069-B16-default",
+          "parameters": {
+            "pair_id": 3069,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-03069-B1-nominal16x",
+          "parameters": {
+            "pair_id": 3069,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-00320-B1-default",
+          "parameters": {
+            "pair_id": 320,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-00320-B16-default",
+          "parameters": {
+            "pair_id": 320,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-00320-B1-nominal16x",
+          "parameters": {
+            "pair_id": 320,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-02295-B1-default",
+          "parameters": {
+            "pair_id": 2295,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-02295-B16-default",
+          "parameters": {
+            "pair_id": 2295,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-02295-B1-nominal16x",
+          "parameters": {
+            "pair_id": 2295,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-05995-B1-default",
+          "parameters": {
+            "pair_id": 5995,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-05995-B16-default",
+          "parameters": {
+            "pair_id": 5995,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-05995-B1-nominal16x",
+          "parameters": {
+            "pair_id": 5995,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-01273-B1-default",
+          "parameters": {
+            "pair_id": 1273,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-01273-B16-default",
+          "parameters": {
+            "pair_id": 1273,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-01273-B1-nominal16x",
+          "parameters": {
+            "pair_id": 1273,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-03012-B1-default",
+          "parameters": {
+            "pair_id": 3012,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-03012-B16-default",
+          "parameters": {
+            "pair_id": 3012,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-03012-B1-nominal16x",
+          "parameters": {
+            "pair_id": 3012,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-04663-B1-default",
+          "parameters": {
+            "pair_id": 4663,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-04663-B16-default",
+          "parameters": {
+            "pair_id": 4663,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-04663-B1-nominal16x",
+          "parameters": {
+            "pair_id": 4663,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-02696-B1-default",
+          "parameters": {
+            "pair_id": 2696,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-02696-B16-default",
+          "parameters": {
+            "pair_id": 2696,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-02696-B1-nominal16x",
+          "parameters": {
+            "pair_id": 2696,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-05681-B1-default",
+          "parameters": {
+            "pair_id": 5681,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-05681-B16-default",
+          "parameters": {
+            "pair_id": 5681,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-05681-B1-nominal16x",
+          "parameters": {
+            "pair_id": 5681,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-07601-B1-default",
+          "parameters": {
+            "pair_id": 7601,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-07601-B16-default",
+          "parameters": {
+            "pair_id": 7601,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-07601-B1-nominal16x",
+          "parameters": {
+            "pair_id": 7601,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-02641-B1-default",
+          "parameters": {
+            "pair_id": 2641,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-02641-B16-default",
+          "parameters": {
+            "pair_id": 2641,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-02641-B1-nominal16x",
+          "parameters": {
+            "pair_id": 2641,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-07221-B1-default",
+          "parameters": {
+            "pair_id": 7221,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-07221-B16-default",
+          "parameters": {
+            "pair_id": 7221,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-07221-B1-nominal16x",
+          "parameters": {
+            "pair_id": 7221,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-03284-B1-default",
+          "parameters": {
+            "pair_id": 3284,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-03284-B16-default",
+          "parameters": {
+            "pair_id": 3284,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-03284-B1-nominal16x",
+          "parameters": {
+            "pair_id": 3284,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-04007-B1-default",
+          "parameters": {
+            "pair_id": 4007,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-04007-B16-default",
+          "parameters": {
+            "pair_id": 4007,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-04007-B1-nominal16x",
+          "parameters": {
+            "pair_id": 4007,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-07443-B1-default",
+          "parameters": {
+            "pair_id": 7443,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-07443-B16-default",
+          "parameters": {
+            "pair_id": 7443,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-07443-B1-nominal16x",
+          "parameters": {
+            "pair_id": 7443,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-08369-B1-default",
+          "parameters": {
+            "pair_id": 8369,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-08369-B16-default",
+          "parameters": {
+            "pair_id": 8369,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-08369-B1-nominal16x",
+          "parameters": {
+            "pair_id": 8369,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-02289-B1-default",
+          "parameters": {
+            "pair_id": 2289,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-02289-B16-default",
+          "parameters": {
+            "pair_id": 2289,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-02289-B1-nominal16x",
+          "parameters": {
+            "pair_id": 2289,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-01934-B1-default",
+          "parameters": {
+            "pair_id": 1934,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-01934-B16-default",
+          "parameters": {
+            "pair_id": 1934,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-01934-B1-nominal16x",
+          "parameters": {
+            "pair_id": 1934,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-03110-B1-default",
+          "parameters": {
+            "pair_id": 3110,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-03110-B16-default",
+          "parameters": {
+            "pair_id": 3110,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-03110-B1-nominal16x",
+          "parameters": {
+            "pair_id": 3110,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-09801-B1-default",
+          "parameters": {
+            "pair_id": 9801,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-09801-B16-default",
+          "parameters": {
+            "pair_id": 9801,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-09801-B1-nominal16x",
+          "parameters": {
+            "pair_id": 9801,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-03239-B1-default",
+          "parameters": {
+            "pair_id": 3239,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-03239-B16-default",
+          "parameters": {
+            "pair_id": 3239,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-03239-B1-nominal16x",
+          "parameters": {
+            "pair_id": 3239,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-00042-B1-default",
+          "parameters": {
+            "pair_id": 42,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-00042-B16-default",
+          "parameters": {
+            "pair_id": 42,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-00042-B1-nominal16x",
+          "parameters": {
+            "pair_id": 42,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-07156-B1-default",
+          "parameters": {
+            "pair_id": 7156,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-07156-B16-default",
+          "parameters": {
+            "pair_id": 7156,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-07156-B1-nominal16x",
+          "parameters": {
+            "pair_id": 7156,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-01831-B1-default",
+          "parameters": {
+            "pair_id": 1831,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-01831-B16-default",
+          "parameters": {
+            "pair_id": 1831,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-01831-B1-nominal16x",
+          "parameters": {
+            "pair_id": 1831,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-02184-B1-default",
+          "parameters": {
+            "pair_id": 2184,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-02184-B16-default",
+          "parameters": {
+            "pair_id": 2184,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-02184-B1-nominal16x",
+          "parameters": {
+            "pair_id": 2184,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-09136-B1-default",
+          "parameters": {
+            "pair_id": 9136,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-09136-B16-default",
+          "parameters": {
+            "pair_id": 9136,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-09136-B1-nominal16x",
+          "parameters": {
+            "pair_id": 9136,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-08175-B1-default",
+          "parameters": {
+            "pair_id": 8175,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-08175-B16-default",
+          "parameters": {
+            "pair_id": 8175,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-08175-B1-nominal16x",
+          "parameters": {
+            "pair_id": 8175,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-02205-B1-default",
+          "parameters": {
+            "pair_id": 2205,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-02205-B16-default",
+          "parameters": {
+            "pair_id": 2205,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-02205-B1-nominal16x",
+          "parameters": {
+            "pair_id": 2205,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-01029-B1-default",
+          "parameters": {
+            "pair_id": 1029,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-01029-B16-default",
+          "parameters": {
+            "pair_id": 1029,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-01029-B1-nominal16x",
+          "parameters": {
+            "pair_id": 1029,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-01114-B1-default",
+          "parameters": {
+            "pair_id": 1114,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-01114-B16-default",
+          "parameters": {
+            "pair_id": 1114,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-01114-B1-nominal16x",
+          "parameters": {
+            "pair_id": 1114,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-05413-B1-default",
+          "parameters": {
+            "pair_id": 5413,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-05413-B16-default",
+          "parameters": {
+            "pair_id": 5413,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-05413-B1-nominal16x",
+          "parameters": {
+            "pair_id": 5413,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-02119-B1-default",
+          "parameters": {
+            "pair_id": 2119,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-02119-B16-default",
+          "parameters": {
+            "pair_id": 2119,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-02119-B1-nominal16x",
+          "parameters": {
+            "pair_id": 2119,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-00318-B1-default",
+          "parameters": {
+            "pair_id": 318,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-00318-B16-default",
+          "parameters": {
+            "pair_id": 318,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-00318-B1-nominal16x",
+          "parameters": {
+            "pair_id": 318,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-03255-B1-default",
+          "parameters": {
+            "pair_id": 3255,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-03255-B16-default",
+          "parameters": {
+            "pair_id": 3255,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-03255-B1-nominal16x",
+          "parameters": {
+            "pair_id": 3255,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-07375-B1-default",
+          "parameters": {
+            "pair_id": 7375,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-07375-B16-default",
+          "parameters": {
+            "pair_id": 7375,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-07375-B1-nominal16x",
+          "parameters": {
+            "pair_id": 7375,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-01497-B1-default",
+          "parameters": {
+            "pair_id": 1497,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-01497-B16-default",
+          "parameters": {
+            "pair_id": 1497,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-01497-B1-nominal16x",
+          "parameters": {
+            "pair_id": 1497,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-04786-B1-default",
+          "parameters": {
+            "pair_id": 4786,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-04786-B16-default",
+          "parameters": {
+            "pair_id": 4786,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-04786-B1-nominal16x",
+          "parameters": {
+            "pair_id": 4786,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-02931-B1-default",
+          "parameters": {
+            "pair_id": 2931,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-02931-B16-default",
+          "parameters": {
+            "pair_id": 2931,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-02931-B1-nominal16x",
+          "parameters": {
+            "pair_id": 2931,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-09913-B1-default",
+          "parameters": {
+            "pair_id": 9913,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-09913-B16-default",
+          "parameters": {
+            "pair_id": 9913,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-09913-B1-nominal16x",
+          "parameters": {
+            "pair_id": 9913,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-02238-B1-default",
+          "parameters": {
+            "pair_id": 2238,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-02238-B16-default",
+          "parameters": {
+            "pair_id": 2238,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-02238-B1-nominal16x",
+          "parameters": {
+            "pair_id": 2238,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-02036-B1-default",
+          "parameters": {
+            "pair_id": 2036,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-02036-B16-default",
+          "parameters": {
+            "pair_id": 2036,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-02036-B1-nominal16x",
+          "parameters": {
+            "pair_id": 2036,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-07206-B1-default",
+          "parameters": {
+            "pair_id": 7206,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-07206-B16-default",
+          "parameters": {
+            "pair_id": 7206,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-07206-B1-nominal16x",
+          "parameters": {
+            "pair_id": 7206,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-02548-B1-default",
+          "parameters": {
+            "pair_id": 2548,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-02548-B16-default",
+          "parameters": {
+            "pair_id": 2548,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-02548-B1-nominal16x",
+          "parameters": {
+            "pair_id": 2548,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-07660-B1-default",
+          "parameters": {
+            "pair_id": 7660,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-07660-B16-default",
+          "parameters": {
+            "pair_id": 7660,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-07660-B1-nominal16x",
+          "parameters": {
+            "pair_id": 7660,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-05104-B1-default",
+          "parameters": {
+            "pair_id": 5104,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-05104-B16-default",
+          "parameters": {
+            "pair_id": 5104,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-05104-B1-nominal16x",
+          "parameters": {
+            "pair_id": 5104,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-09844-B1-default",
+          "parameters": {
+            "pair_id": 9844,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-09844-B16-default",
+          "parameters": {
+            "pair_id": 9844,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-09844-B1-nominal16x",
+          "parameters": {
+            "pair_id": 9844,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-02204-B1-default",
+          "parameters": {
+            "pair_id": 2204,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-02204-B16-default",
+          "parameters": {
+            "pair_id": 2204,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-02204-B1-nominal16x",
+          "parameters": {
+            "pair_id": 2204,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-03506-B1-default",
+          "parameters": {
+            "pair_id": 3506,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-03506-B16-default",
+          "parameters": {
+            "pair_id": 3506,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-03506-B1-nominal16x",
+          "parameters": {
+            "pair_id": 3506,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-06166-B1-default",
+          "parameters": {
+            "pair_id": 6166,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-06166-B16-default",
+          "parameters": {
+            "pair_id": 6166,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-06166-B1-nominal16x",
+          "parameters": {
+            "pair_id": 6166,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-05089-B1-default",
+          "parameters": {
+            "pair_id": 5089,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-05089-B16-default",
+          "parameters": {
+            "pair_id": 5089,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-05089-B1-nominal16x",
+          "parameters": {
+            "pair_id": 5089,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-00047-B1-default",
+          "parameters": {
+            "pair_id": 47,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-00047-B16-default",
+          "parameters": {
+            "pair_id": 47,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-00047-B1-nominal16x",
+          "parameters": {
+            "pair_id": 47,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-02161-B1-default",
+          "parameters": {
+            "pair_id": 2161,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-02161-B16-default",
+          "parameters": {
+            "pair_id": 2161,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-02161-B1-nominal16x",
+          "parameters": {
+            "pair_id": 2161,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-04656-B1-default",
+          "parameters": {
+            "pair_id": 4656,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-04656-B16-default",
+          "parameters": {
+            "pair_id": 4656,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-04656-B1-nominal16x",
+          "parameters": {
+            "pair_id": 4656,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-03377-B1-default",
+          "parameters": {
+            "pair_id": 3377,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-03377-B16-default",
+          "parameters": {
+            "pair_id": 3377,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-03377-B1-nominal16x",
+          "parameters": {
+            "pair_id": 3377,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-04466-B1-default",
+          "parameters": {
+            "pair_id": 4466,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-04466-B16-default",
+          "parameters": {
+            "pair_id": 4466,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-04466-B1-nominal16x",
+          "parameters": {
+            "pair_id": 4466,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-06921-B1-default",
+          "parameters": {
+            "pair_id": 6921,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-06921-B16-default",
+          "parameters": {
+            "pair_id": 6921,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-06921-B1-nominal16x",
+          "parameters": {
+            "pair_id": 6921,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-03974-B1-default",
+          "parameters": {
+            "pair_id": 3974,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-03974-B16-default",
+          "parameters": {
+            "pair_id": 3974,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-03974-B1-nominal16x",
+          "parameters": {
+            "pair_id": 3974,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-08607-B1-default",
+          "parameters": {
+            "pair_id": 8607,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-08607-B16-default",
+          "parameters": {
+            "pair_id": 8607,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-08607-B1-nominal16x",
+          "parameters": {
+            "pair_id": 8607,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-05510-B1-default",
+          "parameters": {
+            "pair_id": 5510,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-05510-B16-default",
+          "parameters": {
+            "pair_id": 5510,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-05510-B1-nominal16x",
+          "parameters": {
+            "pair_id": 5510,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-08981-B1-default",
+          "parameters": {
+            "pair_id": 8981,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-08981-B16-default",
+          "parameters": {
+            "pair_id": 8981,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-08981-B1-nominal16x",
+          "parameters": {
+            "pair_id": 8981,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-09288-B1-default",
+          "parameters": {
+            "pair_id": 9288,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-09288-B16-default",
+          "parameters": {
+            "pair_id": 9288,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-09288-B1-nominal16x",
+          "parameters": {
+            "pair_id": 9288,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        },
+        {
+          "id": "pair-04434-B1-default",
+          "parameters": {
+            "pair_id": 4434,
+            "batch": 1,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-04434-B16-default",
+          "parameters": {
+            "pair_id": 4434,
+            "batch": 16,
+            "arm": "default"
+          }
+        },
+        {
+          "id": "pair-04434-B1-nominal16x",
+          "parameters": {
+            "pair_id": 4434,
+            "batch": 1,
+            "arm": "nominal16x"
+          }
+        }
+      ],
+      "cohort_id": "zero-pcg-20261011",
+      "stopping_policy": "zero_pcg_or_finite_kkt",
+      "original_runtime_source_commit": "4f6c8fd4be428c135fc16564c5dd56eb61ce5660",
+      "original_scientific_protocol": "simple-ba-nominal16x-v1",
+      "preparation_status": "fresh matching build and target preflight pending"
+    },
+    {
+      "id": "ControlChoices",
+      "research_question": "RQ-control-choices",
+      "protocol": "bounded-control-choices-B-v2-zero-pcg-20261011",
+      "source_commit": "fa6f6bede286c122cc41ac65f42a583da84290e0",
+      "machines": [
+        "gtx1070"
+      ],
+      "timing_mode": "B",
+      "backend": "internal",
+      "inputs": {
+        "experiments/inputs/control_studies/v01.json": "20920040853786cf3d96f13ba240f82918a9f0f5020270fbe67715666477cc81",
+        "experiments/inputs/control_studies/t01.json": "aec47cfa3819de5adbb8633b637f5bd9bcd327cb3afc5043a856b323af5aac41",
+        "experiments/inputs/control_studies/tiago_right_arm_include_gripper.urdf": "d15fc81d1208662f822995592544285aba2cb4702d01e9da2523ff5cf3be0a25",
+        "experiments/inputs/control_studies/protocol.json": "0546c3c92f77f49d6198e41a21176b5845e19bae0ac6bc46bcd4ecf754d3fe05"
+      },
+      "build": {
+        "inputs": {
+          "native/CMakeLists.txt": "07c285afa3d2055c2c8f64c4645bdad01bdeb3391e77f2082aff3c70443df1e2",
+          "native/control_studies/CMakeLists.txt": "9bdaae9f2d3991a3c567666bf77d8a253666c3adee9b4e66598c83f647dc41c7",
+          "native/task_readiness/CMakeLists.txt": "90abec70a6f830071843841791f13b995cf963118659b7001d8ed0085a8da6a6"
+        },
+        "commands": [
+          [
+            "cmake",
+            "-S",
+            "{runner}/native/control_studies",
+            "-B",
+            "{build}",
+            "-DGATO_SOURCE_DIR={source}",
+            "-DKNOTS=32",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DGATO_EXPERIMENT_TELEMETRY=ON",
+            "-DCMAKE_CUDA_ARCHITECTURES={cuda_arch}-real",
+            "-DPython3_EXECUTABLE={python}"
+          ],
+          [
+            "cmake",
+            "--build",
+            "{build}",
+            "--parallel",
+            "2"
+          ]
+        ],
+        "artifacts": [
+          "modules/bsqpN32_tiago_right*.so",
+          "cuda_access_smoke"
+        ]
+      },
+      "command": [
+        "{python}",
+        "{runner}/adapters/control_studies.py",
+        "--source",
+        "{source}",
+        "--build",
+        "{build}",
+        "--inputs",
+        "{inputs}/experiments/inputs/control_studies",
+        "--output",
+        "{output}",
+        "--case",
+        "{case}"
+      ],
+      "preflight": {
+        "group": "ControlChoices-B-zero-pcg-20261011",
+        "command": [
+          "{python}",
+          "{runner}/adapters/control_studies.py",
+          "--source",
+          "{source}",
+          "--build",
+          "{build}",
+          "--inputs",
+          "{inputs}/experiments/inputs/control_studies",
+          "--output",
+          "{output}",
+          "--preflight"
+        ]
+      },
+      "cases": [
+        {
+          "id": "current-default-goal-1",
+          "parameters": {
+            "variant": "current-default",
+            "base_task": "goal-1"
+          }
+        },
+        {
+          "id": "current-default-goal-2",
+          "parameters": {
+            "variant": "current-default",
+            "base_task": "goal-2"
+          }
+        },
+        {
+          "id": "current-default-figure8-24s",
+          "parameters": {
+            "variant": "current-default",
+            "base_task": "figure8-24s"
+          }
+        },
+        {
+          "id": "position-half-goal-1",
+          "parameters": {
+            "variant": "position-half",
+            "base_task": "goal-1"
+          }
+        },
+        {
+          "id": "position-half-goal-2",
+          "parameters": {
+            "variant": "position-half",
+            "base_task": "goal-2"
+          }
+        },
+        {
+          "id": "orientation-off-goal-1",
+          "parameters": {
+            "variant": "orientation-off",
+            "base_task": "goal-1"
+          }
+        },
+        {
+          "id": "orientation-off-goal-2",
+          "parameters": {
+            "variant": "orientation-off",
+            "base_task": "goal-2"
+          }
+        },
+        {
+          "id": "switch-20mm-goal-1",
+          "parameters": {
+            "variant": "switch-20mm",
+            "base_task": "goal-1"
+          }
+        },
+        {
+          "id": "switch-20mm-goal-2",
+          "parameters": {
+            "variant": "switch-20mm",
+            "base_task": "goal-2"
+          }
+        },
+        {
+          "id": "switch-75mm-goal-1",
+          "parameters": {
+            "variant": "switch-75mm",
+            "base_task": "goal-1"
+          }
+        },
+        {
+          "id": "switch-75mm-goal-2",
+          "parameters": {
+            "variant": "switch-75mm",
+            "base_task": "goal-2"
+          }
+        },
+        {
+          "id": "final-approach-goal-1",
+          "parameters": {
+            "variant": "final-approach",
+            "base_task": "goal-1"
+          }
+        },
+        {
+          "id": "final-approach-goal-2",
+          "parameters": {
+            "variant": "final-approach",
+            "base_task": "goal-2"
+          }
+        },
+        {
+          "id": "final-approach-perturbed-goal-1",
+          "parameters": {
+            "variant": "final-approach-perturbed",
+            "base_task": "goal-1"
+          }
+        },
+        {
+          "id": "final-approach-perturbed-goal-2",
+          "parameters": {
+            "variant": "final-approach-perturbed",
+            "base_task": "goal-2"
+          }
+        },
+        {
+          "id": "default-perturbed-goal-1",
+          "parameters": {
+            "variant": "default-perturbed",
+            "base_task": "goal-1"
+          }
+        },
+        {
+          "id": "default-perturbed-goal-2",
+          "parameters": {
+            "variant": "default-perturbed",
+            "base_task": "goal-2"
+          }
+        },
+        {
+          "id": "damping-low-goal-1",
+          "parameters": {
+            "variant": "damping-low",
+            "base_task": "goal-1"
+          }
+        },
+        {
+          "id": "damping-low-goal-2",
+          "parameters": {
+            "variant": "damping-low",
+            "base_task": "goal-2"
+          }
+        },
+        {
+          "id": "damping-high-goal-1",
+          "parameters": {
+            "variant": "damping-high",
+            "base_task": "goal-1"
+          }
+        },
+        {
+          "id": "damping-high-goal-2",
+          "parameters": {
+            "variant": "damping-high",
+            "base_task": "goal-2"
+          }
+        },
+        {
+          "id": "speed-limit-low-goal-1",
+          "parameters": {
+            "variant": "speed-limit-low",
+            "base_task": "goal-1"
+          }
+        },
+        {
+          "id": "speed-limit-low-goal-2",
+          "parameters": {
+            "variant": "speed-limit-low",
+            "base_task": "goal-2"
+          }
+        },
+        {
+          "id": "speed-limit-high-goal-1",
+          "parameters": {
+            "variant": "speed-limit-high",
+            "base_task": "goal-1"
+          }
+        },
+        {
+          "id": "speed-limit-high-goal-2",
+          "parameters": {
+            "variant": "speed-limit-high",
+            "base_task": "goal-2"
+          }
+        },
+        {
+          "id": "terminal-half-goal-1",
+          "parameters": {
+            "variant": "terminal-half",
+            "base_task": "goal-1"
+          }
+        },
+        {
+          "id": "terminal-half-goal-2",
+          "parameters": {
+            "variant": "terminal-half",
+            "base_task": "goal-2"
+          }
+        },
+        {
+          "id": "terminal-half-figure8-24s",
+          "parameters": {
+            "variant": "terminal-half",
+            "base_task": "figure8-24s"
+          }
+        },
+        {
+          "id": "terminal-double-goal-1",
+          "parameters": {
+            "variant": "terminal-double",
+            "base_task": "goal-1"
+          }
+        },
+        {
+          "id": "terminal-double-goal-2",
+          "parameters": {
+            "variant": "terminal-double",
+            "base_task": "goal-2"
+          }
+        },
+        {
+          "id": "terminal-double-figure8-24s",
+          "parameters": {
+            "variant": "terminal-double",
+            "base_task": "figure8-24s"
+          }
+        },
+        {
+          "id": "holding-default-goal-1",
+          "parameters": {
+            "variant": "holding-default",
+            "base_task": "goal-1"
+          }
+        },
+        {
+          "id": "holding-gripper-upper-goal-1",
+          "parameters": {
+            "variant": "holding-gripper-upper",
+            "base_task": "goal-1"
+          }
+        },
+        {
+          "id": "holding-no-effort-cost-goal-1",
+          "parameters": {
+            "variant": "holding-no-effort-cost",
+            "base_task": "goal-1"
+          }
+        },
+        {
+          "id": "warm-unshifted-goal-1",
+          "parameters": {
+            "variant": "warm-unshifted",
+            "base_task": "goal-1"
+          }
+        },
+        {
+          "id": "warm-unshifted-goal-2",
+          "parameters": {
+            "variant": "warm-unshifted",
+            "base_task": "goal-2"
+          }
+        },
+        {
+          "id": "warm-cold-goal-1",
+          "parameters": {
+            "variant": "warm-cold",
+            "base_task": "goal-1"
+          }
+        },
+        {
+          "id": "warm-cold-goal-2",
+          "parameters": {
+            "variant": "warm-cold",
+            "base_task": "goal-2"
+          }
+        }
+      ],
+      "timeout_seconds": 600,
+      "cohort_id": "zero-pcg-20261011",
+      "stopping_policy": "zero_pcg_or_finite_kkt",
+      "original_runtime_source_commit": "502fa29c8b0d649dcb347f9534bf29c6935fa6dd",
+      "original_scientific_protocol": "bounded-control-choices-B-v2",
+      "preparation_status": "fresh matching build and target preflight pending"
+    },
+    {
+      "research_question": "RQ-cylinder-routes",
+      "protocol": "cylinder-current-default-B-v1-zero-pcg-20261011",
+      "source_commit": "b931bbdd41303f1456ce3242045ebe48b241600a",
+      "machines": [
+        "gtx1070"
+      ],
+      "backend": "internal",
+      "inputs": {
+        "experiments/inputs/cylinder_studies/scene02.json": "16acd38a18f9ad443468c74730d8e42237942a288d9a164045bb3ddb409d0256",
+        "experiments/inputs/cylinder_studies/scene03.json": "46a8a1010dc886c682e05055d4d29913c7e89fff0336e0f3b8fc416ae1279d05",
+        "experiments/inputs/cylinder_studies/scene04_fast.json": "1f0ec19c46805bf58f9947895fd35a9d1f6825bb06086fcfd4ae3ea0e6fb46bb",
+        "experiments/inputs/cylinder_studies/easy30_routes.npz": "1de61a5e53b2b98760a55f351250eeba352a81471af520c30cecb3d8597e0032",
+        "experiments/inputs/cylinder_studies/easy30.json": "e818539a1e5c2b699f0fcd4c07ccf601c5ea5af2ec14b940ce448ce7abc66779",
+        "experiments/inputs/cylinder_studies/v01.json": "20920040853786cf3d96f13ba240f82918a9f0f5020270fbe67715666477cc81",
+        "experiments/inputs/cylinder_studies/t01.json": "aec47cfa3819de5adbb8633b637f5bd9bcd327cb3afc5043a856b323af5aac41",
+        "experiments/inputs/cylinder_studies/protocol.json": "d60419282c4f5869950d286b5879053a51fa0e5f73adf7479e805a33fdd3ab20"
+      },
+      "build": {
+        "inputs": {
+          "native/CMakeLists.txt": "07c285afa3d2055c2c8f64c4645bdad01bdeb3391e77f2082aff3c70443df1e2",
+          "native/task_readiness/CMakeLists.txt": "90abec70a6f830071843841791f13b995cf963118659b7001d8ed0085a8da6a6",
+          "native/cylinder_studies/CMakeLists.txt": "24291084b8905fb1717c9e2c626810b8020890bbe73776d56f8db8e8fbe866f9"
+        },
+        "commands": [
+          [
+            "cmake",
+            "-S",
+            "{runner}/native/cylinder_studies",
+            "-B",
+            "{build}",
+            "-DGATO_SOURCE_DIR={source}",
+            "-DKNOTS=32",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DCMAKE_CUDA_ARCHITECTURES={cuda_arch}-real",
+            "-DPython3_EXECUTABLE={python}"
+          ],
+          [
+            "cmake",
+            "--build",
+            "{build}",
+            "--parallel",
+            "2"
+          ]
+        ],
+        "artifacts": [
+          "modules/bsqpN32_tiago_right*.so",
+          "modules/cylinder_probe*.so",
+          "cuda_access_smoke"
+        ]
+      },
+      "command": [
+        "{python}",
+        "{runner}/adapters/cylinder_studies.py",
+        "--source",
+        "{source}",
+        "--build",
+        "{build}",
+        "--inputs",
+        "{inputs}/experiments/inputs/cylinder_studies",
+        "--output",
+        "{output}",
+        "--case",
+        "{case}",
+        "--ordinary-runtime",
+        "fa6f6bede286c122cc41ac65f42a583da84290e0"
+      ],
+      "timeout_seconds": 600,
+      "id": "CylinderTasks",
+      "timing_mode": "B",
+      "cases": [
+        {
+          "id": "supplied-easy30-B1",
+          "parameters": {
+            "study": "X03",
+            "batch": 1
+          }
+        },
+        {
+          "id": "supplied-easy30-B8",
+          "parameters": {
+            "study": "X03",
+            "batch": 8
+          }
+        },
+        {
+          "id": "scene04_fast-B1",
+          "parameters": {
+            "study": "X04",
+            "scene": "scene04_fast",
+            "scene_id": 4,
+            "batch": 1
+          }
+        },
+        {
+          "id": "scene04_fast-B16",
+          "parameters": {
+            "study": "X04",
+            "scene": "scene04_fast",
+            "scene_id": 4,
+            "batch": 16
+          }
+        },
+        {
+          "id": "scene02-B1",
+          "parameters": {
+            "study": "X04",
+            "scene": "scene02",
+            "scene_id": 2,
+            "batch": 1
+          }
+        },
+        {
+          "id": "scene02-B16",
+          "parameters": {
+            "study": "X04",
+            "scene": "scene02",
+            "scene_id": 2,
+            "batch": 16
+          }
+        },
+        {
+          "id": "scene03-B1",
+          "parameters": {
+            "study": "X04",
+            "scene": "scene03",
+            "scene_id": 3,
+            "batch": 1
+          }
+        },
+        {
+          "id": "scene03-B16",
+          "parameters": {
+            "study": "X04",
+            "scene": "scene03",
+            "scene_id": 3,
+            "batch": 16
+          }
+        }
+      ],
+      "dependency_source_commits": {
+        "ordinary_canonical_runtime": "fa6f6bede286c122cc41ac65f42a583da84290e0"
+      },
+      "preflight": {
+        "group": "CylinderStudies-B-zero-pcg-20261011",
+        "command": [
+          "{python}",
+          "{runner}/adapters/cylinder_studies.py",
+          "--source",
+          "{source}",
+          "--build",
+          "{build}",
+          "--inputs",
+          "{inputs}/experiments/inputs/cylinder_studies",
+          "--output",
+          "{output}",
+          "--preflight",
+          "--ordinary-runtime",
+          "fa6f6bede286c122cc41ac65f42a583da84290e0"
+        ]
+      },
+      "cohort_id": "zero-pcg-20261011",
+      "stopping_policy": "zero_pcg_or_finite_kkt",
+      "original_runtime_source_commit": "d6c827842c6ed65d455472063bcf77f5498efd46",
+      "original_scientific_protocol": "cylinder-current-default-B-v1",
+      "preparation_status": "fresh matching build and target preflight pending"
+    },
+    {
+      "id": "demo_visual_square_internal",
+      "name": "Square poses and upward-tool figure-eight demonstration",
+      "research_question": "RQ-control",
+      "protocol": "demo-visual-square-v1-zero-pcg-20261011",
+      "source_commit": "fa6f6bede286c122cc41ac65f42a583da84290e0",
+      "collector_source_commit": "2c7e2b11bd5bab8fa3a761d17cf55c1aa9cff55e",
+      "machines": [
+        "gtx1070"
+      ],
+      "timing_mode": "B",
+      "backend": "internal",
+      "build": {
+        "inputs": {
+          "native/CMakeLists.txt": "07c285afa3d2055c2c8f64c4645bdad01bdeb3391e77f2082aff3c70443df1e2"
+        },
+        "commands": [
+          [
+            "cmake",
+            "-S",
+            "{runner}/native",
+            "-B",
+            "{build}",
+            "-DGATO_SOURCE_DIR={source}",
+            "-DKNOTS=16;32;64;128",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DGATO_EXPERIMENT_TELEMETRY=ON",
+            "-DCMAKE_CUDA_ARCHITECTURES={cuda_arch}-real",
+            "-DPython3_EXECUTABLE={python}"
+          ],
+          [
+            "cmake",
+            "--build",
+            "{build}",
+            "--parallel",
+            "2"
+          ]
+        ],
+        "artifacts": [
+          "modules/bsqpN16_tiago_right*.so",
+          "modules/bsqpN32_tiago_right*.so",
+          "modules/bsqpN64_tiago_right*.so",
+          "modules/bsqpN128_tiago_right*.so"
+        ]
+      },
+      "inputs": {
+        "experiments/inputs/demo/proposal.json": "93b9ff4edad18bb484d41b15626775d0bdfd3f2afb5fd6859682593a9ae19e75"
+      },
+      "preflight": {
+        "group": "demo-internal-zero-pcg-20261011",
+        "command": [
+          "{python}",
+          "{runner}/adapters/demo.py",
+          "--source",
+          "{source}",
+          "--build",
+          "{build}",
+          "--case",
+          "{case}",
+          "--output",
+          "{output}",
+          "--backend",
+          "internal",
+          "--preflight",
+          "--inputs",
+          "{inputs}/experiments/inputs/demo"
+        ]
+      },
+      "command": [
+        "{python}",
+        "{runner}/adapters/demo.py",
+        "--source",
+        "{source}",
+        "--build",
+        "{build}",
+        "--case",
+        "{case}",
+        "--output",
+        "{output}",
+        "--backend",
+        "internal",
+        "--inputs",
+        "{inputs}/experiments/inputs/demo"
+      ],
+      "repeats": 1,
+      "cases": [
+        {
+          "id": "square",
+          "parameters": {
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "figure8-24s",
+          "parameters": {
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "figure8-18s",
+          "parameters": {
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "figure8-12s",
+          "parameters": {
+            "backend": "internal"
+          }
+        }
+      ],
+      "qualification": "Prepared only; target frozen task readiness/module review and full internal then Gazebo motion review precede robot. Physical scripts outside runner.",
+      "cohort_id": "zero-pcg-20261011",
+      "stopping_policy": "zero_pcg_or_finite_kkt",
+      "original_runtime_source_commit": "502fa29c8b0d649dcb347f9534bf29c6935fa6dd",
+      "original_scientific_protocol": "demo-visual-square-v1",
+      "preparation_status": "fresh matching build and target preflight pending"
+    }
+  ],
+  "source_plans": [
+    {
+      "plan": "successor/gtx1070_internal.json",
+      "experiment": "T01"
+    },
+    {
+      "plan": "successor/gtx1070_internal.json",
+      "experiment": "T01-faster-proposal"
+    },
+    {
+      "plan": "successor/gtx1070_internal.json",
+      "experiment": "F01ab"
+    },
+    {
+      "plan": "successor/gtx1070_internal.json",
+      "experiment": "F01c"
+    },
+    {
+      "plan": "successor/gtx1070_internal.json",
+      "experiment": "F05-stageOFF"
+    },
+    {
+      "plan": "successor/gtx1070_internal.json",
+      "experiment": "F05-stageON"
+    },
+    {
+      "plan": "successor/gtx1070_internal.json",
+      "experiment": "BB"
+    },
+    {
+      "plan": "successor/gtx1070_internal.json",
+      "experiment": "BA"
+    },
+    {
+      "plan": "successor/gtx1070_internal.json",
+      "experiment": "ControlChoices"
+    },
+    {
+      "plan": "successor/gtx1070_internal.json",
+      "experiment": "CylinderTasks"
+    },
+    {
+      "plan": "successor/gtx1070_internal.json",
+      "experiment": "demo_visual_square_internal"
+    }
+  ],
+  "source_plan_notes": {
+    "successor/gtx1070_internal.json": {
+      "cohort_id": "zero-pcg-20261011",
+      "stopping_policy": "zero_pcg_or_finite_kkt",
+      "status": "prepared_target_build_preflight_pending",
+      "note": "New solver cohort, full frozen coverage; historical results/failed attempts and gates unchanged. Faster tracking simulation only; no physical robot queue.",
+      "omissions": {
+        "BA_seeds_alone": "Dropped; seed-to-output progress remains saved analysis",
+        "Jetson_BA": "No full BA task sweep; same-candidate speedup answered by F01c",
+        "force": "Revised runtime, bounded smoke/screen and selected F* pending; see force_stages.json",
+        "independent_studies": "No solver-change rerun of F04/Q02/X02/M02; pending M02/F04 target plans remain separate"
+      }
+    }
+  },
+  "retained_results": [],
+  "omissions": {
+    "Force": "Revised force source, smoke/screen and F* freeze pending; no old force adapter queued",
+    "D02 physical": "Standalone/manual; faster speeds withheld pending simulation review",
+    "Solver-independent": "F04/Q02/X02/M02 not rerun solely for stopping change; pending target checks remain separate",
+    "Jetson BA": "No full task sweep; F01c supplies speedup study",
+    "Historical studies": "Retained unchanged; no format migration reruns"
+  },
+  "missing_plan_files": [],
+  "note": "Explicit successor solver cohorts; previous results remain historical. Fresh matching builds/preflights pending; faster tracking is simulation only. No physical robot queue."
+}

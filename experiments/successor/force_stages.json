@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "experiments": [],
+  "status": "staged_prerequisites_not_execution_ready",
+  "stages": [
+    "Original-arm GTX1070 0N smoke; repeat crash holds force study",
+    "New same-policy no-estimator0N baseline and5/10/20N modeB screen; frozen degradation criterion; choose smallest qualifying force within effort limits",
+    "Freeze selectedF* and revised12input bank: sixstarts x{0,F*}",
+    "E02 three methods x(one0N +threeF* repeats)=12tasks/machine; E03 bank one excluded warmup+20ticks/input/method; derive E01"
+  ],
+  "source_commit": null,
+  "selected_force_N": null,
+  "machines": [
+    "gtx1070",
+    "rtx5060",
+    "jetson"
+  ],
+  "stopping_policy": "zero_pcg_or_finite_kkt",
+  "limitation": "This file cannot run old force adapters; revised source and F* must be supplied by force owner."
+}
