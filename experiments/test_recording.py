@@ -95,3 +95,28 @@ def test_legacy_reader(tmp_path):
     assert record['x'].dtype == np.int32 and np.isposinf(record['bad'])
     with pytest.raises(FileExistsError):
         RawRecorder(tmp_path)
+
+
+def test_manifest_reuses_own_chunk_hashes_and_rehashes_summaries(tmp_path,monkeypatch):
+    import recording
+    recorder=RawRecorder(tmp_path,max_events=1)
+    recorder('input',{'x':np.arange(10,dtype=np.float32)})
+    recorder('output',{'x':np.arange(5,dtype=np.int64)})
+    recorder.close()
+    expected={str(p.relative_to(tmp_path)):sha(p) for p in (tmp_path/'raw').glob('*.npz')}
+    (tmp_path/'metrics.json').write_text('{"result":1}')
+    # A foreign/recovered file has no cached digest and must still be hashed.
+    external=tmp_path/'raw/external.npz';np.savez(external,x=np.array([9]))
+    reads=[];original=recording.sha
+    def count_reads(path):reads.append(str(Path(path).relative_to(tmp_path)));return original(path)
+    monkeypatch.setattr(recording,'sha',count_reads)
+    recorder.manifest()
+    manifest=json.loads((tmp_path/'SHA256SUMS.json').read_text())
+    assert all(manifest[name]==digest for name,digest in expected.items())
+    assert not set(expected)&set(reads)
+    assert 'raw/external.npz' in reads and 'metrics.json' in reads
+    (tmp_path/'metrics.json').write_text('{"result":2}')
+    recorder.manifest()
+    assert json.loads((tmp_path/'SHA256SUMS.json').read_text())['metrics.json']==original(tmp_path/'metrics.json')
+    # Resume continues through a new attempt; old attempts are never reopened.
+    with pytest.raises(FileExistsError):RawRecorder(tmp_path)

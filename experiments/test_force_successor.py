@@ -33,6 +33,16 @@ def test_screen_selects_smallest_physical_qualifier_and_retains_failure(tmp_path
         S.smoke_evidence(smoke(tmp_path/'crashed',True))
     partial=tmp_path/'screen/20/metrics.json';d=json.loads(partial.read_text());d['executed_duration_s']=12.;put(partial,d)
     assert S.select(tmp_path/'screen',original,tmp_path/'partial-selection.json')['selected_force_N'] is None
+    baseline=tmp_path/'screen/0/provenance.json';d=json.loads(baseline.read_text());d['source_commit']=S.PRE_RECORDING_SOURCE;put(baseline,d)
+    for f in (5,10,20):
+        p=tmp_path/f'screen/{f}/provenance.json';d=json.loads(p.read_text());d['source_commit']='a'*40;put(p,d)
+    with pytest.raises(ValueError,match='settings differ'):
+        S.select(tmp_path/'screen',original,tmp_path/'strict-selection.json')
+    compatible=S.select(tmp_path/'screen',original,tmp_path/'recording-selection.json',recording_only_source='a'*40)
+    assert compatible['all_attempts'][2]['reviewed_recording_only_source'] is True
+    p=tmp_path/'screen/20/provenance.json';d=json.loads(p.read_text());d['module_sha256']='different-module';put(p,d)
+    with pytest.raises(ValueError,match='settings differ'):
+        S.select(tmp_path/'screen',original,tmp_path/'different-module.json',recording_only_source='a'*40)
 
 def test_speed_only_waiver_scoped_and_adapter_preserves_raw(tmp_path,monkeypatch):
     from adapters import force as A

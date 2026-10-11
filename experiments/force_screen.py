@@ -3,11 +3,13 @@
 import argparse
 import json
 import math
+import re
 from pathlib import Path
 from recording import sha,write_json
 
 DEGRADATION_M=.010
 FORCES=(5.,10.,20.)
+PRE_RECORDING_SOURCE='bbbb047c9827beedff15b40d42aacc6389fa06ba'
 
 def physical_eligibility(metrics,allow_speed_only=False):
     """Eligibility only; never change the source physical result."""
@@ -52,7 +54,9 @@ def smoke_evidence(attempt,allow_speed_only=False):
         speed_only_waiver=allow_speed_only,physical_limit_excess=metrics.get('physical_limit_excess'),eligibility_pass=True,
         tracking_RMS_error_m=metrics['tracking_RMS_error_m'],note='Execution/finite/physical smoke gate; historical20mm task gate is reported, not a smoke execution gate.')
 
-def select(root,smoke,output,allow_speed_only=False):
+def select(root,smoke,output,allow_speed_only=False,recording_only_source=None):
+    if recording_only_source is not None and not re.fullmatch('[0-9a-f]{40}',recording_only_source):
+        raise ValueError('Explicit reviewed recording-only full source commit required')
     evidence=smoke_evidence(smoke,allow_speed_only);rows=[]
     for receipt_path in sorted(Path(root).rglob('receipt.json')):
         receipt=json.loads(receipt_path.read_text())
@@ -85,15 +89,20 @@ def select(root,smoke,output,allow_speed_only=False):
     for force in FORCES:
         row=by_force[force][0]
         row['same_source_module_settings']=row['compatibility']==baseline['compatibility']
-        if row['status']=='completed' and not row['execution_error'] and not row['same_source_module_settings']:
+        old=baseline['compatibility'];new=row['compatibility']
+        row['reviewed_recording_only_source']=bool(recording_only_source and old['source_commit']==PRE_RECORDING_SOURCE and
+            new['source_commit']==recording_only_source and old['module_sha256']==new['module_sha256'] and old['input_sha256']==new['input_sha256'])
+        row['compatible_scientific_settings']=row['same_source_module_settings'] or row['reviewed_recording_only_source']
+        if row['status']=='completed' and not row['execution_error'] and not row['compatible_scientific_settings']:
             raise ValueError('Completed screen source/module/task settings differ; report before F* freeze')
         row['degradation_m']=row['RMS_m']-baseline['RMS_m'] if finite(row['RMS_m']) else None
-        row['qualifies']=bool(row['same_source_module_settings'] and row['status']=='completed' and not row['execution_error'] and row['physical_eligibility'] and
+        row['qualifies']=bool(row['compatible_scientific_settings'] and row['status']=='completed' and not row['execution_error'] and row['physical_eligibility'] and
             finite(row['executed_duration_s']) and row['executed_duration_s']>=24.-1e-6 and
             finite(row['sampled_effort_ratio']) and row['sampled_effort_ratio']<=1 and finite(row['degradation_m']) and row['degradation_m']>=DEGRADATION_M)
         if selected is None and row['qualifies']:selected=force
     result=dict(protocol='force-screen5-10-20-v2',degradation_threshold_m=DEGRADATION_M,
         speed_only_waiver=allow_speed_only,waiver_scope='Internal force simulations only; speed descriptive, unchanged position/torque/finite/effort gates; raw physical_pass retained',
+        reviewed_recording_only_source=recording_only_source,recording_compatibility_scope='Only the explicitly reviewed recording-only successor of bbbb047; identical native module and task/settings inputs; original source labels retained',
         original_smoke=evidence,baseline=baseline,all_attempts=rows,selected_force_N=selected,
         outcome='selected_smallest_qualifying_force' if selected else 'no_qualifying_force_report_before_expansion',
         note='No task-gate relabeling; all scientific/physical failures and execution errors remain explicit. No extended screen or tuning.')
@@ -102,5 +111,7 @@ def select(root,smoke,output,allow_speed_only=False):
 if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('--screen-root',type=Path,required=True)
     p.add_argument('--smoke-attempt',type=Path,required=True);p.add_argument('--output',type=Path,required=True)
-    p.add_argument('--allow-speed-only',action='store_true');a=p.parse_args()
-    print(json.dumps(select(a.screen_root,a.smoke_attempt,a.output,a.allow_speed_only),indent=2))
+    p.add_argument('--allow-speed-only',action='store_true')
+    p.add_argument('--recording-only-source',help='Exact reviewed recording-only successor allowed against bbbb047 baseline; no other identity relaxation')
+    a=p.parse_args()
+    print(json.dumps(select(a.screen_root,a.smoke_attempt,a.output,a.allow_speed_only,a.recording_only_source),indent=2))

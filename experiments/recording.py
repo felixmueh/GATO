@@ -55,6 +55,9 @@ class RawRecorder:
         self.started = time.perf_counter()
         self.count = self.chunk = self.buffer_bytes = 0
         self._events, self._arrays = [], {}
+        # Fresh-attempt chunks are immutable after publication. Hash while
+        # their bytes are still cached, avoiding a second cold read at the end.
+        self._chunk_hashes = {}
         self._closed = False
 
     def __call__(self, kind, record):
@@ -111,6 +114,7 @@ class RawRecorder:
         self._events.clear()
         self._arrays.clear()
         self.buffer_bytes = 0
+        self._chunk_hashes[str(target.relative_to(self.output))] = sha(target)
 
     def close(self):
         self.flush()
@@ -130,7 +134,8 @@ class RawRecorder:
             'controller_stats.json', 'metrics.json', 'screening.json',
             'readiness.json', 'build_receipt.json') if (self.output / name).is_file()]
         write_json(self.output / 'SHA256SUMS.json',
-                   {str(p.relative_to(self.output)): sha(p) for p in sorted(files)})
+                   {str(p.relative_to(self.output)): self._chunk_hashes[str(p.relative_to(self.output))]
+                    if str(p.relative_to(self.output)) in self._chunk_hashes else sha(p) for p in sorted(files)})
 
 
 def iter_events(output):
