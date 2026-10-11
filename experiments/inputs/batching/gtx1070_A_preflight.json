@@ -1,0 +1,121 @@
+{
+  "source_commit": "2cc7bd9da50bcc1b96b673f9b7e58f901000392a",
+  "command": [
+    "/opt/gato-venv/bin/python",
+    "examples/randomized_multimodal/tiago_reaching_batch_pilot.py",
+    "--preflight-input",
+    "experiments/tiago_batching/preflight.json",
+    "--output",
+    "/home/felix/gato-results/gtx1070/BA-current-defaults-preflight-A-20261010T192525Z",
+    "--batches",
+    "1",
+    "16"
+  ],
+  "cwd": "/workspace/GATO-eval-batching",
+  "raw": "/home/felix/gato-results/gtx1070/BA-current-defaults-preflight-A-20261010T192525Z",
+  "started": 1791660325.1309724,
+  "status": "completed",
+  "scope": "Required once B1/B16 same-loop rough-reaching A readiness",
+  "returncode": 0,
+  "elapsed_s": 3.184635877609253,
+  "summaries": {
+    "preflight_dt_0.03_B1": {
+      "pair_id": -1,
+      "batch": 1,
+      "knot_dt": 0.03,
+      "prediction_seconds": 0.9299999999999999,
+      "outcome": "reached",
+      "complete": true,
+      "failure": null,
+      "simulated_seconds": 0.5100000000000003,
+      "feedback_solves": 17,
+      "reached_seconds": 0.5100000000000003,
+      "first_pose_touch_seconds": 0.5100000000000003,
+      "first_position_touch_seconds": 0.5100000000000003,
+      "initial": {
+        "xyz_error": 0.10063625937168882,
+        "orientation_error_deg": 12.537370632493529,
+        "velocity_l1": 0.0,
+        "tool_axis_error_deg": 12.532944880343653
+      },
+      "final": {
+        "xyz_error": 0.04799006064132859,
+        "orientation_error_deg": 8.039179230782784,
+        "velocity_l1": 0.5865321845949527,
+        "tool_axis_error_deg": 8.031858954428353
+      },
+      "physical": {
+        "finite": true,
+        "max_joint_bound_excess_rad": 0.0,
+        "max_velocity_ratio": 0.21801652676480612,
+        "max_effort_ratio": 0.3382171850938063,
+        "joint_bounds_valid": true,
+        "velocity_valid": true,
+        "effort_valid": true,
+        "physical_valid": true
+      },
+      "selected_nonzero_lanes": 0,
+      "accepted_sqp_steps_selected": 35,
+      "solve_wall_seconds": 0.03733514802297577,
+      "elapsed_wall_seconds": 0.16449361300328746,
+      "integrated_cost": {
+        "position": 0.0056562964097040015,
+        "orientation_wrapped_rpy": 0.0008174828535592172,
+        "velocity": 0.006064849043393831,
+        "effort": 0.0020397101971001445
+      },
+      "total_integrated_cost": 0.014578338503757195,
+      "quadratic_executed_cost": 0.014578338503757195,
+      "quadratic_cost_scope": "running position, wrapped RPY, velocity and effort only; excludes limit barriers and terminal cost"
+    },
+    "preflight_dt_0.03_B16": {
+      "pair_id": -1,
+      "batch": 16,
+      "knot_dt": 0.03,
+      "prediction_seconds": 0.9299999999999999,
+      "outcome": "reached",
+      "complete": true,
+      "failure": null,
+      "simulated_seconds": 0.5100000000000003,
+      "feedback_solves": 17,
+      "reached_seconds": 0.5100000000000003,
+      "first_pose_touch_seconds": 0.5100000000000003,
+      "first_position_touch_seconds": 0.5100000000000003,
+      "initial": {
+        "xyz_error": 0.10063625937168882,
+        "orientation_error_deg": 12.537370632493529,
+        "velocity_l1": 0.0,
+        "tool_axis_error_deg": 12.532944880343653
+      },
+      "final": {
+        "xyz_error": 0.04790977659296763,
+        "orientation_error_deg": 8.037387588103659,
+        "velocity_l1": 0.5863456316261315,
+        "tool_axis_error_deg": 8.031155574816646
+      },
+      "physical": {
+        "finite": true,
+        "max_joint_bound_excess_rad": 0.0,
+        "max_velocity_ratio": 0.21908733666030109,
+        "max_effort_ratio": 0.3381553063025841,
+        "joint_bounds_valid": true,
+        "velocity_valid": true,
+        "effort_valid": true,
+        "physical_valid": true
+      },
+      "selected_nonzero_lanes": 17,
+      "accepted_sqp_steps_selected": 53,
+      "solve_wall_seconds": 0.3031672140059527,
+      "elapsed_wall_seconds": 0.721277601987822,
+      "integrated_cost": {
+        "position": 0.005647847867601625,
+        "orientation_wrapped_rpy": 0.0008219860075171326,
+        "velocity": 0.006072386884497844,
+        "effort": 0.0020396891446582415
+      },
+      "total_integrated_cost": 0.014581909904274843,
+      "quadratic_executed_cost": 0.014581909904274843,
+      "quadratic_cost_scope": "running position, wrapped RPY, velocity and effort only; excludes limit barriers and terminal cost"
+    }
+  }
+}

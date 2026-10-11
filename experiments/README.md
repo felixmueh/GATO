@@ -228,6 +228,66 @@ between scalar and batch solves, so speedup alone does not establish equal
 quality, task success or physical feasibility. Preserve failed/missing calls,
 actual work, duplicate/permutation differences and repeat dispersion.
 
+## GPU resources, stage timings and sustained response (F04/F05)
+
+`resource_profiles.json` prepares the 38 pending RTX5060 workers: eight resource
+queries, 18 fresh-process first responses, six stage profiles and six sustained
+blocks of 120 seconds each. GTX1070 results are completed and excluded. Stage
+OFF modules share a four-horizon build; stage ON has its own N32 build. Canonical
+mode A reaching checks the ordinary module; the original three-case task suite
+and CUDA access probe check the stage-profile module. Both retain failures.
+
+```sh
+python3 experiments/run.py --plan experiments/resource_profiles.json --machine rtx5060 --dry-run
+python3 experiments/resource_profiles_monitor.py --plan experiments/resource_profiles.json \
+  --machine rtx5060 --output .experiment-results/resource-conditions-001
+python3 experiments/analysis/resource_profiles.py --index .experiment-results/index.json \
+  --output .experiment-results/analysis/resource-profiles
+```
+
+Use a fresh monitor output directory. The wrapper records passive clock,
+temperature and power observations outside solve timers. The separate
+`resource_profiles-jetson-proposed.json` retains the same approved coverage;
+discuss target duration/storage before its execution. A CPU preparation check
+is not a native build or target qualification.
+
+## Batching quality and computation-paid tasks (BA/BB)
+
+Use the explicit machine plan, not the historical manager. The GTX1070
+computation-paid continuation (`bb_gtx1070.json`) selects only 176 pending
+episodes and links the original 23 completed episodes plus one retained
+execution failure. The failed episode is not retried. `bb_rtx5060.json` selects
+the full 200 matching episodes. Both use mode B and the existing 600-second
+process guard. Each failed case keeps its data; independent cases continue.
+
+```sh
+python3 experiments/run.py --plan experiments/bb_gtx1070.json --machine gtx1070 --dry-run
+python3 experiments/run.py --plan experiments/bb_gtx1070.json --machine gtx1070
+python3 experiments/run.py --plan experiments/bb_rtx5060.json --machine rtx5060 --dry-run
+python3 experiments/run.py --plan experiments/bb_rtx5060.json --machine rtx5060
+```
+
+The GTX1070 plan copies and verifies the recorded native module from its retained
+local path and reuses matching passed readiness. Preserve that module when
+moving this plan to another checkout. RTX5060 builds its own module and runs
+canonical B1/B16 readiness. The separate `bb_jetson_proposed.json` prepares one
+pass through the same 100 pairs; Jetson repeat/duration discussion remains due.
+
+The computation-ignored quality comparison uses `ba_gtx1070.json` (100 pending
+nominal-compute B1 episodes) or `ba_rtx5060.json` (300 default/nominal-compute
+episodes). These are mode A. The nominal arm gives B1 SQP80 versus B16 SQP5,
+both PCG120; actual work and elapsed time are recorded, not asserted equal.
+Its SQP80 canonical preflight is separate from the reused default readiness.
+Use the same explicit `run.py --plan ... --machine ... --dry-run` then run
+command pattern. Retained GTX1070 default comparisons are not repeated.
+
+`analysis/ba_seed.py --raw PATH --source PINNED_SOURCE --output NEW_DIRECTORY`
+reads the existing per-step candidate/output files without solving. It exports
+own-seed/output merits, endpoint errors, predicted-knot bounds and nominal-prefix
+diagnostics. These are not seed-only closed-loop success or convergence claims.
+Same-candidate serial/batched solve timing comes from F01c, with its distinct
+input and budget scope. Historical raw files and failures remain unchanged.
+
 ## Relevant checks
 
 ```sh

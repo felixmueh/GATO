@@ -1,0 +1,3992 @@
+{
+  "version": 1,
+  "experiments": [
+    {
+      "id": "BB",
+      "research_question": "RQ-batching",
+      "protocol": "simple-bb-recording-v1",
+      "source_commit": "4f6c8fd4be428c135fc16564c5dd56eb61ce5660",
+      "timing_mode": "B",
+      "backend": "internal",
+      "machines": [
+        "rtx5060"
+      ],
+      "inputs": {
+        "experiments/inputs/batching/pool.npz": "e3cf5bbd3385eed74a8ccfb6fa341787b0d1b1c5f8514d08437c8640916e98b3",
+        "experiments/inputs/batching/pairs.npz": "a5fbf2b7897a0e104b98a86d792690e12c29e1b755108548a45aa058eeb26aa7",
+        "experiments/inputs/batching/bb_protocol.json": "d62049ee86c84ef493f984ac55073f7e5307fb8435f7d7d90a5e729106cd8da5",
+        "experiments/inputs/batching/bb_preflight.json": "9389e336eab0abc261fb4513e576490c13317e4f34f6df4acfdc7688db65e737",
+        "experiments/inputs/batching/continuation.json": "85a25015e2570615b596306c9411c1d000ede58b0e3fd5a476006f91fab1d400",
+        "experiments/inputs/batching/gtx1070_readiness.json": "2ed7010cebf7313a984315567d208cad5e338f0f6d0d81552e0b8dbde2935d0d",
+        "experiments/inputs/batching/source_reuse.json": "88a1c54be7aecd3056118492d35aa02a47c0d9ce9850eff318e2d4f935a2d36e"
+      },
+      "build": {
+        "inputs": {
+          "bb_prepare.py": "735b04a625b9448180a662c7e8f5a19a106a74ac8516d0f1735211b15b576a43",
+          "native/CMakeLists.txt": "07c285afa3d2055c2c8f64c4645bdad01bdeb3391e77f2082aff3c70443df1e2"
+        },
+        "commands": [
+          [
+            "cmake",
+            "-S",
+            "{runner}/native",
+            "-B",
+            "{build}",
+            "-DGATO_SOURCE_DIR={source}",
+            "-DKNOTS=32",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DGATO_EXPERIMENT_TELEMETRY=ON",
+            "-DCMAKE_CUDA_ARCHITECTURES={cuda_arch}-real",
+            "-DPython3_EXECUTABLE={python}"
+          ],
+          [
+            "cmake",
+            "--build",
+            "{build}",
+            "--parallel",
+            "2"
+          ]
+        ],
+        "artifacts": [
+          "modules/bsqpN32_tiago_right*.so"
+        ]
+      },
+      "preflight": {
+        "group": "BB-B",
+        "command": [
+          "{python}",
+          "{runner}/bb_prepare.py",
+          "preflight",
+          "--source",
+          "{source}",
+          "--build",
+          "{build}",
+          "--inputs",
+          "{inputs}/experiments/inputs/batching",
+          "--output",
+          "{output}"
+        ]
+      },
+      "command": [
+        "{python}",
+        "{runner}/adapters/bb.py",
+        "--source",
+        "{source}",
+        "--build",
+        "{build}",
+        "--pool",
+        "{inputs}/experiments/inputs/batching",
+        "--protocol",
+        "{inputs}/experiments/inputs/batching/bb_protocol.json",
+        "--case",
+        "{case}",
+        "--output",
+        "{output}"
+      ],
+      "timeout_seconds": 600,
+      "original_source_commit": "aa241da65fce3e062e62168846b8d5d589b5cd90",
+      "cases": [
+        {
+          "id": "pair-03626-B1",
+          "parameters": {
+            "pair_id": 3626,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-03626-B16",
+          "parameters": {
+            "pair_id": 3626,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-07733-B1",
+          "parameters": {
+            "pair_id": 7733,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-07733-B16",
+          "parameters": {
+            "pair_id": 7733,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-07132-B1",
+          "parameters": {
+            "pair_id": 7132,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-07132-B16",
+          "parameters": {
+            "pair_id": 7132,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-07093-B1",
+          "parameters": {
+            "pair_id": 7093,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-07093-B16",
+          "parameters": {
+            "pair_id": 7093,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-01265-B1",
+          "parameters": {
+            "pair_id": 1265,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-01265-B16",
+          "parameters": {
+            "pair_id": 1265,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-09651-B1",
+          "parameters": {
+            "pair_id": 9651,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-09651-B16",
+          "parameters": {
+            "pair_id": 9651,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-05264-B1",
+          "parameters": {
+            "pair_id": 5264,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-05264-B16",
+          "parameters": {
+            "pair_id": 5264,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-00279-B1",
+          "parameters": {
+            "pair_id": 279,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-00279-B16",
+          "parameters": {
+            "pair_id": 279,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-08054-B1",
+          "parameters": {
+            "pair_id": 8054,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-08054-B16",
+          "parameters": {
+            "pair_id": 8054,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-08270-B1",
+          "parameters": {
+            "pair_id": 8270,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-08270-B16",
+          "parameters": {
+            "pair_id": 8270,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-02497-B1",
+          "parameters": {
+            "pair_id": 2497,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-02497-B16",
+          "parameters": {
+            "pair_id": 2497,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-02342-B1",
+          "parameters": {
+            "pair_id": 2342,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-02342-B16",
+          "parameters": {
+            "pair_id": 2342,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-06503-B1",
+          "parameters": {
+            "pair_id": 6503,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-06503-B16",
+          "parameters": {
+            "pair_id": 6503,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-06155-B1",
+          "parameters": {
+            "pair_id": 6155,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-06155-B16",
+          "parameters": {
+            "pair_id": 6155,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-01161-B1",
+          "parameters": {
+            "pair_id": 1161,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-01161-B16",
+          "parameters": {
+            "pair_id": 1161,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-01600-B1",
+          "parameters": {
+            "pair_id": 1600,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-01600-B16",
+          "parameters": {
+            "pair_id": 1600,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-06892-B1",
+          "parameters": {
+            "pair_id": 6892,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-06892-B16",
+          "parameters": {
+            "pair_id": 6892,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-05809-B1",
+          "parameters": {
+            "pair_id": 5809,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-05809-B16",
+          "parameters": {
+            "pair_id": 5809,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-03678-B1",
+          "parameters": {
+            "pair_id": 3678,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-03678-B16",
+          "parameters": {
+            "pair_id": 3678,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-09059-B1",
+          "parameters": {
+            "pair_id": 9059,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-09059-B16",
+          "parameters": {
+            "pair_id": 9059,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-02112-B1",
+          "parameters": {
+            "pair_id": 2112,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-02112-B16",
+          "parameters": {
+            "pair_id": 2112,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-09107-B1",
+          "parameters": {
+            "pair_id": 9107,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-09107-B16",
+          "parameters": {
+            "pair_id": 9107,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-00870-B1",
+          "parameters": {
+            "pair_id": 870,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-00870-B16",
+          "parameters": {
+            "pair_id": 870,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-00789-B1",
+          "parameters": {
+            "pair_id": 789,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-00789-B16",
+          "parameters": {
+            "pair_id": 789,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-00975-B1",
+          "parameters": {
+            "pair_id": 975,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-00975-B16",
+          "parameters": {
+            "pair_id": 975,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-07184-B1",
+          "parameters": {
+            "pair_id": 7184,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-07184-B16",
+          "parameters": {
+            "pair_id": 7184,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-07736-B1",
+          "parameters": {
+            "pair_id": 7736,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-07736-B16",
+          "parameters": {
+            "pair_id": 7736,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-09961-B1",
+          "parameters": {
+            "pair_id": 9961,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-09961-B16",
+          "parameters": {
+            "pair_id": 9961,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-01976-B1",
+          "parameters": {
+            "pair_id": 1976,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-01976-B16",
+          "parameters": {
+            "pair_id": 1976,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-06352-B1",
+          "parameters": {
+            "pair_id": 6352,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-06352-B16",
+          "parameters": {
+            "pair_id": 6352,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-07463-B1",
+          "parameters": {
+            "pair_id": 7463,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-07463-B16",
+          "parameters": {
+            "pair_id": 7463,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-02406-B1",
+          "parameters": {
+            "pair_id": 2406,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-02406-B16",
+          "parameters": {
+            "pair_id": 2406,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-06340-B1",
+          "parameters": {
+            "pair_id": 6340,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-06340-B16",
+          "parameters": {
+            "pair_id": 6340,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-03987-B1",
+          "parameters": {
+            "pair_id": 3987,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-03987-B16",
+          "parameters": {
+            "pair_id": 3987,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-09888-B1",
+          "parameters": {
+            "pair_id": 9888,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-09888-B16",
+          "parameters": {
+            "pair_id": 9888,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-06618-B1",
+          "parameters": {
+            "pair_id": 6618,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-06618-B16",
+          "parameters": {
+            "pair_id": 6618,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-04972-B1",
+          "parameters": {
+            "pair_id": 4972,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-04972-B16",
+          "parameters": {
+            "pair_id": 4972,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-08276-B1",
+          "parameters": {
+            "pair_id": 8276,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-08276-B16",
+          "parameters": {
+            "pair_id": 8276,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-03069-B1",
+          "parameters": {
+            "pair_id": 3069,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-03069-B16",
+          "parameters": {
+            "pair_id": 3069,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-00320-B1",
+          "parameters": {
+            "pair_id": 320,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-00320-B16",
+          "parameters": {
+            "pair_id": 320,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-02295-B1",
+          "parameters": {
+            "pair_id": 2295,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-02295-B16",
+          "parameters": {
+            "pair_id": 2295,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-05995-B1",
+          "parameters": {
+            "pair_id": 5995,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-05995-B16",
+          "parameters": {
+            "pair_id": 5995,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-01273-B1",
+          "parameters": {
+            "pair_id": 1273,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-01273-B16",
+          "parameters": {
+            "pair_id": 1273,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-03012-B1",
+          "parameters": {
+            "pair_id": 3012,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-03012-B16",
+          "parameters": {
+            "pair_id": 3012,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-04663-B1",
+          "parameters": {
+            "pair_id": 4663,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-04663-B16",
+          "parameters": {
+            "pair_id": 4663,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-02696-B1",
+          "parameters": {
+            "pair_id": 2696,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-02696-B16",
+          "parameters": {
+            "pair_id": 2696,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-05681-B1",
+          "parameters": {
+            "pair_id": 5681,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-05681-B16",
+          "parameters": {
+            "pair_id": 5681,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-07601-B1",
+          "parameters": {
+            "pair_id": 7601,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-07601-B16",
+          "parameters": {
+            "pair_id": 7601,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-02641-B1",
+          "parameters": {
+            "pair_id": 2641,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-02641-B16",
+          "parameters": {
+            "pair_id": 2641,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-07221-B1",
+          "parameters": {
+            "pair_id": 7221,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-07221-B16",
+          "parameters": {
+            "pair_id": 7221,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-03284-B1",
+          "parameters": {
+            "pair_id": 3284,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-03284-B16",
+          "parameters": {
+            "pair_id": 3284,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-04007-B1",
+          "parameters": {
+            "pair_id": 4007,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-04007-B16",
+          "parameters": {
+            "pair_id": 4007,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-07443-B1",
+          "parameters": {
+            "pair_id": 7443,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-07443-B16",
+          "parameters": {
+            "pair_id": 7443,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-08369-B1",
+          "parameters": {
+            "pair_id": 8369,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-08369-B16",
+          "parameters": {
+            "pair_id": 8369,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-02289-B1",
+          "parameters": {
+            "pair_id": 2289,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-02289-B16",
+          "parameters": {
+            "pair_id": 2289,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-01934-B1",
+          "parameters": {
+            "pair_id": 1934,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-01934-B16",
+          "parameters": {
+            "pair_id": 1934,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-03110-B1",
+          "parameters": {
+            "pair_id": 3110,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-03110-B16",
+          "parameters": {
+            "pair_id": 3110,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-09801-B1",
+          "parameters": {
+            "pair_id": 9801,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-09801-B16",
+          "parameters": {
+            "pair_id": 9801,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-03239-B1",
+          "parameters": {
+            "pair_id": 3239,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-03239-B16",
+          "parameters": {
+            "pair_id": 3239,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-00042-B1",
+          "parameters": {
+            "pair_id": 42,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-00042-B16",
+          "parameters": {
+            "pair_id": 42,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-07156-B1",
+          "parameters": {
+            "pair_id": 7156,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-07156-B16",
+          "parameters": {
+            "pair_id": 7156,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-01831-B1",
+          "parameters": {
+            "pair_id": 1831,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-01831-B16",
+          "parameters": {
+            "pair_id": 1831,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-02184-B1",
+          "parameters": {
+            "pair_id": 2184,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-02184-B16",
+          "parameters": {
+            "pair_id": 2184,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-09136-B1",
+          "parameters": {
+            "pair_id": 9136,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-09136-B16",
+          "parameters": {
+            "pair_id": 9136,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-08175-B1",
+          "parameters": {
+            "pair_id": 8175,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-08175-B16",
+          "parameters": {
+            "pair_id": 8175,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-02205-B1",
+          "parameters": {
+            "pair_id": 2205,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-02205-B16",
+          "parameters": {
+            "pair_id": 2205,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-01029-B1",
+          "parameters": {
+            "pair_id": 1029,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-01029-B16",
+          "parameters": {
+            "pair_id": 1029,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-01114-B1",
+          "parameters": {
+            "pair_id": 1114,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-01114-B16",
+          "parameters": {
+            "pair_id": 1114,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-05413-B1",
+          "parameters": {
+            "pair_id": 5413,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-05413-B16",
+          "parameters": {
+            "pair_id": 5413,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-02119-B1",
+          "parameters": {
+            "pair_id": 2119,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-02119-B16",
+          "parameters": {
+            "pair_id": 2119,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-00318-B1",
+          "parameters": {
+            "pair_id": 318,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-00318-B16",
+          "parameters": {
+            "pair_id": 318,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-03255-B1",
+          "parameters": {
+            "pair_id": 3255,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-03255-B16",
+          "parameters": {
+            "pair_id": 3255,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-07375-B1",
+          "parameters": {
+            "pair_id": 7375,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-07375-B16",
+          "parameters": {
+            "pair_id": 7375,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-01497-B1",
+          "parameters": {
+            "pair_id": 1497,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-01497-B16",
+          "parameters": {
+            "pair_id": 1497,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-04786-B1",
+          "parameters": {
+            "pair_id": 4786,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-04786-B16",
+          "parameters": {
+            "pair_id": 4786,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-02931-B1",
+          "parameters": {
+            "pair_id": 2931,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-02931-B16",
+          "parameters": {
+            "pair_id": 2931,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-09913-B1",
+          "parameters": {
+            "pair_id": 9913,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-09913-B16",
+          "parameters": {
+            "pair_id": 9913,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-02238-B1",
+          "parameters": {
+            "pair_id": 2238,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-02238-B16",
+          "parameters": {
+            "pair_id": 2238,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-02036-B1",
+          "parameters": {
+            "pair_id": 2036,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-02036-B16",
+          "parameters": {
+            "pair_id": 2036,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-07206-B1",
+          "parameters": {
+            "pair_id": 7206,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-07206-B16",
+          "parameters": {
+            "pair_id": 7206,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-02548-B1",
+          "parameters": {
+            "pair_id": 2548,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-02548-B16",
+          "parameters": {
+            "pair_id": 2548,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-07660-B1",
+          "parameters": {
+            "pair_id": 7660,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-07660-B16",
+          "parameters": {
+            "pair_id": 7660,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-05104-B1",
+          "parameters": {
+            "pair_id": 5104,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-05104-B16",
+          "parameters": {
+            "pair_id": 5104,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-09844-B1",
+          "parameters": {
+            "pair_id": 9844,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-09844-B16",
+          "parameters": {
+            "pair_id": 9844,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-02204-B1",
+          "parameters": {
+            "pair_id": 2204,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-02204-B16",
+          "parameters": {
+            "pair_id": 2204,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-03506-B1",
+          "parameters": {
+            "pair_id": 3506,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-03506-B16",
+          "parameters": {
+            "pair_id": 3506,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-06166-B1",
+          "parameters": {
+            "pair_id": 6166,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-06166-B16",
+          "parameters": {
+            "pair_id": 6166,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-05089-B1",
+          "parameters": {
+            "pair_id": 5089,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-05089-B16",
+          "parameters": {
+            "pair_id": 5089,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-00047-B1",
+          "parameters": {
+            "pair_id": 47,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-00047-B16",
+          "parameters": {
+            "pair_id": 47,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-02161-B1",
+          "parameters": {
+            "pair_id": 2161,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-02161-B16",
+          "parameters": {
+            "pair_id": 2161,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-04656-B1",
+          "parameters": {
+            "pair_id": 4656,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-04656-B16",
+          "parameters": {
+            "pair_id": 4656,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-03377-B1",
+          "parameters": {
+            "pair_id": 3377,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-03377-B16",
+          "parameters": {
+            "pair_id": 3377,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-04466-B1",
+          "parameters": {
+            "pair_id": 4466,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-04466-B16",
+          "parameters": {
+            "pair_id": 4466,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-06921-B1",
+          "parameters": {
+            "pair_id": 6921,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-06921-B16",
+          "parameters": {
+            "pair_id": 6921,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-03974-B1",
+          "parameters": {
+            "pair_id": 3974,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-03974-B16",
+          "parameters": {
+            "pair_id": 3974,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-08607-B1",
+          "parameters": {
+            "pair_id": 8607,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-08607-B16",
+          "parameters": {
+            "pair_id": 8607,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-05510-B1",
+          "parameters": {
+            "pair_id": 5510,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-05510-B16",
+          "parameters": {
+            "pair_id": 5510,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-08981-B1",
+          "parameters": {
+            "pair_id": 8981,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-08981-B16",
+          "parameters": {
+            "pair_id": 8981,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-09288-B1",
+          "parameters": {
+            "pair_id": 9288,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-09288-B16",
+          "parameters": {
+            "pair_id": 9288,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-04434-B1",
+          "parameters": {
+            "pair_id": 4434,
+            "batch": 1,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "pair-04434-B16",
+          "parameters": {
+            "pair_id": 4434,
+            "batch": 16,
+            "timing_mode": "B",
+            "backend": "internal"
+          }
+        }
+      ]
+    }
+  ],
+  "status": "prepared_not_executed",
+  "retained_results": {
+    "BB": {
+      "gtx1070": {
+        "original_source_commit": "aa241da65fce3e062e62168846b8d5d589b5cd90",
+        "original_cohort": "/workspace/GATO-eval-batching/example_artifacts/bb_campaign/20261010T211939.429686Z/raw",
+        "original_status_sha256": "bceec1df936d96290b0ed41f521d73744005387d2692edb13b458202edf52c9b",
+        "retained": [
+          {
+            "pair_id": 3626,
+            "batch": 1,
+            "state": "completed",
+            "attempts": [
+              {
+                "attempt": 1,
+                "relative_output": "attempts/pair_03626_B1/attempt_0001",
+                "log_path": "attempts/pair_03626_B1/attempt_0001/episode.log",
+                "state": "completed",
+                "started": "2026-10-10T21:22:26.539483+00:00",
+                "command": [
+                  "/opt/gato-venv/bin/python",
+                  "/workspace/GATO-eval-batching/examples/randomized_multimodal/tiago_reaching_batch_pilot.py",
+                  "--pool",
+                  "/workspace/GATO-eval-batching/experiments/tiago_batching/inputs",
+                  "--output",
+                  "/workspace/GATO-eval-batching/example_artifacts/bb_campaign/20261010T211939.429686Z/raw/attempts/pair_03626_B1/attempt_0001/output",
+                  "--pairs",
+                  "3626",
+                  "--batches",
+                  "1",
+                  "--knot-dts",
+                  ".03",
+                  "--feedback",
+                  ".03",
+                  "--sim-dt",
+                  ".003",
+                  "--seconds",
+                  "8",
+                  "--position-tolerance",
+                  ".05",
+                  "--tool-axis-tolerance-deg",
+                  "30",
+                  "--velocity-l1-tolerance",
+                  "1",
+                  "--seed",
+                  "20260925",
+                  "--vel-lim-cost",
+                  ".1",
+                  "--qd-cost",
+                  ".1",
+                  "--protocol",
+                  "/workspace/GATO-eval-batching/experiments/tiago_batching/bb_protocol.json"
+                ],
+                "pid": 83114,
+                "finished": "2026-10-10T21:26:49.487902+00:00",
+                "returncode": 0,
+                "wall_seconds": 262.81534593000833,
+                "outcome": "timeout",
+                "summary_path": "attempts/pair_03626_B1/attempt_0001/output/pair_03626_dt_0.03_B1/summary.json",
+                "inner_receipt_path": "attempts/pair_03626_B1/attempt_0001/output/pair_03626_dt_0.03_B1/receipt.json",
+                "receipt_path": "attempts/pair_03626_B1/attempt_0001/attempt_receipt.json",
+                "receipt_sha256": "efcfa51c5a25d4185dcfa06dd8e6a1d887beb90dd8ebbfcf86c1096bc64e9142"
+              }
+            ]
+          },
+          {
+            "pair_id": 3626,
+            "batch": 16,
+            "state": "completed",
+            "attempts": [
+              {
+                "attempt": 1,
+                "relative_output": "attempts/pair_03626_B16/attempt_0001",
+                "log_path": "attempts/pair_03626_B16/attempt_0001/episode.log",
+                "state": "completed",
+                "started": "2026-10-10T21:27:05.174154+00:00",
+                "command": [
+                  "/opt/gato-venv/bin/python",
+                  "/workspace/GATO-eval-batching/examples/randomized_multimodal/tiago_reaching_batch_pilot.py",
+                  "--pool",
+                  "/workspace/GATO-eval-batching/experiments/tiago_batching/inputs",
+                  "--output",
+                  "/workspace/GATO-eval-batching/example_artifacts/bb_campaign/20261010T211939.429686Z/raw/attempts/pair_03626_B16/attempt_0001/output",
+                  "--pairs",
+                  "3626",
+                  "--batches",
+                  "16",
+                  "--knot-dts",
+                  ".03",
+                  "--feedback",
+                  ".03",
+                  "--sim-dt",
+                  ".003",
+                  "--seconds",
+                  "8",
+                  "--position-tolerance",
+                  ".05",
+                  "--tool-axis-tolerance-deg",
+                  "30",
+                  "--velocity-l1-tolerance",
+                  "1",
+                  "--seed",
+                  "20260925",
+                  "--vel-lim-cost",
+                  ".1",
+                  "--qd-cost",
+                  ".1",
+                  "--protocol",
+                  "/workspace/GATO-eval-batching/experiments/tiago_batching/bb_protocol.json"
+                ],
+                "pid": 83378,
+                "finished": "2026-10-10T21:27:18.800093+00:00",
+                "returncode": 0,
+                "wall_seconds": 13.027602667993051,
+                "outcome": "reached",
+                "summary_path": "attempts/pair_03626_B16/attempt_0001/output/pair_03626_dt_0.03_B16/summary.json",
+                "inner_receipt_path": "attempts/pair_03626_B16/attempt_0001/output/pair_03626_dt_0.03_B16/receipt.json",
+                "receipt_path": "attempts/pair_03626_B16/attempt_0001/attempt_receipt.json",
+                "receipt_sha256": "ef8d65ae41e803f1e35ecfa7f869454c9fab21ea1952cb5cd8decee22ef2428b"
+              }
+            ]
+          },
+          {
+            "pair_id": 7733,
+            "batch": 1,
+            "state": "completed",
+            "attempts": [
+              {
+                "attempt": 1,
+                "relative_output": "attempts/pair_07733_B1/attempt_0001",
+                "log_path": "attempts/pair_07733_B1/attempt_0001/episode.log",
+                "state": "completed",
+                "started": "2026-10-10T21:31:48.356399+00:00",
+                "command": [
+                  "/opt/gato-venv/bin/python",
+                  "/workspace/GATO-eval-batching/examples/randomized_multimodal/tiago_reaching_batch_pilot.py",
+                  "--pool",
+                  "/workspace/GATO-eval-batching/experiments/tiago_batching/inputs",
+                  "--output",
+                  "/workspace/GATO-eval-batching/example_artifacts/bb_campaign/20261010T211939.429686Z/raw/attempts/pair_07733_B1/attempt_0001/output",
+                  "--pairs",
+                  "7733",
+                  "--batches",
+                  "1",
+                  "--knot-dts",
+                  ".03",
+                  "--feedback",
+                  ".03",
+                  "--sim-dt",
+                  ".003",
+                  "--seconds",
+                  "8",
+                  "--position-tolerance",
+                  ".05",
+                  "--tool-axis-tolerance-deg",
+                  "30",
+                  "--velocity-l1-tolerance",
+                  "1",
+                  "--seed",
+                  "20260925",
+                  "--vel-lim-cost",
+                  ".1",
+                  "--qd-cost",
+                  ".1",
+                  "--protocol",
+                  "/workspace/GATO-eval-batching/experiments/tiago_batching/bb_protocol.json"
+                ],
+                "pid": 83556,
+                "finished": "2026-10-10T21:32:07.987406+00:00",
+                "returncode": 0,
+                "wall_seconds": 19.353867368001374,
+                "outcome": "reached",
+                "summary_path": "attempts/pair_07733_B1/attempt_0001/output/pair_07733_dt_0.03_B1/summary.json",
+                "inner_receipt_path": "attempts/pair_07733_B1/attempt_0001/output/pair_07733_dt_0.03_B1/receipt.json",
+                "receipt_path": "attempts/pair_07733_B1/attempt_0001/attempt_receipt.json",
+                "receipt_sha256": "c3820d933d9efa0914fba5d52ea71d037f807e42df1dfb348ceb2c9ecccace3b"
+              }
+            ]
+          },
+          {
+            "pair_id": 7733,
+            "batch": 16,
+            "state": "completed",
+            "attempts": [
+              {
+                "attempt": 1,
+                "relative_output": "attempts/pair_07733_B16/attempt_0001",
+                "log_path": "attempts/pair_07733_B16/attempt_0001/episode.log",
+                "state": "completed",
+                "started": "2026-10-10T21:32:08.557291+00:00",
+                "command": [
+                  "/opt/gato-venv/bin/python",
+                  "/workspace/GATO-eval-batching/examples/randomized_multimodal/tiago_reaching_batch_pilot.py",
+                  "--pool",
+                  "/workspace/GATO-eval-batching/experiments/tiago_batching/inputs",
+                  "--output",
+                  "/workspace/GATO-eval-batching/example_artifacts/bb_campaign/20261010T211939.429686Z/raw/attempts/pair_07733_B16/attempt_0001/output",
+                  "--pairs",
+                  "7733",
+                  "--batches",
+                  "16",
+                  "--knot-dts",
+                  ".03",
+                  "--feedback",
+                  ".03",
+                  "--sim-dt",
+                  ".003",
+                  "--seconds",
+                  "8",
+                  "--position-tolerance",
+                  ".05",
+                  "--tool-axis-tolerance-deg",
+                  "30",
+                  "--velocity-l1-tolerance",
+                  "1",
+                  "--seed",
+                  "20260925",
+                  "--vel-lim-cost",
+                  ".1",
+                  "--qd-cost",
+                  ".1",
+                  "--protocol",
+                  "/workspace/GATO-eval-batching/experiments/tiago_batching/bb_protocol.json"
+                ],
+                "pid": 83582,
+                "finished": "2026-10-10T21:32:15.981118+00:00",
+                "returncode": 0,
+                "wall_seconds": 7.257577256008517,
+                "outcome": "reached",
+                "summary_path": "attempts/pair_07733_B16/attempt_0001/output/pair_07733_dt_0.03_B16/summary.json",
+                "inner_receipt_path": "attempts/pair_07733_B16/attempt_0001/output/pair_07733_dt_0.03_B16/receipt.json",
+                "receipt_path": "attempts/pair_07733_B16/attempt_0001/attempt_receipt.json",
+                "receipt_sha256": "4807e2a2c07b064e0b87a732583329da50f51ddb5d26fdddcac0a95e2c7a3c3e"
+              }
+            ]
+          },
+          {
+            "pair_id": 7132,
+            "batch": 1,
+            "state": "completed",
+            "attempts": [
+              {
+                "attempt": 1,
+                "relative_output": "attempts/pair_07132_B1/attempt_0001",
+                "log_path": "attempts/pair_07132_B1/attempt_0001/episode.log",
+                "state": "completed",
+                "started": "2026-10-10T21:32:16.289434+00:00",
+                "command": [
+                  "/opt/gato-venv/bin/python",
+                  "/workspace/GATO-eval-batching/examples/randomized_multimodal/tiago_reaching_batch_pilot.py",
+                  "--pool",
+                  "/workspace/GATO-eval-batching/experiments/tiago_batching/inputs",
+                  "--output",
+                  "/workspace/GATO-eval-batching/example_artifacts/bb_campaign/20261010T211939.429686Z/raw/attempts/pair_07132_B1/attempt_0001/output",
+                  "--pairs",
+                  "7132",
+                  "--batches",
+                  "1",
+                  "--knot-dts",
+                  ".03",
+                  "--feedback",
+                  ".03",
+                  "--sim-dt",
+                  ".003",
+                  "--seconds",
+                  "8",
+                  "--position-tolerance",
+                  ".05",
+                  "--tool-axis-tolerance-deg",
+                  "30",
+                  "--velocity-l1-tolerance",
+                  "1",
+                  "--seed",
+                  "20260925",
+                  "--vel-lim-cost",
+                  ".1",
+                  "--qd-cost",
+                  ".1",
+                  "--protocol",
+                  "/workspace/GATO-eval-batching/experiments/tiago_batching/bb_protocol.json"
+                ],
+                "pid": 83594,
+                "finished": "2026-10-10T21:32:58.046949+00:00",
+                "returncode": 0,
+                "wall_seconds": 41.61347651600954,
+                "outcome": "reached",
+                "summary_path": "attempts/pair_07132_B1/attempt_0001/output/pair_07132_dt_0.03_B1/summary.json",
+                "inner_receipt_path": "attempts/pair_07132_B1/attempt_0001/output/pair_07132_dt_0.03_B1/receipt.json",
+                "receipt_path": "attempts/pair_07132_B1/attempt_0001/attempt_receipt.json",
+                "receipt_sha256": "e72506abaf707db7d63cc72896aa22a9904e2a001002375efae0e1fe1cfeec79"
+              }
+            ]
+          },
+          {
+            "pair_id": 7132,
+            "batch": 16,
+            "state": "completed",
+            "attempts": [
+              {
+                "attempt": 1,
+                "relative_output": "attempts/pair_07132_B16/attempt_0001",
+                "log_path": "attempts/pair_07132_B16/attempt_0001/episode.log",
+                "state": "completed",
+                "started": "2026-10-10T21:33:17.658631+00:00",
+                "command": [
+                  "/opt/gato-venv/bin/python",
+                  "/workspace/GATO-eval-batching/examples/randomized_multimodal/tiago_reaching_batch_pilot.py",
+                  "--pool",
+                  "/workspace/GATO-eval-batching/experiments/tiago_batching/inputs",
+                  "--output",
+                  "/workspace/GATO-eval-batching/example_artifacts/bb_campaign/20261010T211939.429686Z/raw/attempts/pair_07132_B16/attempt_0001/output",
+                  "--pairs",
+                  "7132",
+                  "--batches",
+                  "16",
+                  "--knot-dts",
+                  ".03",
+                  "--feedback",
+                  ".03",
+                  "--sim-dt",
+                  ".003",
+                  "--seconds",
+                  "8",
+                  "--position-tolerance",
+                  ".05",
+                  "--tool-axis-tolerance-deg",
+                  "30",
+                  "--velocity-l1-tolerance",
+                  "1",
+                  "--seed",
+                  "20260925",
+                  "--vel-lim-cost",
+                  ".1",
+                  "--qd-cost",
+                  ".1",
+                  "--protocol",
+                  "/workspace/GATO-eval-batching/experiments/tiago_batching/bb_protocol.json"
+                ],
+                "pid": 83655,
+                "finished": "2026-10-10T21:33:28.344309+00:00",
+                "returncode": 0,
+                "wall_seconds": 9.942776022988255,
+                "outcome": "reached",
+                "summary_path": "attempts/pair_07132_B16/attempt_0001/output/pair_07132_dt_0.03_B16/summary.json",
+                "inner_receipt_path": "attempts/pair_07132_B16/attempt_0001/output/pair_07132_dt_0.03_B16/receipt.json",
+                "receipt_path": "attempts/pair_07132_B16/attempt_0001/attempt_receipt.json",
+                "receipt_sha256": "a3811e004608cf03f1cc81a212315f17513d8cd9fbcd38c6e306c447295ab250"
+              }
+            ]
+          },
+          {
+            "pair_id": 7093,
+            "batch": 1,
+            "state": "completed",
+            "attempts": [
+              {
+                "attempt": 1,
+                "relative_output": "attempts/pair_07093_B1/attempt_0001",
+                "log_path": "attempts/pair_07093_B1/attempt_0001/episode.log",
+                "state": "completed",
+                "started": "2026-10-10T21:33:28.640832+00:00",
+                "command": [
+                  "/opt/gato-venv/bin/python",
+                  "/workspace/GATO-eval-batching/examples/randomized_multimodal/tiago_reaching_batch_pilot.py",
+                  "--pool",
+                  "/workspace/GATO-eval-batching/experiments/tiago_batching/inputs",
+                  "--output",
+                  "/workspace/GATO-eval-batching/example_artifacts/bb_campaign/20261010T211939.429686Z/raw/attempts/pair_07093_B1/attempt_0001/output",
+                  "--pairs",
+                  "7093",
+                  "--batches",
+                  "1",
+                  "--knot-dts",
+                  ".03",
+                  "--feedback",
+                  ".03",
+                  "--sim-dt",
+                  ".003",
+                  "--seconds",
+                  "8",
+                  "--position-tolerance",
+                  ".05",
+                  "--tool-axis-tolerance-deg",
+                  "30",
+                  "--velocity-l1-tolerance",
+                  "1",
+                  "--seed",
+                  "20260925",
+                  "--vel-lim-cost",
+                  ".1",
+                  "--qd-cost",
+                  ".1",
+                  "--protocol",
+                  "/workspace/GATO-eval-batching/experiments/tiago_batching/bb_protocol.json"
+                ],
+                "pid": 83667,
+                "finished": "2026-10-10T21:39:36.734652+00:00",
+                "returncode": 0,
+                "wall_seconds": 367.96070715899987,
+                "outcome": "timeout",
+                "summary_path": "attempts/pair_07093_B1/attempt_0001/output/pair_07093_dt_0.03_B1/summary.json",
+                "inner_receipt_path": "attempts/pair_07093_B1/attempt_0001/output/pair_07093_dt_0.03_B1/receipt.json",
+                "receipt_path": "attempts/pair_07093_B1/attempt_0001/attempt_receipt.json",
+                "receipt_sha256": "ab2966caabdea5181da7c75e3273f1e1ff81f69a8b86e9bf50b21c69489f3634"
+              }
+            ]
+          },
+          {
+            "pair_id": 7093,
+            "batch": 16,
+            "state": "completed",
+            "attempts": [
+              {
+                "attempt": 1,
+                "relative_output": "attempts/pair_07093_B16/attempt_0001",
+                "log_path": "attempts/pair_07093_B16/attempt_0001/episode.log",
+                "state": "completed",
+                "started": "2026-10-10T21:39:38.374700+00:00",
+                "command": [
+                  "/opt/gato-venv/bin/python",
+                  "/workspace/GATO-eval-batching/examples/randomized_multimodal/tiago_reaching_batch_pilot.py",
+                  "--pool",
+                  "/workspace/GATO-eval-batching/experiments/tiago_batching/inputs",
+                  "--output",
+                  "/workspace/GATO-eval-batching/example_artifacts/bb_campaign/20261010T211939.429686Z/raw/attempts/pair_07093_B16/attempt_0001/output",
+                  "--pairs",
+                  "7093",
+                  "--batches",
+                  "16",
+                  "--knot-dts",
+                  ".03",
+                  "--feedback",
+                  ".03",
+                  "--sim-dt",
+                  ".003",
+                  "--seconds",
+                  "8",
+                  "--position-tolerance",
+                  ".05",
+                  "--tool-axis-tolerance-deg",
+                  "30",
+                  "--velocity-l1-tolerance",
+                  "1",
+                  "--seed",
+                  "20260925",
+                  "--vel-lim-cost",
+                  ".1",
+                  "--qd-cost",
+                  ".1",
+                  "--protocol",
+                  "/workspace/GATO-eval-batching/experiments/tiago_batching/bb_protocol.json"
+                ],
+                "pid": 83977,
+                "finished": "2026-10-10T21:39:48.771895+00:00",
+                "returncode": 0,
+                "wall_seconds": 10.24271262899856,
+                "outcome": "reached",
+                "summary_path": "attempts/pair_07093_B16/attempt_0001/output/pair_07093_dt_0.03_B16/summary.json",
+                "inner_receipt_path": "attempts/pair_07093_B16/attempt_0001/output/pair_07093_dt_0.03_B16/receipt.json",
+                "receipt_path": "attempts/pair_07093_B16/attempt_0001/attempt_receipt.json",
+                "receipt_sha256": "eb0dfabe336794b20c1bda3f352f3b7d6071d7280f17d06d81e68e768fdbf40a"
+              }
+            ]
+          },
+          {
+            "pair_id": 1265,
+            "batch": 1,
+            "state": "completed",
+            "attempts": [
+              {
+                "attempt": 1,
+                "relative_output": "attempts/pair_01265_B1/attempt_0001",
+                "log_path": "attempts/pair_01265_B1/attempt_0001/episode.log",
+                "state": "completed",
+                "started": "2026-10-10T21:39:49.156948+00:00",
+                "command": [
+                  "/opt/gato-venv/bin/python",
+                  "/workspace/GATO-eval-batching/examples/randomized_multimodal/tiago_reaching_batch_pilot.py",
+                  "--pool",
+                  "/workspace/GATO-eval-batching/experiments/tiago_batching/inputs",
+                  "--output",
+                  "/workspace/GATO-eval-batching/example_artifacts/bb_campaign/20261010T211939.429686Z/raw/attempts/pair_01265_B1/attempt_0001/output",
+                  "--pairs",
+                  "1265",
+                  "--batches",
+                  "1",
+                  "--knot-dts",
+                  ".03",
+                  "--feedback",
+                  ".03",
+                  "--sim-dt",
+                  ".003",
+                  "--seconds",
+                  "8",
+                  "--position-tolerance",
+                  ".05",
+                  "--tool-axis-tolerance-deg",
+                  "30",
+                  "--velocity-l1-tolerance",
+                  "1",
+                  "--seed",
+                  "20260925",
+                  "--vel-lim-cost",
+                  ".1",
+                  "--qd-cost",
+                  ".1",
+                  "--protocol",
+                  "/workspace/GATO-eval-batching/experiments/tiago_batching/bb_protocol.json"
+                ],
+                "pid": 84010,
+                "finished": "2026-10-10T21:45:41.974382+00:00",
+                "returncode": 0,
+                "wall_seconds": 352.3517212510051,
+                "outcome": "timeout",
+                "summary_path": "attempts/pair_01265_B1/attempt_0001/output/pair_01265_dt_0.03_B1/summary.json",
+                "inner_receipt_path": "attempts/pair_01265_B1/attempt_0001/output/pair_01265_dt_0.03_B1/receipt.json",
+                "receipt_path": "attempts/pair_01265_B1/attempt_0001/attempt_receipt.json",
+                "receipt_sha256": "ce02fda8c9af193819db1acb658c3b3a78b017f5924a134b40df6dd73aa1c493"
+              }
+            ]
+          },
+          {
+            "pair_id": 1265,
+            "batch": 16,
+            "state": "completed",
+            "attempts": [
+              {
+                "attempt": 1,
+                "relative_output": "attempts/pair_01265_B16/attempt_0001",
+                "log_path": "attempts/pair_01265_B16/attempt_0001/episode.log",
+                "state": "completed",
+                "started": "2026-10-10T21:45:54.086251+00:00",
+                "command": [
+                  "/opt/gato-venv/bin/python",
+                  "/workspace/GATO-eval-batching/examples/randomized_multimodal/tiago_reaching_batch_pilot.py",
+                  "--pool",
+                  "/workspace/GATO-eval-batching/experiments/tiago_batching/inputs",
+                  "--output",
+                  "/workspace/GATO-eval-batching/example_artifacts/bb_campaign/20261010T211939.429686Z/raw/attempts/pair_01265_B16/attempt_0001/output",
+                  "--pairs",
+                  "1265",
+                  "--batches",
+                  "16",
+                  "--knot-dts",
+                  ".03",
+                  "--feedback",
+                  ".03",
+                  "--sim-dt",
+                  ".003",
+                  "--seconds",
+                  "8",
+                  "--position-tolerance",
+                  ".05",
+                  "--tool-axis-tolerance-deg",
+                  "30",
+                  "--velocity-l1-tolerance",
+                  "1",
+                  "--seed",
+                  "20260925",
+                  "--vel-lim-cost",
+                  ".1",
+                  "--qd-cost",
+                  ".1",
+                  "--protocol",
+                  "/workspace/GATO-eval-batching/experiments/tiago_batching/bb_protocol.json"
+                ],
+                "pid": 84273,
+                "finished": "2026-10-10T21:46:08.047544+00:00",
+                "returncode": 0,
+                "wall_seconds": 13.817614390995004,
+                "outcome": "reached",
+                "summary_path": "attempts/pair_01265_B16/attempt_0001/output/pair_01265_dt_0.03_B16/summary.json",
+                "inner_receipt_path": "attempts/pair_01265_B16/attempt_0001/output/pair_01265_dt_0.03_B16/receipt.json",
+                "receipt_path": "attempts/pair_01265_B16/attempt_0001/attempt_receipt.json",
+                "receipt_sha256": "6b8959b44ae919933f2d4d2760edb427ea72a4ef0308e6babc9d27af71ed0f82"
+              }
+            ]
+          },
+          {
+            "pair_id": 9651,
+            "batch": 1,
+            "state": "completed",
+            "attempts": [
+              {
+                "attempt": 1,
+                "relative_output": "attempts/pair_09651_B1/attempt_0001",
+                "log_path": "attempts/pair_09651_B1/attempt_0001/episode.log",
+                "state": "completed",
+                "started": "2026-10-10T21:46:08.440831+00:00",
+                "command": [
+                  "/opt/gato-venv/bin/python",
+                  "/workspace/GATO-eval-batching/examples/randomized_multimodal/tiago_reaching_batch_pilot.py",
+                  "--pool",
+                  "/workspace/GATO-eval-batching/experiments/tiago_batching/inputs",
+                  "--output",
+                  "/workspace/GATO-eval-batching/example_artifacts/bb_campaign/20261010T211939.429686Z/raw/attempts/pair_09651_B1/attempt_0001/output",
+                  "--pairs",
+                  "9651",
+                  "--batches",
+                  "1",
+                  "--knot-dts",
+                  ".03",
+                  "--feedback",
+                  ".03",
+                  "--sim-dt",
+                  ".003",
+                  "--seconds",
+                  "8",
+                  "--position-tolerance",
+                  ".05",
+                  "--tool-axis-tolerance-deg",
+                  "30",
+                  "--velocity-l1-tolerance",
+                  "1",
+                  "--seed",
+                  "20260925",
+                  "--vel-lim-cost",
+                  ".1",
+                  "--qd-cost",
+                  ".1",
+                  "--protocol",
+                  "/workspace/GATO-eval-batching/experiments/tiago_batching/bb_protocol.json"
+                ],
+                "pid": 84289,
+                "finished": "2026-10-10T21:47:13.114066+00:00",
+                "returncode": 0,
+                "wall_seconds": 64.47377561200119,
+                "outcome": "reached",
+                "summary_path": "attempts/pair_09651_B1/attempt_0001/output/pair_09651_dt_0.03_B1/summary.json",
+                "inner_receipt_path": "attempts/pair_09651_B1/attempt_0001/output/pair_09651_dt_0.03_B1/receipt.json",
+                "receipt_path": "attempts/pair_09651_B1/attempt_0001/attempt_receipt.json",
+                "receipt_sha256": "f26843695bfa63c74fb7f0e90e93337f515b2ed7dec2684f530bc6fe80f07d8f"
+              }
+            ]
+          },
+          {
+            "pair_id": 9651,
+            "batch": 16,
+            "state": "completed",
+            "attempts": [
+              {
+                "attempt": 1,
+                "relative_output": "attempts/pair_09651_B16/attempt_0001",
+                "log_path": "attempts/pair_09651_B16/attempt_0001/episode.log",
+                "state": "completed",
+                "started": "2026-10-10T21:47:13.992102+00:00",
+                "command": [
+                  "/opt/gato-venv/bin/python",
+                  "/workspace/GATO-eval-batching/examples/randomized_multimodal/tiago_reaching_batch_pilot.py",
+                  "--pool",
+                  "/workspace/GATO-eval-batching/experiments/tiago_batching/inputs",
+                  "--output",
+                  "/workspace/GATO-eval-batching/example_artifacts/bb_campaign/20261010T211939.429686Z/raw/attempts/pair_09651_B16/attempt_0001/output",
+                  "--pairs",
+                  "9651",
+                  "--batches",
+                  "16",
+                  "--knot-dts",
+                  ".03",
+                  "--feedback",
+                  ".03",
+                  "--sim-dt",
+                  ".003",
+                  "--seconds",
+                  "8",
+                  "--position-tolerance",
+                  ".05",
+                  "--tool-axis-tolerance-deg",
+                  "30",
+                  "--velocity-l1-tolerance",
+                  "1",
+                  "--seed",
+                  "20260925",
+                  "--vel-lim-cost",
+                  ".1",
+                  "--qd-cost",
+                  ".1",
+                  "--protocol",
+                  "/workspace/GATO-eval-batching/experiments/tiago_batching/bb_protocol.json"
+                ],
+                "pid": 84334,
+                "finished": "2026-10-10T21:47:27.114174+00:00",
+                "returncode": 0,
+                "wall_seconds": 12.933963096991647,
+                "outcome": "reached",
+                "summary_path": "attempts/pair_09651_B16/attempt_0001/output/pair_09651_dt_0.03_B16/summary.json",
+                "inner_receipt_path": "attempts/pair_09651_B16/attempt_0001/output/pair_09651_dt_0.03_B16/receipt.json",
+                "receipt_path": "attempts/pair_09651_B16/attempt_0001/attempt_receipt.json",
+                "receipt_sha256": "45e28f7bf67763c831222cff972def9a0dd73bcec1417b8b44093df1b996b596"
+              }
+            ]
+          },
+          {
+            "pair_id": 5264,
+            "batch": 1,
+            "state": "completed",
+            "attempts": [
+              {
+                "attempt": 1,
+                "relative_output": "attempts/pair_05264_B1/attempt_0001",
+                "log_path": "attempts/pair_05264_B1/attempt_0001/episode.log",
+                "state": "completed",
+                "started": "2026-10-10T21:47:27.525700+00:00",
+                "command": [
+                  "/opt/gato-venv/bin/python",
+                  "/workspace/GATO-eval-batching/examples/randomized_multimodal/tiago_reaching_batch_pilot.py",
+                  "--pool",
+                  "/workspace/GATO-eval-batching/experiments/tiago_batching/inputs",
+                  "--output",
+                  "/workspace/GATO-eval-batching/example_artifacts/bb_campaign/20261010T211939.429686Z/raw/attempts/pair_05264_B1/attempt_0001/output",
+                  "--pairs",
+                  "5264",
+                  "--batches",
+                  "1",
+                  "--knot-dts",
+                  ".03",
+                  "--feedback",
+                  ".03",
+                  "--sim-dt",
+                  ".003",
+                  "--seconds",
+                  "8",
+                  "--position-tolerance",
+                  ".05",
+                  "--tool-axis-tolerance-deg",
+                  "30",
+                  "--velocity-l1-tolerance",
+                  "1",
+                  "--seed",
+                  "20260925",
+                  "--vel-lim-cost",
+                  ".1",
+                  "--qd-cost",
+                  ".1",
+                  "--protocol",
+                  "/workspace/GATO-eval-batching/experiments/tiago_batching/bb_protocol.json"
+                ],
+                "pid": 84351,
+                "finished": "2026-10-10T21:51:59.863544+00:00",
+                "returncode": 0,
+                "wall_seconds": 272.2159371750022,
+                "outcome": "timeout",
+                "summary_path": "attempts/pair_05264_B1/attempt_0001/output/pair_05264_dt_0.03_B1/summary.json",
+                "inner_receipt_path": "attempts/pair_05264_B1/attempt_0001/output/pair_05264_dt_0.03_B1/receipt.json",
+                "receipt_path": "attempts/pair_05264_B1/attempt_0001/attempt_receipt.json",
+                "receipt_sha256": "087640282ba66f0abe343fe8b0ca9f81f2562ad5b597df5319ef276db66f1180"
+              }
+            ]
+          },
+          {
+            "pair_id": 5264,
+            "batch": 16,
+            "state": "completed",
+            "attempts": [
+              {
+                "attempt": 1,
+                "relative_output": "attempts/pair_05264_B16/attempt_0001",
+                "log_path": "attempts/pair_05264_B16/attempt_0001/episode.log",
+                "state": "completed",
+                "started": "2026-10-10T21:52:01.467008+00:00",
+                "command": [
+                  "/opt/gato-venv/bin/python",
+                  "/workspace/GATO-eval-batching/examples/randomized_multimodal/tiago_reaching_batch_pilot.py",
+                  "--pool",
+                  "/workspace/GATO-eval-batching/experiments/tiago_batching/inputs",
+                  "--output",
+                  "/workspace/GATO-eval-batching/example_artifacts/bb_campaign/20261010T211939.429686Z/raw/attempts/pair_05264_B16/attempt_0001/output",
+                  "--pairs",
+                  "5264",
+                  "--batches",
+                  "16",
+                  "--knot-dts",
+                  ".03",
+                  "--feedback",
+                  ".03",
+                  "--sim-dt",
+                  ".003",
+                  "--seconds",
+                  "8",
+                  "--position-tolerance",
+                  ".05",
+                  "--tool-axis-tolerance-deg",
+                  "30",
+                  "--velocity-l1-tolerance",
+                  "1",
+                  "--seed",
+                  "20260925",
+                  "--vel-lim-cost",
+                  ".1",
+                  "--qd-cost",
+                  ".1",
+                  "--protocol",
+                  "/workspace/GATO-eval-batching/experiments/tiago_batching/bb_protocol.json"
+                ],
+                "pid": 84526,
+                "finished": "2026-10-10T21:52:35.132237+00:00",
+                "returncode": 0,
+                "wall_seconds": 33.53278464800678,
+                "outcome": "timeout",
+                "summary_path": "attempts/pair_05264_B16/attempt_0001/output/pair_05264_dt_0.03_B16/summary.json",
+                "inner_receipt_path": "attempts/pair_05264_B16/attempt_0001/output/pair_05264_dt_0.03_B16/receipt.json",
+                "receipt_path": "attempts/pair_05264_B16/attempt_0001/attempt_receipt.json",
+                "receipt_sha256": "d46f4b6527d08c23ef6145b4848527d1f8cb6d2c253efaff5787fdd056c43129"
+              }
+            ]
+          },
+          {
+            "pair_id": 279,
+            "batch": 1,
+            "state": "completed",
+            "attempts": [
+              {
+                "attempt": 1,
+                "relative_output": "attempts/pair_00279_B1/attempt_0001",
+                "log_path": "attempts/pair_00279_B1/attempt_0001/episode.log",
+                "state": "completed",
+                "started": "2026-10-10T21:52:35.833928+00:00",
+                "command": [
+                  "/opt/gato-venv/bin/python",
+                  "/workspace/GATO-eval-batching/examples/randomized_multimodal/tiago_reaching_batch_pilot.py",
+                  "--pool",
+                  "/workspace/GATO-eval-batching/experiments/tiago_batching/inputs",
+                  "--output",
+                  "/workspace/GATO-eval-batching/example_artifacts/bb_campaign/20261010T211939.429686Z/raw/attempts/pair_00279_B1/attempt_0001/output",
+                  "--pairs",
+                  "279",
+                  "--batches",
+                  "1",
+                  "--knot-dts",
+                  ".03",
+                  "--feedback",
+                  ".03",
+                  "--sim-dt",
+                  ".003",
+                  "--seconds",
+                  "8",
+                  "--position-tolerance",
+                  ".05",
+                  "--tool-axis-tolerance-deg",
+                  "30",
+                  "--velocity-l1-tolerance",
+                  "1",
+                  "--seed",
+                  "20260925",
+                  "--vel-lim-cost",
+                  ".1",
+                  "--qd-cost",
+                  ".1",
+                  "--protocol",
+                  "/workspace/GATO-eval-batching/experiments/tiago_batching/bb_protocol.json"
+                ],
+                "pid": 84542,
+                "finished": "2026-10-10T21:57:02.058108+00:00",
+                "returncode": 0,
+                "wall_seconds": 266.069053950996,
+                "outcome": "timeout",
+                "summary_path": "attempts/pair_00279_B1/attempt_0001/output/pair_00279_dt_0.03_B1/summary.json",
+                "inner_receipt_path": "attempts/pair_00279_B1/attempt_0001/output/pair_00279_dt_0.03_B1/receipt.json",
+                "receipt_path": "attempts/pair_00279_B1/attempt_0001/attempt_receipt.json",
+                "receipt_sha256": "ecef81021fd27cd7a554a8c24a2bc4b15fa8bad2a09b2879732cac51d398c326"
+              }
+            ]
+          },
+          {
+            "pair_id": 279,
+            "batch": 16,
+            "state": "completed",
+            "attempts": [
+              {
+                "attempt": 1,
+                "relative_output": "attempts/pair_00279_B16/attempt_0001",
+                "log_path": "attempts/pair_00279_B16/attempt_0001/episode.log",
+                "state": "completed",
+                "started": "2026-10-10T21:57:03.674089+00:00",
+                "command": [
+                  "/opt/gato-venv/bin/python",
+                  "/workspace/GATO-eval-batching/examples/randomized_multimodal/tiago_reaching_batch_pilot.py",
+                  "--pool",
+                  "/workspace/GATO-eval-batching/experiments/tiago_batching/inputs",
+                  "--output",
+                  "/workspace/GATO-eval-batching/example_artifacts/bb_campaign/20261010T211939.429686Z/raw/attempts/pair_00279_B16/attempt_0001/output",
+                  "--pairs",
+                  "279",
+                  "--batches",
+                  "16",
+                  "--knot-dts",
+                  ".03",
+                  "--feedback",
+                  ".03",
+                  "--sim-dt",
+                  ".003",
+                  "--seconds",
+                  "8",
+                  "--position-tolerance",
+                  ".05",
+                  "--tool-axis-tolerance-deg",
+                  "30",
+                  "--velocity-l1-tolerance",
+                  "1",
+                  "--seed",
+                  "20260925",
+                  "--vel-lim-cost",
+                  ".1",
+                  "--qd-cost",
+                  ".1",
+                  "--protocol",
+                  "/workspace/GATO-eval-batching/experiments/tiago_batching/bb_protocol.json"
+                ],
+                "pid": 84616,
+                "finished": "2026-10-10T21:57:36.598051+00:00",
+                "returncode": 0,
+                "wall_seconds": 32.725384529010626,
+                "outcome": "timeout",
+                "summary_path": "attempts/pair_00279_B16/attempt_0001/output/pair_00279_dt_0.03_B16/summary.json",
+                "inner_receipt_path": "attempts/pair_00279_B16/attempt_0001/output/pair_00279_dt_0.03_B16/receipt.json",
+                "receipt_path": "attempts/pair_00279_B16/attempt_0001/attempt_receipt.json",
+                "receipt_sha256": "487a6e10c9a43554368657644f6f0ec0e3c9175950b11e1ce4e404c9e160985f"
+              }
+            ]
+          },
+          {
+            "pair_id": 8054,
+            "batch": 1,
+            "state": "completed",
+            "attempts": [
+              {
+                "attempt": 1,
+                "relative_output": "attempts/pair_08054_B1/attempt_0001",
+                "log_path": "attempts/pair_08054_B1/attempt_0001/episode.log",
+                "state": "completed",
+                "started": "2026-10-10T21:57:37.175474+00:00",
+                "command": [
+                  "/opt/gato-venv/bin/python",
+                  "/workspace/GATO-eval-batching/examples/randomized_multimodal/tiago_reaching_batch_pilot.py",
+                  "--pool",
+                  "/workspace/GATO-eval-batching/experiments/tiago_batching/inputs",
+                  "--output",
+                  "/workspace/GATO-eval-batching/example_artifacts/bb_campaign/20261010T211939.429686Z/raw/attempts/pair_08054_B1/attempt_0001/output",
+                  "--pairs",
+                  "8054",
+                  "--batches",
+                  "1",
+                  "--knot-dts",
+                  ".03",
+                  "--feedback",
+                  ".03",
+                  "--sim-dt",
+                  ".003",
+                  "--seconds",
+                  "8",
+                  "--position-tolerance",
+                  ".05",
+                  "--tool-axis-tolerance-deg",
+                  "30",
+                  "--velocity-l1-tolerance",
+                  "1",
+                  "--seed",
+                  "20260925",
+                  "--vel-lim-cost",
+                  ".1",
+                  "--qd-cost",
+                  ".1",
+                  "--protocol",
+                  "/workspace/GATO-eval-batching/experiments/tiago_batching/bb_protocol.json"
+                ],
+                "pid": 84631,
+                "finished": "2026-10-10T22:04:22.768443+00:00",
+                "returncode": 0,
+                "wall_seconds": 405.44918390599196,
+                "outcome": "timeout",
+                "summary_path": "attempts/pair_08054_B1/attempt_0001/output/pair_08054_dt_0.03_B1/summary.json",
+                "inner_receipt_path": "attempts/pair_08054_B1/attempt_0001/output/pair_08054_dt_0.03_B1/receipt.json",
+                "receipt_path": "attempts/pair_08054_B1/attempt_0001/attempt_receipt.json",
+                "receipt_sha256": "727346da5c25622e17c8fc8133499bf81f0c0fa256c27c9d36112027c3264645"
+              }
+            ]
+          },
+          {
+            "pair_id": 8054,
+            "batch": 16,
+            "state": "completed",
+            "attempts": [
+              {
+                "attempt": 1,
+                "relative_output": "attempts/pair_08054_B16/attempt_0001",
+                "log_path": "attempts/pair_08054_B16/attempt_0001/episode.log",
+                "state": "completed",
+                "started": "2026-10-10T22:04:24.470382+00:00",
+                "command": [
+                  "/opt/gato-venv/bin/python",
+                  "/workspace/GATO-eval-batching/examples/randomized_multimodal/tiago_reaching_batch_pilot.py",
+                  "--pool",
+                  "/workspace/GATO-eval-batching/experiments/tiago_batching/inputs",
+                  "--output",
+                  "/workspace/GATO-eval-batching/example_artifacts/bb_campaign/20261010T211939.429686Z/raw/attempts/pair_08054_B16/attempt_0001/output",
+                  "--pairs",
+                  "8054",
+                  "--batches",
+                  "16",
+                  "--knot-dts",
+                  ".03",
+                  "--feedback",
+                  ".03",
+                  "--sim-dt",
+                  ".003",
+                  "--seconds",
+                  "8",
+                  "--position-tolerance",
+                  ".05",
+                  "--tool-axis-tolerance-deg",
+                  "30",
+                  "--velocity-l1-tolerance",
+                  "1",
+                  "--seed",
+                  "20260925",
+                  "--vel-lim-cost",
+                  ".1",
+                  "--qd-cost",
+                  ".1",
+                  "--protocol",
+                  "/workspace/GATO-eval-batching/experiments/tiago_batching/bb_protocol.json"
+                ],
+                "pid": 84677,
+                "finished": "2026-10-10T22:05:07.019825+00:00",
+                "returncode": 0,
+                "wall_seconds": 42.383727319014724,
+                "outcome": "timeout",
+                "summary_path": "attempts/pair_08054_B16/attempt_0001/output/pair_08054_dt_0.03_B16/summary.json",
+                "inner_receipt_path": "attempts/pair_08054_B16/attempt_0001/output/pair_08054_dt_0.03_B16/receipt.json",
+                "receipt_path": "attempts/pair_08054_B16/attempt_0001/attempt_receipt.json",
+                "receipt_sha256": "744d307a5d675f0683bc264ebe356db3337e27fa514e5595a34fecfd19d226b4"
+              }
+            ]
+          },
+          {
+            "pair_id": 8270,
+            "batch": 1,
+            "state": "completed",
+            "attempts": [
+              {
+                "attempt": 1,
+                "relative_output": "attempts/pair_08270_B1/attempt_0001",
+                "log_path": "attempts/pair_08270_B1/attempt_0001/episode.log",
+                "state": "completed",
+                "started": "2026-10-10T22:05:08.244682+00:00",
+                "command": [
+                  "/opt/gato-venv/bin/python",
+                  "/workspace/GATO-eval-batching/examples/randomized_multimodal/tiago_reaching_batch_pilot.py",
+                  "--pool",
+                  "/workspace/GATO-eval-batching/experiments/tiago_batching/inputs",
+                  "--output",
+                  "/workspace/GATO-eval-batching/example_artifacts/bb_campaign/20261010T211939.429686Z/raw/attempts/pair_08270_B1/attempt_0001/output",
+                  "--pairs",
+                  "8270",
+                  "--batches",
+                  "1",
+                  "--knot-dts",
+                  ".03",
+                  "--feedback",
+                  ".03",
+                  "--sim-dt",
+                  ".003",
+                  "--seconds",
+                  "8",
+                  "--position-tolerance",
+                  ".05",
+                  "--tool-axis-tolerance-deg",
+                  "30",
+                  "--velocity-l1-tolerance",
+                  "1",
+                  "--seed",
+                  "20260925",
+                  "--vel-lim-cost",
+                  ".1",
+                  "--qd-cost",
+                  ".1",
+                  "--protocol",
+                  "/workspace/GATO-eval-batching/experiments/tiago_batching/bb_protocol.json"
+                ],
+                "pid": 84694,
+                "finished": "2026-10-10T22:06:25.587968+00:00",
+                "returncode": 0,
+                "wall_seconds": 77.21047335499316,
+                "outcome": "reached",
+                "summary_path": "attempts/pair_08270_B1/attempt_0001/output/pair_08270_dt_0.03_B1/summary.json",
+                "inner_receipt_path": "attempts/pair_08270_B1/attempt_0001/output/pair_08270_dt_0.03_B1/receipt.json",
+                "receipt_path": "attempts/pair_08270_B1/attempt_0001/attempt_receipt.json",
+                "receipt_sha256": "6efa06b1d4a59f478304c2e6aa3edc928ca6eed26e7bc6e06518f98ce406354e"
+              }
+            ]
+          },
+          {
+            "pair_id": 8270,
+            "batch": 16,
+            "state": "completed",
+            "attempts": [
+              {
+                "attempt": 1,
+                "relative_output": "attempts/pair_08270_B16/attempt_0001",
+                "log_path": "attempts/pair_08270_B16/attempt_0001/episode.log",
+                "state": "completed",
+                "started": "2026-10-10T22:06:26.309398+00:00",
+                "command": [
+                  "/opt/gato-venv/bin/python",
+                  "/workspace/GATO-eval-batching/examples/randomized_multimodal/tiago_reaching_batch_pilot.py",
+                  "--pool",
+                  "/workspace/GATO-eval-batching/experiments/tiago_batching/inputs",
+                  "--output",
+                  "/workspace/GATO-eval-batching/example_artifacts/bb_campaign/20261010T211939.429686Z/raw/attempts/pair_08270_B16/attempt_0001/output",
+                  "--pairs",
+                  "8270",
+                  "--batches",
+                  "16",
+                  "--knot-dts",
+                  ".03",
+                  "--feedback",
+                  ".03",
+                  "--sim-dt",
+                  ".003",
+                  "--seconds",
+                  "8",
+                  "--position-tolerance",
+                  ".05",
+                  "--tool-axis-tolerance-deg",
+                  "30",
+                  "--velocity-l1-tolerance",
+                  "1",
+                  "--seed",
+                  "20260925",
+                  "--vel-lim-cost",
+                  ".1",
+                  "--qd-cost",
+                  ".1",
+                  "--protocol",
+                  "/workspace/GATO-eval-batching/experiments/tiago_batching/bb_protocol.json"
+                ],
+                "pid": 84712,
+                "finished": "2026-10-10T22:06:39.740128+00:00",
+                "returncode": 0,
+                "wall_seconds": 13.220498760987539,
+                "outcome": "reached",
+                "summary_path": "attempts/pair_08270_B16/attempt_0001/output/pair_08270_dt_0.03_B16/summary.json",
+                "inner_receipt_path": "attempts/pair_08270_B16/attempt_0001/output/pair_08270_dt_0.03_B16/receipt.json",
+                "receipt_path": "attempts/pair_08270_B16/attempt_0001/attempt_receipt.json",
+                "receipt_sha256": "697b36ba7e580bae407653b577e3285a80cea65311642c499045362d18e1c08b"
+              }
+            ]
+          },
+          {
+            "pair_id": 2497,
+            "batch": 1,
+            "state": "completed",
+            "attempts": [
+              {
+                "attempt": 1,
+                "relative_output": "attempts/pair_02497_B1/attempt_0001",
+                "log_path": "attempts/pair_02497_B1/attempt_0001/episode.log",
+                "state": "completed",
+                "started": "2026-10-10T22:06:40.109327+00:00",
+                "command": [
+                  "/opt/gato-venv/bin/python",
+                  "/workspace/GATO-eval-batching/examples/randomized_multimodal/tiago_reaching_batch_pilot.py",
+                  "--pool",
+                  "/workspace/GATO-eval-batching/experiments/tiago_batching/inputs",
+                  "--output",
+                  "/workspace/GATO-eval-batching/example_artifacts/bb_campaign/20261010T211939.429686Z/raw/attempts/pair_02497_B1/attempt_0001/output",
+                  "--pairs",
+                  "2497",
+                  "--batches",
+                  "1",
+                  "--knot-dts",
+                  ".03",
+                  "--feedback",
+                  ".03",
+                  "--sim-dt",
+                  ".003",
+                  "--seconds",
+                  "8",
+                  "--position-tolerance",
+                  ".05",
+                  "--tool-axis-tolerance-deg",
+                  "30",
+                  "--velocity-l1-tolerance",
+                  "1",
+                  "--seed",
+                  "20260925",
+                  "--vel-lim-cost",
+                  ".1",
+                  "--qd-cost",
+                  ".1",
+                  "--protocol",
+                  "/workspace/GATO-eval-batching/experiments/tiago_batching/bb_protocol.json"
+                ],
+                "pid": 84726,
+                "finished": "2026-10-10T22:12:24.106523+00:00",
+                "returncode": 0,
+                "wall_seconds": 343.84214630597853,
+                "outcome": "timeout",
+                "summary_path": "attempts/pair_02497_B1/attempt_0001/output/pair_02497_dt_0.03_B1/summary.json",
+                "inner_receipt_path": "attempts/pair_02497_B1/attempt_0001/output/pair_02497_dt_0.03_B1/receipt.json",
+                "receipt_path": "attempts/pair_02497_B1/attempt_0001/attempt_receipt.json",
+                "receipt_sha256": "49c02b5fa592a01a0d5e345596032ef781e83a5198c5bf97ef86d34825543a8a"
+              }
+            ]
+          },
+          {
+            "pair_id": 2497,
+            "batch": 16,
+            "state": "completed",
+            "attempts": [
+              {
+                "attempt": 1,
+                "relative_output": "attempts/pair_02497_B16/attempt_0001",
+                "log_path": "attempts/pair_02497_B16/attempt_0001/episode.log",
+                "state": "completed",
+                "started": "2026-10-10T22:12:25.791879+00:00",
+                "command": [
+                  "/opt/gato-venv/bin/python",
+                  "/workspace/GATO-eval-batching/examples/randomized_multimodal/tiago_reaching_batch_pilot.py",
+                  "--pool",
+                  "/workspace/GATO-eval-batching/experiments/tiago_batching/inputs",
+                  "--output",
+                  "/workspace/GATO-eval-batching/example_artifacts/bb_campaign/20261010T211939.429686Z/raw/attempts/pair_02497_B16/attempt_0001/output",
+                  "--pairs",
+                  "2497",
+                  "--batches",
+                  "16",
+                  "--knot-dts",
+                  ".03",
+                  "--feedback",
+                  ".03",
+                  "--sim-dt",
+                  ".003",
+                  "--seconds",
+                  "8",
+                  "--position-tolerance",
+                  ".05",
+                  "--tool-axis-tolerance-deg",
+                  "30",
+                  "--velocity-l1-tolerance",
+                  "1",
+                  "--seed",
+                  "20260925",
+                  "--vel-lim-cost",
+                  ".1",
+                  "--qd-cost",
+                  ".1",
+                  "--protocol",
+                  "/workspace/GATO-eval-batching/experiments/tiago_batching/bb_protocol.json"
+                ],
+                "pid": 84766,
+                "finished": "2026-10-10T22:12:59.567480+00:00",
+                "returncode": 0,
+                "wall_seconds": 33.632099142996594,
+                "outcome": "timeout",
+                "summary_path": "attempts/pair_02497_B16/attempt_0001/output/pair_02497_dt_0.03_B16/summary.json",
+                "inner_receipt_path": "attempts/pair_02497_B16/attempt_0001/output/pair_02497_dt_0.03_B16/receipt.json",
+                "receipt_path": "attempts/pair_02497_B16/attempt_0001/attempt_receipt.json",
+                "receipt_sha256": "1c3020e919b7acf7d9a618fef0ab440ea0570711cdcca8e8b58ad1b744ed8530"
+              }
+            ]
+          },
+          {
+            "pair_id": 2342,
+            "batch": 1,
+            "state": "completed",
+            "attempts": [
+              {
+                "attempt": 1,
+                "relative_output": "attempts/pair_02342_B1/attempt_0001",
+                "log_path": "attempts/pair_02342_B1/attempt_0001/episode.log",
+                "state": "completed",
+                "started": "2026-10-10T22:13:00.291903+00:00",
+                "command": [
+                  "/opt/gato-venv/bin/python",
+                  "/workspace/GATO-eval-batching/examples/randomized_multimodal/tiago_reaching_batch_pilot.py",
+                  "--pool",
+                  "/workspace/GATO-eval-batching/experiments/tiago_batching/inputs",
+                  "--output",
+                  "/workspace/GATO-eval-batching/example_artifacts/bb_campaign/20261010T211939.429686Z/raw/attempts/pair_02342_B1/attempt_0001/output",
+                  "--pairs",
+                  "2342",
+                  "--batches",
+                  "1",
+                  "--knot-dts",
+                  ".03",
+                  "--feedback",
+                  ".03",
+                  "--sim-dt",
+                  ".003",
+                  "--seconds",
+                  "8",
+                  "--position-tolerance",
+                  ".05",
+                  "--tool-axis-tolerance-deg",
+                  "30",
+                  "--velocity-l1-tolerance",
+                  "1",
+                  "--seed",
+                  "20260925",
+                  "--vel-lim-cost",
+                  ".1",
+                  "--qd-cost",
+                  ".1",
+                  "--protocol",
+                  "/workspace/GATO-eval-batching/experiments/tiago_batching/bb_protocol.json"
+                ],
+                "pid": 84821,
+                "finished": "2026-10-10T22:17:24.382681+00:00",
+                "returncode": 0,
+                "wall_seconds": 263.91344421499525,
+                "outcome": "timeout",
+                "summary_path": "attempts/pair_02342_B1/attempt_0001/output/pair_02342_dt_0.03_B1/summary.json",
+                "inner_receipt_path": "attempts/pair_02342_B1/attempt_0001/output/pair_02342_dt_0.03_B1/receipt.json",
+                "receipt_path": "attempts/pair_02342_B1/attempt_0001/attempt_receipt.json",
+                "receipt_sha256": "34e079963a3abd8989c8e4177eb39fefbba0ce83d53cb257bc5d4d270d7b8304"
+              }
+            ]
+          },
+          {
+            "pair_id": 2342,
+            "batch": 16,
+            "state": "technical_failure",
+            "attempts": [
+              {
+                "attempt": 1,
+                "relative_output": "attempts/pair_02342_B16/attempt_0001",
+                "log_path": "attempts/pair_02342_B16/attempt_0001/episode.log",
+                "state": "technical_failure",
+                "started": "2026-10-10T22:17:27.001189+00:00",
+                "command": [
+                  "/opt/gato-venv/bin/python",
+                  "/workspace/GATO-eval-batching/examples/randomized_multimodal/tiago_reaching_batch_pilot.py",
+                  "--pool",
+                  "/workspace/GATO-eval-batching/experiments/tiago_batching/inputs",
+                  "--output",
+                  "/workspace/GATO-eval-batching/example_artifacts/bb_campaign/20261010T211939.429686Z/raw/attempts/pair_02342_B16/attempt_0001/output",
+                  "--pairs",
+                  "2342",
+                  "--batches",
+                  "16",
+                  "--knot-dts",
+                  ".03",
+                  "--feedback",
+                  ".03",
+                  "--sim-dt",
+                  ".003",
+                  "--seconds",
+                  "8",
+                  "--position-tolerance",
+                  ".05",
+                  "--tool-axis-tolerance-deg",
+                  "30",
+                  "--velocity-l1-tolerance",
+                  "1",
+                  "--seed",
+                  "20260925",
+                  "--vel-lim-cost",
+                  ".1",
+                  "--qd-cost",
+                  ".1",
+                  "--protocol",
+                  "/workspace/GATO-eval-batching/experiments/tiago_batching/bb_protocol.json"
+                ],
+                "pid": 84965,
+                "finished": "2026-10-10T22:17:32.868472+00:00",
+                "returncode": 1,
+                "wall_seconds": 5.6131576640182175,
+                "error": "child exited with code 1",
+                "receipt_path": "attempts/pair_02342_B16/attempt_0001/attempt_receipt.json",
+                "receipt_sha256": "81293a99bcb5ad300383c9af41b60e3583be5b498ab3d054d5aff7d6bd8d281a"
+              }
+            ]
+          }
+        ],
+        "failed_episode": {
+          "pair_id": 2342,
+          "batch": 16,
+          "folder": "/workspace/GATO-eval-batching/example_artifacts/bb_campaign/20261010T211939.429686Z/raw/attempts/pair_02342_B16/attempt_0001/output/pair_02342_dt_0.03_B16",
+          "technical_failure": {
+            "error_type": "FloatingPointError",
+            "error": "nonfinite executed plant state; partial trajectory retained"
+          },
+          "task_success": false,
+          "physical_pass": false,
+          "simulated_seconds": 1.0953945349543348,
+          "feedback_solves": 53
+        },
+        "pending": [
+          {
+            "pair_id": 6503,
+            "batch": 1
+          },
+          {
+            "pair_id": 6503,
+            "batch": 16
+          },
+          {
+            "pair_id": 6155,
+            "batch": 1
+          },
+          {
+            "pair_id": 6155,
+            "batch": 16
+          },
+          {
+            "pair_id": 1161,
+            "batch": 1
+          },
+          {
+            "pair_id": 1161,
+            "batch": 16
+          },
+          {
+            "pair_id": 1600,
+            "batch": 1
+          },
+          {
+            "pair_id": 1600,
+            "batch": 16
+          },
+          {
+            "pair_id": 6892,
+            "batch": 1
+          },
+          {
+            "pair_id": 6892,
+            "batch": 16
+          },
+          {
+            "pair_id": 5809,
+            "batch": 1
+          },
+          {
+            "pair_id": 5809,
+            "batch": 16
+          },
+          {
+            "pair_id": 3678,
+            "batch": 1
+          },
+          {
+            "pair_id": 3678,
+            "batch": 16
+          },
+          {
+            "pair_id": 9059,
+            "batch": 1
+          },
+          {
+            "pair_id": 9059,
+            "batch": 16
+          },
+          {
+            "pair_id": 2112,
+            "batch": 1
+          },
+          {
+            "pair_id": 2112,
+            "batch": 16
+          },
+          {
+            "pair_id": 9107,
+            "batch": 1
+          },
+          {
+            "pair_id": 9107,
+            "batch": 16
+          },
+          {
+            "pair_id": 870,
+            "batch": 1
+          },
+          {
+            "pair_id": 870,
+            "batch": 16
+          },
+          {
+            "pair_id": 789,
+            "batch": 1
+          },
+          {
+            "pair_id": 789,
+            "batch": 16
+          },
+          {
+            "pair_id": 975,
+            "batch": 1
+          },
+          {
+            "pair_id": 975,
+            "batch": 16
+          },
+          {
+            "pair_id": 7184,
+            "batch": 1
+          },
+          {
+            "pair_id": 7184,
+            "batch": 16
+          },
+          {
+            "pair_id": 7736,
+            "batch": 1
+          },
+          {
+            "pair_id": 7736,
+            "batch": 16
+          },
+          {
+            "pair_id": 9961,
+            "batch": 1
+          },
+          {
+            "pair_id": 9961,
+            "batch": 16
+          },
+          {
+            "pair_id": 1976,
+            "batch": 1
+          },
+          {
+            "pair_id": 1976,
+            "batch": 16
+          },
+          {
+            "pair_id": 6352,
+            "batch": 1
+          },
+          {
+            "pair_id": 6352,
+            "batch": 16
+          },
+          {
+            "pair_id": 7463,
+            "batch": 1
+          },
+          {
+            "pair_id": 7463,
+            "batch": 16
+          },
+          {
+            "pair_id": 2406,
+            "batch": 1
+          },
+          {
+            "pair_id": 2406,
+            "batch": 16
+          },
+          {
+            "pair_id": 6340,
+            "batch": 1
+          },
+          {
+            "pair_id": 6340,
+            "batch": 16
+          },
+          {
+            "pair_id": 3987,
+            "batch": 1
+          },
+          {
+            "pair_id": 3987,
+            "batch": 16
+          },
+          {
+            "pair_id": 9888,
+            "batch": 1
+          },
+          {
+            "pair_id": 9888,
+            "batch": 16
+          },
+          {
+            "pair_id": 6618,
+            "batch": 1
+          },
+          {
+            "pair_id": 6618,
+            "batch": 16
+          },
+          {
+            "pair_id": 4972,
+            "batch": 1
+          },
+          {
+            "pair_id": 4972,
+            "batch": 16
+          },
+          {
+            "pair_id": 8276,
+            "batch": 1
+          },
+          {
+            "pair_id": 8276,
+            "batch": 16
+          },
+          {
+            "pair_id": 3069,
+            "batch": 1
+          },
+          {
+            "pair_id": 3069,
+            "batch": 16
+          },
+          {
+            "pair_id": 320,
+            "batch": 1
+          },
+          {
+            "pair_id": 320,
+            "batch": 16
+          },
+          {
+            "pair_id": 2295,
+            "batch": 1
+          },
+          {
+            "pair_id": 2295,
+            "batch": 16
+          },
+          {
+            "pair_id": 5995,
+            "batch": 1
+          },
+          {
+            "pair_id": 5995,
+            "batch": 16
+          },
+          {
+            "pair_id": 1273,
+            "batch": 1
+          },
+          {
+            "pair_id": 1273,
+            "batch": 16
+          },
+          {
+            "pair_id": 3012,
+            "batch": 1
+          },
+          {
+            "pair_id": 3012,
+            "batch": 16
+          },
+          {
+            "pair_id": 4663,
+            "batch": 1
+          },
+          {
+            "pair_id": 4663,
+            "batch": 16
+          },
+          {
+            "pair_id": 2696,
+            "batch": 1
+          },
+          {
+            "pair_id": 2696,
+            "batch": 16
+          },
+          {
+            "pair_id": 5681,
+            "batch": 1
+          },
+          {
+            "pair_id": 5681,
+            "batch": 16
+          },
+          {
+            "pair_id": 7601,
+            "batch": 1
+          },
+          {
+            "pair_id": 7601,
+            "batch": 16
+          },
+          {
+            "pair_id": 2641,
+            "batch": 1
+          },
+          {
+            "pair_id": 2641,
+            "batch": 16
+          },
+          {
+            "pair_id": 7221,
+            "batch": 1
+          },
+          {
+            "pair_id": 7221,
+            "batch": 16
+          },
+          {
+            "pair_id": 3284,
+            "batch": 1
+          },
+          {
+            "pair_id": 3284,
+            "batch": 16
+          },
+          {
+            "pair_id": 4007,
+            "batch": 1
+          },
+          {
+            "pair_id": 4007,
+            "batch": 16
+          },
+          {
+            "pair_id": 7443,
+            "batch": 1
+          },
+          {
+            "pair_id": 7443,
+            "batch": 16
+          },
+          {
+            "pair_id": 8369,
+            "batch": 1
+          },
+          {
+            "pair_id": 8369,
+            "batch": 16
+          },
+          {
+            "pair_id": 2289,
+            "batch": 1
+          },
+          {
+            "pair_id": 2289,
+            "batch": 16
+          },
+          {
+            "pair_id": 1934,
+            "batch": 1
+          },
+          {
+            "pair_id": 1934,
+            "batch": 16
+          },
+          {
+            "pair_id": 3110,
+            "batch": 1
+          },
+          {
+            "pair_id": 3110,
+            "batch": 16
+          },
+          {
+            "pair_id": 9801,
+            "batch": 1
+          },
+          {
+            "pair_id": 9801,
+            "batch": 16
+          },
+          {
+            "pair_id": 3239,
+            "batch": 1
+          },
+          {
+            "pair_id": 3239,
+            "batch": 16
+          },
+          {
+            "pair_id": 42,
+            "batch": 1
+          },
+          {
+            "pair_id": 42,
+            "batch": 16
+          },
+          {
+            "pair_id": 7156,
+            "batch": 1
+          },
+          {
+            "pair_id": 7156,
+            "batch": 16
+          },
+          {
+            "pair_id": 1831,
+            "batch": 1
+          },
+          {
+            "pair_id": 1831,
+            "batch": 16
+          },
+          {
+            "pair_id": 2184,
+            "batch": 1
+          },
+          {
+            "pair_id": 2184,
+            "batch": 16
+          },
+          {
+            "pair_id": 9136,
+            "batch": 1
+          },
+          {
+            "pair_id": 9136,
+            "batch": 16
+          },
+          {
+            "pair_id": 8175,
+            "batch": 1
+          },
+          {
+            "pair_id": 8175,
+            "batch": 16
+          },
+          {
+            "pair_id": 2205,
+            "batch": 1
+          },
+          {
+            "pair_id": 2205,
+            "batch": 16
+          },
+          {
+            "pair_id": 1029,
+            "batch": 1
+          },
+          {
+            "pair_id": 1029,
+            "batch": 16
+          },
+          {
+            "pair_id": 1114,
+            "batch": 1
+          },
+          {
+            "pair_id": 1114,
+            "batch": 16
+          },
+          {
+            "pair_id": 5413,
+            "batch": 1
+          },
+          {
+            "pair_id": 5413,
+            "batch": 16
+          },
+          {
+            "pair_id": 2119,
+            "batch": 1
+          },
+          {
+            "pair_id": 2119,
+            "batch": 16
+          },
+          {
+            "pair_id": 318,
+            "batch": 1
+          },
+          {
+            "pair_id": 318,
+            "batch": 16
+          },
+          {
+            "pair_id": 3255,
+            "batch": 1
+          },
+          {
+            "pair_id": 3255,
+            "batch": 16
+          },
+          {
+            "pair_id": 7375,
+            "batch": 1
+          },
+          {
+            "pair_id": 7375,
+            "batch": 16
+          },
+          {
+            "pair_id": 1497,
+            "batch": 1
+          },
+          {
+            "pair_id": 1497,
+            "batch": 16
+          },
+          {
+            "pair_id": 4786,
+            "batch": 1
+          },
+          {
+            "pair_id": 4786,
+            "batch": 16
+          },
+          {
+            "pair_id": 2931,
+            "batch": 1
+          },
+          {
+            "pair_id": 2931,
+            "batch": 16
+          },
+          {
+            "pair_id": 9913,
+            "batch": 1
+          },
+          {
+            "pair_id": 9913,
+            "batch": 16
+          },
+          {
+            "pair_id": 2238,
+            "batch": 1
+          },
+          {
+            "pair_id": 2238,
+            "batch": 16
+          },
+          {
+            "pair_id": 2036,
+            "batch": 1
+          },
+          {
+            "pair_id": 2036,
+            "batch": 16
+          },
+          {
+            "pair_id": 7206,
+            "batch": 1
+          },
+          {
+            "pair_id": 7206,
+            "batch": 16
+          },
+          {
+            "pair_id": 2548,
+            "batch": 1
+          },
+          {
+            "pair_id": 2548,
+            "batch": 16
+          },
+          {
+            "pair_id": 7660,
+            "batch": 1
+          },
+          {
+            "pair_id": 7660,
+            "batch": 16
+          },
+          {
+            "pair_id": 5104,
+            "batch": 1
+          },
+          {
+            "pair_id": 5104,
+            "batch": 16
+          },
+          {
+            "pair_id": 9844,
+            "batch": 1
+          },
+          {
+            "pair_id": 9844,
+            "batch": 16
+          },
+          {
+            "pair_id": 2204,
+            "batch": 1
+          },
+          {
+            "pair_id": 2204,
+            "batch": 16
+          },
+          {
+            "pair_id": 3506,
+            "batch": 1
+          },
+          {
+            "pair_id": 3506,
+            "batch": 16
+          },
+          {
+            "pair_id": 6166,
+            "batch": 1
+          },
+          {
+            "pair_id": 6166,
+            "batch": 16
+          },
+          {
+            "pair_id": 5089,
+            "batch": 1
+          },
+          {
+            "pair_id": 5089,
+            "batch": 16
+          },
+          {
+            "pair_id": 47,
+            "batch": 1
+          },
+          {
+            "pair_id": 47,
+            "batch": 16
+          },
+          {
+            "pair_id": 2161,
+            "batch": 1
+          },
+          {
+            "pair_id": 2161,
+            "batch": 16
+          },
+          {
+            "pair_id": 4656,
+            "batch": 1
+          },
+          {
+            "pair_id": 4656,
+            "batch": 16
+          },
+          {
+            "pair_id": 3377,
+            "batch": 1
+          },
+          {
+            "pair_id": 3377,
+            "batch": 16
+          },
+          {
+            "pair_id": 4466,
+            "batch": 1
+          },
+          {
+            "pair_id": 4466,
+            "batch": 16
+          },
+          {
+            "pair_id": 6921,
+            "batch": 1
+          },
+          {
+            "pair_id": 6921,
+            "batch": 16
+          },
+          {
+            "pair_id": 3974,
+            "batch": 1
+          },
+          {
+            "pair_id": 3974,
+            "batch": 16
+          },
+          {
+            "pair_id": 8607,
+            "batch": 1
+          },
+          {
+            "pair_id": 8607,
+            "batch": 16
+          },
+          {
+            "pair_id": 5510,
+            "batch": 1
+          },
+          {
+            "pair_id": 5510,
+            "batch": 16
+          },
+          {
+            "pair_id": 8981,
+            "batch": 1
+          },
+          {
+            "pair_id": 8981,
+            "batch": 16
+          },
+          {
+            "pair_id": 9288,
+            "batch": 1
+          },
+          {
+            "pair_id": 9288,
+            "batch": 16
+          },
+          {
+            "pair_id": 4434,
+            "batch": 1
+          },
+          {
+            "pair_id": 4434,
+            "batch": 16
+          }
+        ],
+        "accounting": "23 completed + 1 retained execution failure + 176 pending = 200; no reruns",
+        "policy": "Current independent-case policy supersedes historical family hold; execution errors remain execution errors."
+      }
+    }
+  },
+  "note": "Frozen100-pair one-pass coverage; GPU use sequential. Jetson target readiness and duration/storage discussion precede execution; this plan authorizes no runs."
+}

@@ -1,0 +1,100 @@
+{
+  "initial_state": [
+    -0.38999998569488525,
+    -1.7300000190734863,
+    -0.3799999952316284,
+    -2.3499999046325684,
+    0.0,
+    -1.2100000381469727,
+    0.03999999910593033,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "goal": [
+    0.42286717891693115,
+    -0.21343649923801422,
+    -0.36151280999183655,
+    0.1202726811170578,
+    -0.12373721599578857,
+    -2.9671120643615723
+  ],
+  "endpoint_delta_rad": [
+    0.12,
+    0.4,
+    0.0,
+    0.15,
+    0.0,
+    0.05,
+    0.0
+  ],
+  "N": 32,
+  "dt_s": 0.03,
+  "sim_dt_s": 0.003,
+  "timeout_s": 8.0,
+  "position_threshold_m": 0.05,
+  "axis_threshold_deg": 30.0,
+  "speed_L1_threshold_rad_s": 1.0,
+  "minimum_initial_distance_m": 0.1,
+  "minimum_executed_displacement_m": 0.05,
+  "solver_params": {
+    "max_sqp_iters": 5,
+    "kkt_tol": 0.001,
+    "max_pcg_iters": 120,
+    "pcg_tol": 0.001,
+    "solve_ratio": 1.0,
+    "mu": 1.0,
+    "q_cost": 4.0,
+    "qd_cost": 0.1,
+    "u_cost": 0.0001,
+    "N_cost": 80.0,
+    "ee_orient_cost": 0.1,
+    "ee_orient_N_cost": 2.0,
+    "q_lim_cost": 0.01,
+    "vel_lim_cost": 0.1,
+    "ctrl_lim_cost": 0.05,
+    "rho": 0.01
+  },
+  "name": "BB-current-defaults-rough-reaching-B",
+  "kind": "reaching",
+  "campaign_id": "BB-readiness",
+  "execution_backend": "internal",
+  "timing_mode": "B",
+  "offline_timing": "solve_time",
+  "nominal_feedback_s": 0.03,
+  "prediction_duration_s": 0.93,
+  "batch_sizes": [
+    1,
+    16
+  ],
+  "goal_dwell_time_s": 0.0,
+  "final_approach": false,
+  "reset_rho_each_solve": true,
+  "adapt_rho": true,
+  "constant_f_ext": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "seed_policy": "RecoveredBA cold identical current-state/zero-control all lanes; thereafter shifted chosen output and fresh target-blind15 B16 alternatives, per-slot dual retention",
+  "selection": "Recovered native final_merit among finite plans/merits/nominal-prefix states, physical bounds diagnostic only",
+  "repeat_policy": "One fixed B1/B16 preflight on each target; hold family on failed readiness, no rescue/retry",
+  "status": "Unexecuted same-loop B readiness; target execution held for source review and same-machine suite",
+  "geometry_and_cost_provenance": {
+    "path": "/workspace/GATO-eval-ordinary/experiments/campaign/inputs/v01.json",
+    "sha256": "20920040853786cf3d96f13ba240f82918a9f0f5020270fbe67715666477cc81",
+    "scope": "Only frozen goal/start/endpoint/canonical dimensions/costs reused; source/timing/rho/candidate policy and readiness outcome belong to new B cohort"
+  },
+  "physical_scope": "Original experiment sampled URDF q/velocity/effort checks, tolerance1e-6 position and1+1e-6 velocity/effort ratios; tasksuccess separate",
+  "known_limitations": [
+    "SB-001 preservedP01goal1 failure",
+    "SB-002 preservedstaticlambda/q/r finitenessfailure; taskpass notfull solvercertificate"
+  ]
+}

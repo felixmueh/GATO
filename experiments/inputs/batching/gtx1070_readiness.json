@@ -1,0 +1,150 @@
+{
+  "status": "GTX1070_harness_qualification_passed_full_BB_cohort_not_run",
+  "source_base_before_timing_commit": "8d41ed7a344d822630d00b2686fd55369b35c46c",
+  "reviewed_uncommitted_runtime_sha256": {
+    "examples/randomized_multimodal/analyze_reaching_campaign.py": "d16be2f8f5dbd96685a7a193b8d007d1e678c650daa1ce071b60b3a741121e5c",
+    "examples/randomized_multimodal/tiago_reaching_batch_pilot.py": "d378f0c0525b8820deee88fa93dc82a96f2c7175da3d4dee69f14c24541f769f",
+    "examples/randomized_multimodal/tiago_reaching_campaign.py": "464445fb189773b0059c473ea0e2c09dbe5e6ed119b1c68dfda2bc029f7e662c",
+    "examples/randomized_multimodal/validate_reaching_mpc.py": "c86163ddc1f4e6c103f73574b074fc2bf741b14f848ed29809e31605fc95f431",
+    "examples/randomized_multimodal/tiago_batching_execution.py": "3fdd3d1868592ced29fc88577e23bf8ed4a87b6c0dae9c7706190ce6c40a79ab",
+    "tests/python/test_tiago_batching_mode_b.py": "cd8a14fd16d80db941305b0b0052e6c75440a1a35625a8f9485273b0517ad29a"
+  },
+  "solver_core": "16b33719b4f0fd463eec7262c99b16b0b324366f",
+  "source_base": "2db284ca8e11f42f8f3248403b879652966893ed",
+  "native_module": {
+    "path": "/workspace/GATO-eval-batching/python/bsqp/bsqpN32_tiago_right.cpython-310-x86_64-linux-gnu.so",
+    "sha256": "5d21dc1d887f24dd66aa2dce77fe0a3606f66b178deea7c9b6148892c227b7b8"
+  },
+  "module_unchanged_by_required_suite": true,
+  "timing_mode": "B",
+  "offline_timing": "solve_time",
+  "paid_scope": "Public solver-wrapper wall only; unpaid bootstrap + one nominal30ms prefix, then old plan during current solve and newu0 on arrival. Generation/selection/diagnostic/recording/replay overheads excluded from plant clock and recorded separately.",
+  "cpu_validation": "Independent43focused checks +25analyzer subtests;2metadata correction checks;0skips",
+  "required_task_suite": {
+    "passed": true,
+    "task_processes": 3,
+    "cases": [
+      "figure8_tracking",
+      "long_reach",
+      "short_reach"
+    ],
+    "elapsed_seconds": 20.918627114006085,
+    "receipt": {
+      "path": "/workspace/GATO-eval-batching/example_artifacts/bb_validation/20261010T203804.657656Z/make-execution.json",
+      "sha256": "ad76abfaf9c227e28a1c0ee50b1435d6c1d1152c94780a4ff9d2fca86e27718f"
+    }
+  },
+  "canonical_preflight": {
+    "passed": true,
+    "repeat_policy": "One B1 and one B16, sequential; no retries",
+    "receipt": {
+      "path": "/workspace/GATO-eval-batching/example_artifacts/bb_validation/20261010T203804.657656Z/preflight-execution.json",
+      "sha256": "8633c1e8d981c2ceba62e0016258182a927728d4c59cae16e21190bfed9f80ee"
+    },
+    "arms": [
+      {
+        "batch_size": 1,
+        "task_success": true,
+        "physical_pass": true,
+        "feedback_solves_including_bootstrap": 232,
+        "simulated_seconds": 0.48471374002227097,
+        "final_position_error_mm": 49.87231084528164,
+        "final_tool_axis_error_deg": 8.14513599347436,
+        "final_L1_speed_rad_s": 0.6017518504567562,
+        "sampled_physical_limits": {
+          "finite": true,
+          "max_joint_bound_excess_rad": 0.0,
+          "max_velocity_ratio": 0.21557385262816559,
+          "max_effort_ratio": 0.339015740614671,
+          "joint_bounds_valid": true,
+          "velocity_valid": true,
+          "effort_valid": true,
+          "physical_valid": true
+        },
+        "mean_paid_wrapper_wall_ms": 1.96845774901416,
+        "mean_paid_native_ms": 1.8400216450216451,
+        "update_share_above_nominal_descriptive_only": 0.0,
+        "episode_body_wall_seconds": 7.317942073001177,
+        "whole_child_wall_seconds": 9.83867858699523,
+        "recorded_overheads_seconds": {
+          "proposal_generation_wall_s": 0.039467578011681326,
+          "selection_wall_s": 0.20256835006875917,
+          "diagnostics_wall_s": 0.35328680483507924,
+          "raw_recording_wall_s": 5.839132344670361,
+          "plant_replay_wall_s": 0.11946319513663184
+        },
+        "summary": {
+          "path": "/workspace/GATO-eval-batching/example_artifacts/bb_validation/20261010T203804.657656Z/preflight-B/B1/preflight_dt_0.03_B1/summary.json",
+          "sha256": "6b55345b38a1f1c6ac864bcf6ce201e269c60b87dfbdee833e64160544aeb50e"
+        },
+        "raw_root": "/workspace/GATO-eval-batching/example_artifacts/bb_validation/20261010T203804.657656Z/preflight-B/B1"
+      },
+      {
+        "batch_size": 16,
+        "task_success": true,
+        "physical_pass": true,
+        "feedback_solves_including_bootstrap": 25,
+        "simulated_seconds": 0.5071145490085474,
+        "final_position_error_mm": 48.46646615136621,
+        "final_tool_axis_error_deg": 8.250652216319882,
+        "final_L1_speed_rad_s": 0.5879325791783672,
+        "sampled_physical_limits": {
+          "finite": true,
+          "max_joint_bound_excess_rad": 0.0,
+          "max_velocity_ratio": 0.22249127685023792,
+          "max_effort_ratio": 0.33819125248835635,
+          "joint_bounds_valid": true,
+          "velocity_valid": true,
+          "effort_valid": true,
+          "physical_valid": true
+        },
+        "mean_paid_wrapper_wall_ms": 19.87977287535614,
+        "mean_paid_native_ms": 19.684625,
+        "update_share_above_nominal_descriptive_only": 0.0,
+        "episode_body_wall_seconds": 1.5200226439919788,
+        "whole_child_wall_seconds": 3.971292000001995,
+        "recorded_overheads_seconds": {
+          "proposal_generation_wall_s": 0.05565619494882412,
+          "selection_wall_s": 0.2619429739715997,
+          "diagnostics_wall_s": 0.03794921396183781,
+          "raw_recording_wall_s": 0.5218023518100381,
+          "plant_replay_wall_s": 0.06683662813156843
+        },
+        "summary": {
+          "path": "/workspace/GATO-eval-batching/example_artifacts/bb_validation/20261010T203804.657656Z/preflight-B/B16/preflight_dt_0.03_B16/summary.json",
+          "sha256": "2aeff2c1cf4bd14e6641f63d9465e93b7710c020f6d3eb6e3cc108622904030b"
+        },
+        "raw_root": "/workspace/GATO-eval-batching/example_artifacts/bb_validation/20261010T203804.657656Z/preflight-B/B16"
+      }
+    ]
+  },
+  "protocol": {
+    "path": "/workspace/GATO-eval-batching/experiments/tiago_batching/bb_protocol.json",
+    "sha256": "d62049ee86c84ef493f984ac55073f7e5307fb8435f7d7d90a5e729106cd8da5"
+  },
+  "input": {
+    "path": "/workspace/GATO-eval-batching/experiments/tiago_batching/bb_preflight.json",
+    "sha256": "9389e336eab0abc261fb4513e576490c13317e4f34f6df4acfdc7688db65e737"
+  },
+  "source_review": {
+    "path": "/workspace/gato-campaign-recovery-20261010/ba-recovery/bb-implementation/review.json",
+    "sha256": "b394a15e89c60c9c4009a63847fb3ef2bedcda3921d8b613fd5e2a67a4fff201"
+  },
+  "saved_native_validation_review": {
+    "path": "/workspace/gato-campaign-recovery-20261010/ba-recovery/bb-implementation/native-validation-review.json",
+    "sha256": "bd5dbf74c687cb6b877782ca175a1df6f58cc3f3c724bca2b2b38aa1f5891df5"
+  },
+  "full_BB_cohort_executed": false,
+  "other_targets_executed": false,
+  "solver_numerical_pass": null,
+  "solver_numerical_pass_unavailable_reason": "No full KKT certificate; known SB-001 goal1 failure and SB-002 static lambda/q/r nonfiniteness remain recorded. Modest task passes do not establish convergence or reliability.",
+  "next_bounded_action": "Calibrate/estimate target runtime/storage and explicit child timeout before a reviewed100task B1/B16 campaign; Jetson duration discussion and matching5060/internal readiness remain pending.",
+  "checkpoint_review": {
+    "status": "approved",
+    "receipt": {
+      "path": "/workspace/gato-campaign-recovery-20261010/ba-recovery/bb-implementation/native-validation-review.json",
+      "sha256": "bd5dbf74c687cb6b877782ca175a1df6f58cc3f3c724bca2b2b38aa1f5891df5"
+    },
+    "allowed_metadata_refresh_only": true
+  }
+}

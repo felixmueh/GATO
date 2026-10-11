@@ -1,0 +1,18 @@
+{
+  "original_source_commit": "aa241da65fce3e062e62168846b8d5d589b5cd90",
+  "recording_source_commit": "4f6c8fd4be428c135fc16564c5dd56eb61ce5660",
+  "unchanged_runtime_sha256": {
+    "python/bindings.cu": "1a899a79a7c0b6273d7a62025b72be773d97f257b10de8ccdf80e57ce803c19f",
+    "python/bsqp/common.py": "ca5a9fb41377a760c24ba9df881f93ede59301ee8c09463f9f644854e9848dcf",
+    "python/bsqp/interface.py": "7caa7781a98126646f3f50e7569b34db1f01339331a2341e4e37ebebba3a3770",
+    "python/bsqp/mpc_controller.py": "ccbfcf81368685568225bad59b8de5da5678f061c40c8288be67254a59539ab4",
+    "tiago_src/gato_tiago/config.py": "c2287d1522f4f07a09e922af76ecddb215e5801f9b8b297e74cc5a4c849fc316",
+    "examples/randomized_multimodal/tiago_batching_execution.py": "3fdd3d1868592ced29fc88577e23bf8ed4a87b6c0dae9c7706190ce6c40a79ab"
+  },
+  "gato_tree": "5f32914c454ee2f901294043549c671eafcc7ffd",
+  "reviewed_recording_only_changes": [
+    "examples/randomized_multimodal/tiago_reaching_batch_pilot.py",
+    "examples/randomized_multimodal/validate_reaching_mpc.py"
+  ],
+  "scope": "Recording hooks only; solve, timing, selection, task settings and native source unchanged"
+}
