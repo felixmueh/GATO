@@ -1,0 +1,235 @@
+{
+  "version": 1,
+  "experiments": [
+    {
+      "id": "ForceDisturbanceScreen",
+      "research_question": "RQ-force",
+      "protocol": "force-persistent-grid-v2",
+      "cohort_id": "force-grid-zero-pcg-v2",
+      "stopping_policy": "zero_pcg_or_finite_kkt",
+      "source_commit": "bbbb047c9827beedff15b40d42aacc6389fa06ba",
+      "machines": [
+        "gtx1070"
+      ],
+      "timing_mode": "B",
+      "backend": "internal",
+      "inputs": {
+        "experiments/inputs/force_v2/task_inputs/v01.json": "20920040853786cf3d96f13ba240f82918a9f0f5020270fbe67715666477cc81",
+        "experiments/inputs/force_v2/task_inputs/t01.json": "aec47cfa3819de5adbb8633b637f5bd9bcd327cb3afc5043a856b323af5aac41",
+        "experiments/inputs/force_v2/task_inputs/SHA256SUMS.json": "7835ecd62576737334582d50e724a4be83b4bd2878d2085143b76ec0eb44b8b1"
+      },
+      "build": {
+        "commands": [
+          [
+            "cmake",
+            "-S",
+            "{source}/experiments/force_adapter/native",
+            "-B",
+            "{build}",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DCMAKE_CUDA_ARCHITECTURES={cuda_arch}-real",
+            "-DPython3_EXECUTABLE={python}"
+          ],
+          [
+            "cmake",
+            "--build",
+            "{build}",
+            "--target",
+            "bsqpN32_tiago_right",
+            "cuda_access_smoke",
+            "--parallel",
+            "2"
+          ]
+        ],
+        "artifacts": [
+          "modules/bsqpN32_tiago_right*.so",
+          "cuda_access_smoke"
+        ]
+      },
+      "command": [
+        "{python}",
+        "{runner}/adapters/force.py",
+        "--source",
+        "{source}",
+        "--build",
+        "{build}",
+        "--inputs",
+        "{inputs}/experiments/inputs/force_v2/task_inputs",
+        "--output",
+        "{output}",
+        "--case",
+        "{case}",
+        "--allow-speed-only"
+      ],
+      "timeout_seconds": 900,
+      "cases": [
+        {
+          "id": "no-estimator-0N",
+          "parameters": {
+            "study": "E02",
+            "stage": "screen",
+            "mode": "no_estimator",
+            "force_N": 0.0,
+            "repeat": 0,
+            "timing_mode": "B",
+            "backend": "internal",
+            "machine": "gtx1070"
+          }
+        },
+        {
+          "id": "no-estimator-5N",
+          "parameters": {
+            "study": "E02",
+            "stage": "screen",
+            "mode": "no_estimator",
+            "force_N": 5.0,
+            "repeat": 0,
+            "timing_mode": "B",
+            "backend": "internal",
+            "machine": "gtx1070"
+          }
+        },
+        {
+          "id": "no-estimator-10N",
+          "parameters": {
+            "study": "E02",
+            "stage": "screen",
+            "mode": "no_estimator",
+            "force_N": 10.0,
+            "repeat": 0,
+            "timing_mode": "B",
+            "backend": "internal",
+            "machine": "gtx1070"
+          }
+        },
+        {
+          "id": "no-estimator-20N",
+          "parameters": {
+            "study": "E02",
+            "stage": "screen",
+            "mode": "no_estimator",
+            "force_N": 20.0,
+            "repeat": 0,
+            "timing_mode": "B",
+            "backend": "internal",
+            "machine": "gtx1070"
+          }
+        }
+      ],
+      "preflight": {
+        "group": "force-grid-B-no_estimator",
+        "command": [
+          "{python}",
+          "{runner}/adapters/force.py",
+          "--source",
+          "{source}",
+          "--build",
+          "{build}",
+          "--inputs",
+          "{inputs}/experiments/inputs/force_v2/task_inputs",
+          "--output",
+          "{output}",
+          "--preflight",
+          "--mode",
+          "no_estimator",
+          "--allow-speed-only"
+        ],
+        "scope": "Undisturbed0N rough-reaching readiness, shared across0/F*; disturbance physical compliance measured in task runs"
+      },
+      "speed_only_waiver": "Internal force simulations only; unchanged position/torque/finite/effort limits; speed descriptive; raw physical flags retained"
+    }
+  ],
+  "stage": "screen",
+  "status": "prepared_reviewed_source_target_checks_pending",
+  "original_smoke": {
+    "attempt": "/workspace/GATO/_expr_results/force-rho-policy-20261011T201734Z/smoke-original0",
+    "metrics_sha256": "908a22291ca88eb4eb9f9b19a9a6e3b55c8745cb94d23c95c909b658dd6e3d11",
+    "canonical_output": "/workspace/GATO/_expr_results/force-rho-policy-20261011T201734Z/canonical-original0",
+    "canonical_metrics_sha256": "d6bb3fd97923298f408a1508040e9950c38682eeed7cb03fbd4d14b1c79aeeff",
+    "task_success": false,
+    "physical_pass": true,
+    "speed_only_waiver": true,
+    "physical_limit_excess": {
+      "q_rad": 0.0,
+      "v_rad_s": 0.0,
+      "u_Nm": 0.0
+    },
+    "eligibility_pass": true,
+    "tracking_RMS_error_m": 0.021323180456982165,
+    "note": "Execution/finite/physical smoke gate; historical20mm task gate is reported, not a smoke execution gate."
+  },
+  "screen_criterion": {
+    "RMS_degradation_m": 0.01,
+    "forces_N": [
+      5,
+      10,
+      20
+    ],
+    "selection": "smallest qualifying force within sampled effort and physical limits; no expansion"
+  },
+  "note": "One original0N tracking smoke first after canonical; crash/physical failure holds force study. Historical tracking task gate remains separately reported. No automatic screen or study continuation.",
+  "retained_hold": {
+    "version": 1,
+    "experiments": [],
+    "source_commit": "bbbb047c9827beedff15b40d42aacc6389fa06ba",
+    "selected_force_N": null,
+    "held": true,
+    "status": "Held after original0N canonical physical failure; no smoke/screen or further runs authorized",
+    "canonical_evidence": {
+      "path": "/workspace/GATO/_expr_results/force-rho-policy-20261011T201734Z/canonical-original0",
+      "metrics_sha256": "d6bb3fd97923298f408a1508040e9950c38682eeed7cb03fbd4d14b1c79aeeff",
+      "provenance_sha256": "8fca76488599aaebf567b80d4054fa587377397460e950090c5a9a50975d3252",
+      "module_sha256": "a93273dc23b8e9d1c7c46d0c898599b78544948cb6e1ef8f36f8faab4ee7a526",
+      "task_success": true,
+      "physical_pass": false,
+      "physical_limit_excess": {
+        "q_rad": 0.0,
+        "v_rad_s": 0.46536199928323896,
+        "u_Nm": 0.0
+      },
+      "execution_error": null
+    },
+    "pending": {
+      "original0N_tracking_smoke": true,
+      "bounded_disturbance_screen": true,
+      "selected_Fstar": true,
+      "E02_tasks_per_machine": 12,
+      "E03_bank_inputs": 12,
+      "E03_method_cases_per_machine": 24,
+      "E01": "Derived from future GPU bank"
+    },
+    "note": "No smoke/screen/final force campaign was run. No correction, tuning, extra GPU call or solver investigation authorized by this hold record.",
+    "retained_hold": {
+      "version": 1,
+      "experiments": [],
+      "source_commit": "16cc57f706ecb9fb5731297a83bc47f30632ca39",
+      "selected_force_N": null,
+      "held": true,
+      "status": "Held after original0N canonical physical failure; awaiting discussion of bounded setup-only review",
+      "canonical_evidence": {
+        "path": "/workspace/GATO/_expr_results/force-persistent-v2-20261011T194420Z/canonical-original0",
+        "metrics_sha256": "0702dafbae6ef7c27f8d684bf23b7c014659ee7fd4fd02025ef3aed173792322",
+        "provenance_sha256": "fc2090cdae59baeced46878617aa19cb3aaf811e0a72379252ef9c4cdb203b66",
+        "module_sha256": "a93273dc23b8e9d1c7c46d0c898599b78544948cb6e1ef8f36f8faab4ee7a526",
+        "task_success": true,
+        "physical_pass": false,
+        "physical_limit_excess": {
+          "q_rad": 0.0,
+          "v_rad_s": 0.1271132353761657,
+          "u_Nm": 0.0
+        },
+        "execution_error": null
+      },
+      "pending": {
+        "original0N_tracking_smoke": true,
+        "bounded_disturbance_screen": true,
+        "selected_Fstar": true,
+        "E02_tasks_per_machine": 12,
+        "E03_bank_inputs": 12,
+        "E03_method_cases_per_machine": 24,
+        "E01": "Derived from future GPU bank"
+      },
+      "note": "No smoke/screen/final force campaign was run. No correction, tuning, extra GPU call or solver investigation authorized by this hold record."
+    }
+  }
+}

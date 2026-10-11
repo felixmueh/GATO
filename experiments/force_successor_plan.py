@@ -44,24 +44,28 @@ def experiment(source,machine,eid,mode,inputs,folder):
         stopping_policy=POLICY,source_commit=source,machines=[machine],timing_mode=mode,backend='internal',
         inputs=inputs,build=build,command=command+['--case','{case}'],timeout_seconds=900,cases=[])
 
-def canonical(e,method):
+def canonical(e,method,allow_speed_only=False):
     base=e['command'][:-2]
     e['preflight']=dict(group='force-grid-B-'+method,command=base+['--preflight','--mode',method],
         scope='Undisturbed0N rough-reaching readiness, shared across0/F*; disturbance physical compliance measured in task runs')
+    if allow_speed_only:
+        e['preflight']['command'].append('--allow-speed-only')
+        e['command'].append('--allow-speed-only')
+        e['speed_only_waiver']='Internal force simulations only; unchanged position/torque/finite/effort limits; speed descriptive; raw physical flags retained'
 
-def prepare_stage(source,stage,smoke=None,resume_after_approved_setup=False):
+def prepare_stage(source,stage,smoke=None,resume_after_approved_setup=False,allow_speed_only=False):
     stages=ROOT/'experiments/successor/force_stages.json'
     previous=json.loads(stages.read_text()) if stages.exists() else {}
     if previous.get('held') and not resume_after_approved_setup:
         raise ValueError('Force study held; discuss setup review before replacing the recorded hold')
     inputs=task_inputs(source);folder='experiments/inputs/force_v2/task_inputs'
     if stage=='smoke':
-        e=experiment(source,'gtx1070','ForceOriginal0Smoke','B',inputs,folder);canonical(e,'original')
+        e=experiment(source,'gtx1070','ForceOriginal0Smoke','B',inputs,folder);canonical(e,'original',allow_speed_only)
         e['cases']=[dict(id='original-0N-24s',parameters=dict(study='E02',stage='smoke',mode='original',force_N=0.,repeat=0,timing_mode='B',backend='internal',machine='gtx1070'))]
         evidence=None
     else:
-        evidence=smoke_evidence(smoke)
-        e=experiment(source,'gtx1070','ForceDisturbanceScreen','B',inputs,folder);canonical(e,'no_estimator')
+        evidence=smoke_evidence(smoke,allow_speed_only)
+        e=experiment(source,'gtx1070','ForceDisturbanceScreen','B',inputs,folder);canonical(e,'no_estimator',allow_speed_only)
         e['cases']=[dict(id=f'no-estimator-{force:g}N',parameters=dict(study='E02',stage='screen',mode='no_estimator',force_N=force,repeat=0,timing_mode='B',backend='internal',machine='gtx1070')) for force in (0.,5.,10.,20.)]
     plan=dict(version=1,experiments=[e],stage=stage,status='prepared_reviewed_source_target_checks_pending',
         original_smoke=evidence,screen_criterion=dict(RMS_degradation_m=.010,forces_N=[5,10,20],selection='smallest qualifying force within sampled effort and physical limits; no expansion'),
@@ -72,7 +76,7 @@ def prepare_stage(source,stage,smoke=None,resume_after_approved_setup=False):
     inventory=ROOT/'experiments/successor/inventory.json';d=json.loads(inventory.read_text())
     d.setdefault('force_stage_plans',{})[stage]='successor/'+path.name;write(inventory,d)
     state=dict(version=1,experiments=[],source_commit=source,
-        selected_force_N=None,status='Actual smoke/screen stage plan prepared; final F* and bank pending',stage_plans=d['force_stage_plans'],
+        selected_force_N=None,speed_only_waiver=allow_speed_only,status='Actual smoke/screen stage plan prepared; final F* and bank pending',stage_plans=d['force_stage_plans'],
         evidence_note='Bounded qualification/smoke/screen outcomes are retained separately; stage preparation launches no measurement.')
     if retained:state['retained_hold']=retained
     write(ROOT/'experiments/successor/force_stages.json',state)
@@ -132,7 +136,7 @@ def prepare_final(source,selection,bank):
             for i in range(6) for truth in (0,1) for method in ('original','adapted')]
         tasks=[]
         for method in METHODS:
-            e=experiment(source,machine,'E02-'+method,'B',inputs,'experiments/inputs/force_v2/task_inputs');canonical(e,method)
+            e=experiment(source,machine,'E02-'+method,'B',inputs,'experiments/inputs/force_v2/task_inputs');canonical(e,method,chosen.get('speed_only_waiver',False))
             e['cases']=[dict(id=f'figure8-{f:g}N-r{repeat}',parameters=dict(study='E02',stage='measurement',mode=method,force_N=f,repeat=repeat,timing_mode='B',backend='internal',machine=machine))
                 for f,repeats in ((0.,(0,)),(force,(0,1,2))) for repeat in repeats]
             tasks.append(e)
@@ -149,7 +153,7 @@ def prepare_final(source,selection,bank):
     d['force']=dict(source_commit=source,selected_force_N=force,selection_sha256=sha(selection),status='Prepared revised full cohorts; target preflights pending')
     d['status']='All explicit cohorts prepared; no measurements launched by generation';write(inventory,d)
     state=dict(version=1,experiments=[],status='smoke_screen_selected_final_plans_prepared',
-        source_commit=source,selected_force_N=force,selection_sha256=sha(selection),final_plan_files=files,
+        source_commit=source,selected_force_N=force,speed_only_waiver=chosen.get('speed_only_waiver',False),selection_sha256=sha(selection),final_plan_files=files,
         note='Original smoke and screen remain separate evidence; old force plans and raw outcomes are historical.')
     previous=json.loads(stages.read_text()) if stages.exists() else {}
     if previous.get('retained_hold'):state['retained_hold']=previous['retained_hold']
@@ -163,9 +167,10 @@ if __name__=='__main__':
     p.add_argument('--smoke-attempt',type=Path);p.add_argument('--selection',type=Path);p.add_argument('--bank',type=Path)
     p.add_argument('--canonical-attempt',type=Path)
     p.add_argument('--resume-after-approved-setup',action='store_true',help='Use only after explicit setup-change/retry authorization; preserves previous hold evidence')
+    p.add_argument('--allow-speed-only',action='store_true',help='Explicit authorized internal-force speed-only eligibility waiver; physical flags unchanged')
     a=p.parse_args()
     if a.stage=='screen' and not a.smoke_attempt:p.error('Screen needs actual --smoke-attempt')
     if a.stage=='final' and not (a.selection and a.bank):p.error('Final needs selected --selection and frozen --bank')
     if a.stage=='hold' and not a.canonical_attempt:p.error('Hold needs actual --canonical-attempt')
-    result=record_hold(a.source_commit,a.canonical_attempt) if a.stage=='hold' else prepare_final(a.source_commit,a.selection,a.bank) if a.stage=='final' else prepare_stage(a.source_commit,a.stage,a.smoke_attempt,a.resume_after_approved_setup)
+    result=record_hold(a.source_commit,a.canonical_attempt) if a.stage=='hold' else prepare_final(a.source_commit,a.selection,a.bank) if a.stage=='final' else prepare_stage(a.source_commit,a.stage,a.smoke_attempt,a.resume_after_approved_setup,a.allow_speed_only)
     print(json.dumps(result,indent=2))

@@ -45,11 +45,10 @@ force and revised E01/E02/E03 coverage. A pending stage is not an executable
 old-force substitute. Persistent solvers and GPU prediction replace the old
 fresh-owner/CPU-predictor study; their data remain separate protocols.
 
-**Current force status: held.** The revised original-method 0 N canonical
+**Current force status: bounded screen; final cohorts pending.** The revised original-method 0 N canonical
 reached its target but exceeded the sampled joint-speed limit by 0.127113 rad/s.
-The tracking smoke and force screen have not run, and no F* or final force bank
-has been selected. The disabled `successor/force_smoke.json` preserves the
-reviewed source and intended smoke; it is not queued in combined plans.
+No F* or final force bank has been selected. The separate
+`successor/force_smoke.json` is not queued in combined campaign plans.
 `force_stages.json` retains both failed canonicals. Felix authorized the narrow
 rho-policy correction: reaching now carries rho as requested, while tracking
 continues to reset it each feedback solve. Source `bbbb047` reused the unchanged
@@ -58,11 +57,18 @@ again failed physical compliance (joint-speed excess **0.465362 rad/s**, no
 position/torque excess or execution error). That retry is retained at
 `/workspace/GATO/_expr_results/force-rho-policy-20261011T201734Z/canonical-original0/`;
 the first failure and previous package remain preserved. The correction did not
-resolve the physical failure. Force stays held, with no tracking smoke, screen,
-selected F* or final force cohort. No additional correction or run is authorized.
-The other families remain independently prepared.
+resolve the physical failure. Felix subsequently authorized ignoring **speed-only
+violations for internal force-study eligibility**. Raw `physical_pass=false` and
+speed excess remain unchanged; position/torque tolerances, finite data, full
+completion and sampled-effort checks still apply. This does not apply to robots
+or any other study. The corrected canonical is reused without another retry.
+Original0N smoke completed24s with finite data and zero physical excesses
+(RMS21.323mm/max35.933mm); its old20mm task-gate failure stays reported. The
+no-estimator0N canonical passed. The fixed0/5/10/20N screen is running, with F*
+and final force cohorts pending. Both failures and earlier packages are retained.
 `force_successor_plan.py` and `force_screen.py` implement the subsequent fixed
-screen and final-plan generation; do not bypass the recorded hold. Regenerating
+screen and final-plan generation. `--allow-speed-only` records this explicit
+internal-force waiver; it does not relabel physical compliance. Regenerating
 `zero_pcg_plan.py` preserves the installed force stage and any final force plans.
 
 Saved-analysis updates live in `analysis/results_review.py`, `analysis/f01ab.py`

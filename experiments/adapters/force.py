@@ -9,8 +9,9 @@ import sys
 import traceback
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 from recording import sha,write_json
+from force_screen import physical_eligibility
 
-def run(source,build,inputs,output,case=None,preflight=False,mode=None,execute=subprocess.run):
+def run(source,build,inputs,output,case=None,preflight=False,mode=None,execute=subprocess.run,allow_speed_only=False):
     source,build,inputs,output=(Path(p).resolve() for p in (source,build,inputs,output))
     output.mkdir(parents=True,exist_ok=True)
     params=case['parameters'] if case else {}
@@ -37,6 +38,17 @@ def run(source,build,inputs,output,case=None,preflight=False,mode=None,execute=s
         # gate can be a physical failure, not an execution error.
         if not path.exists():
             write_json(path,metrics)
+        if allow_speed_only and not bank:
+            eligible=bool(code in (0,1) and not metrics.get('execution_error') and metrics.get('outcome')=='force_task_completed'
+                and (not preflight or metrics.get('task_success') is True) and physical_eligibility(metrics,True))
+            eligibility=output/'eligibility.json'
+            write_json(eligibility,dict(eligibility_pass=eligible,speed_only_waiver=True,
+                scope='Internal force simulation only; raw physical flags unchanged',worker_returncode=code,
+                physical_pass=metrics.get('physical_pass'),physical_limit_excess=metrics.get('physical_limit_excess')))
+            manifest=output/'SHA256SUMS.json'
+            if manifest.exists():
+                hashes=json.loads(manifest.read_text());hashes['eligibility.json']=sha(eligibility);write_json(manifest,hashes)
+            if preflight:return 0 if eligible else (code or 1)
         return code or int(bool(metrics.get('execution_error'))) or int(preflight and not(
             metrics.get('task_success') is True and metrics.get('physical_pass') is True))
     except BaseException:
@@ -48,7 +60,7 @@ if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__)
     for k in ('source','build','inputs','output'):p.add_argument('--'+k,type=Path,required=True)
     p.add_argument('--case',type=Path);p.add_argument('--preflight',action='store_true')
-    p.add_argument('--mode',choices=('original','adapted','no_estimator'));a=p.parse_args()
+    p.add_argument('--mode',choices=('original','adapted','no_estimator'));p.add_argument('--allow-speed-only',action='store_true');a=p.parse_args()
     if a.preflight and not a.mode:p.error('Preflight mode required')
     if not a.preflight and not a.case:p.error('Case required')
-    raise SystemExit(run(a.source,a.build,a.inputs,a.output,json.loads(a.case.read_text()) if a.case else None,a.preflight,a.mode))
+    raise SystemExit(run(a.source,a.build,a.inputs,a.output,json.loads(a.case.read_text()) if a.case else None,a.preflight,a.mode,allow_speed_only=a.allow_speed_only))

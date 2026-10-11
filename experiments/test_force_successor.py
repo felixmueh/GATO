@@ -23,7 +23,7 @@ def test_screen_selects_smallest_physical_qualifier_and_retains_failure(tmp_path
         params=dict(mode='no_estimator',force_N=f,stage='screen')
         put(p/'receipt.json',dict(status=status,case=dict(parameters=params)))
         put(p/'metrics.json',dict(parameters=params,tracking_RMS_error_m=rms,physical_pass=physical,
-            task_success=False,maximum_sampled_effort_ratio=.8,execution_error='retained error' if status=='failed' else None))
+            task_success=False,maximum_sampled_effort_ratio=.8,executed_duration_s=24.,execution_error='retained error' if status=='failed' else None))
         put(p/'provenance.json',dict(source_commit='same-source',module_sha256='same-module',input_sha256={'t01.json':'same-settings-and-reference'}))
     d=S.select(tmp_path/'screen',original,tmp_path/'selection.json')
     assert d['selected_force_N']==20 and len(d['all_attempts'])==4
@@ -31,6 +31,29 @@ def test_screen_selects_smallest_physical_qualifier_and_retains_failure(tmp_path
     assert d['original_smoke']['task_success'] is False # Old tracking gate is not smoke gate.
     with pytest.raises(ValueError,match='crashed'):
         S.smoke_evidence(smoke(tmp_path/'crashed',True))
+    partial=tmp_path/'screen/20/metrics.json';d=json.loads(partial.read_text());d['executed_duration_s']=12.;put(partial,d)
+    assert S.select(tmp_path/'screen',original,tmp_path/'partial-selection.json')['selected_force_N'] is None
+
+def test_speed_only_waiver_scoped_and_adapter_preserves_raw(tmp_path,monkeypatch):
+    from adapters import force as A
+    m=dict(campaign_id='E02',timing_mode='B',execution_backend='internal',parameters=dict(mode='original'),
+        task_success=True,physical_pass=False,execution_error=None,outcome='force_task_completed',
+        physical_limit_excess=dict(q_rad=0.,v_rad_s=.465362,u_Nm=0.))
+    assert not S.physical_eligibility(m) and S.physical_eligibility(m,True)
+    for changed in [dict(execution_backend='robot'),dict(physical_limit_excess=dict(q_rad=.001,v_rad_s=.4,u_Nm=0.)),dict(physical_limit_excess=dict(q_rad=0.,v_rad_s=.4,u_Nm=.01))]:
+        assert not S.physical_eligibility(dict(m,**changed),True)
+    source=tmp_path/'source';worker=source/'experiments/force_adapter/run_task.py';worker.parent.mkdir(parents=True);worker.write_text('# synthetic worker fixture\n')
+    monkeypatch.setattr(A.subprocess,'check_output',lambda *a,**kw:'synthetic-source')
+    def execute(command,**kwargs):
+        path=Path(command[command.index('--output')+1])/'metrics.json';put(path,m)
+        put(path.parent/'SHA256SUMS.json',{'metrics.json':hashlib.sha256(path.read_bytes()).hexdigest()})
+        return type('Result',(),{'returncode':1})()
+    output=tmp_path/'attempt'
+    assert A.run(source,tmp_path,tmp_path,output,preflight=True,mode='original',execute=execute,allow_speed_only=True)==0
+    assert json.loads((output/'metrics.json').read_text())==m
+    assert json.loads((output/'eligibility.json').read_text())['physical_pass'] is False
+    hashes=json.loads((output/'SHA256SUMS.json').read_text())
+    assert hashes['metrics.json']==hashlib.sha256((output/'metrics.json').read_bytes()).hexdigest()
 
 def test_final_shapes_and_selected_bank_identity(tmp_path,monkeypatch):
     monkeypatch.setattr(P,'ROOT',tmp_path)
