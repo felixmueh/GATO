@@ -13,6 +13,25 @@ sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 from recording import RawRecorder,sha,write_json
 from adapters import task,task_suite,control_studies
 
+ORDINARY_RUNTIME='502fa29c8b0d649dcb347f9534bf29c6935fa6dd'
+
+
+def ordinary_preflight(source,build,inputs,output):
+    # The cylinder source retains its reviewed custom paid-plan worker. Its
+    # ordinary controller predates mode B, so run the unchanged accepted frontend
+    # in this separate process with the already-built ordinary native module.
+    from run import worktree
+    runtime=worktree(ORDINARY_RUNTIME,Path(build)/'prerequisite-cache')
+    original=task.native_module
+    def ordinary(src,bld,N=32):
+        path=exact_module(bld,'bsqpN32_tiago_right.')
+        sys.path[:0]=[str(src/'python'),str(src/'tiago_src')]
+        importlib.import_module('bsqp');name='bsqp.bsqpN32_tiago_right'
+        native=task.load(name,path);sys.modules[name]=native;return native,path
+    task.native_module=ordinary
+    try:return task.run(runtime,build,None,output,'B',True,inputs)
+    finally:task.native_module=original
+
 
 def exact_module(build,name):
     paths=list((Path(build)/'modules').glob(name+'*.so'))
@@ -61,15 +80,10 @@ def run(source,build,inputs,output,case=None,preflight=False):
         if code:
             write_json(output/'metrics.json',dict(task_success=None,physical_pass=None,execution_error='Required ordinary task suite failed',suite_evidence=str(suite)))
             return code
-        original=task.native_module
-        def ordinary(src,bld,N=32):
-            path=exact_module(bld,'bsqpN32_tiago_right.')
-            sys.path[:0]=[str(src/'python'),str(src/'tiago_src')]
-            importlib.import_module('bsqp');name='bsqp.bsqpN32_tiago_right'
-            native=task.load(name,path);sys.modules[name]=native;return native,path
-        task.native_module=ordinary
-        try:code=task.run(source,build,None,output/'ordinary-canonical','B',True,inputs)
-        finally:task.native_module=original
+        # Prerequisite imports must not enter the custom cylinder worker process.
+        code=subprocess.run([sys.executable,str(Path(__file__).resolve()),'--source',str(source),
+            '--build',str(build),'--inputs',str(inputs),'--output',str(output/'ordinary-canonical'),
+            '--ordinary-preflight']).returncode
         if code:
             write_json(output/'metrics.json',dict(task_success=None,physical_pass=None,execution_error='Ordinary canonical preflight failed',ordinary_evidence=str(output/'ordinary-canonical')))
             return code
@@ -78,8 +92,11 @@ def run(source,build,inputs,output,case=None,preflight=False):
             cylinder=dict(initial_center_xy=[10.,10.],final_center_xy=[10.,10.],radius=.1,motion_start_seconds=0.,motion_duration_seconds=1.))
         code=collect(source,build,inputs,output/'cylinder-canonical',dict(id='cylinder-canonical',parameters=dict(study='X02',batch=1,scene_id=0)),scene,None,True)
         metrics=json.loads((output/'cylinder-canonical/metrics.json').read_text())
+        native_source=subprocess.check_output(['git','-C',str(source),'rev-parse','HEAD'],text=True).strip()
         write_json(output/'metrics.json',dict(task_success=metrics.get('task_success'),physical_pass=metrics.get('physical_pass'),execution_error=metrics.get('execution_error'),
-            cylinder_evidence=str(output/'cylinder-canonical'),ordinary_evidence=str(output/'ordinary-canonical'),suite_evidence=str(suite),orientation_scope='Only ordinary canonical module qualifies orientation; cylinder check position-only'))
+            cylinder_evidence=str(output/'cylinder-canonical'),ordinary_evidence=str(output/'ordinary-canonical'),suite_evidence=str(suite),
+            ordinary_runtime_source_commit=ORDINARY_RUNTIME,ordinary_native_source_commit=native_source,cylinder_runtime_source_commit=native_source,
+            orientation_scope='Only ordinary canonical module qualifies orientation; cylinder check position-only'))
         return code
     scene,routes=scene_for(inputs,case) if case['parameters']['study']!='X02' else (None,None)
     return collect(source,build,inputs,output,case,scene,routes)
@@ -121,5 +138,7 @@ def collect(source,build,inputs,output,case,scene,routes,preflight=False):
 if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__)
     for name in ('source','build','inputs','output'):p.add_argument('--'+name,type=Path,required=True)
-    p.add_argument('--case',type=Path);p.add_argument('--preflight',action='store_true');a=p.parse_args()
+    p.add_argument('--case',type=Path);p.add_argument('--preflight',action='store_true')
+    p.add_argument('--ordinary-preflight',action='store_true');a=p.parse_args()
+    if a.ordinary_preflight:raise SystemExit(ordinary_preflight(a.source,a.build,a.inputs,a.output))
     raise SystemExit(run(a.source,a.build,a.inputs,a.output,json.loads(a.case.read_text()) if a.case else None,a.preflight))

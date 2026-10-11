@@ -7,6 +7,7 @@ from pathlib import Path
 import subprocess
 ROOT=Path(__file__).resolve().parents[1]
 SOURCE_ROOT=Path('/workspace/GATO-eval-cylinder')
+ORDINARY_RUNTIME='502fa29c8b0d649dcb347f9534bf29c6935fa6dd'
 
 def prepare(source_commit,jetson=False):
     folder=ROOT/'experiments/inputs/cylinder_studies';folder.mkdir(parents=True,exist_ok=True)
@@ -45,6 +46,7 @@ def prepare(source_commit,jetson=False):
     if not jetson:
         experiments.append(dict(common,id='CylinderChecks',timing_mode='A',cases=[c for c in cases if c['parameters']['study']=='X02']))
     experiments.append(dict(common,id='CylinderTasks',timing_mode='B',cases=[c for c in cases if c['parameters']['study']!='X02'],
+        dependency_source_commits={'ordinary_canonical_runtime':ORDINARY_RUNTIME},
         preflight=dict(group='CylinderStudies-B',command=command+['--preflight'])))
     plan=dict(version=1,status='proposed_target_duration_discussion_pending' if jetson else 'prepared_target_validation_pending',experiments=experiments)
     path=ROOT/'experiments'/('cylinder_studies_jetson_proposed.json' if jetson else 'cylinder_studies.json')

@@ -219,6 +219,9 @@
           }
         }
       ],
+      "dependency_source_commits": {
+        "ordinary_canonical_runtime": "502fa29c8b0d649dcb347f9534bf29c6935fa6dd"
+      },
       "preflight": {
         "group": "CylinderStudies-B",
         "command": [

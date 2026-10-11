@@ -70,3 +70,44 @@ def test_seed_sources_and_current_source_unchanged():
     assert desktop[1]['timing_mode']=='B' and 'preflight' in desktop[1]
     assert sum(len(e['cases']) for e in jetson)==6 and all(e['timing_mode']=='B' for e in jetson)
 
+
+def test_ordinary_mode_b_dependency_isolated_from_cylinder_worker(tmp_path,monkeypatch):
+    import json
+    import run as runner
+    from adapters import cylinder_studies as adapter
+    source=tmp_path/'cylinder';runtime=tmp_path/'ordinary';inputs=tmp_path/'inputs';inputs.mkdir()
+    build=tmp_path/'build';(build/'modules').mkdir(parents=True)
+    ordinary=build/'modules/bsqpN32_tiago_right.synthetic.so';ordinary.write_bytes(b'synthetic')
+    (build/'modules/bsqpN32_tiago_right_multimodal.synthetic.so').write_bytes(b'synthetic cylinder')
+    (inputs/'v01.json').write_text(json.dumps(dict(initial_state=[0.]*14,goal=[0.]*6)))
+    assert adapter.exact_module(build,'bsqpN32_tiago_right.')==ordinary
+    original_native=adapter.task.native_module
+    def checkout(pin,cache):
+        assert pin==adapter.ORDINARY_RUNTIME and cache==build/'prerequisite-cache';return runtime
+    monkeypatch.setattr(runner,'worktree',checkout)
+    def canonical(src,bld,case,out,mode,preflight,inp):
+        assert (src,bld,case,mode,preflight,inp)==(runtime,build,None,'B',True,inputs)
+        assert adapter.task.native_module is not original_native
+        return 0
+    monkeypatch.setattr(adapter.task,'run',canonical)
+    assert adapter.ordinary_preflight(source,build,inputs,tmp_path/'ordinary-canonical')==0
+    assert adapter.task.native_module is original_native
+    calls=[]
+    def subprocess_call(command):
+        assert '--ordinary-preflight' in command and command[command.index('--source')+1]==str(source)
+        calls.append(command);return SimpleNamespace(returncode=0)
+    monkeypatch.setattr(adapter.subprocess,'run',subprocess_call)
+    monkeypatch.setattr(adapter.subprocess,'check_output',lambda *args,**kwargs:'d6c8278\n')
+    monkeypatch.setattr(adapter.control_studies,'ensure_suite',lambda *args:0)
+    def cylinder(src,bld,inp,out,*args):
+        assert src==source
+        out.mkdir(parents=True)
+        adapter.write_json(out/'metrics.json',dict(task_success=True,physical_pass=True,execution_error=None))
+        return 0
+    monkeypatch.setattr(adapter,'collect',cylinder)
+    assert adapter.run(source,build,inputs,tmp_path/'preflight',preflight=True)==0
+    assert len(calls)==1
+    metrics=json.loads((tmp_path/'preflight/metrics.json').read_text())
+    assert metrics['ordinary_runtime_source_commit']==adapter.ORDINARY_RUNTIME
+    assert metrics['cylinder_runtime_source_commit']=='d6c8278'
+    assert metrics['ordinary_native_source_commit']=='d6c8278'
