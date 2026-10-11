@@ -13,7 +13,7 @@ from analysis.force import load
 def test_saved_pairs_failures_and_distinct_cohorts(tmp_path):
     attempts=[]
     for mode,bank,status in [('original','bankA','complete'),('adapted','bankA','complete'),('adapted','bankB','complete'),('original','bankA','failed')]:
-        name=str(len(attempts));raw=tmp_path/name
+        name=f'attempt-{len(attempts):03d}';raw=tmp_path/name
         with RawRecorder(raw) as recorder:
             write_json(raw/'protocol.json',dict(case=dict(mode=mode,input_index=0,truth_index=1)))
             write_json(raw/'provenance.json',dict(machine='rtx5060',source_commit='a'*40,module_sha256='module',bank_manifest_sha256=bank))
@@ -30,6 +30,17 @@ def test_saved_pairs_failures_and_distinct_cohorts(tmp_path):
     assert result['ticks'][0]['native_reciprocal_Hz']==1000.
     assert result['ticks'][0]['observed_additional_device_bytes'] is None
     assert result['ticks'][-1]['status']=='failed'
-    (tmp_path/'0'/'metrics.json').write_text('{}')
+    # collect.py's real current output is a list, unlike historical pinned indices.
+    from collect import collect
+    for entry in attempts:
+        write_json(tmp_path/entry['attempt']/'receipt.json',dict(experiment='E03',machine='rtx5060',case=dict(id=entry['attempt']),status=entry['status']))
+    collected=collect(tmp_path)
+    list_result=load(index)
+    assert isinstance(collected,list) and len(list_result['attempts'])==4
+    assert len(list_result['pairs'])==1 and list_result['ticks'][-1]['status']=='failed'
+    # Retain the pinned-dict integrity rejection independently of list support.
+    write_json(index,dict(attempts=attempts))
+
+    (tmp_path/'attempt-000'/'metrics.json').write_text('{}')
     import pytest
     with pytest.raises(ValueError,match='Pinned raw'):load(index)

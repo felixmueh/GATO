@@ -18,7 +18,9 @@ from analysis.f01ab import csv_write,fingerprint
 def load(index_path):
     index_path=Path(index_path).resolve();root=index_path.parent
     index=json.loads(index_path.read_text());attempts=[];ticks=[];tasks=[];pairs=[]
-    for entry in index.get('attempts',[]):
+    entries=index if isinstance(index,list) else index.get('attempts',[])
+    index_metadata={} if isinstance(index,list) else index
+    for entry in entries:
         if not entry.get('experiment','').startswith(('E02','E03')):continue
         relative=entry.get('attempt',entry.get('path'))
         if relative is None:attempts.append(dict(entry,status='missing_raw'));continue
@@ -27,8 +29,10 @@ def load(index_path):
         def read(name):
             target=raw/(name+'.json');return json.loads(target.read_text()) if target.exists() else {}
         protocol,provenance,metrics=read('protocol'),read('provenance'),read('metrics')
-        p=metrics.get('parameters',protocol.get('case',entry.get('case',{}).get('parameters',{})))
-        identity=dict(attempt=str(raw),machine=provenance.get('machine') or entry.get('machine') or index.get('machine'),
+        case=entry.get('case',{})
+        case=case if isinstance(case,dict) else {}
+        p=metrics.get('parameters',protocol.get('case',case.get('parameters',{})))
+        identity=dict(attempt=str(raw),machine=provenance.get('machine') or entry.get('machine') or index_metadata.get('machine'),
             source_commit=provenance.get('source_commit',entry.get('source_commit')),module_sha256=provenance.get('module_sha256'),
             bank_manifest_sha256=provenance.get('bank_manifest_sha256'),evidence_kind=metrics.get('evidence_kind'),
             mode=p.get('mode'),truth_index=p.get('truth_index'),input_index=p.get('input_index'),experiment=entry.get('experiment'))
