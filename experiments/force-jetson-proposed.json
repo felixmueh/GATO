@@ -1,0 +1,968 @@
+{
+  "version": 1,
+  "experiments": [
+    {
+      "id": "E03",
+      "research_question": "RQ-force",
+      "protocol": "force-body-fixed-v1",
+      "source_commit": "c0032ba57b34777f769cce9361887672016348b7",
+      "machines": [
+        "jetson"
+      ],
+      "timing_mode": "A",
+      "backend": "internal",
+      "description": "Force estimator time/memory: same frozen16 hypotheses, original B16 versus adapted selected B1",
+      "build": {
+        "commands": [
+          [
+            "cmake",
+            "-S",
+            "{source}/experiments/force_adapter/native",
+            "-B",
+            "{build}",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DCMAKE_CUDA_ARCHITECTURES={cuda_arch}-real",
+            "-DPython3_EXECUTABLE={python}"
+          ],
+          [
+            "cmake",
+            "--build",
+            "{build}",
+            "--target",
+            "bsqpN32_tiago_right",
+            "cuda_access_smoke",
+            "--parallel",
+            "2"
+          ]
+        ],
+        "artifacts": [
+          "modules/bsqpN32_tiago_right*.so",
+          "cuda_access_smoke"
+        ]
+      },
+      "inputs": {
+        "experiments/force_adapter/native_inputs/arrays.npz": "b88a6c2160515f71cb1ebcf29467393b3ef813242e6ffc8f939e5dfbe850b89f",
+        "experiments/force_adapter/native_inputs/protocol.json": "d91f879b51c58c5c940dcf1ddc3be5c7c3fc98ebe565a9d708f379a433a73597",
+        "experiments/force_adapter/native_inputs/SHA256SUMS.json": "e09fabd529f6c1a1a4b49a30810f358735b36b5f47677cba740e6236b9d5389c",
+        "experiments/force_adapter/task_inputs/v01.json": "20920040853786cf3d96f13ba240f82918a9f0f5020270fbe67715666477cc81",
+        "experiments/force_adapter/task_inputs/t01.json": "aec47cfa3819de5adbb8633b637f5bd9bcd327cb3afc5043a856b323af5aac41",
+        "experiments/force_adapter/task_inputs/SHA256SUMS.json": "7835ecd62576737334582d50e724a4be83b4bd2878d2085143b76ec0eb44b8b1"
+      },
+      "preparation_status": "prepared_no_measurements",
+      "cases": [
+        {
+          "id": "input0-original-truth0",
+          "parameters": {
+            "study": "E03",
+            "input_index": 0,
+            "truth_index": 0,
+            "mode": "original",
+            "timing_mode": "A",
+            "backend": "internal",
+            "machine": "jetson"
+          }
+        },
+        {
+          "id": "input0-adapted-truth0",
+          "parameters": {
+            "study": "E03",
+            "input_index": 0,
+            "truth_index": 0,
+            "mode": "adapted",
+            "timing_mode": "A",
+            "backend": "internal",
+            "machine": "jetson"
+          }
+        },
+        {
+          "id": "input0-original-truth1",
+          "parameters": {
+            "study": "E03",
+            "input_index": 0,
+            "truth_index": 1,
+            "mode": "original",
+            "timing_mode": "A",
+            "backend": "internal",
+            "machine": "jetson"
+          }
+        },
+        {
+          "id": "input0-adapted-truth1",
+          "parameters": {
+            "study": "E03",
+            "input_index": 0,
+            "truth_index": 1,
+            "mode": "adapted",
+            "timing_mode": "A",
+            "backend": "internal",
+            "machine": "jetson"
+          }
+        },
+        {
+          "id": "input1-original-truth0",
+          "parameters": {
+            "study": "E03",
+            "input_index": 1,
+            "truth_index": 0,
+            "mode": "original",
+            "timing_mode": "A",
+            "backend": "internal",
+            "machine": "jetson"
+          }
+        },
+        {
+          "id": "input1-adapted-truth0",
+          "parameters": {
+            "study": "E03",
+            "input_index": 1,
+            "truth_index": 0,
+            "mode": "adapted",
+            "timing_mode": "A",
+            "backend": "internal",
+            "machine": "jetson"
+          }
+        },
+        {
+          "id": "input1-original-truth1",
+          "parameters": {
+            "study": "E03",
+            "input_index": 1,
+            "truth_index": 1,
+            "mode": "original",
+            "timing_mode": "A",
+            "backend": "internal",
+            "machine": "jetson"
+          }
+        },
+        {
+          "id": "input1-adapted-truth1",
+          "parameters": {
+            "study": "E03",
+            "input_index": 1,
+            "truth_index": 1,
+            "mode": "adapted",
+            "timing_mode": "A",
+            "backend": "internal",
+            "machine": "jetson"
+          }
+        },
+        {
+          "id": "input2-original-truth0",
+          "parameters": {
+            "study": "E03",
+            "input_index": 2,
+            "truth_index": 0,
+            "mode": "original",
+            "timing_mode": "A",
+            "backend": "internal",
+            "machine": "jetson"
+          }
+        },
+        {
+          "id": "input2-adapted-truth0",
+          "parameters": {
+            "study": "E03",
+            "input_index": 2,
+            "truth_index": 0,
+            "mode": "adapted",
+            "timing_mode": "A",
+            "backend": "internal",
+            "machine": "jetson"
+          }
+        },
+        {
+          "id": "input2-original-truth1",
+          "parameters": {
+            "study": "E03",
+            "input_index": 2,
+            "truth_index": 1,
+            "mode": "original",
+            "timing_mode": "A",
+            "backend": "internal",
+            "machine": "jetson"
+          }
+        },
+        {
+          "id": "input2-adapted-truth1",
+          "parameters": {
+            "study": "E03",
+            "input_index": 2,
+            "truth_index": 1,
+            "mode": "adapted",
+            "timing_mode": "A",
+            "backend": "internal",
+            "machine": "jetson"
+          }
+        },
+        {
+          "id": "input3-original-truth0",
+          "parameters": {
+            "study": "E03",
+            "input_index": 3,
+            "truth_index": 0,
+            "mode": "original",
+            "timing_mode": "A",
+            "backend": "internal",
+            "machine": "jetson"
+          }
+        },
+        {
+          "id": "input3-adapted-truth0",
+          "parameters": {
+            "study": "E03",
+            "input_index": 3,
+            "truth_index": 0,
+            "mode": "adapted",
+            "timing_mode": "A",
+            "backend": "internal",
+            "machine": "jetson"
+          }
+        },
+        {
+          "id": "input3-original-truth1",
+          "parameters": {
+            "study": "E03",
+            "input_index": 3,
+            "truth_index": 1,
+            "mode": "original",
+            "timing_mode": "A",
+            "backend": "internal",
+            "machine": "jetson"
+          }
+        },
+        {
+          "id": "input3-adapted-truth1",
+          "parameters": {
+            "study": "E03",
+            "input_index": 3,
+            "truth_index": 1,
+            "mode": "adapted",
+            "timing_mode": "A",
+            "backend": "internal",
+            "machine": "jetson"
+          }
+        },
+        {
+          "id": "input4-original-truth0",
+          "parameters": {
+            "study": "E03",
+            "input_index": 4,
+            "truth_index": 0,
+            "mode": "original",
+            "timing_mode": "A",
+            "backend": "internal",
+            "machine": "jetson"
+          }
+        },
+        {
+          "id": "input4-adapted-truth0",
+          "parameters": {
+            "study": "E03",
+            "input_index": 4,
+            "truth_index": 0,
+            "mode": "adapted",
+            "timing_mode": "A",
+            "backend": "internal",
+            "machine": "jetson"
+          }
+        },
+        {
+          "id": "input4-original-truth1",
+          "parameters": {
+            "study": "E03",
+            "input_index": 4,
+            "truth_index": 1,
+            "mode": "original",
+            "timing_mode": "A",
+            "backend": "internal",
+            "machine": "jetson"
+          }
+        },
+        {
+          "id": "input4-adapted-truth1",
+          "parameters": {
+            "study": "E03",
+            "input_index": 4,
+            "truth_index": 1,
+            "mode": "adapted",
+            "timing_mode": "A",
+            "backend": "internal",
+            "machine": "jetson"
+          }
+        },
+        {
+          "id": "input5-original-truth0",
+          "parameters": {
+            "study": "E03",
+            "input_index": 5,
+            "truth_index": 0,
+            "mode": "original",
+            "timing_mode": "A",
+            "backend": "internal",
+            "machine": "jetson"
+          }
+        },
+        {
+          "id": "input5-adapted-truth0",
+          "parameters": {
+            "study": "E03",
+            "input_index": 5,
+            "truth_index": 0,
+            "mode": "adapted",
+            "timing_mode": "A",
+            "backend": "internal",
+            "machine": "jetson"
+          }
+        },
+        {
+          "id": "input5-original-truth1",
+          "parameters": {
+            "study": "E03",
+            "input_index": 5,
+            "truth_index": 1,
+            "mode": "original",
+            "timing_mode": "A",
+            "backend": "internal",
+            "machine": "jetson"
+          }
+        },
+        {
+          "id": "input5-adapted-truth1",
+          "parameters": {
+            "study": "E03",
+            "input_index": 5,
+            "truth_index": 1,
+            "mode": "adapted",
+            "timing_mode": "A",
+            "backend": "internal",
+            "machine": "jetson"
+          }
+        }
+      ],
+      "command": [
+        "{python}",
+        "-m",
+        "experiments.force_adapter.run_native",
+        "--build",
+        "{build}",
+        "--runner",
+        "{runner}",
+        "--inputs",
+        "{inputs}/experiments/force_adapter/native_inputs",
+        "--output",
+        "{output}",
+        "--case",
+        "{case}"
+      ],
+      "preflight": {
+        "group": "force-native-readiness",
+        "command": [
+          "{build}/cuda_access_smoke"
+        ]
+      }
+    },
+    {
+      "id": "E02-no_estimator-truth0",
+      "research_question": "RQ-force",
+      "protocol": "force-body-fixed-v1",
+      "source_commit": "c0032ba57b34777f769cce9361887672016348b7",
+      "machines": [
+        "jetson"
+      ],
+      "timing_mode": "B",
+      "backend": "internal",
+      "description": "Body-fixed known-disturbance tracking: unchanged24s figure-eight and gates",
+      "build": {
+        "commands": [
+          [
+            "cmake",
+            "-S",
+            "{source}/experiments/force_adapter/native",
+            "-B",
+            "{build}",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DCMAKE_CUDA_ARCHITECTURES={cuda_arch}-real",
+            "-DPython3_EXECUTABLE={python}"
+          ],
+          [
+            "cmake",
+            "--build",
+            "{build}",
+            "--target",
+            "bsqpN32_tiago_right",
+            "cuda_access_smoke",
+            "--parallel",
+            "2"
+          ]
+        ],
+        "artifacts": [
+          "modules/bsqpN32_tiago_right*.so",
+          "cuda_access_smoke"
+        ]
+      },
+      "inputs": {
+        "experiments/force_adapter/native_inputs/arrays.npz": "b88a6c2160515f71cb1ebcf29467393b3ef813242e6ffc8f939e5dfbe850b89f",
+        "experiments/force_adapter/native_inputs/protocol.json": "d91f879b51c58c5c940dcf1ddc3be5c7c3fc98ebe565a9d708f379a433a73597",
+        "experiments/force_adapter/native_inputs/SHA256SUMS.json": "e09fabd529f6c1a1a4b49a30810f358735b36b5f47677cba740e6236b9d5389c",
+        "experiments/force_adapter/task_inputs/v01.json": "20920040853786cf3d96f13ba240f82918a9f0f5020270fbe67715666477cc81",
+        "experiments/force_adapter/task_inputs/t01.json": "aec47cfa3819de5adbb8633b637f5bd9bcd327cb3afc5043a856b323af5aac41",
+        "experiments/force_adapter/task_inputs/SHA256SUMS.json": "7835ecd62576737334582d50e724a4be83b4bd2878d2085143b76ec0eb44b8b1"
+      },
+      "preparation_status": "prepared_no_measurements",
+      "cases": [
+        {
+          "id": "figure8-24s",
+          "parameters": {
+            "study": "E02",
+            "mode": "no_estimator",
+            "truth_index": 0,
+            "timing_mode": "B",
+            "backend": "internal",
+            "machine": "jetson"
+          }
+        }
+      ],
+      "command": [
+        "{python}",
+        "-m",
+        "experiments.force_adapter.run_task",
+        "--build",
+        "{build}",
+        "--runner",
+        "{runner}",
+        "--inputs",
+        "{inputs}/experiments/force_adapter/task_inputs",
+        "--output",
+        "{output}",
+        "--case",
+        "{case}"
+      ],
+      "preflight": {
+        "group": "force-B-no_estimator-truth0",
+        "command": [
+          "{python}",
+          "-m",
+          "experiments.force_adapter.run_task",
+          "--build",
+          "{build}",
+          "--runner",
+          "{runner}",
+          "--inputs",
+          "{inputs}/experiments/force_adapter/task_inputs",
+          "--output",
+          "{output}",
+          "--preflight",
+          "--mode",
+          "no_estimator",
+          "--truth-index",
+          "0"
+        ]
+      }
+    },
+    {
+      "id": "E02-no_estimator-truth1",
+      "research_question": "RQ-force",
+      "protocol": "force-body-fixed-v1",
+      "source_commit": "c0032ba57b34777f769cce9361887672016348b7",
+      "machines": [
+        "jetson"
+      ],
+      "timing_mode": "B",
+      "backend": "internal",
+      "description": "Body-fixed known-disturbance tracking: unchanged24s figure-eight and gates",
+      "build": {
+        "commands": [
+          [
+            "cmake",
+            "-S",
+            "{source}/experiments/force_adapter/native",
+            "-B",
+            "{build}",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DCMAKE_CUDA_ARCHITECTURES={cuda_arch}-real",
+            "-DPython3_EXECUTABLE={python}"
+          ],
+          [
+            "cmake",
+            "--build",
+            "{build}",
+            "--target",
+            "bsqpN32_tiago_right",
+            "cuda_access_smoke",
+            "--parallel",
+            "2"
+          ]
+        ],
+        "artifacts": [
+          "modules/bsqpN32_tiago_right*.so",
+          "cuda_access_smoke"
+        ]
+      },
+      "inputs": {
+        "experiments/force_adapter/native_inputs/arrays.npz": "b88a6c2160515f71cb1ebcf29467393b3ef813242e6ffc8f939e5dfbe850b89f",
+        "experiments/force_adapter/native_inputs/protocol.json": "d91f879b51c58c5c940dcf1ddc3be5c7c3fc98ebe565a9d708f379a433a73597",
+        "experiments/force_adapter/native_inputs/SHA256SUMS.json": "e09fabd529f6c1a1a4b49a30810f358735b36b5f47677cba740e6236b9d5389c",
+        "experiments/force_adapter/task_inputs/v01.json": "20920040853786cf3d96f13ba240f82918a9f0f5020270fbe67715666477cc81",
+        "experiments/force_adapter/task_inputs/t01.json": "aec47cfa3819de5adbb8633b637f5bd9bcd327cb3afc5043a856b323af5aac41",
+        "experiments/force_adapter/task_inputs/SHA256SUMS.json": "7835ecd62576737334582d50e724a4be83b4bd2878d2085143b76ec0eb44b8b1"
+      },
+      "preparation_status": "prepared_no_measurements",
+      "cases": [
+        {
+          "id": "figure8-24s",
+          "parameters": {
+            "study": "E02",
+            "mode": "no_estimator",
+            "truth_index": 1,
+            "timing_mode": "B",
+            "backend": "internal",
+            "machine": "jetson"
+          }
+        }
+      ],
+      "command": [
+        "{python}",
+        "-m",
+        "experiments.force_adapter.run_task",
+        "--build",
+        "{build}",
+        "--runner",
+        "{runner}",
+        "--inputs",
+        "{inputs}/experiments/force_adapter/task_inputs",
+        "--output",
+        "{output}",
+        "--case",
+        "{case}"
+      ],
+      "preflight": {
+        "group": "force-B-no_estimator-truth1",
+        "command": [
+          "{python}",
+          "-m",
+          "experiments.force_adapter.run_task",
+          "--build",
+          "{build}",
+          "--runner",
+          "{runner}",
+          "--inputs",
+          "{inputs}/experiments/force_adapter/task_inputs",
+          "--output",
+          "{output}",
+          "--preflight",
+          "--mode",
+          "no_estimator",
+          "--truth-index",
+          "1"
+        ]
+      }
+    },
+    {
+      "id": "E02-original-truth0",
+      "research_question": "RQ-force",
+      "protocol": "force-body-fixed-v1",
+      "source_commit": "c0032ba57b34777f769cce9361887672016348b7",
+      "machines": [
+        "jetson"
+      ],
+      "timing_mode": "B",
+      "backend": "internal",
+      "description": "Body-fixed known-disturbance tracking: unchanged24s figure-eight and gates",
+      "build": {
+        "commands": [
+          [
+            "cmake",
+            "-S",
+            "{source}/experiments/force_adapter/native",
+            "-B",
+            "{build}",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DCMAKE_CUDA_ARCHITECTURES={cuda_arch}-real",
+            "-DPython3_EXECUTABLE={python}"
+          ],
+          [
+            "cmake",
+            "--build",
+            "{build}",
+            "--target",
+            "bsqpN32_tiago_right",
+            "cuda_access_smoke",
+            "--parallel",
+            "2"
+          ]
+        ],
+        "artifacts": [
+          "modules/bsqpN32_tiago_right*.so",
+          "cuda_access_smoke"
+        ]
+      },
+      "inputs": {
+        "experiments/force_adapter/native_inputs/arrays.npz": "b88a6c2160515f71cb1ebcf29467393b3ef813242e6ffc8f939e5dfbe850b89f",
+        "experiments/force_adapter/native_inputs/protocol.json": "d91f879b51c58c5c940dcf1ddc3be5c7c3fc98ebe565a9d708f379a433a73597",
+        "experiments/force_adapter/native_inputs/SHA256SUMS.json": "e09fabd529f6c1a1a4b49a30810f358735b36b5f47677cba740e6236b9d5389c",
+        "experiments/force_adapter/task_inputs/v01.json": "20920040853786cf3d96f13ba240f82918a9f0f5020270fbe67715666477cc81",
+        "experiments/force_adapter/task_inputs/t01.json": "aec47cfa3819de5adbb8633b637f5bd9bcd327cb3afc5043a856b323af5aac41",
+        "experiments/force_adapter/task_inputs/SHA256SUMS.json": "7835ecd62576737334582d50e724a4be83b4bd2878d2085143b76ec0eb44b8b1"
+      },
+      "preparation_status": "prepared_no_measurements",
+      "cases": [
+        {
+          "id": "figure8-24s",
+          "parameters": {
+            "study": "E02",
+            "mode": "original",
+            "truth_index": 0,
+            "timing_mode": "B",
+            "backend": "internal",
+            "machine": "jetson"
+          }
+        }
+      ],
+      "command": [
+        "{python}",
+        "-m",
+        "experiments.force_adapter.run_task",
+        "--build",
+        "{build}",
+        "--runner",
+        "{runner}",
+        "--inputs",
+        "{inputs}/experiments/force_adapter/task_inputs",
+        "--output",
+        "{output}",
+        "--case",
+        "{case}"
+      ],
+      "preflight": {
+        "group": "force-B-original-truth0",
+        "command": [
+          "{python}",
+          "-m",
+          "experiments.force_adapter.run_task",
+          "--build",
+          "{build}",
+          "--runner",
+          "{runner}",
+          "--inputs",
+          "{inputs}/experiments/force_adapter/task_inputs",
+          "--output",
+          "{output}",
+          "--preflight",
+          "--mode",
+          "original",
+          "--truth-index",
+          "0"
+        ]
+      }
+    },
+    {
+      "id": "E02-original-truth1",
+      "research_question": "RQ-force",
+      "protocol": "force-body-fixed-v1",
+      "source_commit": "c0032ba57b34777f769cce9361887672016348b7",
+      "machines": [
+        "jetson"
+      ],
+      "timing_mode": "B",
+      "backend": "internal",
+      "description": "Body-fixed known-disturbance tracking: unchanged24s figure-eight and gates",
+      "build": {
+        "commands": [
+          [
+            "cmake",
+            "-S",
+            "{source}/experiments/force_adapter/native",
+            "-B",
+            "{build}",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DCMAKE_CUDA_ARCHITECTURES={cuda_arch}-real",
+            "-DPython3_EXECUTABLE={python}"
+          ],
+          [
+            "cmake",
+            "--build",
+            "{build}",
+            "--target",
+            "bsqpN32_tiago_right",
+            "cuda_access_smoke",
+            "--parallel",
+            "2"
+          ]
+        ],
+        "artifacts": [
+          "modules/bsqpN32_tiago_right*.so",
+          "cuda_access_smoke"
+        ]
+      },
+      "inputs": {
+        "experiments/force_adapter/native_inputs/arrays.npz": "b88a6c2160515f71cb1ebcf29467393b3ef813242e6ffc8f939e5dfbe850b89f",
+        "experiments/force_adapter/native_inputs/protocol.json": "d91f879b51c58c5c940dcf1ddc3be5c7c3fc98ebe565a9d708f379a433a73597",
+        "experiments/force_adapter/native_inputs/SHA256SUMS.json": "e09fabd529f6c1a1a4b49a30810f358735b36b5f47677cba740e6236b9d5389c",
+        "experiments/force_adapter/task_inputs/v01.json": "20920040853786cf3d96f13ba240f82918a9f0f5020270fbe67715666477cc81",
+        "experiments/force_adapter/task_inputs/t01.json": "aec47cfa3819de5adbb8633b637f5bd9bcd327cb3afc5043a856b323af5aac41",
+        "experiments/force_adapter/task_inputs/SHA256SUMS.json": "7835ecd62576737334582d50e724a4be83b4bd2878d2085143b76ec0eb44b8b1"
+      },
+      "preparation_status": "prepared_no_measurements",
+      "cases": [
+        {
+          "id": "figure8-24s",
+          "parameters": {
+            "study": "E02",
+            "mode": "original",
+            "truth_index": 1,
+            "timing_mode": "B",
+            "backend": "internal",
+            "machine": "jetson"
+          }
+        }
+      ],
+      "command": [
+        "{python}",
+        "-m",
+        "experiments.force_adapter.run_task",
+        "--build",
+        "{build}",
+        "--runner",
+        "{runner}",
+        "--inputs",
+        "{inputs}/experiments/force_adapter/task_inputs",
+        "--output",
+        "{output}",
+        "--case",
+        "{case}"
+      ],
+      "preflight": {
+        "group": "force-B-original-truth1",
+        "command": [
+          "{python}",
+          "-m",
+          "experiments.force_adapter.run_task",
+          "--build",
+          "{build}",
+          "--runner",
+          "{runner}",
+          "--inputs",
+          "{inputs}/experiments/force_adapter/task_inputs",
+          "--output",
+          "{output}",
+          "--preflight",
+          "--mode",
+          "original",
+          "--truth-index",
+          "1"
+        ]
+      }
+    },
+    {
+      "id": "E02-adapted-truth0",
+      "research_question": "RQ-force",
+      "protocol": "force-body-fixed-v1",
+      "source_commit": "c0032ba57b34777f769cce9361887672016348b7",
+      "machines": [
+        "jetson"
+      ],
+      "timing_mode": "B",
+      "backend": "internal",
+      "description": "Body-fixed known-disturbance tracking: unchanged24s figure-eight and gates",
+      "build": {
+        "commands": [
+          [
+            "cmake",
+            "-S",
+            "{source}/experiments/force_adapter/native",
+            "-B",
+            "{build}",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DCMAKE_CUDA_ARCHITECTURES={cuda_arch}-real",
+            "-DPython3_EXECUTABLE={python}"
+          ],
+          [
+            "cmake",
+            "--build",
+            "{build}",
+            "--target",
+            "bsqpN32_tiago_right",
+            "cuda_access_smoke",
+            "--parallel",
+            "2"
+          ]
+        ],
+        "artifacts": [
+          "modules/bsqpN32_tiago_right*.so",
+          "cuda_access_smoke"
+        ]
+      },
+      "inputs": {
+        "experiments/force_adapter/native_inputs/arrays.npz": "b88a6c2160515f71cb1ebcf29467393b3ef813242e6ffc8f939e5dfbe850b89f",
+        "experiments/force_adapter/native_inputs/protocol.json": "d91f879b51c58c5c940dcf1ddc3be5c7c3fc98ebe565a9d708f379a433a73597",
+        "experiments/force_adapter/native_inputs/SHA256SUMS.json": "e09fabd529f6c1a1a4b49a30810f358735b36b5f47677cba740e6236b9d5389c",
+        "experiments/force_adapter/task_inputs/v01.json": "20920040853786cf3d96f13ba240f82918a9f0f5020270fbe67715666477cc81",
+        "experiments/force_adapter/task_inputs/t01.json": "aec47cfa3819de5adbb8633b637f5bd9bcd327cb3afc5043a856b323af5aac41",
+        "experiments/force_adapter/task_inputs/SHA256SUMS.json": "7835ecd62576737334582d50e724a4be83b4bd2878d2085143b76ec0eb44b8b1"
+      },
+      "preparation_status": "prepared_no_measurements",
+      "cases": [
+        {
+          "id": "figure8-24s",
+          "parameters": {
+            "study": "E02",
+            "mode": "adapted",
+            "truth_index": 0,
+            "timing_mode": "B",
+            "backend": "internal",
+            "machine": "jetson"
+          }
+        }
+      ],
+      "command": [
+        "{python}",
+        "-m",
+        "experiments.force_adapter.run_task",
+        "--build",
+        "{build}",
+        "--runner",
+        "{runner}",
+        "--inputs",
+        "{inputs}/experiments/force_adapter/task_inputs",
+        "--output",
+        "{output}",
+        "--case",
+        "{case}"
+      ],
+      "preflight": {
+        "group": "force-B-adapted-truth0",
+        "command": [
+          "{python}",
+          "-m",
+          "experiments.force_adapter.run_task",
+          "--build",
+          "{build}",
+          "--runner",
+          "{runner}",
+          "--inputs",
+          "{inputs}/experiments/force_adapter/task_inputs",
+          "--output",
+          "{output}",
+          "--preflight",
+          "--mode",
+          "adapted",
+          "--truth-index",
+          "0"
+        ]
+      }
+    },
+    {
+      "id": "E02-adapted-truth1",
+      "research_question": "RQ-force",
+      "protocol": "force-body-fixed-v1",
+      "source_commit": "c0032ba57b34777f769cce9361887672016348b7",
+      "machines": [
+        "jetson"
+      ],
+      "timing_mode": "B",
+      "backend": "internal",
+      "description": "Body-fixed known-disturbance tracking: unchanged24s figure-eight and gates",
+      "build": {
+        "commands": [
+          [
+            "cmake",
+            "-S",
+            "{source}/experiments/force_adapter/native",
+            "-B",
+            "{build}",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DCMAKE_CUDA_ARCHITECTURES={cuda_arch}-real",
+            "-DPython3_EXECUTABLE={python}"
+          ],
+          [
+            "cmake",
+            "--build",
+            "{build}",
+            "--target",
+            "bsqpN32_tiago_right",
+            "cuda_access_smoke",
+            "--parallel",
+            "2"
+          ]
+        ],
+        "artifacts": [
+          "modules/bsqpN32_tiago_right*.so",
+          "cuda_access_smoke"
+        ]
+      },
+      "inputs": {
+        "experiments/force_adapter/native_inputs/arrays.npz": "b88a6c2160515f71cb1ebcf29467393b3ef813242e6ffc8f939e5dfbe850b89f",
+        "experiments/force_adapter/native_inputs/protocol.json": "d91f879b51c58c5c940dcf1ddc3be5c7c3fc98ebe565a9d708f379a433a73597",
+        "experiments/force_adapter/native_inputs/SHA256SUMS.json": "e09fabd529f6c1a1a4b49a30810f358735b36b5f47677cba740e6236b9d5389c",
+        "experiments/force_adapter/task_inputs/v01.json": "20920040853786cf3d96f13ba240f82918a9f0f5020270fbe67715666477cc81",
+        "experiments/force_adapter/task_inputs/t01.json": "aec47cfa3819de5adbb8633b637f5bd9bcd327cb3afc5043a856b323af5aac41",
+        "experiments/force_adapter/task_inputs/SHA256SUMS.json": "7835ecd62576737334582d50e724a4be83b4bd2878d2085143b76ec0eb44b8b1"
+      },
+      "preparation_status": "prepared_no_measurements",
+      "cases": [
+        {
+          "id": "figure8-24s",
+          "parameters": {
+            "study": "E02",
+            "mode": "adapted",
+            "truth_index": 1,
+            "timing_mode": "B",
+            "backend": "internal",
+            "machine": "jetson"
+          }
+        }
+      ],
+      "command": [
+        "{python}",
+        "-m",
+        "experiments.force_adapter.run_task",
+        "--build",
+        "{build}",
+        "--runner",
+        "{runner}",
+        "--inputs",
+        "{inputs}/experiments/force_adapter/task_inputs",
+        "--output",
+        "{output}",
+        "--case",
+        "{case}"
+      ],
+      "preflight": {
+        "group": "force-B-adapted-truth1",
+        "command": [
+          "{python}",
+          "-m",
+          "experiments.force_adapter.run_task",
+          "--build",
+          "{build}",
+          "--runner",
+          "{runner}",
+          "--inputs",
+          "{inputs}/experiments/force_adapter/task_inputs",
+          "--output",
+          "{output}",
+          "--preflight",
+          "--mode",
+          "adapted",
+          "--truth-index",
+          "1"
+        ]
+      }
+    }
+  ],
+  "preparation": {
+    "unique_one_ticks": 24,
+    "excluded_unrelated_warmups": 24,
+    "disturbance_tasks": 6,
+    "canonical_mode_B_preflights": 6,
+    "nominal_tracking_seconds": 144,
+    "E01": "Saved-data correspondence uses four first-input measured E03 records; no duplicate native executions",
+    "force_scope": "Attached/body-fixed arm_right_7_joint local x2N at joint origin; zero comparison. Not constant world force.",
+    "timing": "Exact accepted modeB old-plan plant clock; fresh owner/model allocation and memory queries included in full algorithm wall. Native solve separately retained. Disk recording outside.",
+    "baseline": "No estimator: zero-wrench B1 every tick. All methods start with zero/prior lane0 B1; no true-force access or estimator update before observed history.",
+    "memory": "cudaMemGetInfo boundary availability delta; host peak RSS separate. Not continuous peak or per-solver allocation, no host/device summing on shared-memory Jetson.",
+    "readiness": "Productionfloat force path and unchanged task-suite accepted at7d317fa. New method/truth canonicalB preflight per target. FailedB stays held; namedA diagnostic preserves evidence, no automatic rescue.",
+    "jetson": "Execution requires duration/storage/bottleneck discussion with Felix; retain original protocol, no silent pruning.",
+    "execution_status": "prepared_only_no_measurements"
+  }
+}
