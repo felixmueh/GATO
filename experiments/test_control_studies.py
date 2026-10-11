@@ -79,3 +79,34 @@ def test_actual_gripper_reduction_preserves_arm_mapping_and_mimics():
     assert identity['model_mismatch_intentional'] is True
     with pytest.raises(ValueError,match='outside asset limits'):
         adapter.gripper_plant(inputs/protocol['C06_gripper']['asset'],1.)
+
+
+def test_failed_secondary_suite_gets_fresh_runner_attempt_and_pass_is_reused(tmp_path,monkeypatch):
+    from recording import sha,write_json
+    source=tmp_path/'source';source.mkdir();(source/'fixture.py').write_text('# synthetic fixture\n')
+    build=tmp_path/'build';(build/'modules').mkdir(parents=True)
+    module=build/'modules/bsqpN32_tiago_right.synthetic.so';module.write_bytes(b'synthetic native identity')
+    group=tmp_path/'_preflight/ControlChoices-B'
+    legacy=tmp_path/'_preflight/_task_suite/source';legacy.mkdir(parents=True)
+    write_json(legacy/'metrics.json',dict(outcome='execution_failed',evidence_kind='synthetic_test',execution_error='retained original failure'))
+    legacy_bytes=(legacy/'metrics.json').read_bytes()
+    calls=[]
+    def fake_suite(src,bld,out):
+        out=Path(out);assert not out.exists();out.mkdir(parents=True);calls.append(out)
+        passed=len(calls)>1
+        write_json(out/'metrics.json',dict(outcome='task_suite_passed' if passed else 'execution_failed',exact_cases=passed,skipped=0,evidence_kind='synthetic_test'))
+        write_json(out/'provenance.json',dict(module_sha256=sha(module),adapter_sha256=sha(adapter.task_suite.__file__),
+            bootstrap_sha256=sha(adapter.task_suite.EXPERIMENTS/'task_bootstrap/sitecustomize.py'),fixture_sha256={'fixture.py':sha(source/'fixture.py')}))
+        return 0 if passed else 1
+    monkeypatch.setattr(adapter.task_suite,'run',fake_suite)
+    first=group/'attempt-001/task_suite';second=group/'attempt-002/task_suite';third=group/'attempt-003/task_suite'
+    assert adapter.ensure_suite(source,build,first,legacy)==1
+    failed_bytes=(first/'metrics.json').read_bytes()
+    assert adapter.ensure_suite(source,build,second,legacy)==0
+    assert adapter.ensure_suite(source,build,third,legacy)==0 and not third.exists()
+    assert calls==[first,second]
+    assert (first/'metrics.json').read_bytes()==failed_bytes and (legacy/'metrics.json').read_bytes()==legacy_bytes
+    # A passed result with changed fixture identity also needs a fresh invocation.
+    (source/'fixture.py').write_text('# changed synthetic fixture\n')
+    fourth=group/'attempt-004/task_suite'
+    assert adapter.ensure_suite(source,build,fourth,legacy)==0 and calls[-1]==fourth

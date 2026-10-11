@@ -94,18 +94,23 @@ def window_metrics(output,holding=False):
     return metrics
 
 
-def ensure_suite(source,build,output):
+def ensure_suite(source,build,output,legacy=None):
     output=Path(output)
     module=task_suite.resolve_module(Path(build),32)
-    if (output/'metrics.json').exists():
-        metrics=json.loads((output/'metrics.json').read_text())
-        provenance=json.loads((output/'provenance.json').read_text())
-        if (metrics.get('outcome')=='task_suite_passed' and metrics.get('exact_cases') and not metrics.get('skipped') and
-            provenance['module_sha256']==sha(module) and provenance['adapter_sha256']==sha(task_suite.__file__) and
-            provenance['bootstrap_sha256']==sha(task_suite.EXPERIMENTS/'task_bootstrap/sitecustomize.py') and
-            all(sha(Path(source)/p)==h for p,h in provenance['fixture_sha256'].items())):
-            return 0
-        return 1 # Existing failed or incompatible evidence is retained; no implicit retry.
+    candidates=sorted(output.parent.parent.glob('attempt-*/task_suite'),reverse=True)
+    if legacy is not None:candidates.append(Path(legacy))
+    for candidate in candidates:
+        try:
+            metrics=json.loads((candidate/'metrics.json').read_text())
+            provenance=json.loads((candidate/'provenance.json').read_text())
+            if (metrics.get('outcome')=='task_suite_passed' and metrics.get('exact_cases') and not metrics.get('skipped') and
+                provenance['module_sha256']==sha(module) and provenance['adapter_sha256']==sha(task_suite.__file__) and
+                provenance['bootstrap_sha256']==sha(task_suite.EXPERIMENTS/'task_bootstrap/sitecustomize.py') and
+                all(sha(Path(source)/p)==h for p,h in provenance['fixture_sha256'].items())):
+                return 0
+        except (OSError,ValueError,KeyError,TypeError):
+            continue # Missing/incompatible evidence never qualifies; bytes stay intact.
+    # The runner owns fresh attempt numbering and explicit --retry-failed policy.
     return task_suite.run(source,build,output)
 
 
@@ -115,8 +120,9 @@ def run(source,build,inputs,case,output,preflight=False):
     if preflight:
         # All cases share the pinned source/module. The substantive adapter has
         # CPU checks; these are genuine unchanged target controller regressions.
-        suite_output=output.parent.parent/'_task_suite'/protocol['source_commit']
-        code=ensure_suite(source,build,suite_output)
+        suite_output=output/'task_suite'
+        legacy=output.parent.parent/'_task_suite'/protocol['source_commit']
+        code=ensure_suite(source,build,suite_output,legacy)
         if code:
             output.mkdir(parents=True,exist_ok=True)
             write_json(output/'metrics.json',dict(campaign_id='ControlChoices-readiness',execution_error='Required target task suite failed or incompatible',
