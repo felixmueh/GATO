@@ -87,6 +87,37 @@ def test_target_preflight_is_sequential_and_holds_shared_failure(tmp_path,monkey
     assert metrics['task_success'] is metrics['physical_pass'] is None and metrics['failed_arm']=='default-B1'
 
 
+def test_retained_mode_a_original_summary_reuse_and_negative_gates(tmp_path,monkeypatch):
+    source=tmp_path/'source';source.mkdir()
+    inputs=tmp_path/'inputs';inputs.mkdir()
+    native=tmp_path/'bsqpN32_tiago_right.synthetic.so';native.write_bytes(b'synthetic')
+    build=tmp_path/'build';bb_prepare.copy_module(native,bb_prepare.sha(native),build)
+    readiness=dict(native_module=dict(sha256=bb_prepare.sha(native)),required_task_suite=dict(passed=True),
+        canonical_preflight=dict(passed=True,arms=[dict(batch_size=b,task_success=True,physical_pass=True) for b in (1,16)]))
+    (inputs/'gtx1070_readiness.json').write_text(json.dumps(readiness))
+    (inputs/'source_reuse.json').write_text(json.dumps(dict(unchanged_runtime_sha256={})))
+    # Real retained mode A shape has complete/outcome and physical_valid,
+    # without task_success. Keep those original evidence bytes unchanged.
+    original=dict(returncode=0,summaries={f'preflight_dt_0.03_B{b}':dict(
+        complete=True,outcome='reached',physical=dict(physical_valid=True)) for b in (1,16)})
+    path=inputs/'gtx1070_A_preflight.json';path.write_text(json.dumps(original));retained=path.read_bytes()
+    calls=[]
+    def run(command):
+        calls.append(command);return type('Result',(),{'returncode':0})()
+    monkeypatch.setattr(bb_prepare.subprocess,'run',run)
+    assert bb_prepare.preflight(source,build,inputs,tmp_path/'passed',True,'A',True)==0
+    assert len(calls)==1 and '--arm' in calls[0] and calls[0][calls[0].index('--arm')+1]=='nominal16x'
+    assert path.read_bytes()==retained
+    assert json.loads((tmp_path/'passed/reused_canonical.json').read_text())['original_preflight']==original
+    for change in (dict(task_success=False),dict(task_success=None),dict(complete=False),
+                   dict(outcome='timeout'),dict(physical=dict(physical_valid=False))):
+        evidence=json.loads(retained);evidence['summaries']['preflight_dt_0.03_B1'].update(change)
+        path.write_text(json.dumps(evidence));calls.clear()
+        with pytest.raises(ValueError,match='canonical A preflight failed'):
+            bb_prepare.preflight(source,build,inputs,tmp_path/'rejected',True,'A',True)
+        assert not calls
+
+
 def test_ba_declared_budget_only_and_worker_wiring(tmp_path):
     inputs=batching_plan.ROOT/'experiments/inputs/batching'
     nominal=ba.load_protocol(inputs/'ba_nominal16x.json',inputs/'ba_protocol.json')

@@ -44,7 +44,9 @@ def preflight(source,build,inputs,output,reuse=False,mode='B',nominal=False):
         original=evidence['canonical_preflight']
         if mode=='A':
             original=json.loads((inputs/'gtx1070_A_preflight.json').read_text())
-            if original['returncode']!=0 or not all(s['task_success'] and s['physical']['physical_valid'] for s in original['summaries'].values()):
+            if original['returncode']!=0 or not all(
+                s.get('task_success',s.get('complete') and s.get('outcome')=='reached')
+                and s['physical']['physical_valid'] for s in original['summaries'].values()):
                 raise ValueError('Retained canonical A preflight failed')
         metrics.update(machine='gtx1070',
             evidence=str(inputs/'gtx1070_readiness.json'),evidence_sha256=sha(inputs/'gtx1070_readiness.json'),
