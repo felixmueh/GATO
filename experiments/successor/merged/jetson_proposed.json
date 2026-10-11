@@ -3970,20 +3970,6 @@
       "timing_mode": "B",
       "cases": [
         {
-          "id": "supplied-easy30-B1",
-          "parameters": {
-            "study": "X03",
-            "batch": 1
-          }
-        },
-        {
-          "id": "supplied-easy30-B8",
-          "parameters": {
-            "study": "X03",
-            "batch": 8
-          }
-        },
-        {
           "id": "scene04_fast-B1",
           "parameters": {
             "study": "X04",

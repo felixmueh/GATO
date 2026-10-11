@@ -1,25 +1,66 @@
 # Experiment runner
 
-Run an explicit plan locally on each machine. Several experiments can share one
-pinned GATO source/build. Results and build caches are separate, beneath this
-checkout by default. The runner does not launch remote jobs or physical robots.
+Current campaign decisions are in the main
+[results review](/workspace/GATO/felixnotes/RESULTS_REVIEW_2026-10-11.md) and
+[revision addendum](/workspace/GATO/EXPERIMENT_PLAN_REVISION_2026-10-10.md).
+Use the explicit **restored-zero-PCG successor plans** below. Historical plans
+and raw results remain preserved with their original stopping policy and inputs.
+The runner does not launch remote jobs or physical robots.
+
+## Revised campaign preparation
+
+`zero_pcg_plan.py` prepares full successor cohorts using reviewed source pins,
+fresh matching native builds and target preflights. This includes all frozen
+BA/BB task pairs rather than only the old pending continuation. It also retains
+still-pending solver-independent checks on their required machines, without
+rerunning completed GTX1070 model/resource/collision measurements merely because
+the stopping policy changed.
 
 ```sh
-python3 experiments/run.py --plan experiments/campaign.json --machine rtx5060 --dry-run
-python3 experiments/run.py --plan experiments/campaign.json --machine rtx5060
+python3 experiments/zero_pcg_plan.py
+python3 experiments/package_plans.py --cohort zero-pcg --output experiments/successor/merged
+python3 experiments/run.py --plan experiments/successor/merged/gtx1070_desktop.json --machine gtx1070 --dry-run
+python3 experiments/run.py --plan experiments/successor/merged/rtx5060_desktop.json --machine rtx5060 --dry-run
+python3 experiments/run.py --plan experiments/successor/merged/jetson_proposed.json --machine jetson --dry-run
 ```
 
-The current campaign plan contains the remaining RTX 5060/internal T01 tasks and
-64 F01ab timing cells. It reuses the existing frozen tasks and runtime source
-`502fa29`. GTX 1070 T01/F01ab and the user-reported completed Jetson F01ab are
-excluded: import their saved results. Jetson T01, other families and physical
-scripts retain their separate protocols and execution decisions. The old
-`plan.json` is a historical pilot, never the default campaign.
+Use a fresh raw result directory for a new cohort. Inspect the explicit plan
+before execution; the old `campaign.json`, merged plans and native-copy recipes
+remain historical. The restored solver can stop at zero PCG iterations while
+KKT flags remain residual-based. Report actual SQP/PCG work and never pool the
+old and new stopping policies as one measurement cohort.
 
-`campaign_plan.py` regenerates `campaign.json` and its small frozen input bundle
-from the recorded Git source. It does not build, fetch or run anything. Changes
-to this collector use protocol `simple-harness-v1`; historical cohorts remain
-identified by their original source and configuration.
+The faster tracking proposal adds **8, 6 and 4 s periods** in internal mode B,
+with provisional common **25 mm RMS / 50 mm maximum** position-error gates.
+Its references preserve the original figure-eight geometry and are frozen in
+`inputs/t01_faster/`. These cases are simulation-only; Felix reviews their
+results and gates before any live adoption. Existing live and physical scripts
+retain their approved tasks. Jetson V01/T01 in mode B comes before live work;
+Jetson duration/storage discussion and manual physical-motion review remain.
+
+The accepted force redesign is prepared separately because it first needs an
+original-arm 0 N smoke and a fixed 5/10/20 N screen against a new 0 N baseline.
+`successor/force_stages.json` records the status of that prerequisite, selected
+force and revised E01/E02/E03 coverage. A pending stage is not an executable
+old-force substitute. Persistent solvers and GPU prediction replace the old
+fresh-owner/CPU-predictor study; their data remain separate protocols.
+
+Saved-analysis updates live in `analysis/results_review.py`, `analysis/f01ab.py`
+and `analysis/control_choices.py`. The historical BB report combines all 100
+pairs, including 11 B16 crash outcomes, while retaining raw error/unavailable
+fields. BA seeds-alone is dropped; own-seed-to-output progress remains.
+Full SO(3) errors, task-colored timing histograms and PCG cap shares supplement
+the original reports. The N128 Jetson discrepancy remains a limitation without
+a diagnostic replay.
+
+## Earlier prepared inventory
+
+The sections below retain the original family commands and protocol context.
+Their old pinned plans are not substitutes for the successor cohort. The
+historical `campaign.json` selects remaining RTX5060/internal T01 and F01ab
+measurements at source `502fa29`; completed GTX1070/Jetson exclusions in that
+plan do not define the restored-solver campaign. `plan.json` remains a legacy
+pilot, never the new campaign default.
 
 ## Combined machine plans and transfer package
 
@@ -208,6 +249,14 @@ for desktop/laptop sync. Generate thesis figures and tables on the desktop,
 where full raw recordings remain with a separate backup. Keep raw recordings,
 builds and source caches outside this directory. The full result archive from
 `collect.py --export` belongs in raw-data transfer/backup, not thesis sync.
+
+Export each finalized Markdown report as a self-contained PDF beside its
+editable source in `thesis_results/<study>/`. Embed the important figures with
+captions, key tables, findings and limitations so the essential results can be
+read on another device without following local filesystem links. Regenerate the
+PDF when the report or included figures change. Use an ordinary Markdown-to-PDF
+tool and briefly inspect the output for missing images, unreadable figures or
+clipped content; no separate publishing framework is needed.
 
 Where straightforward, also export compact plotting data and its plotting script
 for laptop edits. Preserve individual samples needed for distributions, units,
