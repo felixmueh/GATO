@@ -21,6 +21,35 @@ from the recorded Git source. It does not build, fetch or run anything. Changes
 to this collector use protocol `simple-harness-v1`; historical cohorts remain
 identified by their original source and configuration.
 
+## Combined machine plans and transfer package
+
+`package_plans.py` combines the explicitly listed prepared study plans without
+changing their cases or scientific settings. Its inventory lists missing studies
+and retains each source plan's prerequisites. Internal desktop runs, Gazebo
+runs and Jetson proposals remain separate; physical scripts never enter a queue.
+The generator is still being extended as the remaining study adapters finish.
+
+```sh
+python3 experiments/package_plans.py
+python3 experiments/run.py --plan experiments/merged/rtx5060_desktop.json --machine rtx5060 --dry-run
+python3 experiments/run.py --plan experiments/merged/rtx5060_gazebo.json --machine rtx5060 --dry-run
+```
+
+After the final plan/code checkpoint, create a fresh transfer package:
+
+```sh
+python3 experiments/package_plans.py --package .experiment-work/prepared-transfer
+```
+
+The package inventory gives the runner branch to clone from `sources.bundle`.
+Extract `runner-assets.tar.gz` into that clone, set the local machine/Python
+configuration and inspect the explicit plan before running. The runner manages
+source checkouts and shared builds. Working-tree measurements, build caches and
+local settings are excluded; exact Git source history includes any historically
+tracked objects. The GTX1070 batching continuation still needs its retained native
+module at the declared path to reuse that machine's existing readiness evidence.
+Jetson plans require the agreed duration/storage discussion before execution.
+
 ## What the runner does
 
 - Runs pending cases sequentially, with one relevant family preflight when
@@ -302,16 +331,25 @@ probe on RTX5060. GTX1070's completed 2/560 numerical negatives stay in the
 historical evidence. A completed numerical failure is a result; an incomplete
 probe or missing raw manifest is an execution failure. Tolerances are unchanged.
 
-`control_studies.json` prepares 37 cases on each desktop: running position and
+`control_studies.json` prepares 38 cases on each desktop: running position and
 orientation costs, two historical cost-switch distances, existing final approach
 with one small starting-state perturbation, damping/speed-limit/terminal weights,
 nominal holding and warm-start choices. Reaching uses an explicit eight-second
 observation so settling switches can act; zero-dwell rough task success is
 reported separately from observation timeout and physical compliance. These
 reuse the frozen two reaches and 24-second figure eight. Holding is a finite
-observation, not an equilibrium certificate. Model/gripper sensitivity is still
-unimplemented and explicitly listed in the plan. The original target task suite
-and canonical mode B preflight precede this substantive task adapter.
+observation, not an equilibrium certificate. The extra gripper holding case uses
+the existing include-gripper URDF with its six finger joints locked at the
+0.8028514559173916 rad driver upper limit and the declared mimic relationships.
+It pairs with the shared nominal-zero holding baseline. These are the wider
+nominal-zero and narrower-upper geometric configurations; only the Pinocchio
+plant changes, while the native optimizer keeps its nominal model. This is a
+small intentional inertial mismatch, with no physical gripper motion. The
+original target task suite and canonical mode B preflight precede execution.
+
+`analysis/control_choices.py --raw RESULT_COLLECTION --output NEW_DIRECTORY`
+exports per-attempt outcomes and reaching traces, preserving retries, failures,
+source/module identities and separate rough-success/physical outcomes.
 
 ```sh
 python3 experiments/run.py --plan experiments/model_checks.json --machine rtx5060 --dry-run

@@ -14,11 +14,12 @@ def test_plan_is_bounded_and_preserves_shared_baselines(tmp_path):
     before=(plans.ROOT/'experiments/campaign.json').read_bytes()
     desktop=plans.prepare(tmp_path/'desktop.json');jetson=plans.prepare(tmp_path/'jetson.json',True)
     cases=desktop['experiments'][0]['cases']
-    assert len(cases)==37 and len(jetson['experiments'][0]['cases'])==6
-    assert len({c['id'] for c in cases})==37
+    assert len(cases)==38 and len(jetson['experiments'][0]['cases'])==6
+    assert len({c['id'] for c in cases})==38
     assert desktop['experiments'][0]['machines']==['gtx1070','rtx5060']
     assert sum(c['parameters']['variant']=='current-default' for c in cases)==3
-    assert desktop['unsupported']['C06-model-gripper']
+    assert not desktop['unsupported']
+    assert sum(c['parameters']['variant']=='holding-gripper-upper' for c in cases)==1
     assert 'cuda_access_smoke' in desktop['experiments'][0]['build']['artifacts']
     assert (plans.ROOT/'experiments/campaign.json').read_bytes()==before
 
@@ -63,3 +64,18 @@ def test_target_suite_failure_holds_canonical_case(tmp_path,monkeypatch):
     assert adapter.run(tmp_path,tmp_path,inputs,None,tmp_path/'output',True)==1
     metrics=json.loads((tmp_path/'output/metrics.json').read_text())
     assert metrics['task_success'] is metrics['physical_pass'] is None
+
+
+def test_actual_gripper_reduction_preserves_arm_mapping_and_mimics():
+    import pytest
+    inputs=plans.ROOT/'experiments/inputs/control_studies'
+    protocol=json.loads((inputs/'protocol.json').read_text())
+    plant,identity=adapter.gripper_plant(inputs/protocol['C06_gripper']['asset'],.8028514559173916,protocol['C06_gripper']['asset_sha256'])
+    assert plant.nq==plant.nv==7
+    assert identity['arm_joint_names']==[f'arm_right_{i}_joint' for i in range(1,8)]
+    positions=identity['locked_joint_positions_rad']
+    assert positions['gripper_right_inner_finger_left_joint']==positions['gripper_right_finger_joint']
+    assert positions['gripper_right_fingertip_left_joint']==-positions['gripper_right_finger_joint']
+    assert identity['model_mismatch_intentional'] is True
+    with pytest.raises(ValueError,match='outside asset limits'):
+        adapter.gripper_plant(inputs/protocol['C06_gripper']['asset'],1.)

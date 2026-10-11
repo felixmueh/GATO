@@ -25,7 +25,6 @@ OMISSIONS={
   'D02 physical robot':'Standalone scripts/manual confirmation and index; never automatic runner execution.',
  'Force E01/E02/E03':'Runtimequalified7d317fa accepted; study plans in progress; no comparative benefit claimed from runtime qualification.',
  'X and B02':'Pending explicit remaining definitions/review; no silent scientific substitutions.',
- 'C06 model variation':'Unsupported by current declared runtime; pending bounded choice.',
  'Q03 target task suite':'Separate readiness helper/relevant original fixture checks; not duplicated as research data.',
  'Historical M01/F02/F03/C02/C07/L00/X03-IIWA':'Record-only; exact result locations retained in tracker/evidence ledger.',
  'L01 learning':'Deferred.',

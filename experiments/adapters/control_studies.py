@@ -7,6 +7,7 @@ import json
 from pathlib import Path
 import sys
 import traceback
+import xml.etree.ElementTree as ET
 
 import numpy as np
 
@@ -15,6 +16,35 @@ from adapters import task,task_suite
 from recording import sha,write_json
 
 PARAM_KEYS=('q_cost','qd_cost','u_cost','N_cost','ee_orient_cost','ee_orient_N_cost','q_lim_cost','vel_lim_cost','ctrl_lim_cost','max_sqp_iters','mu','pcg_tol')
+
+
+def gripper_plant(asset,angle,expected_sha256=None):
+    """Lock real URDF finger joints; preserve the seven arm coordinates."""
+    import pinocchio as pin
+    asset=Path(asset)
+    if expected_sha256 and sha(asset)!=expected_sha256:raise ValueError('Frozen gripper model asset differs')
+    root=ET.parse(asset).getroot();full=pin.buildModelFromUrdf(str(asset));q=pin.neutral(full)
+    positions={};locked=[]
+    for joint in root.findall('joint'):
+        name=joint.attrib['name']
+        if not name.startswith('gripper_right') or joint.attrib['type']=='fixed':continue
+        mimic=joint.find('mimic')
+        if mimic is not None and mimic.attrib['joint']!='gripper_right_finger_joint':raise ValueError('Unexpected gripper mimic driver')
+        value=float(angle) if mimic is None else float(angle)*float(mimic.attrib.get('multiplier','1'))+float(mimic.attrib.get('offset','0'))
+        limits=joint.find('limit')
+        if value<float(limits.attrib['lower']) or value>float(limits.attrib['upper']):raise ValueError('Declared gripper coordinate outside asset limits')
+        index=full.getJointId(name)
+        if index>=full.njoints:raise ValueError('Gripper joint absent from Pinocchio model')
+        positions[name]=value;q[full.joints[index].idx_q]=value;locked.append(index)
+    if len(locked)!=6:raise ValueError('Expected six actual gripper finger joints')
+    plant=pin.buildReducedModel(full,locked,q)
+    names=[f'arm_right_{i}_joint' for i in range(1,8)]
+    if plant.nq!=7 or plant.nv!=7 or list(plant.names)[1:]!=names:raise ValueError('Reduced gripper plant coordinate mapping differs')
+    if plant.getFrameId('arm_right_tool_link')>=plant.nframes:raise ValueError('Reduced plant tool frame unavailable')
+    return plant,dict(asset=str(asset),asset_sha256=sha(asset),finger_angle_rad=float(angle),locked_joint_positions_rad=positions,
+        arm_joint_names=names,plant_dynamics='Pinocchio actual-URDF reduction at fixed gripper coordinates',
+        native_optimizer='unchanged nominal-zero wider lumped model',model_mismatch_intentional=True,
+        scope='No native regeneration, payload, physical gripper motion, friction, drive response or collision certificate')
 
 
 def seed(policy,previous,state,nx,nu,knots):
@@ -108,6 +138,12 @@ def run(source,build,inputs,case,output,preflight=False):
         production=importlib.import_module('gato_tiago.tiago_mpc_controller')
         old_constructor=production.MPC_GATO
         def constructor(*args,**kwargs):
+            gripper_identity=None
+            if 'gripper_angle_rad' in variant:
+                plant,gripper_identity=gripper_plant(inputs/protocol['C06_gripper']['asset'],variant['gripper_angle_rad'],protocol['C06_gripper']['asset_sha256'])
+                plant.gravity.linear=np.asarray(current['gravity_m_s2'])
+                args=(plant,)+args[1:]
+                current['plant_model_variation']=gripper_identity
             if 'switch_distance_m' in variant:
                 after={k:current['solver_params'][k] for k in PARAM_KEYS}
                 for k in protocol['C03_policy']['scaled']:after[k]*=10
@@ -130,7 +166,7 @@ def run(source,build,inputs,case,output,preflight=False):
                 offline.shift_packed_trajectory_warm_start=lambda previous,state,nx,nu,knots,elapsed,dt:seed(variant['seed_policy'],previous,state,nx,nu,knots)
             write_json(output/'control_choices.json',dict(variant=variant,resolved_solver_params=owner.solver_params,
                 final_approach=dict(enabled=owner.final_approach.enabled,after=owner.final_approach.after,trigger=owner.final_approach.trigger),
-                adapter_sha256=sha(__file__),protocol_sha256=sha(inputs/'protocol.json')))
+                adapter_sha256=sha(__file__),protocol_sha256=sha(inputs/'protocol.json'),plant_model_variation=gripper_identity))
             return owner
         production.MPC_GATO=constructor
         return result
@@ -150,7 +186,8 @@ def run(source,build,inputs,case,output,preflight=False):
         code=task.run(source,build,dict(id=case['parameters']['base_task']),output,'B',False,inputs)
         if current.get('full_observation'):window_metrics(output,variant.get('holding',False))
         metrics=json.loads((output/'metrics.json').read_text());metrics.update(campaign_id=variant['study'],research_question='RQ-control-choices',
-            control_variant=variant['id'],base_task=case['parameters']['base_task'],collection_protocol=protocol['id'])
+            control_variant=variant['id'],base_task=case['parameters']['base_task'],collection_protocol=protocol['id'],
+            plant_model_variation=current.get('plant_model_variation'))
         write_json(output/'metrics.json',metrics)
         manifest=json.loads((output/'SHA256SUMS.json').read_text())
         for filename in ('metrics.json','protocol.json','control_choices.json'):

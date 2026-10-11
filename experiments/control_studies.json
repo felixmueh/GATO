@@ -4,7 +4,7 @@
     {
       "id": "ControlChoices",
       "research_question": "RQ-control-choices",
-      "protocol": "bounded-control-choices-B-v1",
+      "protocol": "bounded-control-choices-B-v2",
       "source_commit": "502fa29c8b0d649dcb347f9534bf29c6935fa6dd",
       "machines": [
         "gtx1070",
@@ -15,7 +15,8 @@
       "inputs": {
         "experiments/inputs/control_studies/v01.json": "20920040853786cf3d96f13ba240f82918a9f0f5020270fbe67715666477cc81",
         "experiments/inputs/control_studies/t01.json": "aec47cfa3819de5adbb8633b637f5bd9bcd327cb3afc5043a856b323af5aac41",
-        "experiments/inputs/control_studies/protocol.json": "57e2a752e145af50238996044c08d2bc580184ec16a73f443888c3399f0d1588"
+        "experiments/inputs/control_studies/tiago_right_arm_include_gripper.urdf": "d15fc81d1208662f822995592544285aba2cb4702d01e9da2523ff5cf3be0a25",
+        "experiments/inputs/control_studies/protocol.json": "0546c3c92f77f49d6198e41a21176b5845e19bae0ac6bc46bcd4ecf754d3fe05"
       },
       "build": {
         "inputs": {
@@ -306,6 +307,13 @@
           }
         },
         {
+          "id": "holding-gripper-upper-goal-1",
+          "parameters": {
+            "variant": "holding-gripper-upper",
+            "base_task": "goal-1"
+          }
+        },
+        {
           "id": "holding-no-effort-cost-goal-1",
           "parameters": {
             "variant": "holding-no-effort-cost",
@@ -345,8 +353,6 @@
     }
   ],
   "status": "prepared_target_validation_pending",
-  "unsupported": {
-    "C06-model-gripper": "No frozen compatible generated-native model/gripper perturbation protocol recovered; arm-only nominal holding does not qualify this question."
-  },
+  "unsupported": {},
   "note": "Historical sweeps and failures preserved. Fixed8s observations report rough success separately from public timeout. No full parameter optimization."
 }

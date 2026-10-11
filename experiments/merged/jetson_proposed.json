@@ -1226,7 +1226,7 @@
     {
       "id": "ControlChoices",
       "research_question": "RQ-control-choices",
-      "protocol": "bounded-control-choices-B-v1",
+      "protocol": "bounded-control-choices-B-v2",
       "source_commit": "502fa29c8b0d649dcb347f9534bf29c6935fa6dd",
       "machines": [
         "jetson"
@@ -1236,7 +1236,8 @@
       "inputs": {
         "experiments/inputs/control_studies/v01.json": "20920040853786cf3d96f13ba240f82918a9f0f5020270fbe67715666477cc81",
         "experiments/inputs/control_studies/t01.json": "aec47cfa3819de5adbb8633b637f5bd9bcd327cb3afc5043a856b323af5aac41",
-        "experiments/inputs/control_studies/protocol.json": "57e2a752e145af50238996044c08d2bc580184ec16a73f443888c3399f0d1588"
+        "experiments/inputs/control_studies/tiago_right_arm_include_gripper.urdf": "d15fc81d1208662f822995592544285aba2cb4702d01e9da2523ff5cf3be0a25",
+        "experiments/inputs/control_studies/protocol.json": "0546c3c92f77f49d6198e41a21176b5845e19bae0ac6bc46bcd4ecf754d3fe05"
       },
       "build": {
         "inputs": {
@@ -5888,9 +5889,7 @@
     },
     "control_studies_jetson_proposed.json": {
       "status": "proposed_target_duration_discussion_pending",
-      "unsupported": {
-        "C06-model-gripper": "No frozen compatible generated-native model/gripper perturbation protocol recovered; arm-only nominal holding does not qualify this question."
-      },
+      "unsupported": {},
       "note": "Historical sweeps and failures preserved. Fixed8s observations report rough success separately from public timeout. No full parameter optimization."
     },
     "collision_monitor_jetson_proposed.json": {
@@ -12286,7 +12285,6 @@
     "D02 physical robot": "Standalone scripts/manual confirmation and index; never automatic runner execution.",
     "Force E01/E02/E03": "Runtimequalified7d317fa accepted; study plans in progress; no comparative benefit claimed from runtime qualification.",
     "X and B02": "Pending explicit remaining definitions/review; no silent scientific substitutions.",
-    "C06 model variation": "Unsupported by current declared runtime; pending bounded choice.",
     "Q03 target task suite": "Separate readiness helper/relevant original fixture checks; not duplicated as research data.",
     "Historical M01/F02/F03/C02/C07/L00/X03-IIWA": "Record-only; exact result locations retained in tracker/evidence ledger.",
     "L01 learning": "Deferred."

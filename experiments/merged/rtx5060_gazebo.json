@@ -263,7 +263,7 @@
           "--build",
           "{build}",
           "--simulator-config",
-          "{runner}/collision_local.json",
+          "{runner}/local.json",
           "--output",
           "{output}",
           "--preflight"
@@ -277,7 +277,7 @@
         "--build",
         "{build}",
         "--simulator-config",
-        "{runner}/collision_local.json",
+        "{runner}/local.json",
         "--output",
         "{output}",
         "--case",
@@ -447,7 +447,7 @@
     "simulated_faults.json": {
       "status": "prepared_reviewed_source_target_native_canonical_live_and_simulator_setup_pending",
       "prerequisites": {
-        "config": "Ignored experiments/collision_local.json: simulation_only true, domain1or91, canonical_live_preflight_receipt, pal_controller_log",
+        "config": "Ignored experiments/local.json simulator_faults section: simulation_only true, domain1or91, canonical_live_preflight_receipt, pal_controller_log",
         "canonical_receipt": "Existing D01 metrics.json with task/physical/handback pass and backendgazebo; sibling protocol.json records N32/.03 qd=.1/vel_lim=.1 and provenance.json source_sha256 matches relevant runtime bytes. No invented receipt conversion.",
         "reset": "Host must perform separately logged assisted simulator restoration before each trial, as original c3po orchestration. Fresh PAL default-controller observations are required for every case.",
         "host": "Existing PAL simulator, GATO runtime/ROS dependencies, loopback-only DDS and current PAL-side observation log. This runner does not create Docker containers or infer host mount paths.",
@@ -6851,7 +6851,6 @@
     "D02 physical robot": "Standalone scripts/manual confirmation and index; never automatic runner execution.",
     "Force E01/E02/E03": "Runtimequalified7d317fa accepted; study plans in progress; no comparative benefit claimed from runtime qualification.",
     "X and B02": "Pending explicit remaining definitions/review; no silent scientific substitutions.",
-    "C06 model variation": "Unsupported by current declared runtime; pending bounded choice.",
     "Q03 target task suite": "Separate readiness helper/relevant original fixture checks; not duplicated as research data.",
     "Historical M01/F02/F03/C02/C07/L00/X03-IIWA": "Record-only; exact result locations retained in tracker/evidence ledger.",
     "L01 learning": "Deferred."

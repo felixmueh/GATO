@@ -8,7 +8,7 @@ import subprocess
 
 ROOT=Path(__file__).resolve().parents[1]
 SOURCE='502fa29c8b0d649dcb347f9534bf29c6935fa6dd'
-PROTOCOL='bounded-control-choices-B-v1'
+PROTOCOL='bounded-control-choices-B-v2'
 
 
 def variants():
@@ -28,6 +28,7 @@ def variants():
         dict(id='terminal-half',study='C05',name='Half terminal position weight',terminal_factor=.5),
         dict(id='terminal-double',study='C05',name='Double terminal position weight',terminal_factor=2.),
         dict(id='holding-default',study='C06',name='Nominal holding with current effort cost',holding=True),
+        dict(id='holding-gripper-upper',study='C06',name='Holding with narrower-upper gripper plant, unchanged nominal optimizer',holding=True,gripper_angle_rad=.8028514559173916),
         dict(id='holding-no-effort-cost',study='C06',name='Nominal holding with effort cost0',holding=True,weights={'u_cost':0.}),
         dict(id='warm-unshifted',study='C08',name='Unshifted previous output reanchored',seed_policy='unshifted'),
         dict(id='warm-cold',study='C08',name='Fresh constant state seed each solve',seed_policy='cold')]
@@ -41,6 +42,9 @@ def prepare(output=None,jetson=False):
         if target.exists() and target.read_bytes()!=payload:raise ValueError('Frozen control task input differs')
         target.parent.mkdir(parents=True,exist_ok=True);target.write_bytes(payload)
         hashes[relative]=hashlib.sha256(payload).hexdigest()
+    relative='experiments/inputs/control_studies/tiago_right_arm_include_gripper.urdf'
+    payload=subprocess.check_output(['git','-C',str(ROOT),'show',SOURCE+':gato/dynamics/tiago_right/tiago_right_arm_include_gripper.urdf'])
+    target=ROOT/relative;target.write_bytes(payload);hashes[relative]=hashlib.sha256(payload).hexdigest()
     t01=json.loads((ROOT/'experiments/inputs/control_studies/t01.json').read_text())
     selected=variants()
     questions={
@@ -48,7 +52,7 @@ def prepare(output=None,jetson=False):
         'C03':'Does the retained factor10 latched20/75mm switch change progress during a fixed8s observation?',
         'C04':'What changes under existing final approach, including one declared small start perturbation?',
         'C05':'Separate damping, speed-limit penalty and terminal position weight on fixed tasks.',
-        'C06':'Finite8s nominal holding offset with default versus zero effort regularization; no equilibrium claim.',
+        'C06':'Finite8s holding offset: current versus zero effort regularization, and nominal-zero wider plant versus actual URDF narrower-upper gripper inertia with unchanged nominal native optimizer; no equilibrium/physical-drive claim.',
         'C08':'Does correctly shifted warm start affect task outcomes relative to unshifted/reanchored or cold seeds?'}
     protocol=dict(id=PROTOCOL,source_commit=SOURCE,variants=selected,reaching_tasks=['goal-1','goal-2'],
         tracking_task='figure8-24s',fixed_reaching_observation_s=8.,observation_dwell_s=8.03,
@@ -59,7 +63,14 @@ def prepare(output=None,jetson=False):
         C04_final_params=dict(q_cost=400.,N_cost=1200.,qd_cost=1.,u_cost=.0003,ee_orient_cost=10.,ee_orient_N_cost=10.,max_sqp_iters=20,mu=30.),
         C04_trigger=dict(distance_m=.075,max_joint_speed_rad_s=.1),
         C06_holding='Pose reference = FK of approved initial state; public goal regulation with explicit full-window dwell stop convention.',
-        unsupported={'C06-model-gripper':'No frozen compatible generated-native model/gripper perturbation protocol recovered; arm-only nominal holding does not qualify this question.'},
+        C06_gripper=dict(asset='tiago_right_arm_include_gripper.urdf',asset_sha256=hashes['experiments/inputs/control_studies/tiago_right_arm_include_gripper.urdf'],
+            source_asset_commit='3303eafcd393a74dcb26fb031d0815e84511e540',baseline='holding-default uses current nominal-zero wider lumped plant',
+            variation='holding-gripper-upper locks actual six finger joints at driver upper0.8028514559173916rad with URDF mimic multipliers/offsets; narrower-upper plant only',
+            optimizer='unchanged nominal-zero native solver/model, caps, costs and modeB',model_mismatch_intentional=True,
+            scope='Fixed finger configuration alters rigid-body gripper inertial distribution only; no added payload, friction, drive response, gripper motion or collision claim',
+            reused_evidence='Historical three-case zero-gripper lumping check passed; reused without numerical-equivalence rerun',
+            CPU_difference_at_holding_start='About0.005Nm maximum gravity-vector difference; not measured closed-loop improvement'),
+        unsupported={},
         historical_evidence=['/workspace/gato-tiago-reaching-cost-sweep','/workspace/gato-tiago-reaching-vel01',
             '/workspace/gato-tiago-reaching-weight-switch','/workspace/gato-tiago-reaching-weight-switch-75mm-far',
             '/workspace/gato-tiago-final-approach-tuning','/workspace/gato-tiago-mpc-final-weights'],
