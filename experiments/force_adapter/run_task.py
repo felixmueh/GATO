@@ -123,6 +123,10 @@ def run_case(case,output,inputs,module,recorder_class,sha,write_json,*,preflight
                 executed_duration_s=float(stats['terminal_time_s']),requested_duration_s=8. if preflight else float(task['duration_s']))
             metrics['force_estimation_errors_SI']=estimation_errors
             metrics['force_estimation_error_note']='Euclidean norm of six declared SI wrench components; report force/torque components from raw separately, not a unitless accuracy score.'
+            # Full per-call arrays already live in callback events/NPZ. Avoid
+            # serializing and retaining a second copy after terminal metrics.
+            stats.pop('raw_solves',None)
+            stats.pop('raw_execution',None)
             write_json(output/'controller_stats.json',stats)
         except BaseException:
             metrics['physical_pass']=None
