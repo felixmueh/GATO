@@ -45,6 +45,18 @@ force and revised E01/E02/E03 coverage. A pending stage is not an executable
 old-force substitute. Persistent solvers and GPU prediction replace the old
 fresh-owner/CPU-predictor study; their data remain separate protocols.
 
+**Current force status: held.** The revised original-method 0 N canonical
+reached its target but exceeded the sampled joint-speed limit by 0.127113 rad/s.
+The tracking smoke and force screen have not run, and no F* or final force bank
+has been selected. The disabled `successor/force_smoke.json` preserves the
+reviewed source and intended smoke; it is not queued in combined plans.
+`force_stages.json` links the retained failure. A proposed correction to the
+wrapper's reaching rho-reset policy awaits Felix's discussion/approval before
+application or rerun. The other families remain independently prepared.
+`force_successor_plan.py` and `force_screen.py` implement the subsequent fixed
+screen and final-plan generation; do not bypass the recorded hold. Regenerating
+`zero_pcg_plan.py` preserves the installed force stage and any final force plans.
+
 Saved-analysis updates live in `analysis/results_review.py`, `analysis/f01ab.py`
 and `analysis/control_choices.py`. The historical BB report combines all 100
 pairs, including 11 B16 crash outcomes, while retaining raw error/unavailable
