@@ -1,0 +1,52 @@
+{
+  "name": "scene03_050",
+  "initial_state": [
+    -0.39,
+    -1.73,
+    -0.38,
+    -2.35,
+    0.0,
+    -1.21,
+    0.04,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "goal_xyz": [
+    0.825346466963849,
+    -0.2279812337425784,
+    -0.38165771560123407
+  ],
+  "goal_q": [
+    -0.11144244426134325,
+    -0.44899270084348153,
+    -0.4621837692175307,
+    -1.0470459119542739,
+    -0.025371517049217095,
+    -0.17653650257373285,
+    0.04
+  ],
+  "seconds": 5.0,
+  "cylinder": {
+    "initial_center_xy": [
+      0.6853464669638489,
+      -0.1679812337425784
+    ],
+    "final_center_xy": [
+      0.6853464669638489,
+      -0.2979812337425784
+    ],
+    "radius": 0.045,
+    "motion_start_seconds": 0.06,
+    "motion_duration_seconds": 0.688235294117647
+  },
+  "obstacle_running_cost": 1.0,
+  "obstacle_terminal_cost": 1.0,
+  "scope": "Soft position-only reaching; goal_q is offline screening metadata, never a controller seed.",
+  "hypothesis": "The initial lower route may deform below the descending cylinder; whether an upper route becomes preferable is unproven.",
+  "status": "Approved 50cm goal, lower pillar stop, unchanged solver; exact IK witness is offline screening only."
+}

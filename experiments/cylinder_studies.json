@@ -1,0 +1,240 @@
+{
+  "version": 1,
+  "status": "prepared_target_validation_pending",
+  "experiments": [
+    {
+      "research_question": "RQ-cylinder-routes",
+      "protocol": "cylinder-current-default-B-v1",
+      "source_commit": "d6c827842c6ed65d455472063bcf77f5498efd46",
+      "machines": [
+        "gtx1070",
+        "rtx5060"
+      ],
+      "backend": "internal",
+      "inputs": {
+        "experiments/inputs/cylinder_studies/scene02.json": "16acd38a18f9ad443468c74730d8e42237942a288d9a164045bb3ddb409d0256",
+        "experiments/inputs/cylinder_studies/scene03.json": "46a8a1010dc886c682e05055d4d29913c7e89fff0336e0f3b8fc416ae1279d05",
+        "experiments/inputs/cylinder_studies/scene04_fast.json": "1f0ec19c46805bf58f9947895fd35a9d1f6825bb06086fcfd4ae3ea0e6fb46bb",
+        "experiments/inputs/cylinder_studies/easy30_routes.npz": "1de61a5e53b2b98760a55f351250eeba352a81471af520c30cecb3d8597e0032",
+        "experiments/inputs/cylinder_studies/easy30.json": "e818539a1e5c2b699f0fcd4c07ccf601c5ea5af2ec14b940ce448ce7abc66779",
+        "experiments/inputs/cylinder_studies/v01.json": "20920040853786cf3d96f13ba240f82918a9f0f5020270fbe67715666477cc81",
+        "experiments/inputs/cylinder_studies/t01.json": "aec47cfa3819de5adbb8633b637f5bd9bcd327cb3afc5043a856b323af5aac41",
+        "experiments/inputs/cylinder_studies/protocol.json": "d60419282c4f5869950d286b5879053a51fa0e5f73adf7479e805a33fdd3ab20"
+      },
+      "build": {
+        "inputs": {
+          "native/CMakeLists.txt": "07c285afa3d2055c2c8f64c4645bdad01bdeb3391e77f2082aff3c70443df1e2",
+          "native/task_readiness/CMakeLists.txt": "90abec70a6f830071843841791f13b995cf963118659b7001d8ed0085a8da6a6",
+          "native/cylinder_studies/CMakeLists.txt": "24291084b8905fb1717c9e2c626810b8020890bbe73776d56f8db8e8fbe866f9"
+        },
+        "commands": [
+          [
+            "cmake",
+            "-S",
+            "{runner}/native/cylinder_studies",
+            "-B",
+            "{build}",
+            "-DGATO_SOURCE_DIR={source}",
+            "-DKNOTS=32",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DCMAKE_CUDA_ARCHITECTURES={cuda_arch}-real",
+            "-DPython3_EXECUTABLE={python}"
+          ],
+          [
+            "cmake",
+            "--build",
+            "{build}",
+            "--parallel",
+            "2"
+          ]
+        ],
+        "artifacts": [
+          "modules/bsqpN32_tiago_right*.so",
+          "modules/cylinder_probe*.so",
+          "cuda_access_smoke"
+        ]
+      },
+      "command": [
+        "{python}",
+        "{runner}/adapters/cylinder_studies.py",
+        "--source",
+        "{source}",
+        "--build",
+        "{build}",
+        "--inputs",
+        "{inputs}/experiments/inputs/cylinder_studies",
+        "--output",
+        "{output}",
+        "--case",
+        "{case}"
+      ],
+      "timeout_seconds": 600,
+      "id": "CylinderChecks",
+      "timing_mode": "A",
+      "cases": [
+        {
+          "id": "cylinder-checks",
+          "parameters": {
+            "study": "X02"
+          }
+        }
+      ]
+    },
+    {
+      "research_question": "RQ-cylinder-routes",
+      "protocol": "cylinder-current-default-B-v1",
+      "source_commit": "d6c827842c6ed65d455472063bcf77f5498efd46",
+      "machines": [
+        "gtx1070",
+        "rtx5060"
+      ],
+      "backend": "internal",
+      "inputs": {
+        "experiments/inputs/cylinder_studies/scene02.json": "16acd38a18f9ad443468c74730d8e42237942a288d9a164045bb3ddb409d0256",
+        "experiments/inputs/cylinder_studies/scene03.json": "46a8a1010dc886c682e05055d4d29913c7e89fff0336e0f3b8fc416ae1279d05",
+        "experiments/inputs/cylinder_studies/scene04_fast.json": "1f0ec19c46805bf58f9947895fd35a9d1f6825bb06086fcfd4ae3ea0e6fb46bb",
+        "experiments/inputs/cylinder_studies/easy30_routes.npz": "1de61a5e53b2b98760a55f351250eeba352a81471af520c30cecb3d8597e0032",
+        "experiments/inputs/cylinder_studies/easy30.json": "e818539a1e5c2b699f0fcd4c07ccf601c5ea5af2ec14b940ce448ce7abc66779",
+        "experiments/inputs/cylinder_studies/v01.json": "20920040853786cf3d96f13ba240f82918a9f0f5020270fbe67715666477cc81",
+        "experiments/inputs/cylinder_studies/t01.json": "aec47cfa3819de5adbb8633b637f5bd9bcd327cb3afc5043a856b323af5aac41",
+        "experiments/inputs/cylinder_studies/protocol.json": "d60419282c4f5869950d286b5879053a51fa0e5f73adf7479e805a33fdd3ab20"
+      },
+      "build": {
+        "inputs": {
+          "native/CMakeLists.txt": "07c285afa3d2055c2c8f64c4645bdad01bdeb3391e77f2082aff3c70443df1e2",
+          "native/task_readiness/CMakeLists.txt": "90abec70a6f830071843841791f13b995cf963118659b7001d8ed0085a8da6a6",
+          "native/cylinder_studies/CMakeLists.txt": "24291084b8905fb1717c9e2c626810b8020890bbe73776d56f8db8e8fbe866f9"
+        },
+        "commands": [
+          [
+            "cmake",
+            "-S",
+            "{runner}/native/cylinder_studies",
+            "-B",
+            "{build}",
+            "-DGATO_SOURCE_DIR={source}",
+            "-DKNOTS=32",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DCMAKE_CUDA_ARCHITECTURES={cuda_arch}-real",
+            "-DPython3_EXECUTABLE={python}"
+          ],
+          [
+            "cmake",
+            "--build",
+            "{build}",
+            "--parallel",
+            "2"
+          ]
+        ],
+        "artifacts": [
+          "modules/bsqpN32_tiago_right*.so",
+          "modules/cylinder_probe*.so",
+          "cuda_access_smoke"
+        ]
+      },
+      "command": [
+        "{python}",
+        "{runner}/adapters/cylinder_studies.py",
+        "--source",
+        "{source}",
+        "--build",
+        "{build}",
+        "--inputs",
+        "{inputs}/experiments/inputs/cylinder_studies",
+        "--output",
+        "{output}",
+        "--case",
+        "{case}"
+      ],
+      "timeout_seconds": 600,
+      "id": "CylinderTasks",
+      "timing_mode": "B",
+      "cases": [
+        {
+          "id": "supplied-easy30-B1",
+          "parameters": {
+            "study": "X03",
+            "batch": 1
+          }
+        },
+        {
+          "id": "supplied-easy30-B8",
+          "parameters": {
+            "study": "X03",
+            "batch": 8
+          }
+        },
+        {
+          "id": "scene04_fast-B1",
+          "parameters": {
+            "study": "X04",
+            "scene": "scene04_fast",
+            "scene_id": 4,
+            "batch": 1
+          }
+        },
+        {
+          "id": "scene04_fast-B16",
+          "parameters": {
+            "study": "X04",
+            "scene": "scene04_fast",
+            "scene_id": 4,
+            "batch": 16
+          }
+        },
+        {
+          "id": "scene02-B1",
+          "parameters": {
+            "study": "X04",
+            "scene": "scene02",
+            "scene_id": 2,
+            "batch": 1
+          }
+        },
+        {
+          "id": "scene02-B16",
+          "parameters": {
+            "study": "X04",
+            "scene": "scene02",
+            "scene_id": 2,
+            "batch": 16
+          }
+        },
+        {
+          "id": "scene03-B1",
+          "parameters": {
+            "study": "X04",
+            "scene": "scene03",
+            "scene_id": 3,
+            "batch": 1
+          }
+        },
+        {
+          "id": "scene03-B16",
+          "parameters": {
+            "study": "X04",
+            "scene": "scene03",
+            "scene_id": 3,
+            "batch": 16
+          }
+        }
+      ],
+      "preflight": {
+        "group": "CylinderStudies-B",
+        "command": [
+          "{python}",
+          "{runner}/adapters/cylinder_studies.py",
+          "--source",
+          "{source}",
+          "--build",
+          "{build}",
+          "--inputs",
+          "{inputs}/experiments/inputs/cylinder_studies",
+          "--output",
+          "{output}",
+          "--preflight"
+        ]
+      }
+    }
+  ]
+}

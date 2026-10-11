@@ -1,0 +1,117 @@
+{
+  "instance": {
+    "seed": 30,
+    "difficulty": "easy",
+    "start_q": [
+      -0.40321005975937335,
+      -1.7335446500667093,
+      -0.4003863491723354,
+      -2.3453698621522645,
+      0.014134934000234432,
+      -1.1916211001459434,
+      0.0313227428101292
+    ],
+    "start_position": [
+      0.32564523691433184,
+      -0.22707246513639076,
+      -0.38298859679417535
+    ],
+    "goal_position": [
+      0.5914507172853416,
+      -0.2356825127819514,
+      -0.3784084620970102
+    ],
+    "pillar_xy": [
+      0.4520227584169026,
+      -0.268646046129428
+    ],
+    "clearance_radius_m": 0.07369235556562038
+  },
+  "candidates": [
+    {
+      "name": "cold",
+      "route_side": null,
+      "route_scale": 1.0,
+      "original_seed_metrics": {
+        "seed_ik_max_error_m": 0.0,
+        "seed_max_velocity_ratio": 0.0,
+        "seed_max_torque_ratio": 0.33241858160542087
+      }
+    },
+    {
+      "name": "clockwise_nominal",
+      "route_side": 1,
+      "route_scale": 1.2,
+      "original_seed_metrics": {
+        "seed_ik_max_error_m": 0.0005444113898182237,
+        "seed_max_velocity_ratio": 0.25735667720729144,
+        "seed_max_torque_ratio": 0.349921904826996
+      }
+    },
+    {
+      "name": "counterclockwise_nominal",
+      "route_side": -1,
+      "route_scale": 1.4,
+      "original_seed_metrics": {
+        "seed_ik_max_error_m": 0.0007940921086490215,
+        "seed_max_velocity_ratio": 0.4536969372449503,
+        "seed_max_torque_ratio": 0.3735847509951255
+      }
+    },
+    {
+      "name": "clockwise_wide",
+      "route_side": 1,
+      "route_scale": 1.4,
+      "original_seed_metrics": {
+        "seed_ik_max_error_m": 0.0006314251194258537,
+        "seed_max_velocity_ratio": 0.2982549383389933,
+        "seed_max_torque_ratio": 0.3486735243398301
+      }
+    },
+    {
+      "name": "counterclockwise_wide",
+      "route_side": -1,
+      "route_scale": 1.8,
+      "original_seed_metrics": {
+        "seed_ik_max_error_m": 0.0006910675102112509,
+        "seed_max_velocity_ratio": 0.5459599832436742,
+        "seed_max_torque_ratio": 0.3654367548132589
+      }
+    },
+    {
+      "name": "clockwise_intermediate",
+      "route_side": 1,
+      "route_scale": 1.3,
+      "original_seed_metrics": {
+        "seed_ik_max_error_m": 0.0005869816955222444,
+        "seed_max_velocity_ratio": 0.276819547758288,
+        "seed_max_torque_ratio": 0.3493553388886937
+      }
+    },
+    {
+      "name": "counterclockwise_wider",
+      "route_side": -1,
+      "route_scale": 2.2,
+      "original_seed_metrics": {
+        "seed_ik_max_error_m": 0.0005346603233993409,
+        "seed_max_velocity_ratio": 0.6620521392565624,
+        "seed_max_torque_ratio": 0.33241858160542087
+      }
+    },
+    {
+      "name": "counterclockwise_tighter",
+      "route_side": -1,
+      "route_scale": 1.1,
+      "original_seed_metrics": {
+        "seed_ik_max_error_m": 0.0007603719356725874,
+        "seed_max_velocity_ratio": 0.4155107883519286,
+        "seed_max_torque_ratio": 0.3342157221671991
+      }
+    }
+  ],
+  "old_dt_s": 0.06,
+  "current_dt_s": 0.03,
+  "original_prediction_s": 1.86,
+  "current_prediction_s": 0.93,
+  "scope": "CPU-generated retained eight route templates, first physically timed .93s; no GPU calibration, filtering or seed feasibility certificate"
+}

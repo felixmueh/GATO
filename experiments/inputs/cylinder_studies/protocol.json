@@ -1,0 +1,26 @@
+{
+  "id": "cylinder-current-default-B-v1",
+  "source_commit": "d6c827842c6ed65d455472063bcf77f5498efd46",
+  "X02": "Four center/interior/exterior/boundary stage/terminal cylinder checks. Gauss-Newton is not exact Hessian; boundary curvature not a precision gate.",
+  "X03": "Easy seed30 eight supplied original route templates versus lane0 cold gravity-hold seed; physically timed first .93s of original1.86s, not compressed; own-lane optimized outputs subsequently warm-shift.",
+  "X04": "Retained scene04_fast positive pair and scene02/03 failed transfers, B1/B16 once under current defaults.",
+  "defaults": {
+    "N": 32,
+    "dt_s": 0.03,
+    "sim_dt_s": 0.003,
+    "timeout_s": 8.0,
+    "qd_cost": 0.1,
+    "vel_lim_cost": 0.1,
+    "max_sqp": 5,
+    "max_pcg": 120
+  },
+  "obstacle_overrides": "Retained scenes1/1; supplied-route current cohort1/1. Native orientation slots repurposed as cylinder weights: positional goal only, no orientation qualification.",
+  "gates": "Ordinary N32 frozen task suite and orientation-on canonicalB preflight; separate position-only cylinder canonical. Scientific failures retain raw and independent cases continue.",
+  "historical_sources": [
+    "c084033b4147d267e094dd7699e0f31dd0b7ba6a",
+    "4f6c8fd4be428c135fc16564c5dd56eb61ce5660"
+  ],
+  "history": "Historical modeA/N64 moving outcomes and TIAGo portfolio failures remain distinct; IIWA component record-only.",
+  "collision_scope": "Tool-center sampled distance to actual-time infinite cylinder only; no full-arm or continuous-time certificate",
+  "qualifications": "Prepared CPU only; exact target native task/cylinder validation pending; no convergence/global-optimum claim"
+}
