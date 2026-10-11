@@ -183,7 +183,7 @@ def rk4(model, data, q, dq, u, dt, fext=None):
         dq: Joint velocities
         u: Control torques
         dt: Time step
-        fext: External forces (optional)
+        fext: Local-joint forces, or a callable(q) recomputing them at each stage
     
     Returns:
         q_next: Joint positions at next timestep
@@ -196,19 +196,19 @@ def rk4(model, data, q, dq, u, dt, fext=None):
     
     # RK4 integration steps
     k1q = dq
-    k1v = pin.aba(model, data, q, dq, u, fext)
+    k1v = pin.aba(model, data, q, dq, u, fext(q) if callable(fext) else fext)
     
     q2 = pin.integrate(model, q, k1q * dt / 2)
     k2q = dq + k1v * dt/2
-    k2v = pin.aba(model, data, q2, k2q, u, fext)
+    k2v = pin.aba(model, data, q2, k2q, u, fext(q2) if callable(fext) else fext)
     
     q3 = pin.integrate(model, q, k2q * dt / 2)
     k3q = dq + k2v * dt/2
-    k3v = pin.aba(model, data, q3, k3q, u, fext)
+    k3v = pin.aba(model, data, q3, k3q, u, fext(q3) if callable(fext) else fext)
     
     q4 = pin.integrate(model, q, k3q * dt)
     k4q = dq + k3v * dt
-    k4v = pin.aba(model, data, q4, k4q, u, fext)
+    k4v = pin.aba(model, data, q4, k4q, u, fext(q4) if callable(fext) else fext)
     
     dq_next = dq + (dt/6) * (k1v + 2*k2v + 2*k3v + k4v)
     avg_dq = (k1q + 2*k2q + 2*k3q + k4q) / 6

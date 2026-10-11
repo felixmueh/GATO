@@ -1,0 +1,66 @@
+{
+  "name": "figure8_tracking",
+  "kind": "tracking",
+  "provenance": "Public TIAGo horizontal tracking reference and solver defaults, unchanged main2a39ed1; N32 review override; frozen2026-10-09 before MPC",
+  "initial_state": [
+    -0.38999998569488525,
+    -1.7300000190734863,
+    -0.3799999952316284,
+    -2.3499999046325684,
+    0.0,
+    -1.2100000381469727,
+    0.03999999910593033,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "N": 32,
+  "dt_s": 0.008,
+  "sim_dt_s": 0.001,
+  "duration_s": 24.0,
+  "reference_cycles": 2,
+  "reference_anchor_m": [
+    0.3253464688311586,
+    -0.22798123490730832,
+    -0.3816577465517488
+  ],
+  "reference_metadata": {
+    "reference_mode": "tiago_horizontal",
+    "start_edge_clearance_m": 0.02,
+    "x_span_m": 0.32,
+    "y_amplitude_m": 0.08,
+    "period_sec": 24.0,
+    "cycles": 2,
+    "left_edge": [
+      0.3453464688311586,
+      -0.22798123490730832,
+      -0.3816577465517488
+    ]
+  },
+  "reference_sha256": "84fc5319d26810101622082712f92788dd8b62cf11db25bbb912a63fdeb21058",
+  "maximum_RMS_error_m": 0.05,
+  "maximum_error_m": 0.1,
+  "minimum_executed_displacement_m": 0.25,
+  "solver_params": {
+    "max_sqp_iters": 5,
+    "kkt_tol": 0.001,
+    "max_pcg_iters": 120,
+    "pcg_tol": 0.001,
+    "solve_ratio": 1.0,
+    "mu": 1.0,
+    "q_cost": 4.0,
+    "qd_cost": 0.01,
+    "u_cost": 0.0001,
+    "N_cost": 80.0,
+    "ee_orient_cost": 0.0,
+    "ee_orient_N_cost": 0.0,
+    "q_lim_cost": 0.01,
+    "vel_lim_cost": 0.001,
+    "ctrl_lim_cost": 0.003,
+    "rho": 0.01
+  }
+}

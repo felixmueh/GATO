@@ -2,6 +2,7 @@ import importlib
 import numpy as np
 import pinocchio as pin
 import torch
+from .wrench import linear_to_angular_first
 
 
 class BSQP:
@@ -268,13 +269,17 @@ class BSQP:
         return self.solver.sim_forward(xk, uk, sim_dt)
 
     def set_f_ext_B(self, f_ext_B):
-        self.f_ext_B = np.asarray(f_ext_B, dtype=np.float32)
-        if self.plant_type == "tiago_right" and np.any(self.f_ext_B):
-            raise NotImplementedError(
-                "External wrench dynamics are not implemented for plant_type='tiago_right'. "
-                "Use a zero wrench or implement Tiago's GRiD external-force path first."
-            )
-        self.solver.set_f_ext_batch(self.f_ext_B)
+        """Set body-fixed last-joint-origin wrenches, [Fx,Fy,Fz,Tx,Ty,Tz].
+
+        Components stay constant in that local frame throughout a solve.
+        This API does not represent a constant world-expressed wrench.
+        """
+        values=np.asarray(f_ext_B,dtype=np.float32)
+        if values.shape!=(self.batch_size,6) or not np.isfinite(values).all():
+            raise ValueError('Force batch requires finite (batch_size,6) components')
+        native=np.ascontiguousarray(linear_to_angular_first(values),dtype=np.float32)
+        self.solver.set_f_ext_batch(native)
+        self.f_ext_B=values.copy()
         
     def reset_rho(self):
         self.solver.reset_rho()

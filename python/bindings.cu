@@ -153,14 +153,12 @@ class PyBSQP {
         void set_f_ext_batch(py::array_t<T> f_ext_batch)
         {
                 py::buffer_info f_ext_buf = f_ext_batch.request();
-#if defined(PLANT_TIAGO_RIGHT)
-                const T* values = static_cast<const T*>(f_ext_buf.ptr);
-                for (py::ssize_t i = 0; i < f_ext_buf.size; ++i) {
-                        if (values[i] != static_cast<T>(0)) {
-                                throw py::value_error("External wrench dynamics are not implemented for plant_type='tiago_right'");
-                        }
+                // Raw GRiD convention: [Tx,Ty,Tz,Fx,Fy,Fz], body-fixed at
+                // the final joint origin. The public Python interface reorders.
+                if (f_ext_buf.ndim != 2 || f_ext_buf.shape[0] != BatchSize || f_ext_buf.shape[1] != 6 ||
+                    f_ext_buf.strides[1] != sizeof(T) || f_ext_buf.strides[0] != 6 * sizeof(T)) {
+                        throw py::value_error("Native wrench batch must be contiguous (BatchSize,6)");
                 }
-#endif
                 solver_.set_f_ext_batch(static_cast<T*>(f_ext_buf.ptr));
         }
 

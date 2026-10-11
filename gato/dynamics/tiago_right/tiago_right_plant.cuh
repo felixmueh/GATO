@@ -4,6 +4,7 @@
 #include <stdio.h>
 
 #include "tiago_right_grid.cuh"
+#include "tiago_right_fext.cuh"
 #include "tiago_right_limits.cuh"
 
 using namespace sqp;
@@ -123,20 +124,6 @@ namespace plant {
                         // qdd is a vector in joint-coordinate space, so it crosses the same
                         // convention boundary as q, qd, and u.
                         s_qdd[i] = s_mapped[3 * grid::NUM_JOINTS + i] * tiagoJointSign<T>(i);
-                }
-                __syncthreads();
-        }
-
-        template<class T>
-        __device__ void assertNoExternalWrench(const T* d_f_ext)
-        {
-                if (d_f_ext == nullptr) {
-                        __syncthreads();
-                        return;
-                }
-
-                for (int i = threadIdx.x + threadIdx.y * blockDim.x; i < 6; i += blockDim.x * blockDim.y) {
-                        assert(d_f_ext[i] == static_cast<T>(0) && "Tiago external wrench dynamics are not implemented");
                 }
                 __syncthreads();
         }
@@ -275,11 +262,20 @@ namespace plant {
         template<typename T>
         __device__ void forwardDynamics(T* s_qdd, T* s_q, T* s_qd, T* s_u, T* s_XITemp, void* d_dynMem_const, T* d_f_ext)
         {
-                // The existing plant interface includes an external-wrench overload.
-                // This GRiD Tiago header was generated without external-force
-                // kernels, so fail if callers try to use a nonzero wrench.
-                assertNoExternalWrench<T>(d_f_ext);
-                forwardDynamics<T>(s_qdd, s_q, s_qd, s_u, s_XITemp, d_dynMem_const);
+                __shared__ T s_mapped[4 * grid::NUM_JOINTS];
+                T* q_grid = s_mapped;
+                T* qd_grid = &s_mapped[grid::NUM_JOINTS];
+                T* u_grid = &s_mapped[2 * grid::NUM_JOINTS];
+                T* qdd_grid = &s_mapped[3 * grid::NUM_JOINTS];
+                buildSharedMappedDynamicsVectors<T>(s_mapped, s_q, s_qd, s_u);
+
+                T* s_XImats = s_XITemp;
+                T* s_temp = &s_XITemp[72 * grid::NUM_JOINTS];
+                grid::load_update_XImats_helpers<T>(s_XImats, q_grid, (grid::robotModel<T>*)d_dynMem_const, s_temp);
+                __syncthreads();
+
+                grid::forward_dynamics_inner<T>(qdd_grid, q_grid, qd_grid, u_grid, s_XImats, s_temp, gato::plant::GRAVITY<T>(), d_f_ext);
+                writeSharedMappedQddToTiago<T>(s_qdd, s_mapped);
         }
 
         __host__ __device__ constexpr unsigned forwardDynamics_TempMemSize_Shared()
@@ -339,11 +335,50 @@ namespace plant {
         template<typename T, bool INCLUDE_DU = true>
         __device__ void forwardDynamicsAndGradient(T* s_df_du, T* s_qdd, const T* s_q, const T* s_qd, const T* s_u, T* s_temp_in, void* d_dynMem_const, T* d_f_ext)
         {
-                // See the forwardDynamics external-wrench overload above. Keep this
-                // overload so generic solver code can compile for Tiago, but compute
-                // the no-external-force dynamics that GRiD generated.
-                assertNoExternalWrench<T>(d_f_ext);
-                forwardDynamicsAndGradient<T, INCLUDE_DU>(s_df_du, s_qdd, s_q, s_qd, s_u, s_temp_in, d_dynMem_const);
+                __shared__ T s_mapped[4 * grid::NUM_JOINTS];
+                T* q_grid = s_mapped;
+                T* qd_grid = &s_mapped[grid::NUM_JOINTS];
+                T* u_grid = &s_mapped[2 * grid::NUM_JOINTS];
+                T* qdd_grid = &s_mapped[3 * grid::NUM_JOINTS];
+                buildSharedMappedDynamicsVectors<T>(s_mapped, s_q, s_qd, s_u);
+
+                T* s_XITemp = s_temp_in;
+                grid::robotModel<T>* d_robotModel = (grid::robotModel<T>*)d_dynMem_const;
+
+                T* s_XImats = s_XITemp;
+                T* s_vaf = &s_XITemp[72 * grid::NUM_JOINTS];
+                T* s_dc_du = &s_vaf[18 * grid::NUM_JOINTS];
+                T* s_Minv = &s_dc_du[2 * grid::NUM_JOINTS * grid::NUM_JOINTS];
+                T* s_temp = &s_Minv[grid::NUM_JOINTS * grid::NUM_JOINTS];
+
+                grid::load_update_XImats_helpers<T>(s_XImats, q_grid, d_robotModel, s_temp);
+                grid::direct_minv_inner<T>(s_Minv, q_grid, s_XImats, s_temp);
+                T* s_c = s_temp;
+                grid::inverse_dynamics_inner<T>(s_c, s_vaf, q_grid, qd_grid, s_XImats, &s_temp[6], GRAVITY<T>(), d_f_ext);
+                grid::forward_dynamics_finish<T>(qdd_grid, u_grid, s_c, s_Minv);
+                grid::inverse_dynamics_inner_vaf<T>(s_vaf, q_grid, qd_grid, qdd_grid, s_XImats, s_temp, GRAVITY<T>(), d_f_ext);
+                grid::inverse_dynamics_gradient_inner<T>(s_dc_du, q_grid, qd_grid, s_vaf, s_XImats, s_temp, GRAVITY<T>());
+
+                for (int ind = threadIdx.x + threadIdx.y * blockDim.x; ind < 2 * grid::NUM_JOINTS * grid::NUM_JOINTS; ind += blockDim.x * blockDim.y) {
+                        const int row = ind % grid::NUM_JOINTS;
+                        const int dc_col_offset = ind - row;
+                        T val = static_cast<T>(0);
+                        for (int col = 0; col < grid::NUM_JOINTS; col++) {
+                                const int index = (row <= col) * (col * grid::NUM_JOINTS + row) + (row > col) * (row * grid::NUM_JOINTS + col);
+                                val += s_Minv[index] * s_dc_du[dc_col_offset + col];
+                        }
+                        s_df_du[ind] = -val;
+
+                        if (INCLUDE_DU && ind < grid::NUM_JOINTS * grid::NUM_JOINTS) {
+                                const int col = ind / grid::NUM_JOINTS;
+                                const int index = (row <= col) * (col * grid::NUM_JOINTS + row) + (row > col) * (row * grid::NUM_JOINTS + col);
+                                s_df_du[ind + 2 * grid::NUM_JOINTS * grid::NUM_JOINTS] = s_Minv[index];
+                        }
+                }
+                __syncthreads();
+
+                remapForwardDynamicsJacobian<T>(s_df_du, INCLUDE_DU);
+                writeSharedMappedQddToTiago<T>(s_qdd, s_mapped);
         }
 
         __host__ __device__ constexpr unsigned forwardDynamicsAndGradient_TempMemSize_Shared()

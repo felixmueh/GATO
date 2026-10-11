@@ -122,3 +122,23 @@ runtime/storage discussion with Felix. E02 TIAGo disturbance remains blocked:
 current Python/native nonzero-wrench guards are unchanged and no Indy7 result
 can substitute for TIAGo qualification. No GPU/build/robot jobs, solver changes
 or deployment are authorized by this CPU implementation.
+
+## 2026-10-11 runtime continuation
+
+Felix subsequently authorized bounded nonzero-force runtime implementation and
+the known representation correction. [RESULTS.md](RESULTS.md) records the
+production float native oracle, accepted limitation and unchanged task suite.
+These later instructions supersede the earlier CPU-only implementation scope.
+
+`backend.py` supplies actual Pinocchio prediction and native TO callbacks using
+the explicit body-fixed final-joint frame/origin contract. It reuses the existing
+orchestration and estimator. This physical scope is prominent: it is an attached
+wrench, not a constant world-expressed disturbance. Native controller world-force
+semantics remain limited and guarded for TIAGo.
+
+`memory.py` records CUDA free/total bytes at owner/solve/close boundaries and
+Linux host peak RSS. Device differences are observed boundary snapshots, not
+exact per-allocation accounting or a continuous GPU peak. Jetson shares system
+memory; do not sum CUDA device availability changes and host RSS. Memory failures
+retain status/null reasons. Constructor, public-solve and native timings remain
+distinct; the complete TO callback includes a fresh owner/model allocation.
