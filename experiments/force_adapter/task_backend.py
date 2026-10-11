@@ -97,7 +97,8 @@ class ForceTask:
 
     def record(self,event,record):
         # Called after the modeB solve timer; disk/array serialization is excluded
-        # from plant advancement. Full algorithm/owner/memory queries are inside.
+        # from plant advancement. The full algorithm is inside the timer;
+        # construction and allocation accounting are excluded.
         while self.pending:
             name,value=self.pending.pop(0);self.emit(name,value)
         self.optimizer.native_records.clear();self.optimizer.measurements.clear()

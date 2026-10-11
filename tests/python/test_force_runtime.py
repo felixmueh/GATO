@@ -162,7 +162,9 @@ def test_native_owner_persists_duals_and_keeps_setup_memory_outside_ticks(monkey
     assert record['native_solve_us']==123.
     assert backend.construction_wall_s>=0 and record['public_solve_wall_s']>=0
     counts={name:sum(isinstance(entry,str) and entry==name for entry in log) for name in ('construct','dual','rho')}
-    assert counts==dict(construct=1,dual=1,rho=2)
+    assert counts==dict(construct=1,dual=1,rho=0)
+    backend.reset_rho()
+    assert sum(isinstance(entry,str) and entry=='rho' for entry in log)==1
     assert backend.workspace==dict(device_bytes=1234,pinned_host_bytes=44)
     assert 'memory' not in record and 'constructor_wall_s' not in record
     assert backend.native_records[0]['native_reply']['XU'].shape==(1,665)
@@ -236,3 +238,60 @@ def test_original_bootstrap_uses_persistent16_lane_optimizer(model):
     assert requests[0].candidate_indices==tuple(range(16))
     assert requests[0].states.shape==(16,14) and plan.shape==(1,665)
     assert task.predictor.simulation is None
+
+
+# Reuse the existing CPU controller oracle to exercise the real mode B policy.
+from test_reaching_timing import boundary
+
+@pytest.mark.parametrize('tracking,reset_requested',[(False,False),(False,True),(True,False)])
+def test_force_task_loop_owns_rho_policy(boundary,tracking,reset_requested):
+    from experiments.force_adapter.task_backend import ForceTask
+    from bsqp.offline_mpc import run_mode_b
+    resets=[]
+    boundary.mpc.final_approach=None
+    boundary.mpc.solver.reset_rho=lambda:ForceTask.reset_rho(
+        SimpleNamespace(optimizer=SimpleNamespace(reset_rho=lambda:resets.append(len(boundary.calls)))))
+    kwargs=dict(sim_time=.12,reference=np.zeros(30*6)) if tracking else dict(goal_timeout=.12,goals=[[100.,0.,0.,0.,0.,0.]])
+    run_mode_b(boundary.mpc,np.zeros(2),integrate=lambda q,v,u,dt:(q+u*dt,v.copy()),
+        clock=lambda:boundary.clock.now,sim_dt=.007,record_raw=True,record_callback=None,
+        reset_rho_each_solve=reset_requested,**kwargs)
+    assert len(boundary.calls)>1
+    assert resets==(list(range(1,len(boundary.calls))) if tracking or reset_requested else [])
+
+
+def test_e03_resets_rho_before_warmup_and_every_measured_tick(tmp_path,monkeypatch):
+    import hashlib
+    from experiments.force_adapter import run_native,memory
+    from experiments.force_adapter.freeze_native import prepare
+    bank=tmp_path/'synthetic-unqualified10N-bank';prepare(bank,10.)
+    output=tmp_path/'recordings';output.mkdir()
+    module=tmp_path/'unused-module.so';module.write_bytes(b'CPU test only')
+    calls=[]
+    class Optimizer:
+        workspace=dict(device_bytes=0,pinned_host_bytes=0);construction_wall_s=0.
+        def __init__(self,*args,**kwargs):self.native_records=[];self.measurements=[]
+        def reset_rho(self):calls.append('rho')
+        def reset_dual(self):calls.append('dual')
+        def __call__(self,request):
+            calls.append('solve');assert calls[-2]=='rho'
+            self.measurements.append(dict(native_solve_us=1.))
+            return request.warm_seeds.copy()
+    class Predictor:
+        workspace={};construction_wall_s=0.
+        def __init__(self,*args):pass
+        def __call__(self,request):return np.tile(request.inputs.observed_state,(16,1))
+    class Recorder:
+        def __init__(self,*args):pass
+        def __enter__(self):return self
+        def __exit__(self,*args):pass
+        def __call__(self,*args):pass
+        def flush(self):pass
+        def manifest(self):pass
+    monkeypatch.setattr(run_native,'GPUPredictor',Predictor)
+    monkeypatch.setattr(memory,'CudaMemory',lambda:lambda stage:dict(stage=stage,cuda_status=0,free_bytes=1000,query_wall_s=0.))
+    metrics=run_native.run_case(dict(parameters=dict(study='E03',mode='original',input_index=0,truth_index=0,
+        timing_mode='A',backend='internal')),output,bank,module,Recorder,
+        lambda p:hashlib.sha256(Path(p).read_bytes()).hexdigest(),lambda *args:None,optimizer_factory=Optimizer)
+    assert metrics['execution_error'] is None
+    assert metrics['measured_ticks']==20 and metrics['excluded_warmups']==1
+    assert calls.count('rho')==calls.count('solve')==21 and calls.count('dual')==1

@@ -45,7 +45,8 @@ def run_case(case,output,inputs,module,recorder_class,sha,write_json,*,preflight
                 timing_mode=mode,backend='internal',truth=truth,force_frame='arm_right_7_joint',force_point='arm_right_7_joint origin',
                 timing_scope='full persistent force facade prediction/selection/update/TO wrapper wall; construction and memory queries outside; native TO separate',
                 prediction='previous measured state; time-weighted actually applied controls; one existing GRiD TYPE2 step over actual elapsed observation interval',
-                rho_policy='reset before each tracking tick; adapt within solve',dual_policy='initialize once at episode start',
+                rho_policy=('carry between canonical reaching solves; adapt within solve' if preflight else
+                    'reset before each tracking tick; adapt within solve'),dual_policy='initialize once at episode start',
                 estimator=dict(initial_radius=10.,min_radius=1.,max_radius=100.,smoothing_factor=.5,alpha=.6,beta=.5),
                 bootstrap='Original persistent B16 prior lane0, adapted/no-estimator persistent B1; no true-force access or estimator update; bootstrap computation uncharged, then nominal30ms interval',
                 seed_policy='Accepted modeB selected-plan warm shift; broadcast same shifted plan to16 force hypotheses',rng_seed=20261011+int(p.get('repeat',0))))

@@ -86,8 +86,7 @@ class NativeOptimizer:
         for state,wrench in zip(request.states,request.backend_wrenches):
             transform_local(state,wrench,request.convention)
         self._candidate_indices=request.candidate_indices
-        # Tracking defaults reset rho before each feedback solve; duals persist.
-        self.owner.reset_rho()
+        # The task loop owns reaching/tracking rho reset policy.
         self.owner.set_f_ext_B(request.backend_wrenches)
         started=time.perf_counter()
         plans,native_us=self.owner.solve(request.states,request.references,request.warm_seeds.copy())

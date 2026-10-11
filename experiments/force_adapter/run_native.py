@@ -92,6 +92,9 @@ def run_case(case,output,inputs,module,recorder_class,sha,write_json,*,optimizer
                 recorder('force_tick_inputs',serializable(dict(category=category,tick_number=tick_number,mode=p['mode'],inputs=tick,
                     hypotheses=arrays['hypotheses'],rng_state_before=np.random.get_state())))
                 recorder.flush()
+                # This saved-input tracking study resets rho for every tick,
+                # including the excluded warm-up; duals persist between measured ticks.
+                optimizer.reset_rho()
                 before=len(optimizer.native_records);measured_before=len(optimizer.measurements)
                 def observe(record):
                     payload=dict(record,category=category,tick_number=tick_number,
