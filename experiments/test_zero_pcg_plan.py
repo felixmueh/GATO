@@ -13,6 +13,10 @@ def test_full_successor_coverage_and_fresh_readiness(tmp_path):
         d=json.loads((Z.ROOT/'experiments/successor'/f'{machine}_internal.json').read_text())
         e={v['id']:v for v in d['experiments']}
         assert list(e)[:2]==['T01','T01-faster-proposal']
+        assert e['T01-faster-proposal']['preflight']['group']!=e['T01']['preflight']['group']
+        assert '--reuse-canonical-group' in e['T01-faster-proposal']['preflight']['command']
+        if machine!='jetson':
+            assert e['demo_visual_square_internal']['command'][-2:]==['--runtime-pin',Z.ORDINARY]
         assert len(e['T01']['cases'])==6 and len(e['F01ab']['cases'])==64 and len(e['F01c']['cases'])==15
         assert len(e['BB']['cases'])==200
         assert not any(k.startswith('F04') or k=='CylinderChecks' or k=='Q02' for k in e)
@@ -56,3 +60,28 @@ def test_wrapper_retains_failed_canonical_evidence(tmp_path,monkeypatch):
     d=json.loads((tmp_path/'attempt/metrics.json').read_text())
     assert d['task_success'] is False and d['physical_pass'] is True and d['execution_error']
     assert (tmp_path/'attempt/canonical/metrics.json').exists()
+
+
+def test_faster_reuses_only_compatible_passed_canonical(tmp_path,monkeypatch):
+    from adapters import successor_preflight as P
+    from recording import sha,write_json
+    source=tmp_path/'source';source.mkdir();build=tmp_path/'build';(build/'modules').mkdir(parents=True)
+    module=build/'modules/bsqpN32_tiago_right.test.so';module.write_bytes(b'approved native')
+    prior=tmp_path/'_preflight/T01/attempt-001';(prior/'canonical').mkdir(parents=True)
+    output=tmp_path/'_preflight/faster/attempt-002';output.mkdir(parents=True)
+    monkeypatch.setattr(P.subprocess,'check_output',lambda *a,**k:'reviewed-source\n')
+    monkeypatch.setattr(P.task,'select_protocol',lambda *a:{'dt':.03,'mode':'B'})
+    write_json(prior/'receipt.json',dict(status='completed',source_commit='reviewed-source'))
+    write_json(prior/'metrics.json',dict(task_success=True,physical_pass=True,execution_error=None))
+    write_json(prior/'canonical/protocol.json',{'dt':.03,'mode':'B'})
+    provenance=dict(source_commit='reviewed-source',module_sha256=sha(module),collector_sha256=sha(P.task.__file__),protocol_sha256=sha(prior/'canonical/protocol.json'))
+    write_json(prior/'canonical/provenance.json',provenance)
+    command=['task','--inputs',str(tmp_path),'--timing-mode','B']
+    monkeypatch.setattr(P,'ensure_suite',lambda *a:(_ for _ in ()).throw(AssertionError('Repeated suite')))
+    monkeypatch.setattr(P.subprocess,'run',lambda *a:(_ for _ in ()).throw(AssertionError('Repeated canonical')))
+    assert P.run(source,build,output,command,'T01')==0
+    assert json.loads((output/'reuse.json').read_text())['receipt_sha256']==sha(prior/'receipt.json')
+    module.write_bytes(b'changed native')
+    assert P.reuse_canonical(source,build,output,command,'T01') is None
+    module.write_bytes(b'approved native');write_json(prior/'canonical/protocol.json',{'dt':.04,'mode':'B'})
+    assert P.reuse_canonical(source,build,output,command,'T01') is None

@@ -183,7 +183,9 @@
           "gazebo",
           "--preflight",
           "--inputs",
-          "{inputs}/experiments/inputs/demo"
+          "{inputs}/experiments/inputs/demo",
+          "--runtime-pin",
+          "8dbb8b8d6dc1d65e902373a9aa58693e33329c14"
         ]
       },
       "command": [
@@ -200,7 +202,9 @@
         "--backend",
         "gazebo",
         "--inputs",
-        "{inputs}/experiments/inputs/demo"
+        "{inputs}/experiments/inputs/demo",
+        "--runtime-pin",
+        "8dbb8b8d6dc1d65e902373a9aa58693e33329c14"
       ],
       "repeats": 1,
       "cases": [

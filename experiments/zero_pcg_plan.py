@@ -100,6 +100,9 @@ def prepare():
                 fast=copy.deepcopy(e);fast.update(id='T01-faster-proposal',inputs=faster_hashes,
                     cases=[dict(id=t['id'],parameters=dict(simulation_only=True,provisional_gate=True)) for t in faster['tasks']],
                     faster_tracking_proposal=True,live_release='Held pending Felix simulation review')
+                fast['preflight']['group']=e['preflight']['group']+'-faster'
+                marker=fast['preflight']['command'].index('--')
+                fast['preflight']['command'][marker:marker]=['--reuse-canonical-group',e['preflight']['group']]
                 for argv in (fast['command'],fast['preflight']['command']):
                     for i,arg in enumerate(argv):argv[i]=arg.replace('/inputs/t01','/inputs/t01_faster')
                 entries.append(fast)
@@ -120,6 +123,8 @@ def prepare():
                     e['cases']=copy.deepcopy(approved)
                 e['dependency_source_commits']={'ordinary_canonical_runtime':ORDINARY}
                 for argv in (e['command'],e['preflight']['command']):argv+=['--ordinary-runtime',ORDINARY]
+            if e['id']=='demo_visual_square_internal':
+                for argv in (e['command'],e['preflight']['command']):argv+=['--runtime-pin',e['source_commit']]
             entries.append(e)
         plan=dict(version=1,cohort_id=COHORT,stopping_policy=POLICY,experiments=entries,
             status='prepared_target_build_preflight_pending' if machine!='jetson' else 'proposed_duration_storage_discussion_pending',
@@ -131,7 +136,11 @@ def prepare():
         filename=machine+'_internal.json';write(output/filename,plan);files.append('successor/'+filename)
     live=[]
     for filename in ('deployment.json','demo_gazebo.json','simulated_faults.json'):
-        live += [successor(e,'rtx5060') for e in read(filename)['experiments']]
+        for original in read(filename)['experiments']:
+            e=successor(original,'rtx5060')
+            if e['id']=='demo_visual_square_gazebo':
+                for argv in (e['command'],e['preflight']['command']):argv+=['--runtime-pin',e['source_commit']]
+            live.append(e)
     write(output/'rtx5060_gazebo.json',dict(version=1,cohort_id=COHORT,stopping_policy=POLICY,experiments=live,
         status='live_setup_and_prior_simulation_review_pending',prerequisites='Jetson V01/T01 B and Felix review before live; faster tracking not included. Manual D02 outside runner.'))
     files.append('successor/rtx5060_gazebo.json')

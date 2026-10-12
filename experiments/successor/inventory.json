@@ -18,9 +18,15 @@
     "d6c827842c6ed65d455472063bcf77f5498efd46": "b931bbdd41303f1456ce3242045ebe48b241600a",
     "a3a96ad3deabea5c0165da69addd1c55406710a9": "c887bea29d3ed8a24de339478a7390bd4bac1915"
   },
-  "status": "All explicit cohorts prepared; no measurements launched by generation",
+  "status": "Explicit successor plans prepared; target family preflights and campaign measurements pending",
   "force_stage_status": "smoke_screen_selected_final_plans_prepared",
   "retained": "All old plans, input banks, raw attempts and scientific failures remain unchanged",
+  "force": {
+    "source_commit": "61a8135f6b986ef1deca1de562ac184936698133",
+    "selected_force_N": 10.0,
+    "selection_sha256": "299cc36c86650e6dc8a1ece15da19bdd693b5d6a2bfe0d08c1fe329eba65c27b",
+    "status": "Prepared revised full cohorts; target preflights pending"
+  },
   "force_readiness": {
     "version": 1,
     "experiments": [],
@@ -103,11 +109,5 @@
   "force_stage_plans": {
     "smoke": "successor/force_smoke.json",
     "screen": "successor/force_screen.json"
-  },
-  "force": {
-    "source_commit": "61a8135f6b986ef1deca1de562ac184936698133",
-    "selected_force_N": 10.0,
-    "selection_sha256": "299cc36c86650e6dc8a1ece15da19bdd693b5d6a2bfe0d08c1fe329eba65c27b",
-    "status": "Prepared revised full cohorts; target preflights pending"
   }
 }

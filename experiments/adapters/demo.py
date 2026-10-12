@@ -39,13 +39,21 @@ def collector_source(repository,build):
     return target,pin
 
 
-def run(source,build,case,output,backend,preflight=False,inputs=None):
+def run(source,build,case,output,backend,preflight=False,inputs=None,runtime_pin=None):
     source,build,output=map(lambda p:Path(p).resolve(),(source,build,output))
     collector,pin=collector_source(source,build)
     sys.path.insert(0,str(collector))
     path=collector/'experiments/deployment/demo/run_demo.py'
     spec=importlib.util.spec_from_file_location('pinned_visual_demo',path);worker=importlib.util.module_from_spec(spec);spec.loader.exec_module(worker)
     if inputs is not None and sha(Path(inputs)/'proposal.json')!=sha(worker.INPUT):raise ValueError('Pinned collector input differs from runner frozen input')
+    if runtime_pin is not None:
+        resolved=subprocess.check_output(['git','-C',str(source),'rev-parse',runtime_pin],text=True).strip()
+        if resolved!=runtime_pin or len(runtime_pin)!=40:raise ValueError('Explicit reviewed runtime pin must be a full commit')
+        if backend=='internal':
+            relative='python/bsqp/offline_mpc.py'
+            expected=subprocess.check_output(['git','-C',str(source),'show',runtime_pin+':'+relative])
+            if (source/relative).read_bytes()!=expected:raise ValueError('Runtime bytes differ: '+relative)
+        worker.RUNTIME_PINS=dict(worker.RUNTIME_PINS,**{backend:runtime_pin})
     worker.ROOT=collector  # collector-owned files are frozen archive bytes; runtime is supplied separately
     matches=list((build/'modules').glob('bsqpN32_tiago_right*.so'))
     if len(matches)!=1:raise ValueError('Expected one reviewed N32module in selected shared build')
@@ -88,5 +96,6 @@ if __name__=='__main__':
     parser.add_argument('--backend',choices=('internal','gazebo'),required=True)
     parser.add_argument('--preflight',action='store_true')
     parser.add_argument('--inputs',type=Path,required=True)
+    parser.add_argument('--runtime-pin')
     args=parser.parse_args()
-    raise SystemExit(run(args.source,args.build,json.loads(args.case.read_text()),args.output,args.backend,args.preflight,args.inputs))
+    raise SystemExit(run(args.source,args.build,json.loads(args.case.read_text()),args.output,args.backend,args.preflight,args.inputs,args.runtime_pin))

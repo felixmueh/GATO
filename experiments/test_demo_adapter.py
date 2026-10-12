@@ -66,3 +66,28 @@ def test_gazebo_runner_keeps_sequence_hold_policy(tmp_path,monkeypatch):
     metrics=json.loads((output/'metrics.json').read_text())
     assert [r['status'] for r in metrics['tasks']]==['execution_failed','held','held','held']
     assert metrics['task_success'] is None and metrics['execution_error']
+
+
+def test_explicit_runtime_pin_preserves_frozen_demo_protocol(tmp_path,monkeypatch):
+    from recording import write_json
+    source=tmp_path/'source';source.mkdir();build=tmp_path/'build';(build/'modules').mkdir(parents=True)
+    (build/'modules/bsqpN32_tiago_right.test.so').write_bytes(b'checked')
+    output=tmp_path/'attempt';output.mkdir();write_json(output/'receipt.json',{})
+    collector=tmp_path/'collector';collector.mkdir();input_file=collector/'proposal.json';input_file.write_text('{}')
+    pin='f'*40;seen=[]
+    (source/'python/bsqp').mkdir(parents=True);(source/'python/bsqp/offline_mpc.py').write_bytes(b'unchanged task clock')
+    class Worker:
+        INPUT=input_file
+        RUNTIME_PINS={'internal':'old'}
+        def resolve_preflight(self,backend):return dict(runtime_pin=self.RUNTIME_PINS[backend],duration=8)
+        def run_task(self,protocol,*a):
+            seen.append(protocol);write_json(output/'SHA256SUMS.json',{});return dict(task_success=True,physical_pass=True,execution_error=None)
+    worker=Worker()
+    monkeypatch.setattr(demo,'collector_source',lambda *a:(collector,'frozen-collector'))
+    monkeypatch.setattr(demo.importlib.util,'module_from_spec',lambda *a:worker)
+    class Loader:
+        def exec_module(self,*a):pass
+    monkeypatch.setattr(demo.importlib.util,'spec_from_file_location',lambda *a:type('Spec',(),{'loader':Loader()})())
+    monkeypatch.setattr(demo.subprocess,'check_output',lambda command,**k:pin+'\n' if 'rev-parse' in command else b'unchanged task clock')
+    assert demo.run(source,build,{},output,'internal',True,None,pin)==0
+    assert seen==[dict(runtime_pin=pin,duration=8)]

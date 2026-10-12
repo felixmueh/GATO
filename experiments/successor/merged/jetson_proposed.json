@@ -208,6 +208,8 @@
           "{build}",
           "--output",
           "{output}",
+          "--reuse-canonical-group",
+          "T01-B-zero-pcg-20261011",
           "--",
           "{python}",
           "{runner}/adapters/task.py",
@@ -223,7 +225,7 @@
           "--timing-mode",
           "B"
         ],
-        "group": "T01-B-zero-pcg-20261011"
+        "group": "T01-B-zero-pcg-20261011-faster"
       },
       "command": [
         "{python}",

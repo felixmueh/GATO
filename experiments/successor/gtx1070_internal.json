@@ -209,6 +209,8 @@
           "{build}",
           "--output",
           "{output}",
+          "--reuse-canonical-group",
+          "T01-B-zero-pcg-20261011",
           "--",
           "{python}",
           "{runner}/adapters/task.py",
@@ -224,7 +226,7 @@
           "--timing-mode",
           "B"
         ],
-        "group": "T01-B-zero-pcg-20261011"
+        "group": "T01-B-zero-pcg-20261011-faster"
       },
       "command": [
         "{python}",
@@ -6988,7 +6990,9 @@
           "internal",
           "--preflight",
           "--inputs",
-          "{inputs}/experiments/inputs/demo"
+          "{inputs}/experiments/inputs/demo",
+          "--runtime-pin",
+          "fa6f6bede286c122cc41ac65f42a583da84290e0"
         ]
       },
       "command": [
@@ -7005,7 +7009,9 @@
         "--backend",
         "internal",
         "--inputs",
-        "{inputs}/experiments/inputs/demo"
+        "{inputs}/experiments/inputs/demo",
+        "--runtime-pin",
+        "fa6f6bede286c122cc41ac65f42a583da84290e0"
       ],
       "repeats": 1,
       "cases": [
