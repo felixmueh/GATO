@@ -17,11 +17,19 @@ N_STATE_KNOTS = 32
 KNOT_DT_S = 0.03
 PLANT_SIM_DT_S = 0.003
 GOAL_TIMEOUT_S = 15.0
-GOALS_POSES_M_RAD = [[0.5, -0.55, -0.15, 0.7716707785617437, 0.16419280748934234, 2.9751406898976565],
- [0.5, -0.55, 0.15, -2.369921875028048, -0.1641928074893427, 0.16645196369213427],
- [0.5, -0.25, 0.15, 2.369921875028048, 0.16419280748934262, 0.1664519636921343],
- [0.5, -0.25, -0.15, 0.2788093909554292, 0.7443781361674127, -1.1710253062561335],
- [0.5, -0.4, 0.0, 1.5707963267948966, -0.5521265477255771, 1.5707963267948966]]
+SQUARE_SIDE_M = 0.1
+SQUARE_CENTER_TORSO_M = [0.5, -0.35, -0.15]
+CENTER_REACH_INCLUDED = False
+SELECTED_PROPOSAL = Path(__file__).with_name('proposal_right10_roll.json')
+GOALS_POSES_M_RAD = [[0.5, -0.39999999999999997, -0.2, 0.7849859954764078, -0.028703356891583987, -3.112877465936339],
+ [0.5,
+  -0.39999999999999997,
+  -0.09999999999999999,
+  2.3606845922150392,
+  -0.09448113158651554,
+  3.046686954066981],
+ [0.5, -0.3, -0.09999999999999999, -2.423290795651283, -0.35065722385241616, -2.767128916320792],
+ [0.5, -0.3, -0.2, -0.7138593662887828, -0.3610576290370612, 2.7543779456718744]]
 INITIAL_STATE_RAD_RAD_S = [-0.38999998569488525,
  -1.7300000190734863,
  -0.3799999952316284,
@@ -41,7 +49,7 @@ TOOL_AXIS_THRESHOLD_DEG = 30.0
 JOINT_SPEED_L1_THRESHOLD_RAD_S = 1.0
 DWELL_TIME_S = 0.0  # roughsuccess is zerodwell
 SETTLING_STOP = {'position_m': .01, 'tool_axis_deg': 10., 'speed_L1_rad_s': .2, 'dwell_s': .2}  # execution stopping, separately reported
-FIGURE8_PERIODS_S = [24.0, 18.0, 12.0]
+FIGURE8_PERIODS_S = []  # Upward figure-eight remains a separate accepted collector
 FIGURE8_SHIFT_M = [0.08, 0.0, 0.0]
 FIGURE8_RPY_RAD = [0.0, 0.0, -2.995275773743368]
 REACHING_SOLVER_PARAMS = {'max_sqp_iters': 5,
@@ -112,9 +120,12 @@ LIVE_CONTROLLER_SETTINGS = {'target_hz': 100.0,
 def main():
     sys.path.insert(0,str(Path(__file__).resolve().parent))
     import run_demo
+    run_demo.INPUT = SELECTED_PROPOSAL  # Explicit binding, including manual robot execution
     source=Path(RUNTIME_SOURCE) if RUNTIME_SOURCE else run_demo.ROOT
     # The standalone constants and shared frozen input describe exactly the same experiment.
     p=run_demo.resolve(BACKEND,'square')
+    assert SQUARE_SIDE_M==p['square_side_m'] and SQUARE_CENTER_TORSO_M==p['square_center_torso_m']
+    assert CENTER_REACH_INCLUDED is False and len(p['goals'])==4
     assert N_STATE_KNOTS==p['N'] and KNOT_DT_S==p['dt_s'] and GOAL_TIMEOUT_S==p['goal_timeout_s']
     assert GOALS_POSES_M_RAD==[g['pose_m_rad'] for g in p['goals']]
     assert REACHING_SOLVER_PARAMS==p['reaching_solver_params'] and TRACKING_SOLVER_PARAMS==p['tracking_solver_params']
