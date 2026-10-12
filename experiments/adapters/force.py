@@ -13,45 +13,7 @@ from force_screen import physical_eligibility
 
 def reuse_original_canonical(source,build,inputs,output,metadata):
     """Explicit reviewed GTX1070 evidence reuse; never executes another canonical."""
-    if os.environ.get('GATO_MACHINE')!='gtx1070':raise ValueError('Force canonical evidence reuse is GTX1070 only')
-    d=json.loads(Path(metadata).read_text());prior=Path(d['approved_canonical'])
-    for relative,expected in d['evidence_sha256'].items():
-        if sha(prior/relative)!=expected:raise ValueError('Approved canonical evidence changed: '+relative)
-    assessment=Path(d['reuse_assessment'])
-    if sha(assessment)!=d['reuse_assessment_sha256']:raise ValueError('Approved reuse assessment changed')
-    comparison=Path(d['native_comparison'])
-    if sha(comparison)!=d['native_comparison_sha256']:raise ValueError('Reviewed native comparison changed')
-    c=json.loads(comparison.read_text());provenance=json.loads((prior/'provenance.json').read_text())
-    receipt=json.loads((prior/'receipt.json').read_text());metrics=json.loads((prior/'metrics.json').read_text())
-    current=subprocess.check_output(['git','-C',str(source),'rev-parse','HEAD'],text=True).strip()
-    modules=list(Path(build).joinpath('modules').glob('bsqpN32_tiago_right*.so'))
-    if (current!=d['runtime_source'] or provenance['source_commit']!=d['approved_source']
-        or d['approved_source']!='bbbb047c9827beedff15b40d42aacc6389fa06ba'
-        or current!='61a8135f6b986ef1deca1de562ac184936698133'
-        or len(modules)!=1 or sha(modules[0])!=c['campaign']['module_sha256']
-        or provenance['module_sha256']!=c['approved']['module_sha256']
-        or c['comparison'].get('force_B1_B16_function_code_matches') is not True):
-        raise ValueError('Reviewed force source/module compatibility does not match')
-    for relative,expected in provenance['input_sha256'].items():
-        if sha(Path(inputs)/relative)!=expected:raise ValueError('Approved canonical input differs: '+relative)
-    p=receipt['case']['parameters']
-    if (p.get('machine')!='gtx1070' or p.get('mode')!='original' or p.get('force_N')!=0
-        or p.get('stage')!='canonical' or p.get('timing_mode')!='B' or p.get('backend')!='internal'
-        or metrics.get('task_success') is not True or metrics.get('execution_error')
-        or metrics.get('outcome')!='force_task_completed' or not physical_eligibility(metrics,True)):
-        raise ValueError('Approved canonical is not eligible under scoped speed waiver')
-    failed=Path(d['later_failed_canonical'])
-    if sha(failed/'metrics.json')!=d['later_failed_metrics_sha256']:raise ValueError('Retained later failure changed')
-    metrics=dict(metrics,reused_canonical_evidence=str(prior),later_failed_canonical=str(failed),
-        reused_evidence_source_commit=provenance['source_commit'],actual_runtime_source_commit=current,actual_module_sha256=sha(modules[0]),
-        reuse_scope='Approved prior evidence; later nonfinite failure preserved, not resolved; current campaign module retained')
-    write_json(output/'metrics.json',metrics)
-    write_json(output/'eligibility.json',dict(eligibility_pass=True,speed_only_waiver=True,physical_pass=metrics['physical_pass'],
-        physical_limit_excess=metrics['physical_limit_excess'],scope='Reviewed internal-force GTX1070 canonical evidence reuse only'))
-    write_json(output/'reuse.json',dict(metadata_sha256=sha(metadata),approved_evidence=d,
-        actual_runtime_source=current,actual_module_sha256=sha(modules[0]),no_new_canonical_execution=True))
-    write_json(output/'SHA256SUMS.json',{name:sha(output/name) for name in ('metrics.json','eligibility.json','reuse.json')})
-    return 0
+    raise ValueError('Original force canonical reuse is held pending explicit Felix decision; newer nonfinite execution gate remains unresolved')
 
 def run(source,build,inputs,output,case=None,preflight=False,mode=None,execute=subprocess.run,allow_speed_only=False,reuse_canonical_metadata=None):
     source,build,inputs,output=(Path(p).resolve() for p in (source,build,inputs,output))

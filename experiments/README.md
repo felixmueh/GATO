@@ -9,6 +9,16 @@ The runner does not launch remote jobs or physical robots.
 
 ## Revised campaign preparation
 
+
+Current transfer package:
+[prepared-transfer-zero-pcg-20261012T101500Z](/workspace/GATO-experiment-runner-simple/.experiment-work/prepared-transfer-zero-pcg-20261012T101500Z/inventory.json).
+Its inventory records the exact corrected runner/source pins and asset hashes.
+The earlier213600Z/ee6a388 package remains provenance, superseded for transfer.
+This package prepares700 GTX1070,713 RTX5060/internal,368 Jetson and27 Gazebo
+cases; four original E02 cases per internal target are retained as held
+artifacts and explicitly omitted from executable plans, not permanently dropped.
+No remote deployment or new force execution is authorized by packaging.
+
 `zero_pcg_plan.py` prepares full successor cohorts using reviewed source pins,
 fresh matching native builds and target preflights. This includes all frozen
 BA/BB task pairs rather than only the old pending continuation. It also retains
@@ -45,7 +55,7 @@ force and revised E01/E02/E03 coverage. A pending stage is not an executable
 old-force substitute. Persistent solvers and GPU prediction replace the old
 fresh-owner/CPU-predictor study; their data remain separate protocols.
 
-**Current force status: F*=10 N selected; final cohorts prepared.** The revised original-method 0 N canonical
+**Current force status: original E02 held; F*=10 N bank preserved.** The revised original-method 0 N canonical
 reached its target but exceeded the sampled joint-speed limit by 0.127113 rad/s.
 The matching v2 bank and final E02/E03 plans are prepared. The separate
 `successor/force_smoke.json` is not queued in combined campaign plans.
@@ -61,7 +71,11 @@ resolve the physical failure. Felix subsequently authorized ignoring **speed-onl
 violations for internal force-study eligibility**. Raw `physical_pass=false` and
 speed excess remain unchanged; position/torque tolerances, finite data, full
 completion and sampled-effort checks still apply. This does not apply to robots
-or any other study. The corrected canonical is reused without another retry.
+or any other study. The earlier corrected canonical was reused for the bounded screen. The later
+campaign canonical produced nonfinite plant/control; speed-only waiver does not
+waive that execution gate. E02-original is now disabled on all targets pending
+Felix's explicit decision, retaining four cases per target as held definitions.
+No prior-canonical bypass, fresh force run or remote deployment is authorized.
 Original0N smoke completed24s with finite data and zero physical excesses
 (RMS21.323mm/max35.933mm); its old20mm task-gate failure stays reported. The
 no-estimator0N canonical passed. The fixed 0/5/10/20 N screen completed with
@@ -74,6 +88,12 @@ method cases per machine, using reviewed recording-only source61a8135 and the
 screen and final-plan generation. `--allow-speed-only` records this explicit
 internal-force waiver; it does not relabel physical compliance. Regenerating
 `zero_pcg_plan.py` preserves the installed force stage and any final force plans.
+The current merged inventories list held original-force definitions and omit
+their four cases per target: GTX700/RTX713/Jetson368/Gazebo27 prepared cases.
+Passed task-suite evidence is reused across families only in the same campaign
+and machine with identical source pin, native module, CUDA smoke, fixtures,
+helper and bootstrap; family canonical preflights remain required. Reuse writes
+a reference receipt, never a second cache or failed-evidence pass.
 
 Saved-analysis updates live in `analysis/results_review.py`, `analysis/f01ab.py`
 and `analysis/control_choices.py`. The historical BB report combines all 100

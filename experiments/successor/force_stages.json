@@ -1,7 +1,7 @@
 {
   "version": 1,
   "experiments": [],
-  "status": "smoke_screen_selected_final_plans_prepared",
+  "status": "E02-original held: newer nonfinite canonical is outside speed-only waiver; explicit Felix decision pending",
   "source_commit": "61a8135f6b986ef1deca1de562ac184936698133",
   "selected_force_N": 10.0,
   "speed_only_waiver": true,
@@ -11,7 +11,7 @@
     "successor/force_rtx5060.json",
     "successor/force_jetson.json"
   ],
-  "note": "Original smoke and screen remain separate evidence; old force plans and raw outcomes are historical.",
+  "note": "F*=10N bank and all evidence remain preserved. Four original tasks per target held, not dropped. Prior canonical reuse disabled; no force execution/remote deployment authorized.",
   "retained_hold": {
     "version": 1,
     "experiments": [],
@@ -75,5 +75,19 @@
       },
       "note": "No smoke/screen/final force campaign was run. No correction, tuning, extra GPU call or solver investigation authorized by this hold record."
     }
-  }
+  },
+  "held": true,
+  "held_scope": "E02-original only; other prepared arms unchanged",
+  "held_original_cases": [
+    "figure8-0N-r0",
+    "figure8-10N-r0",
+    "figure8-10N-r1",
+    "figure8-10N-r2"
+  ],
+  "held_targets": [
+    "gtx1070",
+    "rtx5060",
+    "jetson"
+  ],
+  "unresolved_canonical": "/workspace/GATO/_expr_results/gtx1070-zero-pcg-20261011T214000Z/gtx1070/_preflight/force-grid-B-original/attempt-001"
 }

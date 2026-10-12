@@ -4,6 +4,8 @@ import argparse
 import csv
 import importlib
 import json
+import os
+import subprocess
 from pathlib import Path
 import sys
 import traceback
@@ -96,17 +98,33 @@ def window_metrics(output,holding=False):
 
 def ensure_suite(source,build,output,legacy=None):
     output=Path(output)
-    module=task_suite.resolve_module(Path(build),32)
+    source=Path(source);build=Path(build)
+    module=task_suite.resolve_module(build,32)
+    source_commit=subprocess.check_output(['git','-C',str(source),'rev-parse','HEAD'],text=True).strip()
+    preflight_root=next((p for p in output.parents if p.name=='_preflight'),None)
     candidates=sorted(output.parent.parent.glob('attempt-*/task_suite'),reverse=True)
+    # Existing same-machine result receipts are the only discovery authority.
+    # No second cache: failures remain owned by the runner's attempt policy.
+    if preflight_root is not None:
+        candidates+=sorted(preflight_root.glob('*/attempt-*/task_suite'),reverse=True)
     if legacy is not None:candidates.append(Path(legacy))
     for candidate in candidates:
         try:
             metrics=json.loads((candidate/'metrics.json').read_text())
             provenance=json.loads((candidate/'provenance.json').read_text())
-            if (metrics.get('outcome')=='task_suite_passed' and metrics.get('exact_cases') and not metrics.get('skipped') and
+            if preflight_root is not None and candidate.parent.parent!=output.parent.parent:
+                current=json.loads((output.parent/'receipt.json').read_text())
+                retained=json.loads((candidate.parent/'receipt.json').read_text())
+                if current.get('machine')!=retained.get('machine') or current.get('machine')!=os.environ.get('GATO_MACHINE'):continue
+            if (provenance.get('source_commit')==source_commit and provenance.get('smoke_sha256')==sha(build/'cuda_access_smoke') and
+                metrics.get('outcome')=='task_suite_passed' and metrics.get('exact_cases') and not metrics.get('skipped') and
                 provenance['module_sha256']==sha(module) and provenance['adapter_sha256']==sha(task_suite.__file__) and
                 provenance['bootstrap_sha256']==sha(task_suite.EXPERIMENTS/'task_bootstrap/sitecustomize.py') and
                 all(sha(Path(source)/p)==h for p,h in provenance['fixture_sha256'].items())):
+                output.mkdir(parents=True,exist_ok=True)
+                write_json(output/'reuse.json',dict(evidence=str(candidate),metrics_sha256=sha(candidate/'metrics.json'),
+                    provenance_sha256=sha(candidate/'provenance.json'),source_commit=source_commit,module_sha256=sha(module),
+                    scope='Identical passed suite in same campaign/machine; family canonical remains required'))
                 return 0
         except (OSError,ValueError,KeyError,TypeError):
             continue # Missing/incompatible evidence never qualifies; bytes stay intact.

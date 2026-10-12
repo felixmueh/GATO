@@ -144,7 +144,10 @@
         ],
         "scope": "Undisturbed0N rough-reaching readiness, shared across0/F*; disturbance physical compliance measured in task runs"
       },
-      "speed_only_waiver": "Internal force simulations only; unchanged position/torque/finite/effort limits; speed descriptive; raw physical flags retained"
+      "speed_only_waiver": "Internal force simulations only; unchanged position/torque/finite/effort limits; speed descriptive; raw physical flags retained",
+      "enabled": false,
+      "held_reason": "E02-original held: newer nonfinite canonical is outside speed-only waiver; explicit Felix decision pending",
+      "held_evidence": "/workspace/GATO/_expr_results/gtx1070-zero-pcg-20261011T214000Z/gtx1070/_preflight/force-grid-B-original/attempt-001"
     }
   ],
   "source_plans": [
@@ -250,5 +253,6 @@
   },
   "missing_plan_files": [],
   "note": "Explicit successor solver cohorts; previous results remain historical. Fresh matching builds/preflights pending; faster tracking is simulation only. No physical robot queue.",
-  "retry_scope": "Four blocked original force cases only; reviewed canonical evidence reused, later failure preserved; unchanged current module"
+  "retry_scope": "Four blocked original force cases only; reviewed canonical evidence reused, later failure preserved; unchanged current module",
+  "original_force_status": "E02-original held: newer nonfinite canonical is outside speed-only waiver; explicit Felix decision pending"
 }

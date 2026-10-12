@@ -90,32 +90,11 @@ def test_final_shapes_and_selected_bank_identity(tmp_path,monkeypatch):
     with pytest.raises(ValueError,match='No bounded'):P.prepare_final('a'*40,selection,bank)
 
 
-def test_reviewed_force_canonical_reuse_keeps_failure_and_module(tmp_path,monkeypatch):
+def test_force_reuse_cannot_bypass_unresolved_nonfinite_hold(tmp_path,monkeypatch):
     from adapters import force as A
-    from recording import sha,write_json
-    monkeypatch.setenv('GATO_MACHINE','gtx1070')
-    current='61a8135f6b986ef1deca1de562ac184936698133';approved='bbbb047c9827beedff15b40d42aacc6389fa06ba'
-    monkeypatch.setattr(A.subprocess,'check_output',lambda *a,**k:current)
-    prior=tmp_path/'prior';prior.mkdir();failed=tmp_path/'failed';failed.mkdir()
-    source=tmp_path/'source';worker=source/'experiments/force_adapter/run_task.py';worker.parent.mkdir(parents=True);worker.write_text('# worker')
-    inputs=tmp_path/'inputs';inputs.mkdir();(inputs/'v01.json').write_text('{}')
-    build=tmp_path/'build';(build/'modules').mkdir(parents=True);module=build/'modules/bsqpN32_tiago_right.test.so';module.write_bytes(b'current campaign module')
-    params=dict(machine='gtx1070',mode='original',force_N=0,stage='canonical',timing_mode='B',backend='internal')
-    m=dict(campaign_id='E02',timing_mode='B',execution_backend='internal',parameters=params,task_success=True,physical_pass=False,execution_error=None,outcome='force_task_completed',physical_limit_excess=dict(q_rad=0.,v_rad_s=.465,u_Nm=0.))
-    write_json(prior/'metrics.json',m);write_json(prior/'receipt.json',dict(case=dict(parameters=params)))
-    write_json(prior/'provenance.json',dict(source_commit=approved,module_sha256='approved module',input_sha256={'v01.json':sha(inputs/'v01.json')}))
-    write_json(failed/'metrics.json',dict(execution_error='Nonfinite plant/control retained'))
-    comparison=tmp_path/'comparison.json';write_json(comparison,dict(approved=dict(module_sha256='approved module'),campaign=dict(module_sha256=sha(module)),comparison=dict(force_B1_B16_function_code_matches=True)))
-    assessment=tmp_path/'assessment.json';write_json(assessment,dict(scope='reviewed test fixture'))
-    metadata=tmp_path/'reuse.json';write_json(metadata,dict(approved_canonical=str(prior),approved_source=approved,runtime_source=current,evidence_sha256={f:sha(prior/f) for f in ['receipt.json','metrics.json','provenance.json']},native_comparison=str(comparison),native_comparison_sha256=sha(comparison),reuse_assessment=str(assessment),reuse_assessment_sha256=sha(assessment),later_failed_canonical=str(failed),later_failed_metrics_sha256=sha(failed/'metrics.json')))
-    original={p.name:p.read_bytes() for p in prior.iterdir()}
-    def forbidden(*a,**kw):raise AssertionError('Repeated canonical execution')
-    output=tmp_path/'new'
-    assert A.run(source,build,inputs,output,preflight=True,mode='original',execute=forbidden,allow_speed_only=True,reuse_canonical_metadata=metadata)==0
-    metrics=json.loads((output/'metrics.json').read_text());assert metrics['physical_pass'] is False and metrics['later_failed_canonical']==str(failed)
-    assert metrics['actual_module_sha256']==sha(module) and metrics['reused_evidence_source_commit']==approved
-    assert original=={p.name:p.read_bytes() for p in prior.iterdir()}
-    module.write_bytes(b'changed module')
-    assert A.run(source,build,inputs,tmp_path/'bad-module',preflight=True,mode='original',execute=forbidden,allow_speed_only=True,reuse_canonical_metadata=metadata)==1
-    monkeypatch.setenv('GATO_MACHINE','jetson')
-    assert A.run(source,build,inputs,tmp_path/'wrong-machine',preflight=True,mode='original',execute=forbidden,allow_speed_only=True,reuse_canonical_metadata=metadata)==1
+    source=tmp_path/'source';worker=source/'experiments/force_adapter/run_task.py';worker.parent.mkdir(parents=True);worker.write_text('# fixture')
+    monkeypatch.setattr(A.subprocess,'check_output',lambda *a,**k:'61a8135')
+    def forbidden(*a,**kw):raise AssertionError('No force execution authorized')
+    output=tmp_path/'attempt'
+    assert A.run(source,tmp_path,tmp_path,output,preflight=True,mode='original',execute=forbidden,allow_speed_only=True,reuse_canonical_metadata=tmp_path/'prior-reuse.json')==1
+    assert 'held pending explicit Felix decision' in json.loads((output/'metrics.json').read_text())['execution_error']

@@ -15,10 +15,9 @@
         "demo_visual_square_internal",
         "E03",
         "E02-no_estimator",
-        "E02-original",
         "E02-adapted"
       ],
-      "cases": 704,
+      "cases": 700,
       "status": "prepared_not_executed"
     },
     "rtx5060_desktop.json": {
@@ -39,10 +38,9 @@
         "F04-stageOFF",
         "E03",
         "E02-no_estimator",
-        "E02-original",
         "E02-adapted"
       ],
-      "cases": 717,
+      "cases": 713,
       "status": "prepared_not_executed"
     },
     "rtx5060_gazebo.json": {
@@ -68,10 +66,9 @@
         "F04-stageOFF",
         "E03",
         "E02-no_estimator",
-        "E02-original",
         "E02-adapted"
       ],
-      "cases": 372,
+      "cases": 368,
       "status": "proposed_duration_discussion_and_target_review_pending"
     }
   },
@@ -160,7 +157,8 @@
         "timing": "Persistent estimator prediction/selection/update/TO wall; nativeTO separate; construction and memory query outside tick timing",
         "force": "Attached pure force at last-joint origin, initially world-Z downward; changing world direction retained",
         "Jetson": "Duration/storage discussion before execution; no silent pruning"
-      }
+      },
+      "original_force_status": "E02-original held: newer nonfinite canonical is outside speed-only waiver; explicit Felix decision pending"
     },
     "successor/force_rtx5060.json": {
       "selected_force_N": 10.0,
@@ -177,7 +175,8 @@
         "timing": "Persistent estimator prediction/selection/update/TO wall; nativeTO separate; construction and memory query outside tick timing",
         "force": "Attached pure force at last-joint origin, initially world-Z downward; changing world direction retained",
         "Jetson": "Duration/storage discussion before execution; no silent pruning"
-      }
+      },
+      "original_force_status": "E02-original held: newer nonfinite canonical is outside speed-only waiver; explicit Felix decision pending"
     },
     "successor/force_jetson.json": {
       "selected_force_N": 10.0,
@@ -194,22 +193,67 @@
         "timing": "Persistent estimator prediction/selection/update/TO wall; nativeTO separate; construction and memory query outside tick timing",
         "force": "Attached pure force at last-joint origin, initially world-Z downward; changing world direction retained",
         "Jetson": "Duration/storage discussion before execution; no silent pruning"
-      }
+      },
+      "original_force_status": "E02-original held: newer nonfinite canonical is outside speed-only waiver; explicit Felix decision pending"
     }
   },
   "missing_plan_files": [],
   "omissions": {
-    "Force": "smoke_screen_selected_final_plans_prepared",
+    "Force": "E02-original held: newer nonfinite canonical is outside speed-only waiver; explicit Felix decision pending",
     "D02 physical": "Standalone/manual; faster speeds withheld pending simulation review",
     "Solver-independent": "F04/Q02/X02/M02 not rerun solely for stopping change; pending target checks remain separate",
     "Jetson BA": "No full task sweep; F01c supplies speedup study",
     "Historical studies": "Retained unchanged; no format migration reruns"
   },
+  "held_experiments": [
+    {
+      "plan": "successor/force_gtx1070.json",
+      "experiment": "E02-original",
+      "machines": [
+        "gtx1070"
+      ],
+      "cases": [
+        "figure8-0N-r0",
+        "figure8-10N-r0",
+        "figure8-10N-r1",
+        "figure8-10N-r2"
+      ],
+      "reason": "E02-original held: newer nonfinite canonical is outside speed-only waiver; explicit Felix decision pending"
+    },
+    {
+      "plan": "successor/force_rtx5060.json",
+      "experiment": "E02-original",
+      "machines": [
+        "rtx5060"
+      ],
+      "cases": [
+        "figure8-0N-r0",
+        "figure8-10N-r0",
+        "figure8-10N-r1",
+        "figure8-10N-r2"
+      ],
+      "reason": "E02-original held: newer nonfinite canonical is outside speed-only waiver; explicit Felix decision pending"
+    },
+    {
+      "plan": "successor/force_jetson.json",
+      "experiment": "E02-original",
+      "machines": [
+        "jetson"
+      ],
+      "cases": [
+        "figure8-0N-r0",
+        "figure8-10N-r0",
+        "figure8-10N-r1",
+        "figure8-10N-r2"
+      ],
+      "reason": "E02-original held: newer nonfinite canonical is outside speed-only waiver; explicit Felix decision pending"
+    }
+  ],
   "readiness": "Preparation inventory, not a statement that all experiments or targets are execution-ready.",
   "force_readiness": {
     "version": 1,
     "experiments": [],
-    "status": "smoke_screen_selected_final_plans_prepared",
+    "status": "E02-original held: newer nonfinite canonical is outside speed-only waiver; explicit Felix decision pending",
     "source_commit": "61a8135f6b986ef1deca1de562ac184936698133",
     "selected_force_N": 10.0,
     "speed_only_waiver": true,
@@ -219,7 +263,7 @@
       "successor/force_rtx5060.json",
       "successor/force_jetson.json"
     ],
-    "note": "Original smoke and screen remain separate evidence; old force plans and raw outcomes are historical.",
+    "note": "F*=10N bank and all evidence remain preserved. Four original tasks per target held, not dropped. Prior canonical reuse disabled; no force execution/remote deployment authorized.",
     "retained_hold": {
       "version": 1,
       "experiments": [],
@@ -283,6 +327,20 @@
         },
         "note": "No smoke/screen/final force campaign was run. No correction, tuning, extra GPU call or solver investigation authorized by this hold record."
       }
-    }
+    },
+    "held": true,
+    "held_scope": "E02-original only; other prepared arms unchanged",
+    "held_original_cases": [
+      "figure8-0N-r0",
+      "figure8-10N-r0",
+      "figure8-10N-r1",
+      "figure8-10N-r2"
+    ],
+    "held_targets": [
+      "gtx1070",
+      "rtx5060",
+      "jetson"
+    ],
+    "unresolved_canonical": "/workspace/GATO/_expr_results/gtx1070-zero-pcg-20261011T214000Z/gtx1070/_preflight/force-grid-B-original/attempt-001"
   }
 }

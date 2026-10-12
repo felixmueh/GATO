@@ -53,7 +53,7 @@ def sources(experiments):
 
 
 def merge(output,plan_files=None):
-    output=Path(output);definitions=[];missing=[];provenance={};retained=[];source_notes={}
+    output=Path(output);definitions=[];missing=[];provenance={};retained=[];source_notes={};held=[]
     for filename in plan_files or PLANS:
         path=ROOT/'experiments'/filename
         if not path.is_file():missing.append(filename);continue
@@ -61,7 +61,10 @@ def merge(output,plan_files=None):
         source_notes[filename]={k:v for k,v in plan.items() if k not in ('version','experiments','retained_results')}
         if plan.get('retained_results'):retained.append(dict(plan=filename,results=plan['retained_results']))
         for experiment in plan['experiments']:
-            if not experiment.get('enabled',True):continue
+            if not experiment.get('enabled',True):
+                held.append(dict(plan=filename,experiment=experiment['id'],machines=experiment.get('machines',[]),
+                    cases=[c['id'] for c in experiment.get('cases',[])],reason=experiment.get('held_reason','Disabled prepared definition retained')))
+                continue
             definitions.append((filename,experiment))
     successor=any(e.get('stopping_policy')=='zero_pcg_or_finite_kkt' for _,e in definitions)
     omissions=deepcopy(SUCCESSOR_OMISSIONS if successor else OMISSIONS)
@@ -95,7 +98,7 @@ def merge(output,plan_files=None):
     all_experiments=[e for p in targets.values() for e in p['experiments']]
     inventory=dict(plans={name:dict(experiments=[e['id'] for e in p['experiments']],
         cases=sum(len(e.get('cases',[]))*e.get('repeats',1) for e in p['experiments']),status=p['status']) for name,p in targets.items()},
-        source_commits=sources(all_experiments),source_plan_files=list(plan_files or PLANS),source_plan_notes=source_notes,missing_plan_files=missing,omissions=omissions,
+        source_commits=sources(all_experiments),source_plan_files=list(plan_files or PLANS),source_plan_notes=source_notes,missing_plan_files=missing,omissions=omissions,held_experiments=held,
         readiness='Preparation inventory, not a statement that all experiments or targets are execution-ready.')
     if force_readiness:
         inventory['force_readiness']=force_readiness
