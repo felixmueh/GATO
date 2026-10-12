@@ -39,6 +39,24 @@ def collector_source(repository,build):
     return target,pin
 
 
+MANIFEST_OVERRIDE_VERSION='recorded-event-sha-v1'
+FINALIZED_FILES=('events.jsonl','case.json','protocol.json','provenance.json',
+    'controller_stats.json','metrics.json','ros_observations.jsonl',
+    'controller_state_history.csv','full_joint_state_history.jsonl')
+
+
+def manifest_hashes(recorder):
+    """Same frozen file set; reuse only hashes recorded for own immutable raw files."""
+    cached={e['raw_file']:e['sha256'] for e in recorder.events}
+    files=list((recorder.output/'raw').glob('*.npz'))
+    files += [recorder.output/name for name in FINALIZED_FILES if (recorder.output/name).is_file()]
+    result={}
+    for path in sorted(files):
+        relative=str(path.relative_to(recorder.output))
+        result[relative]=cached[relative] if relative in cached and path.parent==recorder.output/'raw' else sha(path)
+    return result
+
+
 def load_collector(path):
     spec=importlib.util.spec_from_file_location('pinned_visual_demo',path);worker=importlib.util.module_from_spec(spec)
     # Frozen JSON force values stay unchanged; the native API requires arrays.
@@ -46,6 +64,10 @@ def load_collector(path):
     replacement="constant_f_ext=np.asarray(p['constant_f_ext'],dtype=np.float32)"
     if text.count(original)!=1:raise ValueError('Frozen collector force argument seam changed')
     exec(compile(text.replace(original,replacement),str(path),'exec'),worker.__dict__)
+    if hasattr(worker,'RawRecorder'):
+        def manifest(recorder):
+            worker.write_json(recorder.output/'SHA256SUMS.json',manifest_hashes(recorder))
+        worker.RawRecorder.manifest=manifest
     return worker
 
 def run(source,build,case,output,backend,preflight=False,inputs=None,runtime_pin=None):
@@ -93,7 +115,9 @@ def run(source,build,case,output,backend,preflight=False,inputs=None,runtime_pin
         protocol=worker.resolve_preflight(backend) if preflight else worker.resolve(backend,case['id'])
         metrics=worker.run_task(protocol,source,matches[0],output,preflight_output)
     metrics.update(collector_source_commit=pin,collection_adapter_sha256=sha(__file__),
-        collector_adapter_overrides=['Force constructor argument list to float32 array; frozen protocol unchanged'])
+        collector_adapter_overrides=['Force constructor argument list to float32 array; frozen protocol unchanged',
+            'Finalization uses recorded hashes for own immutable raw files; fresh hashes for all other finalized files'],
+        manifest_override_version=MANIFEST_OVERRIDE_VERSION)
     write_json(output/'metrics.json',metrics)
     manifest=json.loads((output/'SHA256SUMS.json').read_text());manifest['metrics.json']=sha(output/'metrics.json');write_json(output/'SHA256SUMS.json',manifest)
     if preflight:return int(bool(metrics['execution_error']) or metrics.get('task_success') is not True or metrics.get('physical_pass') is not True or (backend!='internal' and metrics.get('handback_confirmed') is not True))

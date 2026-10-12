@@ -106,3 +106,27 @@ def test_collector_array_boundary_keeps_json_and_force_values(tmp_path):
         np.testing.assert_array_equal(constant_f_ext,protocol['constant_f_ext']);return True
     assert worker.run_task(protocol,constructor)
     assert path.read_bytes()==before and json.dumps(protocol)==frozen
+
+
+def test_finalization_cached_raw_is_exact_and_nonraw_foreign_still_hashed(tmp_path,monkeypatch):
+    import hashlib
+    from types import SimpleNamespace
+    raw=tmp_path/'raw';raw.mkdir()
+    own=raw/'0000000-solve_completed.npz';own.write_bytes(b'own immutable raw')
+    foreign=raw/'foreign.npz';foreign.write_bytes(b'foreign raw')
+    (tmp_path/'events.jsonl').write_text('recorded events\n')
+    (tmp_path/'metrics.json').write_text('new final metrics\n')
+    (tmp_path/'stderr.log').write_text('runner-owned mutable log')
+    digest=lambda p:hashlib.sha256(p.read_bytes()).hexdigest()
+    recorder=SimpleNamespace(output=tmp_path,events=[dict(raw_file='raw/'+own.name,sha256=digest(own))])
+    expected={str(p.relative_to(tmp_path)):digest(p) for p in [own,foreign,tmp_path/'events.jsonl',tmp_path/'metrics.json']}
+    calls=[]
+    def checked_hash(path):
+        calls.append(path)
+        assert path!=own,'Own raw should not be reread at finalization'
+        return digest(path)
+    monkeypatch.setattr(demo,'sha',checked_hash)
+    assert demo.manifest_hashes(recorder)==expected
+    assert set(calls)=={foreign,tmp_path/'events.jsonl',tmp_path/'metrics.json'}
+    (tmp_path/'metrics.json').write_text('changed final metrics\n')
+    assert demo.manifest_hashes(recorder)['metrics.json']==digest(tmp_path/'metrics.json')

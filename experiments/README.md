@@ -11,8 +11,12 @@ The runner does not launch remote jobs or physical robots.
 
 
 Current transfer package:
-[prepared-transfer-zero-pcg-20261012T101500Z](/workspace/GATO-experiment-runner-simple/.experiment-work/prepared-transfer-zero-pcg-20261012T101500Z/inventory.json).
+[prepared-transfer-zero-pcg-20261012T105900Z](/workspace/GATO-experiment-runner-simple/.experiment-work/prepared-transfer-zero-pcg-20261012T105900Z/inventory.json).
 Its inventory records the exact corrected runner/source pins and asset hashes.
+The previous101500Z/efd190f package remains provenance. The new demo adapter
+overrides finalization only (`recorded-event-sha-v1`): own immutable raw files
+reuse their already-recorded hashes, all other finalized files are freshly
+hashed. Recording/controller behavior and manifest schema remain unchanged.
 The earlier213600Z/ee6a388 package remains provenance, superseded for transfer.
 This package prepares700 GTX1070,713 RTX5060/internal,368 Jetson and27 Gazebo
 cases; four original E02 cases per internal target are retained as held
