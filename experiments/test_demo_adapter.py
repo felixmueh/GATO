@@ -58,6 +58,7 @@ def test_gazebo_runner_keeps_sequence_hold_policy(tmp_path,monkeypatch):
         def run_task(self,*args):raise AssertionError('Bridge bypassed heldsequence helper')
     worker=Worker()
     monkeypatch.setattr(demo,'collector_source',lambda *a:(collector,'synthetic-collector'))
+    monkeypatch.setattr(demo,'load_collector',lambda *a:worker)
     monkeypatch.setattr(demo.importlib.util,'module_from_spec',lambda *a:worker)
     class Loader:
         def exec_module(self,*a):pass
@@ -84,6 +85,7 @@ def test_explicit_runtime_pin_preserves_frozen_demo_protocol(tmp_path,monkeypatc
             seen.append(protocol);write_json(output/'SHA256SUMS.json',{});return dict(task_success=True,physical_pass=True,execution_error=None)
     worker=Worker()
     monkeypatch.setattr(demo,'collector_source',lambda *a:(collector,'frozen-collector'))
+    monkeypatch.setattr(demo,'load_collector',lambda *a:worker)
     monkeypatch.setattr(demo.importlib.util,'module_from_spec',lambda *a:worker)
     class Loader:
         def exec_module(self,*a):pass
@@ -91,3 +93,16 @@ def test_explicit_runtime_pin_preserves_frozen_demo_protocol(tmp_path,monkeypatc
     monkeypatch.setattr(demo.subprocess,'check_output',lambda command,**k:pin+'\n' if 'rev-parse' in command else b'unchanged task clock')
     assert demo.run(source,build,{},output,'internal',True,None,pin)==0
     assert seen==[dict(runtime_pin=pin,duration=8)]
+
+
+def test_collector_array_boundary_keeps_json_and_force_values(tmp_path):
+    import numpy as np
+    path=tmp_path/'frozen_collector.py'
+    path.write_text("import numpy as np\ndef run_task(p,constructor):\n    return constructor(constant_f_ext=p['constant_f_ext'])\n")
+    before=path.read_bytes();worker=demo.load_collector(path)
+    protocol={'constant_f_ext':[0.,0.,0.,0.,0.,0.]};frozen=json.dumps(protocol)
+    def constructor(constant_f_ext):
+        assert isinstance(constant_f_ext,np.ndarray) and constant_f_ext.dtype==np.float32
+        np.testing.assert_array_equal(constant_f_ext,protocol['constant_f_ext']);return True
+    assert worker.run_task(protocol,constructor)
+    assert path.read_bytes()==before and json.dumps(protocol)==frozen

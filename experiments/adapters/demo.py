@@ -39,12 +39,21 @@ def collector_source(repository,build):
     return target,pin
 
 
+def load_collector(path):
+    spec=importlib.util.spec_from_file_location('pinned_visual_demo',path);worker=importlib.util.module_from_spec(spec)
+    # Frozen JSON force values stay unchanged; the native API requires arrays.
+    text=path.read_text();original="constant_f_ext=p['constant_f_ext']"
+    replacement="constant_f_ext=np.asarray(p['constant_f_ext'],dtype=np.float32)"
+    if text.count(original)!=1:raise ValueError('Frozen collector force argument seam changed')
+    exec(compile(text.replace(original,replacement),str(path),'exec'),worker.__dict__)
+    return worker
+
 def run(source,build,case,output,backend,preflight=False,inputs=None,runtime_pin=None):
     source,build,output=map(lambda p:Path(p).resolve(),(source,build,output))
     collector,pin=collector_source(source,build)
     sys.path.insert(0,str(collector))
     path=collector/'experiments/deployment/demo/run_demo.py'
-    spec=importlib.util.spec_from_file_location('pinned_visual_demo',path);worker=importlib.util.module_from_spec(spec);spec.loader.exec_module(worker)
+    worker=load_collector(path)
     if inputs is not None and sha(Path(inputs)/'proposal.json')!=sha(worker.INPUT):raise ValueError('Pinned collector input differs from runner frozen input')
     if runtime_pin is not None:
         resolved=subprocess.check_output(['git','-C',str(source),'rev-parse',runtime_pin],text=True).strip()
@@ -83,7 +92,8 @@ def run(source,build,case,output,backend,preflight=False,inputs=None,runtime_pin
     else:
         protocol=worker.resolve_preflight(backend) if preflight else worker.resolve(backend,case['id'])
         metrics=worker.run_task(protocol,source,matches[0],output,preflight_output)
-    metrics.update(collector_source_commit=pin,collection_adapter_sha256=sha(__file__))
+    metrics.update(collector_source_commit=pin,collection_adapter_sha256=sha(__file__),
+        collector_adapter_overrides=['Force constructor argument list to float32 array; frozen protocol unchanged'])
     write_json(output/'metrics.json',metrics)
     manifest=json.loads((output/'SHA256SUMS.json').read_text());manifest['metrics.json']=sha(output/'metrics.json');write_json(output/'SHA256SUMS.json',manifest)
     if preflight:return int(bool(metrics['execution_error']) or metrics.get('task_success') is not True or metrics.get('physical_pass') is not True or (backend!='internal' and metrics.get('handback_confirmed') is not True))

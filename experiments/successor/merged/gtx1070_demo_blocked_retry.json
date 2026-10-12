@@ -1,0 +1,232 @@
+{
+  "version": 1,
+  "status": "prepared_not_executed",
+  "experiments": [
+    {
+      "id": "demo_visual_square_internal",
+      "name": "Square poses and upward-tool figure-eight demonstration",
+      "research_question": "RQ-control",
+      "protocol": "demo-visual-square-v1-zero-pcg-20261011",
+      "source_commit": "fa6f6bede286c122cc41ac65f42a583da84290e0",
+      "collector_source_commit": "2c7e2b11bd5bab8fa3a761d17cf55c1aa9cff55e",
+      "machines": [
+        "gtx1070"
+      ],
+      "timing_mode": "B",
+      "backend": "internal",
+      "build": {
+        "inputs": {
+          "native/CMakeLists.txt": "07c285afa3d2055c2c8f64c4645bdad01bdeb3391e77f2082aff3c70443df1e2"
+        },
+        "commands": [
+          [
+            "cmake",
+            "-S",
+            "{runner}/native",
+            "-B",
+            "{build}",
+            "-DGATO_SOURCE_DIR={source}",
+            "-DKNOTS=16;32;64;128",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DGATO_EXPERIMENT_TELEMETRY=ON",
+            "-DCMAKE_CUDA_ARCHITECTURES={cuda_arch}-real",
+            "-DPython3_EXECUTABLE={python}"
+          ],
+          [
+            "cmake",
+            "--build",
+            "{build}",
+            "--parallel",
+            "2"
+          ]
+        ],
+        "artifacts": [
+          "modules/bsqpN16_tiago_right*.so",
+          "modules/bsqpN32_tiago_right*.so",
+          "modules/bsqpN64_tiago_right*.so",
+          "modules/bsqpN128_tiago_right*.so"
+        ]
+      },
+      "inputs": {
+        "experiments/inputs/demo/proposal.json": "93b9ff4edad18bb484d41b15626775d0bdfd3f2afb5fd6859682593a9ae19e75"
+      },
+      "preflight": {
+        "group": "demo-internal-zero-pcg-20261011",
+        "command": [
+          "{python}",
+          "{runner}/adapters/demo.py",
+          "--source",
+          "{source}",
+          "--build",
+          "{build}",
+          "--case",
+          "{case}",
+          "--output",
+          "{output}",
+          "--backend",
+          "internal",
+          "--preflight",
+          "--inputs",
+          "{inputs}/experiments/inputs/demo",
+          "--runtime-pin",
+          "fa6f6bede286c122cc41ac65f42a583da84290e0"
+        ]
+      },
+      "command": [
+        "{python}",
+        "{runner}/adapters/demo.py",
+        "--source",
+        "{source}",
+        "--build",
+        "{build}",
+        "--case",
+        "{case}",
+        "--output",
+        "{output}",
+        "--backend",
+        "internal",
+        "--inputs",
+        "{inputs}/experiments/inputs/demo",
+        "--runtime-pin",
+        "fa6f6bede286c122cc41ac65f42a583da84290e0"
+      ],
+      "repeats": 1,
+      "cases": [
+        {
+          "id": "square",
+          "parameters": {
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "figure8-24s",
+          "parameters": {
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "figure8-18s",
+          "parameters": {
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "figure8-12s",
+          "parameters": {
+            "backend": "internal"
+          }
+        }
+      ],
+      "qualification": "Prepared only; target frozen task readiness/module review and full internal then Gazebo motion review precede robot. Physical scripts outside runner.",
+      "cohort_id": "zero-pcg-20261011",
+      "stopping_policy": "zero_pcg_or_finite_kkt",
+      "original_runtime_source_commit": "502fa29c8b0d649dcb347f9534bf29c6935fa6dd",
+      "original_scientific_protocol": "demo-visual-square-v1",
+      "preparation_status": "fresh matching build and target preflight pending"
+    }
+  ],
+  "source_plans": [
+    {
+      "plan": "successor/gtx1070_internal.json",
+      "experiment": "T01"
+    },
+    {
+      "plan": "successor/gtx1070_internal.json",
+      "experiment": "T01-faster-proposal"
+    },
+    {
+      "plan": "successor/gtx1070_internal.json",
+      "experiment": "F01ab"
+    },
+    {
+      "plan": "successor/gtx1070_internal.json",
+      "experiment": "F01c"
+    },
+    {
+      "plan": "successor/gtx1070_internal.json",
+      "experiment": "F05-stageOFF"
+    },
+    {
+      "plan": "successor/gtx1070_internal.json",
+      "experiment": "F05-stageON"
+    },
+    {
+      "plan": "successor/gtx1070_internal.json",
+      "experiment": "BB"
+    },
+    {
+      "plan": "successor/gtx1070_internal.json",
+      "experiment": "BA"
+    },
+    {
+      "plan": "successor/gtx1070_internal.json",
+      "experiment": "ControlChoices"
+    },
+    {
+      "plan": "successor/gtx1070_internal.json",
+      "experiment": "CylinderTasks"
+    },
+    {
+      "plan": "successor/gtx1070_internal.json",
+      "experiment": "demo_visual_square_internal"
+    },
+    {
+      "plan": "successor/force_gtx1070.json",
+      "experiment": "E03"
+    },
+    {
+      "plan": "successor/force_gtx1070.json",
+      "experiment": "E02-no_estimator"
+    },
+    {
+      "plan": "successor/force_gtx1070.json",
+      "experiment": "E02-original"
+    },
+    {
+      "plan": "successor/force_gtx1070.json",
+      "experiment": "E02-adapted"
+    }
+  ],
+  "source_plan_notes": {
+    "successor/gtx1070_internal.json": {
+      "cohort_id": "zero-pcg-20261011",
+      "stopping_policy": "zero_pcg_or_finite_kkt",
+      "status": "prepared_target_build_preflight_pending",
+      "note": "New solver cohort, full frozen coverage; historical results/failed attempts and gates unchanged. Faster tracking simulation only; no physical robot queue.",
+      "omissions": {
+        "BA_seeds_alone": "Dropped; seed-to-output progress remains saved analysis",
+        "Jetson_BA": "No full BA task sweep; same-candidate speedup answered by F01c",
+        "force": "Separate force plans follow actual force_stages.json status and are included by successor inventory when prepared",
+        "independent_studies": "No solver-change rerun of F04/Q02/X02/M02; pending M02/F04 target plans remain separate"
+      }
+    },
+    "successor/force_gtx1070.json": {
+      "selected_force_N": 10.0,
+      "selection_sha256": "299cc36c86650e6dc8a1ece15da19bdd693b5d6a2bfe0d08c1fe329eba65c27b",
+      "status": "prepared_target_preflight_pending",
+      "preparation": {
+        "E02_tasks": 12,
+        "E03_input_truth_pairs": 12,
+        "E03_method_cases": 24,
+        "excluded_warmups_per_case": 1,
+        "measured_ticks_per_case": 20,
+        "E01": "Derived from matched GPU prediction/selection bank; no separate runs",
+        "canonical": "Three undisturbed0N method preflights; F* actual task physical outcomes separate",
+        "timing": "Persistent estimator prediction/selection/update/TO wall; nativeTO separate; construction and memory query outside tick timing",
+        "force": "Attached pure force at last-joint origin, initially world-Z downward; changing world direction retained",
+        "Jetson": "Duration/storage discussion before execution; no silent pruning"
+      }
+    }
+  },
+  "retained_results": [],
+  "omissions": {
+    "Force": "smoke_screen_selected_final_plans_prepared",
+    "D02 physical": "Standalone/manual; faster speeds withheld pending simulation review",
+    "Solver-independent": "F04/Q02/X02/M02 not rerun solely for stopping change; pending target checks remain separate",
+    "Jetson BA": "No full task sweep; F01c supplies speedup study",
+    "Historical studies": "Retained unchanged; no format migration reruns"
+  },
+  "missing_plan_files": [],
+  "note": "Explicit successor solver cohorts; previous results remain historical. Fresh matching builds/preflights pending; faster tracking is simulation only. No physical robot queue.",
+  "retry_scope": "Four blocked demo cases only after force-vector API compatibility fix; attempt001/002 preserved"
+}

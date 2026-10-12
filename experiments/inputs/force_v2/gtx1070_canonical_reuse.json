@@ -1,0 +1,18 @@
+{
+  "approved_canonical": "/workspace/GATO/_expr_results/force-rho-policy-20261011T201734Z/canonical-original0",
+  "approved_source": "bbbb047c9827beedff15b40d42aacc6389fa06ba",
+  "runtime_source": "61a8135f6b986ef1deca1de562ac184936698133",
+  "evidence_sha256": {
+    "receipt.json": "8763df0c1698a2168eb4b5e3a25099b316c3ce06769cae926aacebd236408926",
+    "metrics.json": "d6bb3fd97923298f408a1508040e9950c38682eeed7cb03fbd4d14b1c79aeeff",
+    "protocol.json": "ff8b59156924d581bc306d9b64f60914cf7c2c5a4dfae5b8125cd0815ca30dc4",
+    "provenance.json": "8fca76488599aaebf567b80d4054fa587377397460e950090c5a9a50975d3252"
+  },
+  "native_comparison": "/workspace/GATO/_expr_results/force-preflight-reuse-20261012/native_code_comparison.json",
+  "native_comparison_sha256": "4a8edb749e57e823e661b3ad737fd64ca4b3b8776e1608d62e818570a57192de",
+  "later_failed_canonical": "/workspace/GATO/_expr_results/gtx1070-zero-pcg-20261011T214000Z/gtx1070/_preflight/force-grid-B-original/attempt-001",
+  "later_failed_metrics_sha256": "db9e416dca601a5e132258f66ee05dac4d74f5dacafc58845407ee1cba87c4ee",
+  "authorization": "Felix fix/re-run; root accepted scoped B1/B16 code/settings/input compatibility, speed-only internal simulation waiver; no claim later nonfinite failure resolved",
+  "reuse_assessment": "/workspace/GATO/_expr_results/force-preflight-reuse-20261012/reuse_assessment.json",
+  "reuse_assessment_sha256": "a42a1868391bc2b8ee9d67658001b7447e4e122d6b807d08af51ca7a2a7a46b9"
+}
