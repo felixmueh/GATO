@@ -14,16 +14,20 @@ from screen_front_axis_free import ROOT, build_tiago_collision_model, NamedJoint
 def main():
     parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('base',type=Path);parser.add_argument('output',type=Path)
     parser.add_argument('--refine-exact',type=Path,help='One approved refinement from the preserved exact center candidate')
+    parser.add_argument('--screen',type=Path,help='Explicit fixed-placement corner/center CPU screen')
+    parser.add_argument('--only-best',action='store_true',help='One bounded refinement from its closest center candidate')
     args=parser.parse_args();base=args.base;output=args.output;output.mkdir(parents=True,exist_ok=False)
     (output/'optimization_source.py').write_bytes(Path(__file__).read_bytes())
-    frozen=json.loads((base/'screen-007-joint-relaxation/screen.json').read_text())
-    original=json.loads((base/'screen-005-right-shoulder/screen.json').read_text())
+    frozen_path=args.screen or base/'screen-007-joint-relaxation/screen.json'
+    original_path=args.screen or base/'screen-005-right-shoulder/screen.json'
+    frozen=json.loads(frozen_path.read_text());original=json.loads(original_path.read_text())
     previous=np.asarray(frozen['center_outcomes'][0]['goals'][-1]['q_rad'])
     target=np.asarray(frozen['centers_m'][0]);axis=np.array((1.,0.,0.))
     old=json.loads((ROOT/'experiments/deployment/demo/proposal.json').read_text())
     old_center=np.asarray(next(g for g in old['goals'] if g['id']=='center')['ik_witness_q_rad'])
     exact=min([r for r in original['attempts'] if r['goal']=='center'],key=lambda r:r['position_error_m']+.15*r['orientation_error_rad'])
     seeds=[('exact-31mm-clearance',np.asarray(exact['q_rad'])),('fixed-bottom-left',previous),('accepted-v5-center',old_center)]
+    if args.only_best:seeds=[('best-new-center',np.asarray(exact['q_rad']))]
     if args.refine_exact:
         prior=json.loads(args.refine_exact.read_text());seeds=[('buffered-exact-center',np.asarray(prior['attempts'][0]['q_rad']))]
     model=pin.buildModelFromUrdf(str(ROOT/'gato/dynamics/tiago_right/tiago_right_arm.urdf'));data=model.createData();tool=model.getFrameId('arm_right_tool_link')
@@ -68,7 +72,7 @@ def main():
         (output/'center_optimization.json').write_text(json.dumps(dict(attempts=attempts,selected=selected),indent=2)+'\n')
         if row['accepted_sequence_witness']:
             selected=row;break
-    receipt=dict(id='square-front20cm-center-constrained-cpu-v1',source_frozen_corners=str(base/'screen-007-joint-relaxation'),
+    receipt=dict(id='square-front20cm-center-constrained-cpu-v1',source_frozen_corners=str(frozen_path),
         corners_fixed=True,center_axis=[1,0,0],objective='Joint transition squared (wrist weight1.35) plus .01 inverse-square joint-limit proximity penalty with .15rad offset',
         method='Center-only SLSQP, predefined seeds only,30iterations maximum each; continuous axial roll free, physical joint bounds and+Xaxis sign;40.1mm optimizationbuffer, unchanged40mm validation',attempts=attempts,selected=selected)
     (output/'center_optimization.json').write_text(json.dumps(receipt,indent=2)+'\n')

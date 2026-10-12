@@ -25,6 +25,7 @@ def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output',type=Path);parser.add_argument('--preflight',action='store_true')
     parser.add_argument('--preflight-output',type=Path);parser.add_argument('--preview',action='store_true')
+    parser.add_argument('--proposal',type=Path,default=PROPOSAL,help='Explicit separately frozen scientific successor input')
     args=parser.parse_args()
     sha=lambda path:hashlib.sha256(Path(path).read_bytes()).hexdigest()
     helper_hashes={}
@@ -36,11 +37,11 @@ def main():
     sys.path.insert(0,str(RUNNER/'experiments'))
     from adapters.demo import load_collector
     worker=load_collector(Path(__file__).with_name('run_demo.py'))
-    worker.INPUT=PROPOSAL
+    proposal=args.proposal.resolve();worker.INPUT=proposal
     identity=worker.runtime_identity(RUNTIME_SOURCE,RUNTIME_PIN)
     provenance=dict(collector_commit=subprocess.check_output(['git','-C',str(ROOT),'rev-parse','HEAD'],text=True).strip(),
         collector_driver_sha256=sha(__file__),collector_source_sha256=sha(Path(__file__).with_name('run_demo.py')),
-        scientific_input=str(PROPOSAL),scientific_input_sha256=sha(PROPOSAL),runner_pin=RUNNER_PIN,recording_helper_sha256=helper_hashes,
+        scientific_input=str(proposal),scientific_input_sha256=sha(proposal),runner_pin=RUNNER_PIN,recording_helper_sha256=helper_hashes,
         runtime_identity=identity,module=dict(path=str(N32_MODULE),sha256=N32_SHA256),
         scope='One explicit canonical preflight or one five-goal modeB simulation; no Gazebo/robot, no retry or solver/controller changes')
     if args.preview:

@@ -33,7 +33,10 @@ def main():
                 terminal_axis_deg=float(np.rad2deg(np.arccos(np.clip(pose.rotation[:,2]@desired[:,2],-1,1)))),terminal_full_rotation_deg=float(np.rad2deg(np.linalg.norm(pin.log3(pose.rotation.T@desired)))),terminal_speed_L1_rad_s=float(np.abs(v[index]).sum()))
             margin=np.minimum(q[index]-model.lowerPositionLimit,model.upperPositionLimit-q[index])
             row.update(achieved_q_rad=q[index].tolist(),achieved_joint_limit_margin_rad=float(np.min(margin)),achieved_wrist_limit_margin_rad=float(np.min(margin[4:])))
-            row['distance_from_ik_witness_rad']=float(np.linalg.norm(q[index]-np.asarray(goal['ik_witness_q_rad'])))
+            reference=goal.get('ik_witness_q_rad',goal.get('orientation_selection_candidate_q_rad'))
+            row['reference_configuration_kind']='qualified endpoint IK witness' if goal.get('IK_endpoint_qualified',True) else 'unqualified axial-roll selection candidate'
+            row['distance_from_reference_configuration_rad']=float(np.linalg.norm(q[index]-np.asarray(reference)))
+            if row['reference_configuration_kind']=='qualified endpoint IK witness':row['distance_from_ik_witness_rad']=row['distance_from_reference_configuration_rad']
         rows.append(row)
     # Actual saved feedback at <=10ms target spacing, retaining real samples,
     # plus every goal transition and the final finite endpoint. No synthetic path.

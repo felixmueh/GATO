@@ -32,8 +32,10 @@ def main():
     for label,offset in zip(LABELS,np.asarray(OFFSETS_M)*(2/3)):
         target=center+offset;axis=-offset if label!='center' else np.array((1.,0.,0.));axis=axis/np.linalg.norm(axis)
         candidates=[]
-        for seedlabel,seed in [('previous',previous),('initial',START_Q),
-                              ('v5-top-left',known['top-left']),('v5-bottom-left',known['bottom-left'])]:
+        seeds=[('previous',previous),('initial',START_Q),
+               ('v5-top-left',known['top-left']),('v5-bottom-left',known['bottom-left'])]
+        if label=='center':seeds.append(('v5-center',known['center']))
+        for seedlabel,seed in seeds:
             def residual(q):
                 pin.framesForwardKinematics(model,data,q);pose=data.oMf[tool]
                 return np.r_[pose.translation-target,.15*(pose.rotation[:,2]-axis)]
