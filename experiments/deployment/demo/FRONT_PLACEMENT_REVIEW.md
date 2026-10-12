@@ -245,3 +245,28 @@ axes, controller, runtime and initialization remain fixed. The proxy is not
 the controller trajectory or a dynamic certificate. One passing canonical and
 one actual episode will independently evaluate task, plant limits and actual
 full-body clearance. If it fails, stop for user review; no extra run or search.
+
+## Recommended four-corner internal setup
+
+The v10 actual diagnostic passes all four rough reaches and strict settling,
+all recorded plant limits, and actual sampled full-body clearance. Its
+1,449 actual-state samples have minimum 43.05 mm, zero below 40 mm and zero
+contacts. Terminal errors are 0.78–3.55 mm and 0.73–1.66 degrees tool-axis.
+The simulation lasts 14.469 s, with 22,536 solves and 59.94 s recorder wall.
+The failed 39.922 mm Cartesian/SO(3) proxy remains failed; the actual path is
+independently checked. No further optimization or run follows.
+
+Freeze proposal_right10_roll.json as the recommended internal configuration:
+10 cm vertical square at torso [0.50,-0.35,-0.15] m, four inward corners,
+center explicitly excluded, only bottom-left axial roll changed from v8.
+Compact report and 60-frame actual full-URDF animation are exported to
+/workspace/GATO/thesis_results/square-four-corner-final/. Full raw and all
+prior failures remain under _expr_results. This is one bounded simulated
+episode, not a continuous swept, reliability or live robot certificate.
+
+No production/live proposal or runner plan is changed. Future integration
+after motion review must bind a separate collector/input cohort explicitly
+to the selected proposal. The GTX driver overrides INPUT; run_demo.py and
+the demo adapter's historical default remain proposal.json. A plan repin
+alone would not select this setup. Preserve four target poses/order, center
+exclusion, controller/runtime, input hash and manual live safety/handback.

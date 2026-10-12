@@ -1,0 +1,33 @@
+{
+  "collector_checkpoint": "a96860397426d82337bd57d49db8a30b33afd06b",
+  "runtime_source": "fa6f6bede286c122cc41ac65f42a583da84290e0",
+  "proposal": "experiments/deployment/demo/proposal_right10_roll.json",
+  "raw_root": "/workspace/GATO/_expr_results/square-right10cm-roll-v10-internal-20261012",
+  "simulated_duration_s": 14.4693132707919,
+  "recorder_wall_elapsed_s": 59.939798412960954,
+  "solve_count": 22536,
+  "feedback_samples": 22536,
+  "rough_success": [
+    true,
+    true,
+    true,
+    true
+  ],
+  "strict_success": [
+    true,
+    true,
+    true,
+    true
+  ],
+  "physical_pass": true,
+  "actual_collision_pass": true,
+  "min_clearance_m": 0.043052870160090746,
+  "below_40mm": 0,
+  "collision_samples": 1449,
+  "contacts": 0,
+  "actual_MPC_episodes": 1,
+  "canonical_preflight_episodes": 1,
+  "adoption": "Recommended four-corner INTERNAL setup after one passing episode; live/robot unrun and unchanged",
+  "report": "/workspace/GATO/thesis_results/square-four-corner-final/README.md",
+  "gif_frames": 60
+}
