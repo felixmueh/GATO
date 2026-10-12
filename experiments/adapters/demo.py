@@ -121,8 +121,8 @@ def run(source,build,case,output,backend,preflight=False,inputs=None,runtime_pin
         candidates=[root/relative for root in output.parents if (root/relative/'metrics.json').is_file()]
         if len(candidates)!=1:raise ValueError('Preflight path does not resolve uniquely')
         preflight_output=candidates[0]
-    if backend=='gazebo' and not preflight and case['id'] not in ('square','all-demo-tasks'):
-        raise ValueError('Gazebo demo selects standalone square or the historical held-on-failure sequence')
+    if backend=='gazebo' and not preflight and case['id'] not in ('square','figure8-12s','all-demo-tasks'):
+        raise ValueError('Gazebo demo selects standalone square, selected upward figure8-12s, or the historical held-on-failure sequence')
     if backend=='gazebo' and not preflight and case['id']=='all-demo-tasks':
         sequence=output/'sequence'
         sys.argv=[str(path),'--backend','gazebo','--source',str(source),'--module',str(matches[0]),

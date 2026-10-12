@@ -3,6 +3,8 @@ import json
 from pathlib import Path
 import subprocess
 
+import pytest
+
 from adapters import demo
 
 
@@ -132,7 +134,8 @@ def test_finalization_cached_raw_is_exact_and_nonraw_foreign_still_hashed(tmp_pa
     assert demo.manifest_hashes(recorder)['metrics.json']==digest(tmp_path/'metrics.json')
 
 
-def test_gazebo_square_uses_explicit_collector_and_only_one_task(tmp_path,monkeypatch):
+@pytest.mark.parametrize('task',['square','figure8-12s'])
+def test_selected_gazebo_demo_uses_explicit_collector_and_only_one_task(tmp_path,monkeypatch,task):
     source=tmp_path/'source';source.mkdir();build=tmp_path/'build';(build/'modules').mkdir(parents=True)
     (build/'modules/bsqpN32_tiago_right.test.so').write_bytes(b'checked module')
     collector=tmp_path/'collector';collector.mkdir();inputs=tmp_path/'inputs';inputs.mkdir()
@@ -144,20 +147,20 @@ def test_gazebo_square_uses_explicit_collector_and_only_one_task(tmp_path,monkey
     pin='a'*40;seen=[]
     class Worker:
         INPUT=input_file
-        def main(self):raise AssertionError('Standalone square must not launch the four-task sequence')
+        def main(self):raise AssertionError('Selected task must not launch the four-task sequence')
         def resolve(self,backend,task):return dict(backend=backend,task_id=task)
         def run_task(self,protocol,s,m,o,pf):
             seen.append((protocol,pf));(o/'SHA256SUMS.json').write_text('{}')
-            return dict(task_id='square',task_success=True,physical_pass=True,execution_error=None,handback_confirmed=True)
+            return dict(task_id=task,task_success=True,physical_pass=True,execution_error=None,handback_confirmed=True)
     worker=Worker()
     def selected_collector(s,b,requested):
         assert requested==pin;return collector,pin
     monkeypatch.setattr(demo,'collector_source',selected_collector)
     monkeypatch.setattr(demo,'load_collector',lambda *a:worker)
-    assert demo.run(source,build,dict(id='square'),output,'gazebo',False,inputs,None,pin)==0
-    assert seen==[(dict(backend='gazebo',task_id='square'),preflight)]
+    assert demo.run(source,build,dict(id=task),output,'gazebo',False,inputs,None,pin)==0
+    assert seen==[(dict(backend='gazebo',task_id=task),preflight)]
     metrics=json.loads((output/'metrics.json').read_text())
-    assert metrics['collector_source_commit']==pin and metrics['task_id']=='square'
+    assert metrics['collector_source_commit']==pin and metrics['task_id']==task
     assert 'sequence_index' not in metrics
 
 
