@@ -1,0 +1,356 @@
+{
+  "version": 1,
+  "status": "prepared_manual_integration_no_timing_performance",
+  "experiments": [
+    {
+      "id": "D01",
+      "name": "Gazebo reaching and figure-eight demonstration",
+      "research_question": "RQ-control",
+      "protocol": "simple-d01-v1-zero-pcg-20261011",
+      "source_commit": "8dbb8b8d6dc1d65e902373a9aa58693e33329c14",
+      "machines": [
+        "rtx5060"
+      ],
+      "timing_mode": "live",
+      "backend": "gazebo",
+      "qualification": "Prepared pending target simulation result/gate review; physical robot D02 stays manual and is excluded.",
+      "build": {
+        "inputs": {
+          "native/CMakeLists.txt": "07c285afa3d2055c2c8f64c4645bdad01bdeb3391e77f2082aff3c70443df1e2"
+        },
+        "commands": [
+          [
+            "cmake",
+            "-S",
+            "{runner}/native",
+            "-B",
+            "{build}",
+            "-DGATO_SOURCE_DIR={source}",
+            "-DKNOTS=32",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DGATO_EXPERIMENT_TELEMETRY=ON",
+            "-DCMAKE_CUDA_ARCHITECTURES={cuda_arch}-real",
+            "-DPython3_EXECUTABLE={python}"
+          ],
+          [
+            "cmake",
+            "--build",
+            "{build}",
+            "--parallel",
+            "2"
+          ]
+        ],
+        "artifacts": [
+          "modules/bsqpN32_tiago_right*.so"
+        ]
+      },
+      "inputs": {},
+      "command": [
+        "{python}",
+        "{runner}/adapters/deployment.py",
+        "--source",
+        "{source}",
+        "--build",
+        "{build}",
+        "--case",
+        "{case}",
+        "--output",
+        "{output}"
+      ],
+      "preflight": {
+        "group": "D01-gazebo-zero-pcg-20261011",
+        "command": [
+          "{python}",
+          "{runner}/adapters/deployment.py",
+          "--source",
+          "{source}",
+          "--build",
+          "{build}",
+          "--case",
+          "{case}",
+          "--output",
+          "{output}",
+          "--preflight"
+        ]
+      },
+      "repeats": 1,
+      "cases": [
+        {
+          "id": "goal-1",
+          "parameters": {
+            "backend": "gazebo"
+          }
+        },
+        {
+          "id": "figure8-12s",
+          "parameters": {
+            "backend": "gazebo"
+          }
+        }
+      ],
+      "cohort_id": "zero-pcg-20261011",
+      "stopping_policy": "zero_pcg_or_finite_kkt",
+      "original_runtime_source_commit": "63940f7a5c724c84c731a6a1edbc49a094f3b806",
+      "original_scientific_protocol": "simple-d01-v1",
+      "preparation_status": "fresh matching build and target preflight pending"
+    },
+    {
+      "id": "M03",
+      "research_question": "RQ-monitor",
+      "source_commit": "c887bea29d3ed8a24de339478a7390bd4bac1915",
+      "protocol": "unchanged-live-fault-campaign-v1-zero-pcg-20261011",
+      "machines": [
+        "rtx5060"
+      ],
+      "timing_mode": "live",
+      "backend": "Gazebo",
+      "timeout_seconds": 600,
+      "build": {
+        "inputs": {
+          "native/CMakeLists.txt": "07c285afa3d2055c2c8f64c4645bdad01bdeb3391e77f2082aff3c70443df1e2",
+          "native/control_studies/CMakeLists.txt": "9bdaae9f2d3991a3c567666bf77d8a253666c3adee9b4e66598c83f647dc41c7",
+          "native/task_readiness/CMakeLists.txt": "90abec70a6f830071843841791f13b995cf963118659b7001d8ed0085a8da6a6"
+        },
+        "commands": [
+          [
+            "cmake",
+            "-S",
+            "{runner}/native/control_studies",
+            "-B",
+            "{build}",
+            "-DGATO_SOURCE_DIR={source}",
+            "-DKNOTS=32;64",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DGATO_EXPERIMENT_TELEMETRY=ON",
+            "-DCMAKE_CUDA_ARCHITECTURES={cuda_arch}-real",
+            "-DPython3_EXECUTABLE={python}"
+          ],
+          [
+            "cmake",
+            "--build",
+            "{build}",
+            "--parallel",
+            "2"
+          ]
+        ],
+        "artifacts": [
+          "modules/bsqpN32_tiago_right*.so",
+          "modules/bsqpN64_tiago_right*.so",
+          "cuda_access_smoke"
+        ]
+      },
+      "preflight": {
+        "group": "M03-live-simulator-zero-pcg-20261011",
+        "command": [
+          "{python}",
+          "{runner}/adapters/simulated_fault_trial.py",
+          "--source",
+          "{source}",
+          "--build",
+          "{build}",
+          "--simulator-config",
+          "{runner}/local.json",
+          "--output",
+          "{output}",
+          "--preflight"
+        ]
+      },
+      "command": [
+        "{python}",
+        "{runner}/adapters/simulated_fault_trial.py",
+        "--source",
+        "{source}",
+        "--build",
+        "{build}",
+        "--simulator-config",
+        "{runner}/local.json",
+        "--output",
+        "{output}",
+        "--case",
+        "{case}"
+      ],
+      "cases": [
+        {
+          "id": "01-trajectory_nan",
+          "parameters": {
+            "fault": "trajectory_nan",
+            "description": "One outgoing torque horizon contains NaN"
+          }
+        },
+        {
+          "id": "02-trajectory_shape",
+          "parameters": {
+            "fault": "trajectory_shape",
+            "description": "One outgoing horizon has six joint columns"
+          }
+        },
+        {
+          "id": "03-trajectory_dt_zero",
+          "parameters": {
+            "fault": "trajectory_dt_zero",
+            "description": "One outgoing horizon has dt=0"
+          }
+        },
+        {
+          "id": "04-trajectory_expired",
+          "parameters": {
+            "fault": "trajectory_expired",
+            "description": "One outgoing horizon starts ten seconds in the past"
+          }
+        },
+        {
+          "id": "05-trajectory_future",
+          "parameters": {
+            "fault": "trajectory_future",
+            "description": "One outgoing horizon starts thirty seconds in the future"
+          }
+        },
+        {
+          "id": "06-trajectory_start_nan",
+          "parameters": {
+            "fault": "trajectory_start_nan",
+            "description": "One outgoing horizon has a NaN start timestamp"
+          }
+        },
+        {
+          "id": "07-torque_spike",
+          "parameters": {
+            "fault": "torque_spike",
+            "description": "One outgoing horizon requests 60 Nm on every joint; clamp remains enabled"
+          }
+        },
+        {
+          "id": "08-planner_exception",
+          "parameters": {
+            "fault": "planner_exception",
+            "description": "Planner raises while submitting the next horizon"
+          }
+        },
+        {
+          "id": "09-planner_stall",
+          "parameters": {
+            "fault": "planner_stall",
+            "description": "Planner sleeps for two wall-clock seconds before submitting"
+          }
+        },
+        {
+          "id": "10-planner_exit",
+          "parameters": {
+            "fault": "planner_exit",
+            "description": "Planner exits abruptly without Python cleanup"
+          }
+        },
+        {
+          "id": "11-feedback_drop",
+          "parameters": {
+            "fault": "feedback_drop",
+            "description": "Controller callback discards all subsequent joint states"
+          }
+        },
+        {
+          "id": "12-feedback_nan",
+          "parameters": {
+            "fault": "feedback_nan",
+            "description": "Controller receives NaN for one right-arm position"
+          }
+        },
+        {
+          "id": "13-feedback_frozen",
+          "parameters": {
+            "fault": "feedback_frozen",
+            "description": "Controller receives frozen positions/velocities with fresh timestamps"
+          }
+        },
+        {
+          "id": "14-feedback_stamp_backwards",
+          "parameters": {
+            "fault": "feedback_stamp_backwards",
+            "description": "Controller receives timestamps ten seconds earlier"
+          }
+        },
+        {
+          "id": "15-safety_exit",
+          "parameters": {
+            "fault": "safety_exit",
+            "description": "Controller kills its own safety worker"
+          }
+        },
+        {
+          "id": "16-controller_stall",
+          "parameters": {
+            "fault": "controller_stall",
+            "description": "Controller sleeps for two seconds while publishing effort"
+          }
+        },
+        {
+          "id": "17-controller_exit",
+          "parameters": {
+            "fault": "controller_exit",
+            "description": "Controller exits abruptly while publishing effort"
+          }
+        },
+        {
+          "id": "18-publish_exception",
+          "parameters": {
+            "fault": "publish_exception",
+            "description": "Effort publication raises, including during cleanup"
+          }
+        },
+        {
+          "id": "19-restore_exception",
+          "parameters": {
+            "fault": "restore_exception",
+            "description": "Planner raises, then default-controller restoration raises"
+          }
+        },
+        {
+          "id": "20-baseline",
+          "parameters": {
+            "fault": "baseline",
+            "description": "Unmodified planner, controller, and feedback"
+          }
+        }
+      ],
+      "cohort_id": "zero-pcg-20261011",
+      "stopping_policy": "zero_pcg_or_finite_kkt",
+      "original_runtime_source_commit": "a3a96ad3deabea5c0165da69addd1c55406710a9",
+      "original_scientific_protocol": "unchanged-live-fault-campaign-v1",
+      "preparation_status": "fresh matching build and target preflight pending"
+    }
+  ],
+  "source_plans": [
+    {
+      "plan": "successor/rtx5060_gazebo.json",
+      "experiment": "D01"
+    },
+    {
+      "plan": "successor/rtx5060_gazebo.json",
+      "experiment": "demo_visual_square_gazebo"
+    },
+    {
+      "plan": "successor/rtx5060_gazebo.json",
+      "experiment": "M03"
+    }
+  ],
+  "source_plan_notes": {
+    "successor/rtx5060_gazebo.json": {
+      "cohort_id": "zero-pcg-20261011",
+      "stopping_policy": "zero_pcg_or_finite_kkt",
+      "status": "live_setup_and_prior_simulation_review_pending",
+      "prerequisites": "Jetson V01/T01 B and Felix review before live; faster tracking not included. Manual D02 outside runner."
+    }
+  },
+  "retained_results": [],
+  "omissions": {
+    "Force": "E02-original held: newer nonfinite canonical is outside speed-only waiver; explicit Felix decision pending",
+    "D02 physical": "Standalone/manual; faster speeds withheld pending simulation review",
+    "Solver-independent": "F04/Q02/X02/M02 not rerun solely for stopping change; pending target checks remain separate",
+    "Jetson BA": "No full task sweep; F01c supplies speedup study",
+    "Historical studies": "Retained unchanged; no format migration reruns"
+  },
+  "missing_plan_files": [],
+  "note": "Explicit successor solver cohorts; previous results remain historical. Fresh matching builds/preflights pending; faster tracking is simulation only. No physical robot queue.",
+  "deployment_parent_plan": "experiments/successor/merged/rtx5060_gazebo.json",
+  "deployment_parent_sha256": "55f1f5d90c53fcc29f757acb10426a2ddc9c2a2fdcb849c43e49fdb843b5efed",
+  "scope_note": "Two integration families only: two focused motion tasks and all20distinctfault/baseline conditions. No hardware timing, algorithm sweep, square motion or physical robot. Launch only manually with the Gazebo environment running."
+}

@@ -7,102 +7,102 @@ Use the explicit **restored-zero-PCG successor plans** below. Historical plans
 and raw results remain preserved with their original stopping policy and inputs.
 The runner does not launch remote jobs or physical robots.
 
+Current manual handoff: `.experiment-work/prepared-manual-machines-20261012T121619Z/`
+and the self-contained `.tar.gz` beside it. Its inventory pins the reviewed
+runner/sources and the narrowed89/84/22-case plans described below. The older
+broad transfer package is preserved separately.
+
 ## Manual Jetson and RTX5060 launch
+
+Latest machine selection is [the question-based coverage table](machine_coverage.md):
+**89 RTX5060/internal cases,84 Jetson cases,22 separate Gazebo cases**.
+The full earlier successor plans remain provenance. **Completed main Jetson
+F01ab is reused and never rerun by this launch**; its older source/stopping-policy
+labels remain separate. Square motion and four original-force tasks per target
+stay held. No remote agents or automatic Gazebo/physical robot launch.
 
 Run in the existing CUDA development environment with Git, CMake >=3.24,
 a C++ compiler, CUDA `nvcc`, Python headers, NumPy, Pinocchio, pybind11 and pytest.
-RTX5060 builds require a toolkit supporting `120-real`; Jetson builds use
-`87-real`. The launcher uses `/opt/gato-venv/bin/python3` when present, otherwise
-the interpreter invoking it. Override with `--python /path/to/python3` if needed.
-It reports a missing dependency before starting measurements; it does not
-install system packages or change container/device settings.
+RTX5060 needs a toolkit supporting `120-real`; Jetson uses `87-real`.
+The launcher uses `/opt/gato-venv/bin/python3` when present, otherwise its invoking
+interpreter. Override with `--python /path/to/python3` if needed. It checks
+missing dependencies before measurements and does not alter system packages.
 
-From the published `experiment/simple-runner` checkout, run one local command:
+From the published `experiment/simple-runner` checkout, use the command for
+that machine:
 
 ```sh
 python3 experiments/machine_launch.py rtx5060
 python3 experiments/machine_launch.py jetson
 ```
 
-Use only the command for that machine. The frozen manual plans are
-`experiments/launch/rtx5060.json` (712 executable cases) and
-`experiments/launch/jetson.json` (368). The launcher checks inputs and source
-pins, fetches missing published immutable source refs, prints the explicit
-plan/dry-run, then lets the existing runner build, preflight and execute
-sequentially. Failed preflights hold dependent families; independent cases
-continue. Nothing is dispatched remotely. Gazebo and physical robot motion
-have separate reviewed/manual workflows and are never launched here.
-The square case remains held with its original definition/reason in the
-RTX5060 plan; the three figure-eight demo cases remain. Four E02-original
-cases per target remain held in the parent inventory. The saved old Jetson
-F01ab is retained; the queued F01ab is an explicit restored-solver successor
-cohort, not a migration replay.
-
-Jetson scope retains the approved six cylinder cases, all 100 BB pairs once
-per B1/B16 arm, and the full prepared timing/force coverage. BA is absent.
-Before running, allow for the duration/storage estimates below. The full agreed
-scope is retained; any shorter protocol needs an explicit decision.
-
-**Jetson planning estimate: 6–24 hours and 30–150 GiB of raw results**, plus
-native builds, transfer archive and free headroom. About 350 GiB available is
-a conservative planning recommendation, not an execution gate. The launcher
-prints available space; place the checkout or extracted transfer package on
-a volume with enough room. These are broad estimates, not measured successor
-Jetson timings or a hardware scaling claim. The matching GTX1070 workers in
-the Jetson subset took about 2.8 hours excluding builds/preflights. Saved
-old-solver Jetson F01ab took 42.96 minutes with an 817 MiB transfer archive;
-that source/protocol differs. Known recording overhead and new compact
-recording make actual time/storage uncertain. The shorter alternative would
-reduce scientific coverage and therefore requires Felix's explicit decision;
-the command preserves the full prepared plan.
+The launcher validates frozen inputs/source pins, fetches missing immutable
+source refs, prints the explicit plan/dry-run, then uses the existing runner
+for shared local builds, canonical preflights, sequential execution and resume.
+Scientific negatives remain results; failed preflights hold dependent families,
+and independent cases continue. The plan choices/settings and limitations are
+in the coverage table. The Jetson planning estimate is roughly2–8h/10–50GiB raw
+plus builds/archive/headroom, with120GiB free a conservative recommendation,
+not a hard gate. This is not measured successor Jetson performance. Put the
+checkout or extracted package on a volume with room; the launcher prints free
+storage. The old6–24h estimate applied to the superseded broad plan.
 
 Results stay under `.experiment-results/<machine>-zero-pcg-20261011/`; source
 worktrees/builds stay in `.experiment-cache/<machine>-zero-pcg-20261011/`.
-These explicit paths override legacy `local.json` paths. Repeating the same
-command resumes completed work and preserves failures. Only an explicitly
-requested `--retry-failed` makes fresh attempts for failed/blocked cases.
-`--dry-run` checks sources/inputs and lists cases without builds or GPU work.
-The launcher does not start a background supervisor; use an existing persistent
-terminal session if the local shell may disconnect.
+Explicit paths override legacy `local.json`. Repeating the command resumes
+completed work and preserves failures. `--retry-failed` explicitly makes new
+attempts for failed/blocked cases. `--dry-run` validates sources/inputs without
+builds or GPU work. Use an existing persistent terminal if the shell may
+otherwise disconnect; no background supervisor is created.
 
 On completion or handled interruption, all local raw attempts, partial data,
-inputs, logs and deployment identities are indexed and exported, using the
-existing exporter with gzip level 1, to one portable archive:
-`.experiment-work/<machine>-zero-pcg-20261011-results.tar.gz`.
-Build/source caches stay out. Keep room for both raw results and the archive;
-replacing an existing archive temporarily requires room for the old and new
-archives too. Regenerate only the collection/archive with:
+inputs, logs and deployment identities are indexed and exported with the existing
+gzip-level1 exporter to `.experiment-work/<machine>-zero-pcg-20261011-results.tar.gz`.
+Build caches stay out. Keep room for raw and the archive; replacing an archive
+also temporarily retains the old one. Regenerate collection/export alone with:
 
 ```sh
 python3 experiments/machine_launch.py jetson --collect-only
 ```
 
 Substitute `rtx5060` on that machine. Copy the printed archive to the desktop's
-`/workspace/GATO/_expr_results/` for analysis and keep a separate raw backup.
-There are no existing remote results that need migration for this handoff.
+`/workspace/GATO/_expr_results/` and keep a separate raw backup. There are no
+existing remote results requiring migration. Future demo recordings use
+[compact raw references](demo_recording.md); this plan contains no demos.
 
-**Publication and offline fallback:** pull-only requires the runner branch plus
-its side-branch source pins to be published. The desktop's SSH remote currently
-fails host-key verification, so publication is not claimed. No trust settings
-were changed. Once a reviewed package is created, its `inventory.json` gives
-the exact runner/source identities. If publication is unavailable, copy and
-extract the complete prepared transfer archive, then run:
+Gazebo is separate. With the existing Gazebo/ROS environment already running,
+inspect then manually run the two-family22-case integration plan:
+
+```sh
+python3 experiments/run.py --machine rtx5060 --plan experiments/launch/rtx5060_gazebo.json --dry-run
+python3 experiments/run.py --machine rtx5060 --plan experiments/launch/rtx5060_gazebo.json --python /opt/gato-venv/bin/python3 --cache .experiment-cache/rtx5060-gazebo --output .experiment-results/rtx5060-gazebo
+python3 experiments/collect.py --output .experiment-results/rtx5060-gazebo --export .experiment-work/rtx5060-gazebo-results.tar.gz
+```
+
+It measures task/integration and distinct fault reactions, not GPU timing or
+performance. It does not start Gazebo, change the environment or run a robot.
+
+**Publication and offline fallback:** pull-only needs the runner branch and side
+source pins published. The desktop SSH remote currently fails host-key
+verification, so publication is not claimed and trust settings were unchanged.
+The prepared transfer inventory records exact runner/source hashes. If publishing
+is unavailable, copy/extract the complete transfer archive and use one command:
 
 ```sh
 python3 start.py rtx5060
 ```
 
-Use `jetson` on the Jetson. `start.py` clones the bundled runner and imports
-all exact source pins automatically into a checkout inside the transfer
-directory; no manual source worktrees or ignored-asset copies are required.
-All launch inputs/native helper files are tracked. `runner-assets.tar.gz`
-remains a compatibility payload for older handoffs; this bootstrap does not
-need it. Apply the same environment and storage requirements.
+Use `jetson` on the Jetson. `start.py` clones the bundled runner and imports exact
+source pins automatically into `GATO-experiment-runner/` inside the transfer
+directory. No manual worktrees or ignored-asset copies are needed; all launch
+inputs/native helpers are tracked. `runner-assets.tar.gz` is a compatibility
+payload for older handoffs and is unused by this bootstrap. The same environment
+and storage requirements apply. Gazebo keeps its separate manual commands.
 
 ## Revised campaign preparation
 
 
-Current transfer package:
+Historical broad transfer package:
 [prepared-transfer-zero-pcg-20261012T105900Z](/workspace/GATO-experiment-runner-simple/.experiment-work/prepared-transfer-zero-pcg-20261012T105900Z/inventory.json).
 Its inventory records the exact corrected runner/source pins and asset hashes.
 The previous101500Z/efd190f package remains provenance. The new demo adapter

@@ -1,0 +1,98 @@
+{
+  "plans": {
+    "rtx5060.json": {
+      "experiments": [
+        "T01",
+        "F01ab",
+        "F01c",
+        "F04-stageOFF"
+      ],
+      "cases": 89,
+      "sha256": "fffd9da26e8360890d9f9858d9ce3d12d6f3ed014f36da00c437c09e5d9cd44d"
+    },
+    "jetson.json": {
+      "experiments": [
+        "T01",
+        "T01-faster-proposal",
+        "F01c",
+        "F05-stageOFF",
+        "F05-stageON",
+        "BB",
+        "F04-stageOFF",
+        "E03",
+        "E02-no_estimator",
+        "E02-adapted"
+      ],
+      "cases": 84,
+      "sha256": "b31d5f388a55fd87d3300b317a6097da1ef75fbf840bb70a699f5a4d7a91771f"
+    },
+    "rtx5060_gazebo.json": {
+      "experiments": [
+        "D01",
+        "M03"
+      ],
+      "cases": 22,
+      "sha256": "ca235d3a403ca920618521a67ad454a81164df36f872cd06811aa192ff601053"
+    }
+  },
+  "source_commits": [
+    "4e5301feaea5f2d06530922ba46aa543e1995d47",
+    "61a8135f6b986ef1deca1de562ac184936698133",
+    "84bad9ad3d88b1b50d01f4d7aa3721bbc31ea210",
+    "852b0cbcfe6e56fe5337a3b6e5fe8e777f959b77",
+    "8dbb8b8d6dc1d65e902373a9aa58693e33329c14",
+    "c887bea29d3ed8a24de339478a7390bd4bac1915",
+    "fa6f6bede286c122cc41ac65f42a583da84290e0"
+  ],
+  "source_plan_files": [
+    "launch/rtx5060.json",
+    "launch/jetson.json",
+    "launch/rtx5060_gazebo.json"
+  ],
+  "held_experiments": [
+    {
+      "plan": "successor/force_gtx1070.json",
+      "experiment": "E02-original",
+      "machines": [
+        "gtx1070"
+      ],
+      "cases": [
+        "figure8-0N-r0",
+        "figure8-10N-r0",
+        "figure8-10N-r1",
+        "figure8-10N-r2"
+      ],
+      "reason": "E02-original held: newer nonfinite canonical is outside speed-only waiver; explicit Felix decision pending"
+    },
+    {
+      "plan": "successor/force_rtx5060.json",
+      "experiment": "E02-original",
+      "machines": [
+        "rtx5060"
+      ],
+      "cases": [
+        "figure8-0N-r0",
+        "figure8-10N-r0",
+        "figure8-10N-r1",
+        "figure8-10N-r2"
+      ],
+      "reason": "E02-original held: newer nonfinite canonical is outside speed-only waiver; explicit Felix decision pending"
+    },
+    {
+      "plan": "successor/force_jetson.json",
+      "experiment": "E02-original",
+      "machines": [
+        "jetson"
+      ],
+      "cases": [
+        "figure8-0N-r0",
+        "figure8-10N-r0",
+        "figure8-10N-r1",
+        "figure8-10N-r2"
+      ],
+      "reason": "E02-original held: newer nonfinite canonical is outside speed-only waiver; explicit Felix decision pending"
+    }
+  ],
+  "readiness": "Reviewed preparation, not actual target dependency/build/preflight or motion evidence.",
+  "scope_note": "Latest user-directed machine scope:89RTX/84Jetson/22Gazebo; mainJetsonF01abretainedno rerun; fulloldplanspreservedunder successor/merged; no remote agents or automatic Gazebo/physical robot."
+}

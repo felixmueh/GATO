@@ -7,7 +7,7 @@ import machine_launch as launch
 
 
 def test_frozen_manual_plans_hold_only_square_and_original_force():
-    for machine, count in [('rtx5060', 712), ('jetson', 368)]:
+    for machine, count in [('rtx5060', 89), ('jetson', 84)]:
         plan = json.loads((launch.HERE / 'launch' / (machine + '.json')).read_text())
         assert sum(len(e['cases']) * e.get('repeats', 1) for e in plan['experiments']) == count
         assert not any(e['id'] == 'E02-original' for e in plan['experiments'])
@@ -15,9 +15,13 @@ def test_frozen_manual_plans_hold_only_square_and_original_force():
                        for e in plan['experiments'])
         assert not any(e['id'] == 'demo_visual_square_internal' and c['id'] == 'square'
                        for e in plan['experiments'] for c in e['cases'])
-        assert len(next(e for e in plan['experiments'] if e['id'] == 'BB')['cases']) == 200
         if machine == 'rtx5060':
-            assert len(next(e for e in plan['experiments'] if e['id'] == 'demo_visual_square_internal')['cases']) == 3
+            assert len(next(e for e in plan['experiments'] if e['id'] == 'F01ab')['cases']) == 64
+            assert not any(e['id'] in ('BB', 'BA') for e in plan['experiments'])
+        else:
+            assert not any(e['id'] == 'F01ab' for e in plan['experiments'])
+            assert len(next(e for e in plan['experiments'] if e['id'] == 'BB')['cases']) == 10
+            assert len(next(e for e in plan['experiments'] if e['id'] == 'T01')['cases']) == 6
         launch.verify_sources(plan)
 
 

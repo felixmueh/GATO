@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "status": "proposed_duration_discussion_and_target_review_pending",
+  "status": "prepared_recommended_thesis_question_scope_manual_execution",
   "experiments": [
     {
       "source_commit": "fa6f6bede286c122cc41ac65f42a583da84290e0",
@@ -273,812 +273,6 @@
       "preparation_status": "fresh matching build and target preflight pending",
       "faster_tracking_proposal": true,
       "live_release": "Held pending Felix simulation review"
-    },
-    {
-      "source_commit": "fa6f6bede286c122cc41ac65f42a583da84290e0",
-      "protocol": "simple-harness-v1-zero-pcg-20261011",
-      "backend": "internal",
-      "machines": [
-        "jetson"
-      ],
-      "build": {
-        "inputs": {
-          "native/CMakeLists.txt": "07c285afa3d2055c2c8f64c4645bdad01bdeb3391e77f2082aff3c70443df1e2",
-          "native/qualified/CMakeLists.txt": "9bdaae9f2d3991a3c567666bf77d8a253666c3adee9b4e66598c83f647dc41c7",
-          "native/task_readiness/CMakeLists.txt": "90abec70a6f830071843841791f13b995cf963118659b7001d8ed0085a8da6a6"
-        },
-        "commands": [
-          [
-            "cmake",
-            "-S",
-            "{runner}/native/qualified",
-            "-B",
-            "{build}",
-            "-DGATO_SOURCE_DIR={source}",
-            "-DKNOTS=16;32;64;128",
-            "-DCMAKE_BUILD_TYPE=Release",
-            "-DGATO_EXPERIMENT_TELEMETRY=ON",
-            "-DCMAKE_CUDA_ARCHITECTURES={cuda_arch}-real",
-            "-DPython3_EXECUTABLE={python}"
-          ],
-          [
-            "cmake",
-            "--build",
-            "{build}",
-            "--parallel",
-            "2"
-          ]
-        ],
-        "artifacts": [
-          "modules/bsqpN16_tiago_right*.so",
-          "modules/bsqpN32_tiago_right*.so",
-          "modules/bsqpN64_tiago_right*.so",
-          "modules/bsqpN128_tiago_right*.so",
-          "cuda_access_smoke"
-        ]
-      },
-      "inputs": {
-        "experiments/inputs/t01/v01.json": "20920040853786cf3d96f13ba240f82918a9f0f5020270fbe67715666477cc81",
-        "experiments/inputs/t01/t01.json": "aec47cfa3819de5adbb8633b637f5bd9bcd327cb3afc5043a856b323af5aac41",
-        "experiments/inputs/f01ab/bank.json": "9c3a3a06b53079af04ca99a6d4146ff741161d1bf82013283447ab2d5422d7b9",
-        "experiments/inputs/f01ab/arrays.npz": "a674b748a058538fe7c6b0e93a836a0b82394196028788f09284d29b5dd13ed4",
-        "experiments/inputs/f01ab/model.urdf": "8e1fd973a1d1c3fbddd55039e6eb17b355ebb29f46e1bd8c774b7879c2cdc5bb"
-      },
-      "id": "F01ab",
-      "research_question": "RQ-timing",
-      "timing_mode": "A",
-      "preflight": {
-        "command": [
-          "{python}",
-          "{runner}/adapters/successor_preflight.py",
-          "--source",
-          "{source}",
-          "--build",
-          "{build}",
-          "--output",
-          "{output}",
-          "--",
-          "{python}",
-          "{runner}/adapters/task.py",
-          "--source",
-          "{source}",
-          "--build",
-          "{build}",
-          "--output",
-          "@canonical-output@",
-          "--inputs",
-          "{inputs}/experiments/inputs/t01",
-          "--preflight",
-          "--timing-mode",
-          "A"
-        ],
-        "group": "F01ab-A-zero-pcg-20261011"
-      },
-      "command": [
-        "{python}",
-        "{runner}/adapters/f01ab.py",
-        "--source",
-        "{source}",
-        "--build",
-        "{build}",
-        "--case",
-        "{case}",
-        "--output",
-        "{output}",
-        "--inputs",
-        "{inputs}/experiments/inputs/f01ab"
-      ],
-      "cases": [
-        {
-          "id": "N16-SQP1-PCG100",
-          "parameters": {
-            "variant": "short12",
-            "N": 16,
-            "SQP": 1,
-            "PCG": 100,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "N16-SQP1-PCG200",
-          "parameters": {
-            "variant": "short12",
-            "N": 16,
-            "SQP": 1,
-            "PCG": 200,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "N16-SQP1-PCG400",
-          "parameters": {
-            "variant": "short12",
-            "N": 16,
-            "SQP": 1,
-            "PCG": 400,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "N16-SQP1-PCG800",
-          "parameters": {
-            "variant": "short12",
-            "N": 16,
-            "SQP": 1,
-            "PCG": 800,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "N16-SQP2-PCG100",
-          "parameters": {
-            "variant": "short12",
-            "N": 16,
-            "SQP": 2,
-            "PCG": 100,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "N16-SQP2-PCG200",
-          "parameters": {
-            "variant": "short12",
-            "N": 16,
-            "SQP": 2,
-            "PCG": 200,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "N16-SQP2-PCG400",
-          "parameters": {
-            "variant": "short12",
-            "N": 16,
-            "SQP": 2,
-            "PCG": 400,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "N16-SQP2-PCG800",
-          "parameters": {
-            "variant": "short12",
-            "N": 16,
-            "SQP": 2,
-            "PCG": 800,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "N16-SQP5-PCG100",
-          "parameters": {
-            "variant": "short12",
-            "N": 16,
-            "SQP": 5,
-            "PCG": 100,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "N16-SQP5-PCG200",
-          "parameters": {
-            "variant": "short12",
-            "N": 16,
-            "SQP": 5,
-            "PCG": 200,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "N16-SQP5-PCG400",
-          "parameters": {
-            "variant": "short12",
-            "N": 16,
-            "SQP": 5,
-            "PCG": 400,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "N16-SQP5-PCG800",
-          "parameters": {
-            "variant": "short12",
-            "N": 16,
-            "SQP": 5,
-            "PCG": 800,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "N16-SQP10-PCG100",
-          "parameters": {
-            "variant": "short12",
-            "N": 16,
-            "SQP": 10,
-            "PCG": 100,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "N16-SQP10-PCG200",
-          "parameters": {
-            "variant": "short12",
-            "N": 16,
-            "SQP": 10,
-            "PCG": 200,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "N16-SQP10-PCG400",
-          "parameters": {
-            "variant": "short12",
-            "N": 16,
-            "SQP": 10,
-            "PCG": 400,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "N16-SQP10-PCG800",
-          "parameters": {
-            "variant": "short12",
-            "N": 16,
-            "SQP": 10,
-            "PCG": 800,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "N32-SQP1-PCG100",
-          "parameters": {
-            "variant": "short12",
-            "N": 32,
-            "SQP": 1,
-            "PCG": 100,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "N32-SQP1-PCG200",
-          "parameters": {
-            "variant": "short12",
-            "N": 32,
-            "SQP": 1,
-            "PCG": 200,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "N32-SQP1-PCG400",
-          "parameters": {
-            "variant": "short12",
-            "N": 32,
-            "SQP": 1,
-            "PCG": 400,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "N32-SQP1-PCG800",
-          "parameters": {
-            "variant": "short12",
-            "N": 32,
-            "SQP": 1,
-            "PCG": 800,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "N32-SQP2-PCG100",
-          "parameters": {
-            "variant": "short12",
-            "N": 32,
-            "SQP": 2,
-            "PCG": 100,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "N32-SQP2-PCG200",
-          "parameters": {
-            "variant": "short12",
-            "N": 32,
-            "SQP": 2,
-            "PCG": 200,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "N32-SQP2-PCG400",
-          "parameters": {
-            "variant": "short12",
-            "N": 32,
-            "SQP": 2,
-            "PCG": 400,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "N32-SQP2-PCG800",
-          "parameters": {
-            "variant": "short12",
-            "N": 32,
-            "SQP": 2,
-            "PCG": 800,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "N32-SQP5-PCG100",
-          "parameters": {
-            "variant": "short12",
-            "N": 32,
-            "SQP": 5,
-            "PCG": 100,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "N32-SQP5-PCG200",
-          "parameters": {
-            "variant": "short12",
-            "N": 32,
-            "SQP": 5,
-            "PCG": 200,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "N32-SQP5-PCG400",
-          "parameters": {
-            "variant": "short12",
-            "N": 32,
-            "SQP": 5,
-            "PCG": 400,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "N32-SQP5-PCG800",
-          "parameters": {
-            "variant": "short12",
-            "N": 32,
-            "SQP": 5,
-            "PCG": 800,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "N32-SQP10-PCG100",
-          "parameters": {
-            "variant": "short12",
-            "N": 32,
-            "SQP": 10,
-            "PCG": 100,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "N32-SQP10-PCG200",
-          "parameters": {
-            "variant": "short12",
-            "N": 32,
-            "SQP": 10,
-            "PCG": 200,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "N32-SQP10-PCG400",
-          "parameters": {
-            "variant": "short12",
-            "N": 32,
-            "SQP": 10,
-            "PCG": 400,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "N32-SQP10-PCG800",
-          "parameters": {
-            "variant": "short12",
-            "N": 32,
-            "SQP": 10,
-            "PCG": 800,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "N64-SQP1-PCG100",
-          "parameters": {
-            "variant": "short12",
-            "N": 64,
-            "SQP": 1,
-            "PCG": 100,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "N64-SQP1-PCG200",
-          "parameters": {
-            "variant": "short12",
-            "N": 64,
-            "SQP": 1,
-            "PCG": 200,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "N64-SQP1-PCG400",
-          "parameters": {
-            "variant": "short12",
-            "N": 64,
-            "SQP": 1,
-            "PCG": 400,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "N64-SQP1-PCG800",
-          "parameters": {
-            "variant": "short12",
-            "N": 64,
-            "SQP": 1,
-            "PCG": 800,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "N64-SQP2-PCG100",
-          "parameters": {
-            "variant": "short12",
-            "N": 64,
-            "SQP": 2,
-            "PCG": 100,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "N64-SQP2-PCG200",
-          "parameters": {
-            "variant": "short12",
-            "N": 64,
-            "SQP": 2,
-            "PCG": 200,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "N64-SQP2-PCG400",
-          "parameters": {
-            "variant": "short12",
-            "N": 64,
-            "SQP": 2,
-            "PCG": 400,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "N64-SQP2-PCG800",
-          "parameters": {
-            "variant": "short12",
-            "N": 64,
-            "SQP": 2,
-            "PCG": 800,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "N64-SQP5-PCG100",
-          "parameters": {
-            "variant": "short12",
-            "N": 64,
-            "SQP": 5,
-            "PCG": 100,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "N64-SQP5-PCG200",
-          "parameters": {
-            "variant": "short12",
-            "N": 64,
-            "SQP": 5,
-            "PCG": 200,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "N64-SQP5-PCG400",
-          "parameters": {
-            "variant": "short12",
-            "N": 64,
-            "SQP": 5,
-            "PCG": 400,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "N64-SQP5-PCG800",
-          "parameters": {
-            "variant": "short12",
-            "N": 64,
-            "SQP": 5,
-            "PCG": 800,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "N64-SQP10-PCG100",
-          "parameters": {
-            "variant": "short12",
-            "N": 64,
-            "SQP": 10,
-            "PCG": 100,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "N64-SQP10-PCG200",
-          "parameters": {
-            "variant": "short12",
-            "N": 64,
-            "SQP": 10,
-            "PCG": 200,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "N64-SQP10-PCG400",
-          "parameters": {
-            "variant": "short12",
-            "N": 64,
-            "SQP": 10,
-            "PCG": 400,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "N64-SQP10-PCG800",
-          "parameters": {
-            "variant": "short12",
-            "N": 64,
-            "SQP": 10,
-            "PCG": 800,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "N128-SQP1-PCG100",
-          "parameters": {
-            "variant": "short12",
-            "N": 128,
-            "SQP": 1,
-            "PCG": 100,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "N128-SQP1-PCG200",
-          "parameters": {
-            "variant": "short12",
-            "N": 128,
-            "SQP": 1,
-            "PCG": 200,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "N128-SQP1-PCG400",
-          "parameters": {
-            "variant": "short12",
-            "N": 128,
-            "SQP": 1,
-            "PCG": 400,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "N128-SQP1-PCG800",
-          "parameters": {
-            "variant": "short12",
-            "N": 128,
-            "SQP": 1,
-            "PCG": 800,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "N128-SQP2-PCG100",
-          "parameters": {
-            "variant": "short12",
-            "N": 128,
-            "SQP": 2,
-            "PCG": 100,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "N128-SQP2-PCG200",
-          "parameters": {
-            "variant": "short12",
-            "N": 128,
-            "SQP": 2,
-            "PCG": 200,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "N128-SQP2-PCG400",
-          "parameters": {
-            "variant": "short12",
-            "N": 128,
-            "SQP": 2,
-            "PCG": 400,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "N128-SQP2-PCG800",
-          "parameters": {
-            "variant": "short12",
-            "N": 128,
-            "SQP": 2,
-            "PCG": 800,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "N128-SQP5-PCG100",
-          "parameters": {
-            "variant": "short12",
-            "N": 128,
-            "SQP": 5,
-            "PCG": 100,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "N128-SQP5-PCG200",
-          "parameters": {
-            "variant": "short12",
-            "N": 128,
-            "SQP": 5,
-            "PCG": 200,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "N128-SQP5-PCG400",
-          "parameters": {
-            "variant": "short12",
-            "N": 128,
-            "SQP": 5,
-            "PCG": 400,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "N128-SQP5-PCG800",
-          "parameters": {
-            "variant": "short12",
-            "N": 128,
-            "SQP": 5,
-            "PCG": 800,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "N128-SQP10-PCG100",
-          "parameters": {
-            "variant": "short12",
-            "N": 128,
-            "SQP": 10,
-            "PCG": 100,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "N128-SQP10-PCG200",
-          "parameters": {
-            "variant": "short12",
-            "N": 128,
-            "SQP": 10,
-            "PCG": 200,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "N128-SQP10-PCG400",
-          "parameters": {
-            "variant": "short12",
-            "N": 128,
-            "SQP": 10,
-            "PCG": 400,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "N128-SQP10-PCG800",
-          "parameters": {
-            "variant": "short12",
-            "N": 128,
-            "SQP": 10,
-            "PCG": 800,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        }
-      ],
-      "cohort_id": "zero-pcg-20261011",
-      "stopping_policy": "zero_pcg_or_finite_kkt",
-      "original_runtime_source_commit": "502fa29c8b0d649dcb347f9534bf29c6935fa6dd",
-      "original_scientific_protocol": "simple-harness-v1",
-      "preparation_status": "fresh matching build and target preflight pending"
     },
     {
       "id": "F01c",
@@ -1459,126 +653,6 @@
       ],
       "cases": [
         {
-          "id": "first_response-N32-B1-SQP1-PCG100-r0",
-          "parameters": {
-            "study": "F05",
-            "N": 32,
-            "B": 1,
-            "SQP": 1,
-            "PCG": 100,
-            "arm": "first_response",
-            "replicate": 0,
-            "stage_timing": false,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "first_response-N32-B1-SQP1-PCG100-r1",
-          "parameters": {
-            "study": "F05",
-            "N": 32,
-            "B": 1,
-            "SQP": 1,
-            "PCG": 100,
-            "arm": "first_response",
-            "replicate": 1,
-            "stage_timing": false,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "first_response-N32-B1-SQP1-PCG100-r2",
-          "parameters": {
-            "study": "F05",
-            "N": 32,
-            "B": 1,
-            "SQP": 1,
-            "PCG": 100,
-            "arm": "first_response",
-            "replicate": 2,
-            "stage_timing": false,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "sustained-N32-B1-SQP1-PCG100",
-          "parameters": {
-            "study": "F05",
-            "N": 32,
-            "B": 1,
-            "SQP": 1,
-            "PCG": 100,
-            "arm": "sustained",
-            "duration_s": 120,
-            "stage_timing": false,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "first_response-N32-B16-SQP1-PCG100-r0",
-          "parameters": {
-            "study": "F05",
-            "N": 32,
-            "B": 16,
-            "SQP": 1,
-            "PCG": 100,
-            "arm": "first_response",
-            "replicate": 0,
-            "stage_timing": false,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "first_response-N32-B16-SQP1-PCG100-r1",
-          "parameters": {
-            "study": "F05",
-            "N": 32,
-            "B": 16,
-            "SQP": 1,
-            "PCG": 100,
-            "arm": "first_response",
-            "replicate": 1,
-            "stage_timing": false,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "first_response-N32-B16-SQP1-PCG100-r2",
-          "parameters": {
-            "study": "F05",
-            "N": 32,
-            "B": 16,
-            "SQP": 1,
-            "PCG": 100,
-            "arm": "first_response",
-            "replicate": 2,
-            "stage_timing": false,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "sustained-N32-B16-SQP1-PCG100",
-          "parameters": {
-            "study": "F05",
-            "N": 32,
-            "B": 16,
-            "SQP": 1,
-            "PCG": 100,
-            "arm": "sustained",
-            "duration_s": 120,
-            "stage_timing": false,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
           "id": "first_response-N32-B1-SQP5-PCG100-r0",
           "parameters": {
             "study": "F05",
@@ -1697,126 +771,6 @@
             "timing_mode": "A",
             "backend": "internal"
           }
-        },
-        {
-          "id": "first_response-N32-B1-SQP10-PCG800-r0",
-          "parameters": {
-            "study": "F05",
-            "N": 32,
-            "B": 1,
-            "SQP": 10,
-            "PCG": 800,
-            "arm": "first_response",
-            "replicate": 0,
-            "stage_timing": false,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "first_response-N32-B1-SQP10-PCG800-r1",
-          "parameters": {
-            "study": "F05",
-            "N": 32,
-            "B": 1,
-            "SQP": 10,
-            "PCG": 800,
-            "arm": "first_response",
-            "replicate": 1,
-            "stage_timing": false,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "first_response-N32-B1-SQP10-PCG800-r2",
-          "parameters": {
-            "study": "F05",
-            "N": 32,
-            "B": 1,
-            "SQP": 10,
-            "PCG": 800,
-            "arm": "first_response",
-            "replicate": 2,
-            "stage_timing": false,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "sustained-N32-B1-SQP10-PCG800",
-          "parameters": {
-            "study": "F05",
-            "N": 32,
-            "B": 1,
-            "SQP": 10,
-            "PCG": 800,
-            "arm": "sustained",
-            "duration_s": 120,
-            "stage_timing": false,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "first_response-N32-B16-SQP10-PCG800-r0",
-          "parameters": {
-            "study": "F05",
-            "N": 32,
-            "B": 16,
-            "SQP": 10,
-            "PCG": 800,
-            "arm": "first_response",
-            "replicate": 0,
-            "stage_timing": false,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "first_response-N32-B16-SQP10-PCG800-r1",
-          "parameters": {
-            "study": "F05",
-            "N": 32,
-            "B": 16,
-            "SQP": 10,
-            "PCG": 800,
-            "arm": "first_response",
-            "replicate": 1,
-            "stage_timing": false,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "first_response-N32-B16-SQP10-PCG800-r2",
-          "parameters": {
-            "study": "F05",
-            "N": 32,
-            "B": 16,
-            "SQP": 10,
-            "PCG": 800,
-            "arm": "first_response",
-            "replicate": 2,
-            "stage_timing": false,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "sustained-N32-B16-SQP10-PCG800",
-          "parameters": {
-            "study": "F05",
-            "N": 32,
-            "B": 16,
-            "SQP": 10,
-            "PCG": 800,
-            "arm": "sustained",
-            "duration_s": 120,
-            "stage_timing": false,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
         }
       ],
       "cohort_id": "zero-pcg-20261011",
@@ -1910,34 +864,6 @@
       ],
       "cases": [
         {
-          "id": "profile-N32-B1-SQP1-PCG100",
-          "parameters": {
-            "study": "F05",
-            "N": 32,
-            "B": 1,
-            "SQP": 1,
-            "PCG": 100,
-            "arm": "profile",
-            "stage_timing": true,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "profile-N32-B16-SQP1-PCG100",
-          "parameters": {
-            "study": "F05",
-            "N": 32,
-            "B": 16,
-            "SQP": 1,
-            "PCG": 100,
-            "arm": "profile",
-            "stage_timing": true,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
           "id": "profile-N32-B1-SQP5-PCG100",
           "parameters": {
             "study": "F05",
@@ -1959,34 +885,6 @@
             "B": 16,
             "SQP": 5,
             "PCG": 100,
-            "arm": "profile",
-            "stage_timing": true,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "profile-N32-B1-SQP10-PCG800",
-          "parameters": {
-            "study": "F05",
-            "N": 32,
-            "B": 1,
-            "SQP": 10,
-            "PCG": 800,
-            "arm": "profile",
-            "stage_timing": true,
-            "timing_mode": "A",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "profile-N32-B16-SQP10-PCG800",
-          "parameters": {
-            "study": "F05",
-            "N": 32,
-            "B": 16,
-            "SQP": 10,
-            "PCG": 800,
             "arm": "profile",
             "stage_timing": true,
             "timing_mode": "A",
@@ -2182,1716 +1080,6 @@
             "timing_mode": "B",
             "backend": "internal"
           }
-        },
-        {
-          "id": "pair-09651-B1",
-          "parameters": {
-            "pair_id": 9651,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-09651-B16",
-          "parameters": {
-            "pair_id": 9651,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-05264-B1",
-          "parameters": {
-            "pair_id": 5264,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-05264-B16",
-          "parameters": {
-            "pair_id": 5264,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-00279-B1",
-          "parameters": {
-            "pair_id": 279,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-00279-B16",
-          "parameters": {
-            "pair_id": 279,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-08054-B1",
-          "parameters": {
-            "pair_id": 8054,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-08054-B16",
-          "parameters": {
-            "pair_id": 8054,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-08270-B1",
-          "parameters": {
-            "pair_id": 8270,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-08270-B16",
-          "parameters": {
-            "pair_id": 8270,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-02497-B1",
-          "parameters": {
-            "pair_id": 2497,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-02497-B16",
-          "parameters": {
-            "pair_id": 2497,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-02342-B1",
-          "parameters": {
-            "pair_id": 2342,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-02342-B16",
-          "parameters": {
-            "pair_id": 2342,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-06503-B1",
-          "parameters": {
-            "pair_id": 6503,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-06503-B16",
-          "parameters": {
-            "pair_id": 6503,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-06155-B1",
-          "parameters": {
-            "pair_id": 6155,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-06155-B16",
-          "parameters": {
-            "pair_id": 6155,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-01161-B1",
-          "parameters": {
-            "pair_id": 1161,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-01161-B16",
-          "parameters": {
-            "pair_id": 1161,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-01600-B1",
-          "parameters": {
-            "pair_id": 1600,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-01600-B16",
-          "parameters": {
-            "pair_id": 1600,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-06892-B1",
-          "parameters": {
-            "pair_id": 6892,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-06892-B16",
-          "parameters": {
-            "pair_id": 6892,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-05809-B1",
-          "parameters": {
-            "pair_id": 5809,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-05809-B16",
-          "parameters": {
-            "pair_id": 5809,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-03678-B1",
-          "parameters": {
-            "pair_id": 3678,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-03678-B16",
-          "parameters": {
-            "pair_id": 3678,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-09059-B1",
-          "parameters": {
-            "pair_id": 9059,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-09059-B16",
-          "parameters": {
-            "pair_id": 9059,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-02112-B1",
-          "parameters": {
-            "pair_id": 2112,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-02112-B16",
-          "parameters": {
-            "pair_id": 2112,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-09107-B1",
-          "parameters": {
-            "pair_id": 9107,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-09107-B16",
-          "parameters": {
-            "pair_id": 9107,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-00870-B1",
-          "parameters": {
-            "pair_id": 870,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-00870-B16",
-          "parameters": {
-            "pair_id": 870,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-00789-B1",
-          "parameters": {
-            "pair_id": 789,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-00789-B16",
-          "parameters": {
-            "pair_id": 789,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-00975-B1",
-          "parameters": {
-            "pair_id": 975,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-00975-B16",
-          "parameters": {
-            "pair_id": 975,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-07184-B1",
-          "parameters": {
-            "pair_id": 7184,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-07184-B16",
-          "parameters": {
-            "pair_id": 7184,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-07736-B1",
-          "parameters": {
-            "pair_id": 7736,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-07736-B16",
-          "parameters": {
-            "pair_id": 7736,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-09961-B1",
-          "parameters": {
-            "pair_id": 9961,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-09961-B16",
-          "parameters": {
-            "pair_id": 9961,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-01976-B1",
-          "parameters": {
-            "pair_id": 1976,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-01976-B16",
-          "parameters": {
-            "pair_id": 1976,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-06352-B1",
-          "parameters": {
-            "pair_id": 6352,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-06352-B16",
-          "parameters": {
-            "pair_id": 6352,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-07463-B1",
-          "parameters": {
-            "pair_id": 7463,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-07463-B16",
-          "parameters": {
-            "pair_id": 7463,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-02406-B1",
-          "parameters": {
-            "pair_id": 2406,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-02406-B16",
-          "parameters": {
-            "pair_id": 2406,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-06340-B1",
-          "parameters": {
-            "pair_id": 6340,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-06340-B16",
-          "parameters": {
-            "pair_id": 6340,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-03987-B1",
-          "parameters": {
-            "pair_id": 3987,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-03987-B16",
-          "parameters": {
-            "pair_id": 3987,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-09888-B1",
-          "parameters": {
-            "pair_id": 9888,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-09888-B16",
-          "parameters": {
-            "pair_id": 9888,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-06618-B1",
-          "parameters": {
-            "pair_id": 6618,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-06618-B16",
-          "parameters": {
-            "pair_id": 6618,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-04972-B1",
-          "parameters": {
-            "pair_id": 4972,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-04972-B16",
-          "parameters": {
-            "pair_id": 4972,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-08276-B1",
-          "parameters": {
-            "pair_id": 8276,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-08276-B16",
-          "parameters": {
-            "pair_id": 8276,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-03069-B1",
-          "parameters": {
-            "pair_id": 3069,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-03069-B16",
-          "parameters": {
-            "pair_id": 3069,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-00320-B1",
-          "parameters": {
-            "pair_id": 320,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-00320-B16",
-          "parameters": {
-            "pair_id": 320,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-02295-B1",
-          "parameters": {
-            "pair_id": 2295,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-02295-B16",
-          "parameters": {
-            "pair_id": 2295,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-05995-B1",
-          "parameters": {
-            "pair_id": 5995,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-05995-B16",
-          "parameters": {
-            "pair_id": 5995,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-01273-B1",
-          "parameters": {
-            "pair_id": 1273,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-01273-B16",
-          "parameters": {
-            "pair_id": 1273,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-03012-B1",
-          "parameters": {
-            "pair_id": 3012,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-03012-B16",
-          "parameters": {
-            "pair_id": 3012,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-04663-B1",
-          "parameters": {
-            "pair_id": 4663,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-04663-B16",
-          "parameters": {
-            "pair_id": 4663,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-02696-B1",
-          "parameters": {
-            "pair_id": 2696,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-02696-B16",
-          "parameters": {
-            "pair_id": 2696,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-05681-B1",
-          "parameters": {
-            "pair_id": 5681,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-05681-B16",
-          "parameters": {
-            "pair_id": 5681,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-07601-B1",
-          "parameters": {
-            "pair_id": 7601,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-07601-B16",
-          "parameters": {
-            "pair_id": 7601,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-02641-B1",
-          "parameters": {
-            "pair_id": 2641,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-02641-B16",
-          "parameters": {
-            "pair_id": 2641,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-07221-B1",
-          "parameters": {
-            "pair_id": 7221,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-07221-B16",
-          "parameters": {
-            "pair_id": 7221,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-03284-B1",
-          "parameters": {
-            "pair_id": 3284,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-03284-B16",
-          "parameters": {
-            "pair_id": 3284,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-04007-B1",
-          "parameters": {
-            "pair_id": 4007,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-04007-B16",
-          "parameters": {
-            "pair_id": 4007,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-07443-B1",
-          "parameters": {
-            "pair_id": 7443,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-07443-B16",
-          "parameters": {
-            "pair_id": 7443,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-08369-B1",
-          "parameters": {
-            "pair_id": 8369,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-08369-B16",
-          "parameters": {
-            "pair_id": 8369,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-02289-B1",
-          "parameters": {
-            "pair_id": 2289,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-02289-B16",
-          "parameters": {
-            "pair_id": 2289,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-01934-B1",
-          "parameters": {
-            "pair_id": 1934,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-01934-B16",
-          "parameters": {
-            "pair_id": 1934,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-03110-B1",
-          "parameters": {
-            "pair_id": 3110,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-03110-B16",
-          "parameters": {
-            "pair_id": 3110,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-09801-B1",
-          "parameters": {
-            "pair_id": 9801,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-09801-B16",
-          "parameters": {
-            "pair_id": 9801,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-03239-B1",
-          "parameters": {
-            "pair_id": 3239,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-03239-B16",
-          "parameters": {
-            "pair_id": 3239,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-00042-B1",
-          "parameters": {
-            "pair_id": 42,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-00042-B16",
-          "parameters": {
-            "pair_id": 42,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-07156-B1",
-          "parameters": {
-            "pair_id": 7156,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-07156-B16",
-          "parameters": {
-            "pair_id": 7156,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-01831-B1",
-          "parameters": {
-            "pair_id": 1831,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-01831-B16",
-          "parameters": {
-            "pair_id": 1831,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-02184-B1",
-          "parameters": {
-            "pair_id": 2184,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-02184-B16",
-          "parameters": {
-            "pair_id": 2184,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-09136-B1",
-          "parameters": {
-            "pair_id": 9136,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-09136-B16",
-          "parameters": {
-            "pair_id": 9136,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-08175-B1",
-          "parameters": {
-            "pair_id": 8175,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-08175-B16",
-          "parameters": {
-            "pair_id": 8175,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-02205-B1",
-          "parameters": {
-            "pair_id": 2205,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-02205-B16",
-          "parameters": {
-            "pair_id": 2205,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-01029-B1",
-          "parameters": {
-            "pair_id": 1029,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-01029-B16",
-          "parameters": {
-            "pair_id": 1029,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-01114-B1",
-          "parameters": {
-            "pair_id": 1114,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-01114-B16",
-          "parameters": {
-            "pair_id": 1114,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-05413-B1",
-          "parameters": {
-            "pair_id": 5413,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-05413-B16",
-          "parameters": {
-            "pair_id": 5413,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-02119-B1",
-          "parameters": {
-            "pair_id": 2119,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-02119-B16",
-          "parameters": {
-            "pair_id": 2119,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-00318-B1",
-          "parameters": {
-            "pair_id": 318,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-00318-B16",
-          "parameters": {
-            "pair_id": 318,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-03255-B1",
-          "parameters": {
-            "pair_id": 3255,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-03255-B16",
-          "parameters": {
-            "pair_id": 3255,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-07375-B1",
-          "parameters": {
-            "pair_id": 7375,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-07375-B16",
-          "parameters": {
-            "pair_id": 7375,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-01497-B1",
-          "parameters": {
-            "pair_id": 1497,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-01497-B16",
-          "parameters": {
-            "pair_id": 1497,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-04786-B1",
-          "parameters": {
-            "pair_id": 4786,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-04786-B16",
-          "parameters": {
-            "pair_id": 4786,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-02931-B1",
-          "parameters": {
-            "pair_id": 2931,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-02931-B16",
-          "parameters": {
-            "pair_id": 2931,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-09913-B1",
-          "parameters": {
-            "pair_id": 9913,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-09913-B16",
-          "parameters": {
-            "pair_id": 9913,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-02238-B1",
-          "parameters": {
-            "pair_id": 2238,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-02238-B16",
-          "parameters": {
-            "pair_id": 2238,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-02036-B1",
-          "parameters": {
-            "pair_id": 2036,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-02036-B16",
-          "parameters": {
-            "pair_id": 2036,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-07206-B1",
-          "parameters": {
-            "pair_id": 7206,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-07206-B16",
-          "parameters": {
-            "pair_id": 7206,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-02548-B1",
-          "parameters": {
-            "pair_id": 2548,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-02548-B16",
-          "parameters": {
-            "pair_id": 2548,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-07660-B1",
-          "parameters": {
-            "pair_id": 7660,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-07660-B16",
-          "parameters": {
-            "pair_id": 7660,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-05104-B1",
-          "parameters": {
-            "pair_id": 5104,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-05104-B16",
-          "parameters": {
-            "pair_id": 5104,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-09844-B1",
-          "parameters": {
-            "pair_id": 9844,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-09844-B16",
-          "parameters": {
-            "pair_id": 9844,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-02204-B1",
-          "parameters": {
-            "pair_id": 2204,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-02204-B16",
-          "parameters": {
-            "pair_id": 2204,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-03506-B1",
-          "parameters": {
-            "pair_id": 3506,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-03506-B16",
-          "parameters": {
-            "pair_id": 3506,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-06166-B1",
-          "parameters": {
-            "pair_id": 6166,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-06166-B16",
-          "parameters": {
-            "pair_id": 6166,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-05089-B1",
-          "parameters": {
-            "pair_id": 5089,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-05089-B16",
-          "parameters": {
-            "pair_id": 5089,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-00047-B1",
-          "parameters": {
-            "pair_id": 47,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-00047-B16",
-          "parameters": {
-            "pair_id": 47,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-02161-B1",
-          "parameters": {
-            "pair_id": 2161,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-02161-B16",
-          "parameters": {
-            "pair_id": 2161,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-04656-B1",
-          "parameters": {
-            "pair_id": 4656,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-04656-B16",
-          "parameters": {
-            "pair_id": 4656,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-03377-B1",
-          "parameters": {
-            "pair_id": 3377,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-03377-B16",
-          "parameters": {
-            "pair_id": 3377,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-04466-B1",
-          "parameters": {
-            "pair_id": 4466,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-04466-B16",
-          "parameters": {
-            "pair_id": 4466,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-06921-B1",
-          "parameters": {
-            "pair_id": 6921,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-06921-B16",
-          "parameters": {
-            "pair_id": 6921,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-03974-B1",
-          "parameters": {
-            "pair_id": 3974,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-03974-B16",
-          "parameters": {
-            "pair_id": 3974,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-08607-B1",
-          "parameters": {
-            "pair_id": 8607,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-08607-B16",
-          "parameters": {
-            "pair_id": 8607,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-05510-B1",
-          "parameters": {
-            "pair_id": 5510,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-05510-B16",
-          "parameters": {
-            "pair_id": 5510,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-08981-B1",
-          "parameters": {
-            "pair_id": 8981,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-08981-B16",
-          "parameters": {
-            "pair_id": 8981,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-09288-B1",
-          "parameters": {
-            "pair_id": 9288,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-09288-B16",
-          "parameters": {
-            "pair_id": 9288,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-04434-B1",
-          "parameters": {
-            "pair_id": 4434,
-            "batch": 1,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
-        },
-        {
-          "id": "pair-04434-B16",
-          "parameters": {
-            "pair_id": 4434,
-            "batch": 16,
-            "timing_mode": "B",
-            "backend": "internal"
-          }
         }
       ],
       "cohort_id": "zero-pcg-20261011",
@@ -3899,256 +1087,6 @@
       "original_runtime_source_commit": "4f6c8fd4be428c135fc16564c5dd56eb61ce5660",
       "original_scientific_protocol": "simple-bb-recording-v1",
       "preparation_status": "fresh matching build and target preflight pending"
-    },
-    {
-      "research_question": "RQ-cylinder-routes",
-      "protocol": "cylinder-current-default-B-v1-zero-pcg-20261011",
-      "source_commit": "b931bbdd41303f1456ce3242045ebe48b241600a",
-      "machines": [
-        "jetson"
-      ],
-      "backend": "internal",
-      "inputs": {
-        "experiments/inputs/cylinder_studies/scene02.json": "16acd38a18f9ad443468c74730d8e42237942a288d9a164045bb3ddb409d0256",
-        "experiments/inputs/cylinder_studies/scene03.json": "46a8a1010dc886c682e05055d4d29913c7e89fff0336e0f3b8fc416ae1279d05",
-        "experiments/inputs/cylinder_studies/scene04_fast.json": "1f0ec19c46805bf58f9947895fd35a9d1f6825bb06086fcfd4ae3ea0e6fb46bb",
-        "experiments/inputs/cylinder_studies/easy30_routes.npz": "1de61a5e53b2b98760a55f351250eeba352a81471af520c30cecb3d8597e0032",
-        "experiments/inputs/cylinder_studies/easy30.json": "e818539a1e5c2b699f0fcd4c07ccf601c5ea5af2ec14b940ce448ce7abc66779",
-        "experiments/inputs/cylinder_studies/v01.json": "20920040853786cf3d96f13ba240f82918a9f0f5020270fbe67715666477cc81",
-        "experiments/inputs/cylinder_studies/t01.json": "aec47cfa3819de5adbb8633b637f5bd9bcd327cb3afc5043a856b323af5aac41",
-        "experiments/inputs/cylinder_studies/protocol.json": "d60419282c4f5869950d286b5879053a51fa0e5f73adf7479e805a33fdd3ab20"
-      },
-      "build": {
-        "inputs": {
-          "native/CMakeLists.txt": "07c285afa3d2055c2c8f64c4645bdad01bdeb3391e77f2082aff3c70443df1e2",
-          "native/task_readiness/CMakeLists.txt": "90abec70a6f830071843841791f13b995cf963118659b7001d8ed0085a8da6a6",
-          "native/cylinder_studies/CMakeLists.txt": "24291084b8905fb1717c9e2c626810b8020890bbe73776d56f8db8e8fbe866f9"
-        },
-        "commands": [
-          [
-            "cmake",
-            "-S",
-            "{runner}/native/cylinder_studies",
-            "-B",
-            "{build}",
-            "-DGATO_SOURCE_DIR={source}",
-            "-DKNOTS=32",
-            "-DCMAKE_BUILD_TYPE=Release",
-            "-DCMAKE_CUDA_ARCHITECTURES={cuda_arch}-real",
-            "-DPython3_EXECUTABLE={python}"
-          ],
-          [
-            "cmake",
-            "--build",
-            "{build}",
-            "--parallel",
-            "2"
-          ]
-        ],
-        "artifacts": [
-          "modules/bsqpN32_tiago_right*.so",
-          "modules/cylinder_probe*.so",
-          "cuda_access_smoke"
-        ]
-      },
-      "command": [
-        "{python}",
-        "{runner}/adapters/cylinder_studies.py",
-        "--source",
-        "{source}",
-        "--build",
-        "{build}",
-        "--inputs",
-        "{inputs}/experiments/inputs/cylinder_studies",
-        "--output",
-        "{output}",
-        "--case",
-        "{case}",
-        "--ordinary-runtime",
-        "fa6f6bede286c122cc41ac65f42a583da84290e0"
-      ],
-      "timeout_seconds": 600,
-      "id": "CylinderTasks",
-      "timing_mode": "B",
-      "cases": [
-        {
-          "id": "scene04_fast-B1",
-          "parameters": {
-            "study": "X04",
-            "scene": "scene04_fast",
-            "scene_id": 4,
-            "batch": 1
-          }
-        },
-        {
-          "id": "scene04_fast-B16",
-          "parameters": {
-            "study": "X04",
-            "scene": "scene04_fast",
-            "scene_id": 4,
-            "batch": 16
-          }
-        },
-        {
-          "id": "scene02-B1",
-          "parameters": {
-            "study": "X04",
-            "scene": "scene02",
-            "scene_id": 2,
-            "batch": 1
-          }
-        },
-        {
-          "id": "scene02-B16",
-          "parameters": {
-            "study": "X04",
-            "scene": "scene02",
-            "scene_id": 2,
-            "batch": 16
-          }
-        },
-        {
-          "id": "scene03-B1",
-          "parameters": {
-            "study": "X04",
-            "scene": "scene03",
-            "scene_id": 3,
-            "batch": 1
-          }
-        },
-        {
-          "id": "scene03-B16",
-          "parameters": {
-            "study": "X04",
-            "scene": "scene03",
-            "scene_id": 3,
-            "batch": 16
-          }
-        }
-      ],
-      "dependency_source_commits": {
-        "ordinary_canonical_runtime": "fa6f6bede286c122cc41ac65f42a583da84290e0"
-      },
-      "preflight": {
-        "group": "CylinderStudies-B-zero-pcg-20261011",
-        "command": [
-          "{python}",
-          "{runner}/adapters/cylinder_studies.py",
-          "--source",
-          "{source}",
-          "--build",
-          "{build}",
-          "--inputs",
-          "{inputs}/experiments/inputs/cylinder_studies",
-          "--output",
-          "{output}",
-          "--preflight",
-          "--ordinary-runtime",
-          "fa6f6bede286c122cc41ac65f42a583da84290e0"
-        ]
-      },
-      "cohort_id": "zero-pcg-20261011",
-      "stopping_policy": "zero_pcg_or_finite_kkt",
-      "original_runtime_source_commit": "d6c827842c6ed65d455472063bcf77f5498efd46",
-      "original_scientific_protocol": "cylinder-current-default-B-v1",
-      "preparation_status": "fresh matching build and target preflight pending"
-    },
-    {
-      "id": "M02",
-      "research_question": "RQ-monitor",
-      "protocol": "monitor-CPU-eight-state-v1",
-      "source_commit": "2db284ca8e11f42f8f3248403b879652966893ed",
-      "machines": [
-        "jetson"
-      ],
-      "backend": "CPU-Pinocchio-Coal",
-      "timing_mode": "A",
-      "inputs": {
-        "experiments/inputs/collision/blacklist.json": "af70b26bd0ab6936a1d928b8e580d805097d914129f349dd351cb8d77b663e75",
-        "experiments/inputs/collision/protocol.json": "b62a84c4ab842c24fd74e020837d2f4a25927d762d0115b7d4d559f392182f49",
-        "experiments/inputs/collision/original/model.urdf": "be722e3ab6801be618d4f23defb1c8a8759f84834936702bfa51a05d86257141",
-        "experiments/inputs/collision/original/meshes/56a8f0732fdb-torso_fixed_collision.stl": "56a8f0732fdbb1f4145a61269d59f3ed07be1bb9c060e7caf44d8dd37cd06d80",
-        "experiments/inputs/collision/original/meshes/6c45a1e27785-torso_lift_link_collision.stl": "6c45a1e2778576ad7ef2d6ced8ffbbf6a4aaf2a2de8aecb59f7b44329b758d0b",
-        "experiments/inputs/collision/original/meshes/849b78bbe967-laptop_tray_collision.stl": "849b78bbe967caf550ba918b02e274770f9652094fdf6aaff23c5c24358230a2",
-        "experiments/inputs/collision/original/meshes/f911e6d2a6f9-arm_1_link_collision.stl": "f911e6d2a6f9383c30183183962648c7e3872116bc29225f1bf10c8cd0491487",
-        "experiments/inputs/collision/original/meshes/5dd1d5f08431-arm_2_link_collision.stl": "5dd1d5f0843169ef66d4a05ff34e664e161bbb832917a80f939cd2766430e9f4",
-        "experiments/inputs/collision/original/meshes/4d9d8428b84d-arm_3_link_collision.stl": "4d9d8428b84d4511e95ac362c541a951c83efcfe47b0db958e35e231e944f9ff",
-        "experiments/inputs/collision/original/meshes/8f86c50cda3e-arm_4_link_collision.stl": "8f86c50cda3e2c351c7b76c7f049fa28352e08ceabcae9b5eceaf58f204ff6c3",
-        "experiments/inputs/collision/original/meshes/8d12d72d6114-arm_5_link_collision.stl": "8d12d72d6114b807b2e7a20910672f06d64be64e1a760b3c6ec1ed774a59c6be",
-        "experiments/inputs/collision/original/meshes/b50fe52fd99b-arm_6_link_collision.stl": "b50fe52fd99bf91ed25de5988156ce3fa846fb68357c745afed0663d5242596a",
-        "experiments/inputs/collision/original/meshes/e438c3363a7a-base_link_tc.stl": "e438c3363a7ad819b5ee44520f2b8e6a6e9636a0cc44afefacd98ae3f8a0ab2e",
-        "experiments/inputs/collision/original/meshes/f6b296645c24-outer_finger.stl": "f6b296645c242878eaba955b30bd9b932aae88491bb9a627383f4a41e79f3dcc",
-        "experiments/inputs/collision/original/meshes/ac2ec34c8b0c-inner_finger.stl": "ac2ec34c8b0cefe1d4637122553a8c9409a2ed6d389a90050962eed5a41cc5a3",
-        "experiments/inputs/collision/original/meshes/aef403084be2-fingertip.stl": "aef403084be21aa0fbc5ad411e4bf22c796a044a70b906834539453a5637df83",
-        "experiments/inputs/collision/original/meshes/bf984aed7be2-head_1_link_collision.stl": "bf984aed7be282270a78b2ed0f751e9910e6db9500f769956b95bd0c3522983e",
-        "experiments/inputs/collision/original/meshes/bdc70cb83ec4-head_2_link_collision.stl": "bdc70cb83ec4c699b70edcef550a635b66e3e2ad426ef517ba8d2b9a46abb098",
-        "experiments/inputs/collision/original/meshes/382922eaf317-suspension_rear_link.stl": "382922eaf317749b749ff3dd84c04e9f4dc206a2e7227a7a62c79f097f665c4c",
-        "experiments/inputs/collision/original/meshes/9a2f26924de5-suspension_front_link.stl": "9a2f26924de595e4c6e2b0ef7465c7af1d09ee3070e9f7173523113b545119d5",
-        "experiments/inputs/collision/original/meshes/d13ab33c5a39-base_dock_link.stl": "d13ab33c5a39f9daa7f34a1b728c6b8afa2b105671846af29eb9f2d8c617cd0c",
-        "experiments/inputs/collision/wrapped/model.urdf": "c4706232bf7f902c2c6efdfbd07d02fa779dc01a16dfa153c39860f78b5c8403",
-        "experiments/inputs/collision/wrapped/meshes/0f95d2c770ed-torso_fixed_collision.stl": "0f95d2c770eded42543f0bde0e007807c29d3a54f1bc440b1f1f9a723111bbb3",
-        "experiments/inputs/collision/wrapped/meshes/7b66a644317c-torso_lift_link_collision.stl": "7b66a644317cb0a0f015129ecd21c213b5d44dfa5be42fd00c96b697b9a53689",
-        "experiments/inputs/collision/wrapped/meshes/749d75d19834-laptop_tray_collision.stl": "749d75d19834dd0ee2ddd1c8d9aeb9710458b954d2539c99169a31c2037deafb",
-        "experiments/inputs/collision/wrapped/meshes/fac97e4422c8-arm_1_link_collision.stl": "fac97e4422c8b5035cddaafbc5016849b702c5cd6ebdecd181ba3e3e40c5aaa9",
-        "experiments/inputs/collision/wrapped/meshes/1d701b53ed5c-arm_2_link_collision.stl": "1d701b53ed5cee6c2a634f53d318baffe488b61bd2be6082abff8b92bcb7929e",
-        "experiments/inputs/collision/wrapped/meshes/c8ba9d1cc381-arm_3_link_collision.stl": "c8ba9d1cc381e739029f51f93dabab9798bed2497aefab7191f0f8c43fe50b39",
-        "experiments/inputs/collision/wrapped/meshes/958330558284-arm_4_link_collision.stl": "9583305582846870eefbb961a4564468c90376a18fc1633c3437b3fc9e53dd00",
-        "experiments/inputs/collision/wrapped/meshes/bb0c0a79eb5d-arm_5_link_collision.stl": "bb0c0a79eb5d3f5b686cf935206793c47c1b77207262b53b6dd412d2253a8199",
-        "experiments/inputs/collision/wrapped/meshes/a8533ae8a4a8-arm_6_link_collision.stl": "a8533ae8a4a8befd9a14212235074146384bafeadf3279809ac0c4f706a21890",
-        "experiments/inputs/collision/wrapped/meshes/0c975e09d276-base_link_tc.stl": "0c975e09d276b4e05126e16d1148ebfaaef3189728c275f40e189503064a17e0",
-        "experiments/inputs/collision/wrapped/meshes/77a22c23c991-outer_finger.stl": "77a22c23c99137704be333dce2bbc29985a3d5855c99fc29d294053a47612c02",
-        "experiments/inputs/collision/wrapped/meshes/5bc1e37e954e-inner_finger.stl": "5bc1e37e954e6f893624f9ee4396552e0acefbfa71987f0adb7850c512df4f58",
-        "experiments/inputs/collision/wrapped/meshes/86d32c521cee-fingertip.stl": "86d32c521ceebf0e7829e6aa67fbb7332b79f3236057be35335e70d0777120b9",
-        "experiments/inputs/collision/wrapped/meshes/0759e0403abf-head_1_link_collision.stl": "0759e0403abfdeae381f4377593e46881ff7295b16c1f6a08fb91365eba5e35f",
-        "experiments/inputs/collision/wrapped/meshes/11597e4eff73-head_2_link_collision.stl": "11597e4eff73042411fa28beb10e7af92a90b2ed508f21fc00d09069e9b7dd04",
-        "experiments/inputs/collision/wrapped/meshes/ea585fcd2120-suspension_rear_link.stl": "ea585fcd2120ad09a70f1408ad82d21a1435204240486c33702816b52b5333eb",
-        "experiments/inputs/collision/wrapped/meshes/ccc0d71e6c4f-suspension_front_link.stl": "ccc0d71e6c4fd693315ee2596d3108b4b6a6f5a3eb98dabd2ecffa7c01272f19",
-        "experiments/inputs/collision/wrapped/meshes/293092d0a0be-base_dock_link.stl": "293092d0a0be6c9156fb1aa9642ea5c20286e706ee9faa161f45a4eec17d9bf5"
-      },
-      "command": [
-        "{python}",
-        "{runner}/adapters/collision_monitor.py",
-        "--source",
-        "{source}",
-        "--inputs",
-        "{inputs}/experiments/inputs/collision",
-        "--case",
-        "{case}",
-        "--output",
-        "{output}"
-      ],
-      "cases": [
-        {
-          "id": "original-exact",
-          "parameters": {
-            "asset": "original",
-            "query": "exact"
-          }
-        },
-        {
-          "id": "original-margin",
-          "parameters": {
-            "asset": "original",
-            "query": "margin"
-          }
-        },
-        {
-          "id": "wrapped-exact",
-          "parameters": {
-            "asset": "wrapped",
-            "query": "exact"
-          }
-        },
-        {
-          "id": "wrapped-margin",
-          "parameters": {
-            "asset": "wrapped",
-            "query": "margin"
-          }
-        }
-      ],
-      "timeout_seconds": 600,
-      "preparation_status": "Pending original target measurement, not a stopping-policy rerun"
     },
     {
       "id": "F04-stageOFF",
@@ -5110,8 +2048,329 @@
   },
   "missing_plan_files": [],
   "note": "Explicit successor solver cohorts; previous results remain historical. Fresh matching builds/preflights pending; faster tracking is simulation only. No physical robot queue.",
+  "scope_omissions": [
+    {
+      "experiment": "F01ab",
+      "cases": [
+        "N16-SQP1-PCG100",
+        "N16-SQP1-PCG200",
+        "N16-SQP1-PCG400",
+        "N16-SQP1-PCG800",
+        "N16-SQP2-PCG100",
+        "N16-SQP2-PCG200",
+        "N16-SQP2-PCG400",
+        "N16-SQP2-PCG800",
+        "N16-SQP5-PCG100",
+        "N16-SQP5-PCG200",
+        "N16-SQP5-PCG400",
+        "N16-SQP5-PCG800",
+        "N16-SQP10-PCG100",
+        "N16-SQP10-PCG200",
+        "N16-SQP10-PCG400",
+        "N16-SQP10-PCG800",
+        "N32-SQP1-PCG100",
+        "N32-SQP1-PCG200",
+        "N32-SQP1-PCG400",
+        "N32-SQP1-PCG800",
+        "N32-SQP2-PCG100",
+        "N32-SQP2-PCG200",
+        "N32-SQP2-PCG400",
+        "N32-SQP2-PCG800",
+        "N32-SQP5-PCG100",
+        "N32-SQP5-PCG200",
+        "N32-SQP5-PCG400",
+        "N32-SQP5-PCG800",
+        "N32-SQP10-PCG100",
+        "N32-SQP10-PCG200",
+        "N32-SQP10-PCG400",
+        "N32-SQP10-PCG800",
+        "N64-SQP1-PCG100",
+        "N64-SQP1-PCG200",
+        "N64-SQP1-PCG400",
+        "N64-SQP1-PCG800",
+        "N64-SQP2-PCG100",
+        "N64-SQP2-PCG200",
+        "N64-SQP2-PCG400",
+        "N64-SQP2-PCG800",
+        "N64-SQP5-PCG100",
+        "N64-SQP5-PCG200",
+        "N64-SQP5-PCG400",
+        "N64-SQP5-PCG800",
+        "N64-SQP10-PCG100",
+        "N64-SQP10-PCG200",
+        "N64-SQP10-PCG400",
+        "N64-SQP10-PCG800",
+        "N128-SQP1-PCG100",
+        "N128-SQP1-PCG200",
+        "N128-SQP1-PCG400",
+        "N128-SQP1-PCG800",
+        "N128-SQP2-PCG100",
+        "N128-SQP2-PCG200",
+        "N128-SQP2-PCG400",
+        "N128-SQP2-PCG800",
+        "N128-SQP5-PCG100",
+        "N128-SQP5-PCG200",
+        "N128-SQP5-PCG400",
+        "N128-SQP5-PCG800",
+        "N128-SQP10-PCG100",
+        "N128-SQP10-PCG200",
+        "N128-SQP10-PCG400",
+        "N128-SQP10-PCG800"
+      ],
+      "parent_plan": "experiments/successor/merged/jetson_proposed.json"
+    },
+    {
+      "experiment": "F05-stageOFF",
+      "cases": [
+        "first_response-N32-B1-SQP1-PCG100-r0",
+        "first_response-N32-B1-SQP1-PCG100-r1",
+        "first_response-N32-B1-SQP1-PCG100-r2",
+        "sustained-N32-B1-SQP1-PCG100",
+        "first_response-N32-B16-SQP1-PCG100-r0",
+        "first_response-N32-B16-SQP1-PCG100-r1",
+        "first_response-N32-B16-SQP1-PCG100-r2",
+        "sustained-N32-B16-SQP1-PCG100",
+        "first_response-N32-B1-SQP10-PCG800-r0",
+        "first_response-N32-B1-SQP10-PCG800-r1",
+        "first_response-N32-B1-SQP10-PCG800-r2",
+        "sustained-N32-B1-SQP10-PCG800",
+        "first_response-N32-B16-SQP10-PCG800-r0",
+        "first_response-N32-B16-SQP10-PCG800-r1",
+        "first_response-N32-B16-SQP10-PCG800-r2",
+        "sustained-N32-B16-SQP10-PCG800"
+      ],
+      "parent_plan": "experiments/successor/merged/jetson_proposed.json"
+    },
+    {
+      "experiment": "F05-stageON",
+      "cases": [
+        "profile-N32-B1-SQP1-PCG100",
+        "profile-N32-B16-SQP1-PCG100",
+        "profile-N32-B1-SQP10-PCG800",
+        "profile-N32-B16-SQP10-PCG800"
+      ],
+      "parent_plan": "experiments/successor/merged/jetson_proposed.json"
+    },
+    {
+      "experiment": "BB",
+      "cases": [
+        "pair-09651-B1",
+        "pair-09651-B16",
+        "pair-05264-B1",
+        "pair-05264-B16",
+        "pair-00279-B1",
+        "pair-00279-B16",
+        "pair-08054-B1",
+        "pair-08054-B16",
+        "pair-08270-B1",
+        "pair-08270-B16",
+        "pair-02497-B1",
+        "pair-02497-B16",
+        "pair-02342-B1",
+        "pair-02342-B16",
+        "pair-06503-B1",
+        "pair-06503-B16",
+        "pair-06155-B1",
+        "pair-06155-B16",
+        "pair-01161-B1",
+        "pair-01161-B16",
+        "pair-01600-B1",
+        "pair-01600-B16",
+        "pair-06892-B1",
+        "pair-06892-B16",
+        "pair-05809-B1",
+        "pair-05809-B16",
+        "pair-03678-B1",
+        "pair-03678-B16",
+        "pair-09059-B1",
+        "pair-09059-B16",
+        "pair-02112-B1",
+        "pair-02112-B16",
+        "pair-09107-B1",
+        "pair-09107-B16",
+        "pair-00870-B1",
+        "pair-00870-B16",
+        "pair-00789-B1",
+        "pair-00789-B16",
+        "pair-00975-B1",
+        "pair-00975-B16",
+        "pair-07184-B1",
+        "pair-07184-B16",
+        "pair-07736-B1",
+        "pair-07736-B16",
+        "pair-09961-B1",
+        "pair-09961-B16",
+        "pair-01976-B1",
+        "pair-01976-B16",
+        "pair-06352-B1",
+        "pair-06352-B16",
+        "pair-07463-B1",
+        "pair-07463-B16",
+        "pair-02406-B1",
+        "pair-02406-B16",
+        "pair-06340-B1",
+        "pair-06340-B16",
+        "pair-03987-B1",
+        "pair-03987-B16",
+        "pair-09888-B1",
+        "pair-09888-B16",
+        "pair-06618-B1",
+        "pair-06618-B16",
+        "pair-04972-B1",
+        "pair-04972-B16",
+        "pair-08276-B1",
+        "pair-08276-B16",
+        "pair-03069-B1",
+        "pair-03069-B16",
+        "pair-00320-B1",
+        "pair-00320-B16",
+        "pair-02295-B1",
+        "pair-02295-B16",
+        "pair-05995-B1",
+        "pair-05995-B16",
+        "pair-01273-B1",
+        "pair-01273-B16",
+        "pair-03012-B1",
+        "pair-03012-B16",
+        "pair-04663-B1",
+        "pair-04663-B16",
+        "pair-02696-B1",
+        "pair-02696-B16",
+        "pair-05681-B1",
+        "pair-05681-B16",
+        "pair-07601-B1",
+        "pair-07601-B16",
+        "pair-02641-B1",
+        "pair-02641-B16",
+        "pair-07221-B1",
+        "pair-07221-B16",
+        "pair-03284-B1",
+        "pair-03284-B16",
+        "pair-04007-B1",
+        "pair-04007-B16",
+        "pair-07443-B1",
+        "pair-07443-B16",
+        "pair-08369-B1",
+        "pair-08369-B16",
+        "pair-02289-B1",
+        "pair-02289-B16",
+        "pair-01934-B1",
+        "pair-01934-B16",
+        "pair-03110-B1",
+        "pair-03110-B16",
+        "pair-09801-B1",
+        "pair-09801-B16",
+        "pair-03239-B1",
+        "pair-03239-B16",
+        "pair-00042-B1",
+        "pair-00042-B16",
+        "pair-07156-B1",
+        "pair-07156-B16",
+        "pair-01831-B1",
+        "pair-01831-B16",
+        "pair-02184-B1",
+        "pair-02184-B16",
+        "pair-09136-B1",
+        "pair-09136-B16",
+        "pair-08175-B1",
+        "pair-08175-B16",
+        "pair-02205-B1",
+        "pair-02205-B16",
+        "pair-01029-B1",
+        "pair-01029-B16",
+        "pair-01114-B1",
+        "pair-01114-B16",
+        "pair-05413-B1",
+        "pair-05413-B16",
+        "pair-02119-B1",
+        "pair-02119-B16",
+        "pair-00318-B1",
+        "pair-00318-B16",
+        "pair-03255-B1",
+        "pair-03255-B16",
+        "pair-07375-B1",
+        "pair-07375-B16",
+        "pair-01497-B1",
+        "pair-01497-B16",
+        "pair-04786-B1",
+        "pair-04786-B16",
+        "pair-02931-B1",
+        "pair-02931-B16",
+        "pair-09913-B1",
+        "pair-09913-B16",
+        "pair-02238-B1",
+        "pair-02238-B16",
+        "pair-02036-B1",
+        "pair-02036-B16",
+        "pair-07206-B1",
+        "pair-07206-B16",
+        "pair-02548-B1",
+        "pair-02548-B16",
+        "pair-07660-B1",
+        "pair-07660-B16",
+        "pair-05104-B1",
+        "pair-05104-B16",
+        "pair-09844-B1",
+        "pair-09844-B16",
+        "pair-02204-B1",
+        "pair-02204-B16",
+        "pair-03506-B1",
+        "pair-03506-B16",
+        "pair-06166-B1",
+        "pair-06166-B16",
+        "pair-05089-B1",
+        "pair-05089-B16",
+        "pair-00047-B1",
+        "pair-00047-B16",
+        "pair-02161-B1",
+        "pair-02161-B16",
+        "pair-04656-B1",
+        "pair-04656-B16",
+        "pair-03377-B1",
+        "pair-03377-B16",
+        "pair-04466-B1",
+        "pair-04466-B16",
+        "pair-06921-B1",
+        "pair-06921-B16",
+        "pair-03974-B1",
+        "pair-03974-B16",
+        "pair-08607-B1",
+        "pair-08607-B16",
+        "pair-05510-B1",
+        "pair-05510-B16",
+        "pair-08981-B1",
+        "pair-08981-B16",
+        "pair-09288-B1",
+        "pair-09288-B16",
+        "pair-04434-B1",
+        "pair-04434-B16"
+      ],
+      "parent_plan": "experiments/successor/merged/jetson_proposed.json"
+    },
+    {
+      "experiment": "CylinderTasks",
+      "cases": [
+        "scene04_fast-B1",
+        "scene04_fast-B16",
+        "scene02-B1",
+        "scene02-B16",
+        "scene03-B1",
+        "scene03-B16"
+      ],
+      "parent_plan": "experiments/successor/merged/jetson_proposed.json"
+    },
+    {
+      "experiment": "M02",
+      "cases": [
+        "original-exact",
+        "original-margin",
+        "wrapped-exact",
+        "wrapped-margin"
+      ],
+      "parent_plan": "experiments/successor/merged/jetson_proposed.json"
+    }
+  ],
   "deployment_parent_plan": "experiments/successor/merged/jetson_proposed.json",
   "deployment_parent_sha256": "1a27436ed80b8f6f0871086d9f1a76085d8cf4804671123d8b9774a179355218",
-  "held_cases": [],
-  "deployment_note": "Manual internal simulation launch only. Original-force held by parent plan; square held separately. No Gazebo or physical robot launch. Jetson duration/storage discussion is described in README before manual execution."
+  "deployment_note": "Latest Felix instruction narrows machines by thesis question. No remote agents/execution. Existing Jetson F01ab reused, not rerun; source/stopping-policy labels retained. Square and original-force hold remain. Gazebo/robot separate."
 }
