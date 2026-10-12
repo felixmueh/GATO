@@ -14,7 +14,10 @@ from screen_front_square import (ROOT, BODY_POSITIONS, START_Q, OFFSETS_M, LABEL
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('output',type=Path)
-    parser.add_argument('--center',default='.5,0,-.1');args=parser.parse_args()
+    parser.add_argument('--center',default='.5,0,-.1')
+    parser.add_argument('--side',type=float,default=.20)
+    parser.add_argument('--corners-only',action='store_true',help='Explicitly approved scope excluding center reach')
+    args=parser.parse_args()
     center=np.fromstring(args.center,sep=',');assert center.shape==(3,)
     args.output.mkdir(parents=True,exist_ok=False)
     (args.output/'screen_source.py').write_bytes(Path(__file__).read_bytes())
@@ -29,7 +32,8 @@ def main():
         cq,_=state_to_qv(collision.model,NamedJointState(position=body,velocity={k:0. for k in body}))
         return min(compute_pair_distances(collision,cq),key=lambda p:p.distance_m)
     previous=START_Q.copy();selected=[];attempts=[]
-    for label,offset in zip(LABELS,np.asarray(OFFSETS_M)*(2/3)):
+    labels=LABELS[:4] if args.corners_only else LABELS
+    for label,offset in zip(labels,np.asarray(OFFSETS_M)*(args.side/.30)):
         target=center+offset;axis=-offset if label!='center' else np.array((1.,0.,0.));axis=axis/np.linalg.norm(axis)
         candidates=[]
         seeds=[('previous',previous),('initial',START_Q),
@@ -69,13 +73,14 @@ def main():
         if chosen is None:
             print(json.dumps(dict(center=center.tolist(),failed_goal=label,endpoint_candidates=len(candidates))),flush=True);break
         selected.append(chosen);previous=np.asarray(chosen['q_rad'])
-    receipt=dict(side_m=.20,centers_m=[center.tolist()],body_positions=BODY_POSITIONS,initial_q_rad=START_Q.tolist(),
+    complete=len(selected)==len(labels)
+    receipt=dict(side_m=args.side,centers_m=[center.tolist()],body_positions=BODY_POSITIONS,initial_q_rad=START_Q.tolist(),
         orientation_selection='Continuous axial roll free in CPU position+tool-Z IK; all full rotations then frozen, same inward corner axes and center+X. Runtime orientation costs unchanged.',
         scope='Endpoint IK/4cm monitored clearance and 21-sample joint interpolation; no MPC/dynamic/swept/physical qualification',
-        attempts=attempts,center_outcomes=[dict(center_m=center.tolist(),goals=selected,complete=len(selected)==5)],
-        selected=selected if len(selected)==5 else None,collision_urdf=str(DEFAULT_COLLISION_URDF_PATH),blacklist=str(DEFAULT_COLLISION_BLACKLIST_PATH))
+        attempts=attempts,center_outcomes=[dict(center_m=center.tolist(),goals=selected,complete=complete)],
+        selected=selected if complete else None,corner_only=args.corners_only,collision_urdf=str(DEFAULT_COLLISION_URDF_PATH),blacklist=str(DEFAULT_COLLISION_BLACKLIST_PATH))
     (args.output/'screen.json').write_text(json.dumps(receipt,indent=2)+'\n')
-    print(json.dumps(dict(accepted=len(selected)==5,center=center.tolist(),ik_attempts=len(attempts),
+    print(json.dumps(dict(accepted=complete,center=center.tolist(),side=args.side,ik_attempts=len(attempts),
         goals=[dict(goal=g['goal'],clearance=g['endpoint_min_m'],travel=g['joint_travel_rad'],wrist_margin=g['wrist_margin_rad']) for g in selected])),flush=True)
 
 

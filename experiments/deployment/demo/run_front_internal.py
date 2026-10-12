@@ -43,7 +43,7 @@ def main():
         collector_driver_sha256=sha(__file__),collector_source_sha256=sha(Path(__file__).with_name('run_demo.py')),
         scientific_input=str(proposal),scientific_input_sha256=sha(proposal),runner_pin=RUNNER_PIN,recording_helper_sha256=helper_hashes,
         runtime_identity=identity,module=dict(path=str(N32_MODULE),sha256=N32_SHA256),
-        scope='One explicit canonical preflight or one five-goal modeB simulation; no Gazebo/robot, no retry or solver/controller changes')
+        scope='One explicit canonical preflight or one square-goal modeB simulation; no Gazebo/robot, no retry or solver/controller changes')
     if args.preview:
         protocol=worker.resolve_preflight('internal') if args.preflight else worker.resolve('internal','square')
         print(json.dumps(dict(provenance=provenance,protocol=protocol),indent=2));return 0

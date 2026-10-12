@@ -1,0 +1,379 @@
+{
+  "id": "demo_visual_square-right10cm-v8-four-corners",
+  "name": "10 cm square, farther right and down, four corners only",
+  "status": "CPU endpoint and 21-sample interpolation checks passed; actual MPC motion and full-body clearance awaiting one internal diagnostic",
+  "N": 32,
+  "dt_s": 0.03,
+  "sim_dt_s": 0.003,
+  "initial_state": [
+    -0.38999998569488525,
+    -1.7300000190734863,
+    -0.3799999952316284,
+    -2.3499999046325684,
+    0.0,
+    -1.2100000381469727,
+    0.03999999910593033,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "batch_size": 1,
+  "gravity_m_s2": [
+    0.0,
+    0.0,
+    -9.81
+  ],
+  "urdf": {
+    "path": "gato/dynamics/tiago_right/tiago_right_arm.urdf",
+    "sha256": "8e1fd973a1d1c3fbddd55039e6eb17b355ebb29f46e1bd8c774b7879c2cdc5bb"
+  },
+  "square_side_m": 0.1,
+  "square_center_torso_m": [
+    0.5,
+    -0.35,
+    -0.15
+  ],
+  "square_plane": "vertical yz at fixed x; robot-view right=-y/up=+z",
+  "goals": [
+    {
+      "id": "bottom-right",
+      "pose_m_rad": [
+        0.5,
+        -0.39999999999999997,
+        -0.2,
+        0.7849859954764078,
+        -0.028703356891583987,
+        -3.112877465936339
+      ],
+      "tool_axis": [
+        -0.0,
+        0.7071067811865475,
+        0.7071067811865475
+      ],
+      "IK_endpoint_qualified": true,
+      "endpoint_minimum_collision_distance_m": 0.07309694996042242,
+      "joint_interpolation_minimum_m": 0.046023704524021984,
+      "wrist_limit_margin_rad": 0.7136063216311095,
+      "max_per_joint_step_rad": 0.8791605089626456,
+      "ik_witness_q_rad": [
+        -1.2691605089626457,
+        -1.108904016643562,
+        0.4672660820822947,
+        -1.9919730929725006,
+        0.3572735298519543,
+        -1.1713492705227664,
+        0.039752113770520084
+      ]
+    },
+    {
+      "id": "top-right",
+      "pose_m_rad": [
+        0.5,
+        -0.39999999999999997,
+        -0.09999999999999999,
+        2.3606845922150392,
+        -0.09448113158651554,
+        3.046686954066981
+      ],
+      "tool_axis": [
+        -0.0,
+        0.7071067811865475,
+        -0.7071067811865475
+      ],
+      "IK_endpoint_qualified": true,
+      "endpoint_minimum_collision_distance_m": 0.07309641507989911,
+      "joint_interpolation_minimum_m": 0.07309641507989903,
+      "wrist_limit_margin_rad": 0.6476928489518525,
+      "max_per_joint_step_rad": 1.0076673664516091,
+      "ik_witness_q_rad": [
+        -2.276827875414255,
+        -1.7084409303254429,
+        0.46770369048885296,
+        -1.9756693036587385,
+        -0.1140035643830997,
+        -1.2372627432020233,
+        0.039409830139653074
+      ]
+    },
+    {
+      "id": "top-left",
+      "pose_m_rad": [
+        0.5,
+        -0.3,
+        -0.09999999999999999,
+        -2.423290795651283,
+        -0.35065722385241616,
+        -2.767128916320792
+      ],
+      "tool_axis": [
+        -0.0,
+        -0.7071067811865475,
+        -0.7071067811865475
+      ],
+      "IK_endpoint_qualified": true,
+      "endpoint_minimum_collision_distance_m": 0.05448569802137671,
+      "joint_interpolation_minimum_m": 0.05448569802137671,
+      "wrist_limit_margin_rad": 0.7229997163121592,
+      "max_per_joint_step_rad": 1.0810543164002087,
+      "ik_witness_q_rad": [
+        -3.3578821918144635,
+        -2.0027140095534177,
+        0.16650786500316764,
+        -2.3136329980599535,
+        -0.8477966104827374,
+        -0.8632411089288399,
+        0.03934909758312827
+      ]
+    },
+    {
+      "id": "bottom-left",
+      "pose_m_rad": [
+        0.5,
+        -0.3,
+        -0.2,
+        0.02109326026320717,
+        -0.7851756374356481,
+        1.5409637494132489
+      ],
+      "tool_axis": [
+        -0.0,
+        -0.7071067811865475,
+        0.7071067811865475
+      ],
+      "IK_endpoint_qualified": true,
+      "endpoint_minimum_collision_distance_m": 0.04514934354333094,
+      "joint_interpolation_minimum_m": 0.04514934354333094,
+      "wrist_limit_margin_rad": 0.3175836185448446,
+      "max_per_joint_step_rad": 1.2011047157248274,
+      "ik_witness_q_rad": [
+        -4.558986907539291,
+        -1.2079150350655325,
+        -0.08231039826939833,
+        -2.3999416340914173,
+        -1.253212708250052,
+        -1.0410389744297062,
+        0.039217574465815586
+      ]
+    }
+  ],
+  "goal_timeout_s": 15.0,
+  "position_threshold_m": 0.05,
+  "axis_threshold_deg": 30.0,
+  "speed_L1_threshold_rad_s": 1.0,
+  "goal_dwell_time_s": 0.0,
+  "reaching_solver_params": {
+    "max_sqp_iters": 5,
+    "kkt_tol": 0.001,
+    "max_pcg_iters": 120,
+    "pcg_tol": 0.001,
+    "solve_ratio": 1.0,
+    "mu": 1.0,
+    "q_cost": 4.0,
+    "qd_cost": 0.1,
+    "u_cost": 0.0001,
+    "N_cost": 80.0,
+    "ee_orient_cost": 0.1,
+    "ee_orient_N_cost": 2.0,
+    "q_lim_cost": 0.01,
+    "vel_lim_cost": 0.1,
+    "ctrl_lim_cost": 0.05,
+    "rho": 0.01
+  },
+  "tracking_solver_params": {
+    "max_sqp_iters": 5,
+    "kkt_tol": 0.001,
+    "max_pcg_iters": 120,
+    "pcg_tol": 0.001,
+    "solve_ratio": 1.0,
+    "mu": 1.0,
+    "q_cost": 4.0,
+    "qd_cost": 0.01,
+    "u_cost": 0.0001,
+    "N_cost": 80.0,
+    "ee_orient_cost": 0.1,
+    "ee_orient_N_cost": 2.0,
+    "q_lim_cost": 0.01,
+    "vel_lim_cost": 0.001,
+    "ctrl_lim_cost": 0.003,
+    "rho": 0.01
+  },
+  "final_approach": true,
+  "final_approach_trigger": {
+    "distance_m": 0.075,
+    "max_joint_speed_rad_s": 0.1
+  },
+  "final_approach_params": {
+    "q_cost": 400.0,
+    "N_cost": 1200.0,
+    "qd_cost": 1.0,
+    "u_cost": 0.0003,
+    "ee_orient_cost": 10.0,
+    "ee_orient_N_cost": 10.0,
+    "max_sqp_iters": 20,
+    "mu": 30.0
+  },
+  "settling_definition": "Existing per-goal latched MPC parameter switch; stricter stopping permits settling until15s/goal. Roughsuccess separately5cm/30deg/L1<=1/zerodwell; strictsettling timeouts remain rough-success evidence if observed.",
+  "tracking_tasks": [],
+  "tracking_tool_axis": [
+    0.0,
+    0.0,
+    1.0
+  ],
+  "tracking_rpy_rad": [
+    0.0,
+    0.0,
+    -2.995275773743368
+  ],
+  "tracking_translation_m": [
+    0.08,
+    0.0,
+    0.0
+  ],
+  "tracking_orientation_scope": "orientationcosts enabled(.1running/2terminal); full axis errors recorded. Figure8 does not use final approach.",
+  "feedback_s": {
+    "reaching": 0.03,
+    "tracking": 0.008
+  },
+  "constant_f_ext": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "initial_guess": null,
+  "initialization_policy": "public constant-current-state/zero-control cold initialization and shifted previous plan warm starts; endpoint IK witnesses are screening-only, not a feasible full dynamic path seed",
+  "backends": {
+    "internal": {
+      "timing_mode": "B",
+      "offline_timing": "solve_time"
+    },
+    "gazebo": {
+      "timing_mode": "live"
+    },
+    "physical_robot": {
+      "timing_mode": "live"
+    }
+  },
+  "live_controller": {
+    "target_hz": 100.0,
+    "reset_duration_sec": 2.0,
+    "stale_timeout_sec": 0.1,
+    "max_abs_torque": 26.0,
+    "clamp_torque": false,
+    "disable_collision_safety_for_sim_debug": false,
+    "collision_min_distance_m": 0.04,
+    "collision_check_timeout_sec": 0.05,
+    "collision_max_monitored_geometry_speed_m_s": 1.0,
+    "joint_position_margin_rad": 0.0,
+    "joint_velocity_scale": 1.0,
+    "history_max_records": 20000,
+    "start_method": "spawn",
+    "collision_urdf_path": "tiago_configs/collision_alpha_wrap_a3_o25_cap001/tiago_pro_collision_alpha_wrap_a3_o25_cap001.urdf",
+    "collision_blacklist_path": "tiago_configs/comfortable_pose_collision_blacklist.json",
+    "reset_q": [
+      -0.38999998569488525,
+      -1.7300000190734863,
+      -0.3799999952316284,
+      -2.3499999046325684,
+      0.0,
+      -1.2100000381469727,
+      0.03999999910593033
+    ]
+  },
+  "screen_assumptions": {
+    "torso_lift_joint": 0.1,
+    "head_1_joint": 0.0,
+    "head_2_joint": 0.0,
+    "arm_left_1_joint": 0.36,
+    "arm_left_2_joint": -1.83,
+    "arm_left_3_joint": 0.47,
+    "arm_left_4_joint": -2.35,
+    "arm_left_5_joint": 0.0,
+    "arm_left_6_joint": -1.2,
+    "arm_left_7_joint": 0.0
+  },
+  "screen_scope": "Four exact CPU endpoints and 21-sample joint interpolation witnesses pass the original 40 mm monitor gate. This does not certify actual MPC or dynamic motion. Center explicitly excluded by user.",
+  "known_limitations": [
+    "SB-001: retained P01 goal1 failure; no cause claim",
+    "SB-002: retained static lambda/q/r finiteness failure; no full KKT certificate",
+    "Q02: original frozen h=.004 derivative protocol remains FAILED2/560; saved-input independent CPU same-coarse-step FD reproduces both negatives while native analytic versus finer references is much closer (~4e-4/~3.6e-5 max); native-vs-independent and scalar/batch subchecks pass; bounded method-negative explanation, no full model/KKT certificate, no rerun/tolerance change"
+  ],
+  "repeats": 1,
+  "settling_metrics_proposal": {
+    "position_m": 0.01,
+    "tool_axis_deg": 10.0,
+    "speed_L1_rad_s": 0.2,
+    "dwell_s": 0.2
+  },
+  "canonical_preflight_goal": [
+    0.4228671666527549,
+    -0.21343649437968426,
+    -0.36151277558663436,
+    0.12027270111289123,
+    -0.1237371498883908,
+    -2.9671120609606234
+  ],
+  "reaching_stopping_criteria": {
+    "position_m": 0.01,
+    "tool_axis_deg": 10.0,
+    "speed_L1_rad_s": 0.2,
+    "dwell_s": 0.2
+  },
+  "orientation_policy": "Continuous axial rotation free during bounded position/tool-axis IK and one joint four-posture SLSQP selection; joint limits remain enforced. Found full rotations frozen for MPC, with inward diagonal corner tool axes unchanged. No controller cost or initialization change.",
+  "accepted_square_evidence": {
+    "raw_path": "/workspace/GATO/_expr_results/square-demo-center-forward-v5-20261012/attempt-001",
+    "executed_setup_commit": "b9b668d",
+    "solver_commit": "fa6f6bede286c122cc41ac65f42a583da84290e0",
+    "raw_protocol_sha256": "8d59e5ee8bd5b767c6cf59edd1e7574d29b8391b15a86d409157340bf892948f",
+    "metrics_sha256": "61bd03bde668097da54f600b2ee658756e2fbecbf13f5e503c17c286ff275b49",
+    "rough_goal_success": [
+      true,
+      true,
+      true,
+      true,
+      true
+    ],
+    "settling_goal_outcomes": [
+      "reached",
+      "timeout",
+      "timeout",
+      "timeout",
+      "reached"
+    ],
+    "sampled_physical_pass": true,
+    "backend": "internal",
+    "machine": "gtx1070",
+    "gazebo_status": "unrun",
+    "physical_robot_status": "unrun; manualconfirmation/safetyrequired"
+  },
+  "CPU_selection": {
+    "screen": "/workspace/GATO/_expr_results/square-right10cm-v8-cpu-20261012/screen-001",
+    "joint_refinement": "/workspace/GATO/_expr_results/square-right10cm-v8-cpu-20261012/screen-002-relaxed",
+    "body_positions": {
+      "torso_lift_joint": 0.1,
+      "head_1_joint": 0.0,
+      "head_2_joint": 0.0,
+      "arm_left_1_joint": 0.36,
+      "arm_left_2_joint": -1.83,
+      "arm_left_3_joint": 0.47,
+      "arm_left_4_joint": -2.35,
+      "arm_left_5_joint": 0.0,
+      "arm_left_6_joint": -1.2,
+      "arm_left_7_joint": 0.0
+    },
+    "free_axialroll": true,
+    "posture_selection": "One bounded joint SLSQP run, 15 of maximum 30 iterations; transition and joint-limit objective with 50 mm soft clearance preference, 40.1 mm optimization constraints, unchanged 40 mm/21-sample validation.",
+    "objective_before": 10.458840082428564,
+    "objective_after": 9.678578526487943,
+    "minimum_endpoint_m": 0.04514934354333094,
+    "minimum_interpolation_m": 0.04514934354333094,
+    "center_scope": "Excluded by explicit user instruction"
+  },
+  "initialization_note": "Unchanged production demo initial_guess=None/warm-start policy. IK witnesses choose goal full rotations; these joint paths are not supplied as controller initialization or presumed executed motion."
+}

@@ -178,3 +178,23 @@ and selected axial rotations; it is not a pure translation causal comparison.
 All prior failures remain. Report and90-frame actual-mesh GIF are in
 /workspace/GATO/thesis_results/square-right20cm-motion/. No further runs or
 tuning are part of this cohort.
+
+## Smaller four-corner successor (2026-10-12)
+
+Felix explicitly excludes the center and requests a 10 cm vertical square at
+torso center [0.50, -0.35, -0.15] m. This is a separate cohort with four inward
+corner axes and selected axial rotations. Sixteen bounded IK calls give four
+valid endpoints and 21-sample joint interpolation witnesses. One joint posture
+refinement stops successfully after 15 of 30 allowed iterations. Its objective
+falls from 10.459 to 9.679; bottom-left endpoint clearance increases from 40.08
+to 45.15 mm. The 50 mm soft preference is not a qualification requirement.
+Final endpoint minima are 73.10, 73.10, 54.49 and 45.15 mm; transition minima
+are 46.02, 73.10, 54.49 and 45.15 mm. Maximum per-joint steps are 0.88–1.20 rad.
+
+Separate proposal_right10.json retains the reviewed controller, initialization,
+N32, 30 ms knots, 3 ms plant, mode B and 15 s per-goal settling settings. IK
+witnesses choose full goal rotations and are not controller path seeds. The
+unchanged fa6 runtime and compact recorder will run one fresh canonical and,
+if that passes, one four-corner internal episode. Actual full-body monitoring
+will independently evaluate the resulting motion. No center, live motion,
+solver change, retry or extra placement search is authorized for this cohort.
