@@ -1,0 +1,29 @@
+{
+  "collector_checkpoint": "e21481c2d5b145676f91c7277045b8638a9666b0",
+  "runtime_source": "fa6f6bede286c122cc41ac65f42a583da84290e0",
+  "raw_root": "/workspace/GATO/_expr_results/square-right10cm-forward-v9-internal-20261012",
+  "simulated_duration_s": 14.122252464557533,
+  "recorder_wall_elapsed_s": 57.415045942005236,
+  "solve_count": 21360,
+  "rough_success": [
+    true,
+    true,
+    true,
+    true
+  ],
+  "strict_success": [
+    true,
+    true,
+    true,
+    true
+  ],
+  "physical_pass": true,
+  "actual_collision_pass": false,
+  "min_clearance_m": 0.032173469332804856,
+  "below_40mm": 89,
+  "collision_samples": 1415,
+  "contacts": 0,
+  "actual_MPC_episodes": 1,
+  "canonical_preflight_episodes": 1,
+  "report": "/workspace/GATO/thesis_results/square-right10cm-forward-check/README.md"
+}

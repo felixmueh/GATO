@@ -215,3 +215,11 @@ ranking preference retains the original 40 mm gate. All four endpoints and
 transition minima 46.02/68.56/68.56/61.31 mm. No additional posture refinement,
 placement grid or controller change is made. Separate proposal_right10_forward.json
 freezes these selected full poses for root review before one internal episode.
+
+The v9 actual episode also strictly settles four corners and passes recorded
+plant limits. Actual clearance fails: minimum 32.17 mm, 89/1,415 samples below
+40 mm, no contacts, all during bottom-left for arm link 4/gripper base. The
+forward shift does not improve the transient shortfall relative to v8. No
+additional optimization, placement, run or GIF is produced; root reviews the
+next scope. The valid static witnesses are not the MPC path. Compact result:
+thesis_results/square-right10cm-forward-check/.
