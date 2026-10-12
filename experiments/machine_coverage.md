@@ -20,11 +20,11 @@ settings and historical outcomes. It does not create a new tuned protocol.
 | M02 geometry/query comparison |Saved study |None |None |None |No added onboard monitor query-frequency claim. |
 | D01/M03 live integration/fault reactions |Not a timing study |Separate Gazebo environment |None |2 task cases +20 fault/baseline cases |D01 goal-1,figure8-12s. M03 all20 conditions retained because each tests a distinct existing software/safety/handback path. No timing matrix or physical-robot guarantee. |
 | Square/visual demos and physical D02 |Saved failures retained; diagnosis separate |Withheld |Withheld |Withheld |Square rough1/5 and q-limit excess retained. No automatic ROS/robot motion; physical scripts remain standalone/manual. |
-| M04 saved physical fault evidence/analysis |Saved records/analysis |None |No automatic physical replay |M03 provides focused integration |Separate evidence labels and actual raw/source locations; do not invent missing historical recordings. |
+| M04 effort/response/braking illustration |Reuse available1070 simulation evidence |None |No extra remote study |M03 provides focused integration |Effort, state-age, response, braking/clearance illustrations stay qualified by their recorded simulation scope; do not assert missing raw evidence. |
 | F02 cylinder matrix, F03 Indy7, M01 geometry, C07 repair progression, L00 SciPy landscape, IIWA X03 |Retained records only |None |None |None |No rerun anywhere, including source/format migrations. C02 also remains record-only without a new concrete question. |
 | B02/QDLDL, BA seeds-alone |Dropped; saved history retained |None |None |None |Latest accepted removals; no new tasks. |
 | L01 learning, V02 broad parameterization viability |Deferred |None |None |None |Outside the present thesis campaign. |
-| Q01/Q03/V01 target setup, original task suite, canonical rough reach |Automatic relevant readiness |Automatic relevant readiness |Automatic relevant readiness |Relevant integration readiness |Not extra scientific cohorts; unchanged passed same-machine evidence reused where valid. |
+| Q01/Q03/Q04/V01 target setup, original task suite, timing checks, canonical rough reach |Automatic relevant readiness |Automatic relevant readiness |Automatic relevant readiness |Relevant integration readiness |Not extra scientific cohorts; unchanged passed same-machine evidence reused where valid. |
 
 The concrete plans contain **89 RTX5060 cases in four families**, **84 Jetson
 cases in ten experiment entries**, and **22 Gazebo cases in two families**.
