@@ -1,0 +1,324 @@
+{
+  "version": 1,
+  "status": "prepared_selected_remaining_Gazebo_motions_not_executed",
+  "experiments": [
+    {
+      "id": "UpwardFigure8-12s-Gazebo",
+      "name": "Upward-pointing figure-eight (12 s)",
+      "research_question": "RQ-control",
+      "protocol": "selected-upward-figure8-12s-live-20261012",
+      "source_commit": "8dbb8b8d6dc1d65e902373a9aa58693e33329c14",
+      "collector_source_commit": "2574409ee4236b7c32035ec27dbaca19cd27dfeb",
+      "machines": [
+        "rtx5060"
+      ],
+      "timing_mode": "live",
+      "backend": "gazebo",
+      "build": {
+        "inputs": {
+          "native/CMakeLists.txt": "07c285afa3d2055c2c8f64c4645bdad01bdeb3391e77f2082aff3c70443df1e2"
+        },
+        "commands": [
+          [
+            "cmake",
+            "-S",
+            "{runner}/native",
+            "-B",
+            "{build}",
+            "-DGATO_SOURCE_DIR={source}",
+            "-DKNOTS=32",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DGATO_EXPERIMENT_TELEMETRY=ON",
+            "-DCMAKE_CUDA_ARCHITECTURES={cuda_arch}-real",
+            "-DPython3_EXECUTABLE={python}"
+          ],
+          [
+            "cmake",
+            "--build",
+            "{build}",
+            "--parallel",
+            "2"
+          ]
+        ],
+        "artifacts": [
+          "modules/bsqpN32_tiago_right*.so"
+        ]
+      },
+      "inputs": {
+        "experiments/inputs/demo_square_v5/proposal.json": "46e6b66efdfae2c6365d004e129d0f18fbd06da4f7043c0b3c8679897ed6f068"
+      },
+      "command": [
+        "{python}",
+        "{runner}/adapters/demo.py",
+        "--source",
+        "{source}",
+        "--build",
+        "{build}",
+        "--case",
+        "{case}",
+        "--output",
+        "{output}",
+        "--backend",
+        "gazebo",
+        "--inputs",
+        "{inputs}/experiments/inputs/demo_square_v5",
+        "--runtime-pin",
+        "8dbb8b8d6dc1d65e902373a9aa58693e33329c14",
+        "--collector-pin",
+        "2574409ee4236b7c32035ec27dbaca19cd27dfeb"
+      ],
+      "preflight": {
+        "group": "square-v5-gazebo-canonical",
+        "command": [
+          "{python}",
+          "{runner}/adapters/demo.py",
+          "--source",
+          "{source}",
+          "--build",
+          "{build}",
+          "--case",
+          "{case}",
+          "--output",
+          "{output}",
+          "--backend",
+          "gazebo",
+          "--inputs",
+          "{inputs}/experiments/inputs/demo_square_v5",
+          "--runtime-pin",
+          "8dbb8b8d6dc1d65e902373a9aa58693e33329c14",
+          "--collector-pin",
+          "2574409ee4236b7c32035ec27dbaca19cd27dfeb",
+          "--preflight"
+        ]
+      },
+      "repeats": 1,
+      "cases": [
+        {
+          "id": "figure8-12s",
+          "parameters": {
+            "backend": "gazebo"
+          }
+        }
+      ],
+      "cohort_id": "upward-demo-selected-20261012",
+      "stopping_policy": "zero_pcg_or_finite_kkt",
+      "qualification": "User explicitly selected existing upward-pointing demo. Matching saved internal scientific setup has task_success=false/physical_pass=true; original startup-inclusive max-error failure remains. No livequalification or gate change claimed.",
+      "matching_internal_evidence": "/workspace/GATO/_expr_results/gtx1070-zero-pcg-20261011T214000Z/gtx1070/demo_visual_square_internal/figure8-12s-r000-a81be32ccae2a73e/attempt-003",
+      "matching_internal_status": {
+        "task_success": false,
+        "physical_pass": true,
+        "RMS_position_error_mm": 19.0519,
+        "maximum_position_error_mm": 100.0,
+        "upward_tool_axis_max_error_deg": 19.822,
+        "correspondence": "25scientificmotionfields match collector2574409; fullreference/config/nativefa6 unchanged; collector/recording identities remain distinct"
+      }
+    },
+    {
+      "id": "SquareFourCorner-v10-Gazebo",
+      "name": "Four-corner square (10 cm)",
+      "research_question": "RQ-control",
+      "protocol": "accepted-four-corner-right10-roll-v10-live-20261012",
+      "source_commit": "8dbb8b8d6dc1d65e902373a9aa58693e33329c14",
+      "collector_source_commit": "91118e32b380e5b19220b460574dbfb052c763f5",
+      "machines": [
+        "rtx5060"
+      ],
+      "timing_mode": "live",
+      "backend": "gazebo",
+      "build": {
+        "inputs": {
+          "native/CMakeLists.txt": "07c285afa3d2055c2c8f64c4645bdad01bdeb3391e77f2082aff3c70443df1e2"
+        },
+        "commands": [
+          [
+            "cmake",
+            "-S",
+            "{runner}/native",
+            "-B",
+            "{build}",
+            "-DGATO_SOURCE_DIR={source}",
+            "-DKNOTS=32",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DGATO_EXPERIMENT_TELEMETRY=ON",
+            "-DCMAKE_CUDA_ARCHITECTURES={cuda_arch}-real",
+            "-DPython3_EXECUTABLE={python}"
+          ],
+          [
+            "cmake",
+            "--build",
+            "{build}",
+            "--parallel",
+            "2"
+          ]
+        ],
+        "artifacts": [
+          "modules/bsqpN32_tiago_right*.so"
+        ]
+      },
+      "inputs": {
+        "experiments/inputs/square_four_corner_v10/proposal.json": "8f1725b1ee38ee8b4b479be4d10637ed112f08e83398bdcf0c5fa091f1ddafd2"
+      },
+      "command": [
+        "{python}",
+        "{runner}/adapters/demo.py",
+        "--source",
+        "{source}",
+        "--build",
+        "{build}",
+        "--case",
+        "{case}",
+        "--output",
+        "{output}",
+        "--backend",
+        "gazebo",
+        "--inputs",
+        "{inputs}/experiments/inputs/square_four_corner_v10",
+        "--runtime-pin",
+        "8dbb8b8d6dc1d65e902373a9aa58693e33329c14",
+        "--collector-pin",
+        "91118e32b380e5b19220b460574dbfb052c763f5"
+      ],
+      "preflight": {
+        "group": "square-four-corner-v10-gazebo-canonical",
+        "command": [
+          "{python}",
+          "{runner}/adapters/demo.py",
+          "--source",
+          "{source}",
+          "--build",
+          "{build}",
+          "--case",
+          "{case}",
+          "--output",
+          "{output}",
+          "--backend",
+          "gazebo",
+          "--inputs",
+          "{inputs}/experiments/inputs/square_four_corner_v10",
+          "--runtime-pin",
+          "8dbb8b8d6dc1d65e902373a9aa58693e33329c14",
+          "--collector-pin",
+          "91118e32b380e5b19220b460574dbfb052c763f5",
+          "--preflight"
+        ]
+      },
+      "repeats": 1,
+      "cases": [
+        {
+          "id": "square",
+          "parameters": {
+            "backend": "gazebo"
+          }
+        }
+      ],
+      "cohort_id": "four-corner-v10-accepted-20261012",
+      "stopping_policy": "zero_pcg_or_finite_kkt",
+      "qualification": "Felix reviewed and accepted v10 internal motion: rough4/4, strict4/4, recorded plant physical PASS, actual1449 sampled-state clearance PASS (minimum43.05mm against40mm). One internal run and sampled check; Gazebo and physical robot unrun. Canonical, safety and handback retained.",
+      "accepted_internal_source_setup": "a96860397426d82337bd57d49db8a30b33afd06b",
+      "accepted_internal_evidence": "/workspace/GATO/_expr_results/square-right10cm-roll-v10-internal-20261012/attempt-001/square",
+      "accepted_internal_protocol_sha256": "b60db2deb772ec5632c74072b0d2b4d5e70201bf5ed39fb43b675366bed4bd96",
+      "accepted_internal_input_sha256": "8f1725b1ee38ee8b4b479be4d10637ed112f08e83398bdcf0c5fa091f1ddafd2",
+      "accepted_internal_goals_count": 4,
+      "center_reach_included": false
+    },
+    {
+      "id": "D01",
+      "name": "Gazebo reaching and figure-eight demonstration",
+      "research_question": "RQ-control",
+      "protocol": "simple-d01-v1-zero-pcg-20261011",
+      "source_commit": "8dbb8b8d6dc1d65e902373a9aa58693e33329c14",
+      "machines": [
+        "rtx5060"
+      ],
+      "timing_mode": "live",
+      "backend": "gazebo",
+      "qualification": "Prepared pending target simulation result/gate review; physical robot D02 stays manual and is excluded.",
+      "build": {
+        "inputs": {
+          "native/CMakeLists.txt": "07c285afa3d2055c2c8f64c4645bdad01bdeb3391e77f2082aff3c70443df1e2"
+        },
+        "commands": [
+          [
+            "cmake",
+            "-S",
+            "{runner}/native",
+            "-B",
+            "{build}",
+            "-DGATO_SOURCE_DIR={source}",
+            "-DKNOTS=32",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DGATO_EXPERIMENT_TELEMETRY=ON",
+            "-DCMAKE_CUDA_ARCHITECTURES={cuda_arch}-real",
+            "-DPython3_EXECUTABLE={python}"
+          ],
+          [
+            "cmake",
+            "--build",
+            "{build}",
+            "--parallel",
+            "2"
+          ]
+        ],
+        "artifacts": [
+          "modules/bsqpN32_tiago_right*.so"
+        ]
+      },
+      "inputs": {},
+      "command": [
+        "{python}",
+        "{runner}/adapters/deployment.py",
+        "--source",
+        "{source}",
+        "--build",
+        "{build}",
+        "--case",
+        "{case}",
+        "--output",
+        "{output}"
+      ],
+      "preflight": {
+        "group": "D01-gazebo-zero-pcg-20261011",
+        "command": [
+          "{python}",
+          "{runner}/adapters/deployment.py",
+          "--source",
+          "{source}",
+          "--build",
+          "{build}",
+          "--case",
+          "{case}",
+          "--output",
+          "{output}",
+          "--preflight"
+        ]
+      },
+      "repeats": 1,
+      "cases": [
+        {
+          "id": "goal-1",
+          "parameters": {
+            "backend": "gazebo"
+          }
+        }
+      ],
+      "cohort_id": "zero-pcg-20261011",
+      "stopping_policy": "zero_pcg_or_finite_kkt",
+      "original_runtime_source_commit": "63940f7a5c724c84c731a6a1edbc49a094f3b806",
+      "original_scientific_protocol": "simple-d01-v1",
+      "preparation_status": "fresh matching build and target preflight pending",
+      "enabled": false,
+      "held_reason": "Felix-supplied Gazebo attempt002 metrics report goal1 and canonical task, observed physical and handback PASS at runner666560f/runtime8db. The full archive and receipt path are not yet imported. Collect existing attempt002 evidence; no default rerun.",
+      "reported_pass_record": "/workspace/GATO/experiment_result.md:1830"
+    }
+  ],
+  "parent_plan": "experiments/launch/rtx5060_gazebo_upward_selected.json",
+  "parent_plan_sha256": "dc66e3d040ebefb742a49916e701e2c5a1574884ecba4f37db2ff297960c42ae",
+  "cohort_id": "rtx5060-gazebo-four-corner-v10-20261012",
+  "scope": "Two enabled remaining motions only: selected upward figure8-12s and accepted four-corner10cm square. Goal1 reported passed and disabled; old plans/results preserved. No center reach, optional M03 faults, physical robot or broad campaign.",
+  "paths": {
+    "output": ".experiment-results/rtx5060-gazebo-four-corner-v10-20261012",
+    "cache": ".experiment-cache/rtx5060-gazebo",
+    "archive": ".experiment-work/rtx5060-gazebo-four-corner-v10-20261012-results.tar.gz"
+  },
+  "note": "Upward collector2574409 and frozen input46e6 remain unchanged, including saved internal taskfalse/physicaltrue. Square collector91118e explicitly binds the selected proposal_right10_roll default and standalone robot; selected motion/settings/input bytes match the passing internal run. Runtime8db and shared N32 build cache unchanged. No publication or execution claimed."
+}
