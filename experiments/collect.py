@@ -87,6 +87,10 @@ def result_files(root):
     forbidden = {'.git', '.worktrees', 'build', 'builds', 'cache', '.experiment-cache',
                  'collector-source', 'campaign-source', 'campaign-native', '__pycache__', '.pytest_cache'}
     for path in root.rglob('*'):
+        # Pytest readiness runs write disposable caches beside their evidence.
+        # Leave them on disk, but keep them out of portable result archives.
+        if {'.pytest_cache', 'pytest-cache'} & set(path.relative_to(root).parts):
+            continue
         if path.is_symlink():
             raise ValueError(f'Result export/import requires ordinary files, not symlink: {path}')
         if path.is_dir() and (path.name in forbidden or path.name.startswith('build-')):

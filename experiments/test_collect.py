@@ -66,6 +66,22 @@ class CollectionTests(unittest.TestCase):
         self.assertIn('/F01ab/',registrations[0]['path'])
         self.assertEqual(len(C.records(output)),2)
 
+    def test_export_keeps_preflight_evidence_without_pytest_cache(self):
+        output = self.root / 'results'
+        attempt = self.attempt(output, status='failed')
+        suite = attempt / 'task_suite'
+        cache = suite / 'pytest-cache/v/cache'
+        cache.mkdir(parents=True)
+        (cache / 'nodeids').write_text('["retained-on-machine"]')
+        (suite / 'junit.xml').write_text('<testsuite/>')
+        archive = C.export_results(output, self.root / 'results.tar.gz')
+        with tarfile.open(archive) as package:
+            names = package.getnames()
+            self.assertTrue(any(n.endswith('junit.xml') for n in names))
+            self.assertTrue(any(n.endswith('receipt.json') for n in names))
+            self.assertFalse(any('pytest-cache' in n for n in names))
+        self.assertTrue((cache / 'nodeids').exists())
+
     def test_registration_failure_keeps_import_indexed(self):
         source=self.root/'extracted'
         self.attempt(source,metrics={'timing_mode':'B','execution_backend':'internal'})

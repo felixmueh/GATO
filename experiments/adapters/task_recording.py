@@ -133,7 +133,18 @@ class TaskRecorder(RawRecorder):
                 continue
             if array.dtype.kind in 'biufc':
                 summary[key] = array
-        return summary
+        def unpack_objects(value):
+            # finish_arrays can produce object containers for missing activation
+            # times and ragged histories. Serialize their values without pickle;
+            # ordinary typed arrays still use the existing NPZ representation.
+            if isinstance(value, np.ndarray) and value.dtype.hasobject:
+                return unpack_objects(value.tolist())
+            if isinstance(value, dict):
+                return {key: unpack_objects(item) for key, item in value.items()}
+            if isinstance(value, (list, tuple)):
+                return [unpack_objects(item) for item in value]
+            return value
+        return unpack_objects(summary)
 
     def write_controller_stats(self, stats):
         event = super().__call__('controller_stats', self.controller_summary(stats))

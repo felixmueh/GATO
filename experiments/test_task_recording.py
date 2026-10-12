@@ -105,3 +105,21 @@ def test_json_and_production_feedback_summaries_decode_equivalently(tmp_path):
     assert saved['missing_observation'] == [1., None]
     assert saved['ragged_observation'] == [[1.], [2., 3.]]
     assert historical['timestamps'] == [.03, .06]  # Input untouched.
+
+
+def test_object_histories_preserve_missing_and_ragged_observations(tmp_path):
+    ragged = np.empty(2, dtype=object)
+    ragged[0] = np.array([1, 2], dtype=np.int32)
+    ragged[1] = np.array([3], dtype=np.int32)
+    stats = dict(control_activation_timestamps_s=np.array([.03, None], dtype=object),
+                 diagnostics={'ragged': ragged}, terminal_state=np.arange(14.))
+    with TaskRecorder(tmp_path) as recorder:
+        recorder.write_controller_stats(stats)
+    saved = load_controller_stats(tmp_path)
+    assert saved['control_activation_timestamps_s'] == [.03, None]
+    for actual, expected in zip(saved['diagnostics']['ragged'], ragged):
+        np.testing.assert_array_equal(actual, expected)
+        assert actual.dtype == expected.dtype
+    np.testing.assert_array_equal(saved['terminal_state'], stats['terminal_state'])
+    assert stats['control_activation_timestamps_s'].dtype == object
+    assert list(iter_events(tmp_path))[0]['record']['control_activation_timestamps_s'] == [.03, None]
