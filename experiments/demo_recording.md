@@ -1,4 +1,14 @@
-# Demo recordings for upcoming runs
+# Current demo recording
+
+Future demos now use `task-observations-v1` and
+[the smaller measurement contract](recording_contract.md). All executed motion,
+feedback, timing/work/quality and outcomes remain; routine optimizer inputs and
+predicted horizons are intentionally omitted. Use `recording.iter_events` and
+`recording.load_controller_stats` for both current and historical layouts.
+The notes below describe the earlier full-payload format and its historical
+fixture validation, not the storage/retention policy for upcoming runs.
+
+# Historical full-payload demo recording
 
 The adapter retains the frozen scientific collector and selected runtime, but
 uses `demo-chunk-refs-v1` recording. The format is named in `recording.json` and

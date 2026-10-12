@@ -43,11 +43,17 @@ source refs, prints the explicit plan/dry-run, then uses the existing runner
 for shared local builds, canonical preflights, sequential execution and resume.
 Scientific negatives remain results; failed preflights hold dependent families,
 and independent cases continue. The plan choices/settings and limitations are
-in the coverage table. The Jetson planning estimate is roughly2–8h/10–50GiB raw
-plus builds/archive/headroom, with120GiB free a conservative recommendation,
-not a hard gate. This is not measured successor Jetson performance. Put the
-checkout on a volume with room; the launcher prints free
-storage. The old6–24h estimate applied to the superseded broad plan.
+in the coverage table. Future recordings use the
+[smaller measurement contract](recording_contract.md): complete executed motion,
+every timing/work/quality measurement and study-specific observations remain;
+routine task solver horizons are omitted. Full matched-input studies are exempt.
+About 1 GiB/machine with 2 GiB allowance is a design target, not a storage gate or
+forecast. The contract includes measured examples and full-plan storage estimates; account for
+raw results, return archive, system and builds separately. The former 10–50 GiB/
+120 GiB free recommendation is superseded. The launcher prints actual free space.
+The existing 2–8 h Jetson duration estimate is broad and unmeasured for the revised
+recording contract; lower recording overhead may change wall time and sustained
+call counts. No timing equivalence is claimed.
 
 Results stay under `.experiment-results/<machine>-zero-pcg-20261011/`; source
 worktrees/builds stay in `.experiment-cache/<machine>-zero-pcg-20261011/`.
@@ -69,8 +75,8 @@ python3 experiments/machine_launch.py jetson --collect-only
 
 Substitute `rtx5060` on that machine. Copy the printed archive to the desktop's
 `/workspace/GATO/_expr_results/` and keep a separate raw backup. There are no
-existing remote results requiring migration. Future demo recordings use
-[compact raw references](demo_recording.md); the internal plans contain no demos.
+existing remote results requiring migration. Ordinary future task, demo, force
+and sustained-timing recordings follow [the measurement contract](recording_contract.md).
 
 Gazebo is separate. With the existing Gazebo/ROS environment already running,
 inspect then manually run the three-family23-case integration plan:

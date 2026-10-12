@@ -40,11 +40,13 @@ passes through this scope selection.
 This replaces the earlier712/368/27 broad executable handoff. In particular,
 Jetson's completed main F01ab is reused, not repeated; its policy labels remain
 explicit. The old6–24h estimate described the broad plan and no longer applies.
-For the84-case Jetson plan, allow roughly **2–8 hours**, dominated by local builds,
-preflights and recording/export; this is a broad planning estimate rather than
-measured new-Jetson performance. Allow roughly **10–50GiB raw**, plus source/build
-cache, return archive and headroom. Around120GiB free is a conservative planning
-recommendation, not a hard gate. Compact recording changes only future demo
-recordings; these internal plans have no demos, so no unmeasured compression saving
-is assumed here. The launcher prints actual free storage. Results can vary,
-particularly under the higher-budget N32 timing and force methods.
+For the84-case Jetson plan, the earlier 2–8 h duration is a broad estimate,
+not measured performance under the new recording contract. Future recording
+follows [the smaller measurement contract](recording_contract.md). About 1 GiB
+results/machine with 2 GiB planning allowance is a design target to check against
+the recorded desktop-proxy estimates, not a sample-dropping cap. The previous 10–50 GiB raw and
+120 GiB free recommendation is superseded. Report uncompressed results, compressed
+exports and peak local storage separately; reserve additional system/build space.
+Full matched-input timing and force-bank studies remain exempt, so they establish
+a storage floor. Lower recording overhead can change sustained-loop call counts
+and mode-B timing; retain recorder identities and do not claim equivalence.
