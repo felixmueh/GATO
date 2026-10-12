@@ -16,7 +16,7 @@ def test_shared_geometry_backend_labels_and_final_switch():
     a=run.resolve('internal','square');b=run.resolve('gazebo','square');c=run.resolve('physical_robot','square')
     assert a['goals']==b['goals']==c['goals'] and len(a['goals'])==5
     assert a['timing_mode']=='B' and b['timing_mode']==c['timing_mode']=='live'
-    assert a['runtime_pin']=='502fa29' and b['runtime_pin']==c['runtime_pin']=='63940f7'
+    assert a['runtime_pin']=='fa6f6bede286c122cc41ac65f42a583da84290e0' and b['runtime_pin']==c['runtime_pin']=='8dbb8b8d6dc1d65e902373a9aa58693e33329c14'
     assert a['final_approach'] and a['final_approach_trigger']==dict(distance_m=.075,max_joint_speed_rad_s=.1)
     assert [g['id'] for g in a['goals']]==['bottom-right','top-right','top-left','bottom-left','center']
     xyz=np.array([g['pose_m_rad'][:3] for g in a['goals']]);assert np.isclose(abs(xyz[0,2]-xyz[1,2]),.30)

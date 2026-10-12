@@ -15,7 +15,9 @@ import traceback
 
 ROOT=Path(__file__).resolve().parents[3]
 INPUT=Path(__file__).with_name('proposal.json')
-RUNTIME_PINS={'internal':'502fa29','gazebo':'63940f7','physical_robot':'63940f7'}
+RUNTIME_PINS={'internal':'fa6f6bede286c122cc41ac65f42a583da84290e0',
+              'gazebo':'8dbb8b8d6dc1d65e902373a9aa58693e33329c14',
+              'physical_robot':'8dbb8b8d6dc1d65e902373a9aa58693e33329c14'}
 TASKS=('square','figure8-24s','figure8-18s','figure8-12s')
 sys.path.insert(0,str(ROOT))
 from experiments.deployment.raw import RawRecorder,sha,write_json
@@ -56,7 +58,7 @@ def runtime_identity(source,pin):
         'tiago_src/gato_tiago/tiago_mpc_controller.py','tiago_src/gato_tiago/final_approach.py',
         'tiago_src/gato_tiago/tiago_controller_process.py','tiago_src/gato_tiago/config.py',
         'tiago_src/gato_tiago/safety_monitor.py')
-    if pin=='502fa29':paths+=('python/bsqp/offline_mpc.py',)
+    if pin==RUNTIME_PINS['internal']:paths+=('python/bsqp/offline_mpc.py',)
     hashes={}
     import hashlib
     for relative in paths:
@@ -156,7 +158,7 @@ def run_task(p,source,module,output,preflight_output=None):
         urdf=source/p['urdf']['path']
         if sha(urdf)!=p['urdf']['sha256']:raise ValueError('Model bytes differ')
         model=pin.buildModelFromUrdf(str(urdf));model.gravity.linear=np.asarray(p['gravity_m_s2'])
-        mpc=MPC_GATO(model,str(urdf),N=p['N'],dt=p['dt_s'],batch_size=1,constant_f_ext=p['constant_f_ext'],track_full_stats=True,
+        mpc=MPC_GATO(model,str(urdf),N=p['N'],dt=p['dt_s'],batch_size=1,constant_f_ext=np.asarray(p['constant_f_ext'],dtype=np.float32),track_full_stats=True,
             plant_type='tiago_right',pendulum_config=None,solver_params=p['solver_params'],final_approach=p['kind']=='reaching' and p['final_approach'],
             final_approach_params=p['final_approach_params'],final_approach_trigger=p['final_approach_trigger'])
         native=sys.modules['bsqp.bsqpN32_tiago_right']
@@ -257,7 +259,7 @@ def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--backend',choices=tuple(RUNTIME_PINS),required=True)
     parser.add_argument('--tasks',nargs='+',choices=TASKS,default=list(TASKS))
-    parser.add_argument('--source',type=Path,default=ROOT,help='Reviewed runtime checkout (internal502fa29; live63940f7)')
+    parser.add_argument('--source',type=Path,default=ROOT,help='Reviewed runtime checkout; exact internal/live source pins are printed by --preview')
     parser.add_argument('--module',type=Path,help='Required exact reviewed N32module for execution; no installed fallback')
     parser.add_argument('--output',type=Path,help='Fresh cohort path; default timestamp beneath collector checkout')
     parser.add_argument('--preview',action='store_true')
