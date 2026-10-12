@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Bounded CPU setup screen for a front-facing 30 cm square; no controller."""
+import argparse
 import json
 from pathlib import Path
 import sys
@@ -23,7 +24,16 @@ LABELS = ('bottom-right', 'top-right', 'top-left', 'bottom-left', 'center')
 
 
 def main():
-    output = Path(sys.argv[1]); output.mkdir(parents=True, exist_ok=False)
+    parser=argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('output',type=Path)
+    parser.add_argument('--side',type=float,default=.30)
+    parser.add_argument('--centers',nargs='+',help='Explicit bounded center list, each x,y,z in torso meters')
+    parser.add_argument('--max-joint-travel',type=float,default=float('inf'),help='Comfort screening bound on joint-vector travel [rad]')
+    args=parser.parse_args()
+    centers_input=tuple(tuple(float(v) for v in c.split(',')) for c in args.centers) if args.centers else CENTERS_M
+    if not 0<args.side<=.30 or any(len(c)!=3 for c in centers_input):raise ValueError('Invalid square geometry')
+    offsets=np.asarray(OFFSETS_M)*(args.side/.30)
+    output=args.output; output.mkdir(parents=True, exist_ok=False)
     (output/'screen_source.py').write_bytes(Path(__file__).read_bytes())
     model = pin.buildModelFromUrdf(str(ROOT / 'gato/dynamics/tiago_right/tiago_right_arm.urdf'))
     data = model.createData(); tool = model.getFrameId('arm_right_tool_link')
@@ -46,9 +56,9 @@ def main():
         fk_rotation_difference_rad=float(np.linalg.norm(pin.log3(full_tool.rotation.T@arm_tool.rotation))),
         initial_collision_min_m=clearance(START_Q).distance_m)
     records=[]; centers=[]; selected=None
-    for center in CENTERS_M:
+    for center in centers_input:
         previous=START_Q.copy(); goals=[]
-        for label, offset in zip(LABELS, OFFSETS_M):
+        for label, offset in zip(LABELS, offsets):
             target=np.asarray(center)+offset
             axis=-np.asarray(offset) if label!='center' else np.array((1.,0.,0.))
             axis=axis/np.linalg.norm(axis)
@@ -85,20 +95,23 @@ def main():
             chosen=None
             # At most three alternatives, with 21 fixed joint-interpolation samples each.
             # This is a screening witness, never an MPC path/collision certificate.
-            for row in sorted(candidates,key=lambda x:x['score'])[:3]:
+            comfortable=[row for row in candidates if row['joint_travel_rad']<=args.max_joint_travel]
+            for row in sorted(comfortable,key=lambda x:x['score'])[:3]:
                 distances=[clearance(previous+alpha*(np.asarray(row['q_rad'])-previous)).distance_m
                            for alpha in np.linspace(0.,1.,21)]
                 row['joint_interpolation_min_m']=min(distances)
                 row['joint_interpolation_clearance_m']=distances
                 if min(distances)>=.04:chosen=row;break
             if chosen is None:
-                print(json.dumps(dict(center=center,failed_goal=label,endpoint_candidates=len(candidates))),flush=True)
+                print(json.dumps(dict(center=center,failed_goal=label,endpoint_candidates=len(candidates),
+                    comfortable_endpoint_candidates=len(comfortable))),flush=True)
                 break
             goals.append(chosen);previous=np.asarray(chosen['q_rad'])
         centers.append(dict(center_m=list(center),goals=goals,complete=len(goals)==5))
         if len(goals)==5:
             selected=goals;break
-    receipt=dict(side_m=.30,centers_m=CENTERS_M,twists_deg=TWISTS_DEG,body_positions=BODY_POSITIONS,
+    receipt=dict(side_m=args.side,centers_m=centers_input,max_joint_travel_rad=args.max_joint_travel,
+        twists_deg=TWISTS_DEG,body_positions=BODY_POSITIONS,
         initial_q_rad=START_Q.tolist(),frame_check=frame_check,attempts=records,center_outcomes=centers,
         selected=selected,scope='CPU full-pose IK endpoints and 21-sample joint-interpolation witnesses only; no controller or dynamic/swept collision certificate',
         collision_urdf=str(DEFAULT_COLLISION_URDF_PATH),blacklist=str(DEFAULT_COLLISION_BLACKLIST_PATH))

@@ -17,16 +17,8 @@ from gato_tiago.safety_monitor import (build_tiago_collision_model, NamedJointSt
     state_to_qv, DEFAULT_COLLISION_URDF_PATH, DEFAULT_COLLISION_BLACKLIST_PATH)
 
 
-def main():
-    folder=Path(sys.argv[1]);s=json.loads((folder/'screen.json').read_text())
-    collision=build_tiago_collision_model(urdf_path=DEFAULT_COLLISION_URDF_PATH,
-        blacklist_path=DEFAULT_COLLISION_BLACKLIST_PATH,monitor_only_collision_pairs=True)
-    body=dict(s['body_positions'],**{f'arm_right_{i+1}_joint':v for i,v in enumerate(s['initial_q_rad'])})
-    q,_=state_to_qv(collision.model,NamedJointState(position=body,velocity={k:0. for k in body}))
-    data=collision.model.createData();pin.framesForwardKinematics(collision.model,data,q)
-    torso=data.oMf[collision.model.getFrameId('torso_lift_link')].copy()
-    fig=plt.figure(figsize=(14,7));a=fig.add_subplot(131,projection='3d');b=fig.add_subplot(132);c=fig.add_subplot(133)
-    # Actual visual meshes transformed by full-body FK at the stated body posture.
+def load_visual_meshes(collision):
+    meshes=[]
     urdf=Path('/workspace/GATO/TiagoProURDF/tiago_pro.urdf'); tree=ET.parse(urdf)
     for link in tree.findall('link'):
         fid=collision.model.getFrameId(link.attrib['name'])
@@ -52,11 +44,31 @@ def main():
             if origin is not None:
                 xyz=np.fromstring(origin.attrib.get('xyz','0 0 0'),sep=' ')
                 rpy=np.fromstring(origin.attrib.get('rpy','0 0 0'),sep=' ')
-            pose=torso.inverse()*data.oMf[fid]*pin.SE3(pin.rpy.rpyToMatrix(rpy),xyz)
+            local=pin.SE3(pin.rpy.rpyToMatrix(rpy),xyz)
             vertices=vertices*np.fromstring(mesh.attrib.get('scale','1 1 1'),sep=' ')
-            vertices=vertices@pose.rotation.T+pose.translation
             arm='arm_right' in link.attrib['name'] or 'gripper_right' in link.attrib['name']
-            a.add_collection3d(Poly3DCollection(vertices[faces],facecolor='#3d73a8' if arm else '#a6adb2',alpha=.8,edgecolor='none'))
+            meshes.append((fid,local,vertices,faces,arm))
+    return meshes
+
+
+def draw_robot(ax,collision,data,meshes):
+    torso=data.oMf[collision.model.getFrameId('torso_lift_link')].copy()
+    for fid,local,vertices,faces,arm in meshes:
+        pose=torso.inverse()*data.oMf[fid]*local
+        world=vertices@pose.rotation.T+pose.translation
+        ax.add_collection3d(Poly3DCollection(world[faces],facecolor='#3d73a8' if arm else '#a6adb2',alpha=.9,edgecolor='none'))
+
+
+def main():
+    folder=Path(sys.argv[1]);s=json.loads((folder/'screen.json').read_text())
+    collision=build_tiago_collision_model(urdf_path=DEFAULT_COLLISION_URDF_PATH,
+        blacklist_path=DEFAULT_COLLISION_BLACKLIST_PATH,monitor_only_collision_pairs=True)
+    body=dict(s['body_positions'],**{f'arm_right_{i+1}_joint':v for i,v in enumerate(s['initial_q_rad'])})
+    q,_=state_to_qv(collision.model,NamedJointState(position=body,velocity={k:0. for k in body}))
+    data=collision.model.createData();pin.framesForwardKinematics(collision.model,data,q)
+    torso=data.oMf[collision.model.getFrameId('torso_lift_link')].copy()
+    fig=plt.figure(figsize=(14,7));a=fig.add_subplot(131,projection='3d');b=fig.add_subplot(132);c=fig.add_subplot(133)
+    draw_robot(a,collision,data,load_visual_meshes(collision))
     offset=np.array(((0,-.15,-.15),(0,-.15,.15),(0,.15,.15),(0,.15,-.15),(0,0,0)))
     for center,color,label in [((.5,-.4,0),'#999999','old v5 (right)'),((.5,0,-.1),'#c13d39','30 cm centered front'),((.5,-.05,-.1),'#d08a17','30 cm front, 5 cm right')]:
         targets=np.asarray(center)+offset;border=targets[[0,1,2,3,0]]

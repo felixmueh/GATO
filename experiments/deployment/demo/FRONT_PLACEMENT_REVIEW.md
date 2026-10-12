@@ -65,3 +65,57 @@ python experiments/deployment/demo/plot_front_screen.py /workspace/GATO/_expr_re
 Do not rerun old screens to migrate their format. The source screen's current
 four X centers represent the separately authorized distance successor, not the
 first batch. No runner plan, solver, controller or task gates were changed.
+
+## Latest user decisions: 20 cm and joint wrist relaxation
+
+Felix explicitly authorized 20 cm and a bounded front-placement screen, then
+continuous 360-degree axial wrist freedom and choosing relaxed corner poses
+together. The fixed-roll 12-center successor preserved 936 additional failed
+attempts. Its 4-rad comfort filter was an overly strict interpretation; it
+rejected no otherwise valid failed-goal endpoints, because every failed goal
+had zero endpoint candidates. Later checks keep travel descriptive/ranked.
+One midline continuous-roll screen (16 calls), one final right-shoulder screen
+(20 calls), and one natural historical center-seed check are preserved too.
+
+The selected four-corner setup is a **20 cm square centered torso
+[0.50,-0.10,-0.10] m**. All four corners have precise IK witnesses and ≥4 cm
+monitored endpoint clearance; all fixed 21-sample joint interpolation checks
+pass. The fifth center+X pose remains **HELD** after precise IK/clearance
+failures. `front_corner_setup.json` is a static four-corner setup proposal,
+not an enabled four-goal replacement for the original five-goal live task.
+The accepted `proposal.json` and standalone motion scripts remain unchanged.
+
+One jointly constrained four-corner CPU posture refinement converged after
+15/30 allowed SLSQP iterations (57 s). Its objective combines squared joint
+transitions (arm weights1.0; wrist weights1.35) and a small inverse-square
+joint-limit proximity penalty; fixed position/tool-Z equalities, physical
+joint bounds and the original 4 cm clearance apply. Full rotations are frozen
+after the selection; runtime orientation costs are unchanged.
+Objective47.17→27.70; total joint-vector length10.34→8.57 rad; largest individual
+step3.784→2.936 rad; top-left vector transition5.154→3.747 rad. Minimum wrist
+margin0.273→0.558 rad, minimum all-joint margin0.215→0.182 rad. Endpoint
+clearances60.25/73.10/62.37/56.20 mm; transition sample minimum46.02 mm.
+The remaining largest joint step is168 degrees: improved local selection,
+not global optimality or a claim of fully comfortable motion.
+
+Latest raw: `screen-007-joint-relaxation/` under the same raw root. No failed
+checks or old protocols are relabeled, and no GPU/controller/robot motion ran.
+Final full-body URDF four-pose image, compact poses, before/after inputs and
+self-contained report/PDF are in
+`/workspace/GATO/thesis_results/square-front-postures/`.
+
+Regenerate the final drawing with:
+
+```sh
+python experiments/deployment/demo/render_front_ik.py /workspace/GATO/_expr_results/square-front-placement-cpu-20261012/screen-007-joint-relaxation
+```
+
+Center decision and matching internal motion qualification remain prerequisites
+for any updated live/robot protocol. No remote runner plan was changed.
+
+URDF confirms joint7 is axial tool roll (+Z axis, identity-rotation fixed tool
+joint), with physical limits ±2.618 rad. It stays near0.040 rad at all four
+refined corners. The remaining large top-right→top-left transition is joint6
++2.936 rad and joint5+2.229 rad, not a tool-roll flip. Axial orientation freedom
+during selection still respects physical joint bounds; no exhaustive360-degree
+or globally most relaxed claim is made.
