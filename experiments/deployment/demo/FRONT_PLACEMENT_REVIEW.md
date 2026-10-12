@@ -119,3 +119,45 @@ refined corners. The remaining large top-right→top-left transition is joint6
 +2.936 rad and joint5+2.229 rad, not a tool-roll flip. Axial orientation freedom
 during selection still respects physical joint bounds; no exhaustive360-degree
 or globally most relaxed claim is made.
+
+## Five-goal internal diagnostic — final outcome
+
+Felix authorized adding center-only collision-constrained posture selection and
+one GTX1070 internal MPC diagnostic. Center s009 is an exact endpoint with
+40.10 mm monitored clearance, but its 21-sample straight joint interpolation
+fails. One bounded last-two posture refinement s010 has valid endpoints and
+passes its coarse constraints but still fails the original21-sample witness.
+All failed checks remain preserved. No more CPU search was performed.
+
+Root released one fresh canonical and one five-goal diagnostic from collector
+`9b267dde977cc2a3dd2792029a106435f7c0b278`, separate `proposal_front.json`.
+It keeps all four corner target full poses exactly `089141b`, adds the s009
+center+X target, and retains production `initial_guess=None`, warm starts,
+N32/.03/3ms/modeB/15s pergoal/original settling costs. IK witnesses select goals;
+they are not supplied as controller initializations or presumed executed paths.
+Unchanged fa6 runtime/module and current reviewed compact TaskRecorder reused.
+
+Canonical task/plant-limitPASS. One episode completes rough5/5, strict3/5;
+bottom-left and center strict timeouts retained. All recorded plant-substep
+q/velocity/applied-control checksPASS with zero excess; all73167feedbackstates
+finite. **Actual sampled full-body collisionFAIL**:4390realfeedbacksamples at
+10ms targetspacing plus boundaries,2216below40mm/1338contact-overlap samples.
+Firstthreegoals clear (min46.17/57.20/52.57mm), bottomleft1351below/1327contacts,
+center865below/11contacts. Dominant contactpair leftarm1/rightarm3. This is
+modeled simulation under the declared body posture, not observed robot contact.
+Internal arm-only plant does not enforce full-body collision monitor. Live
+adoption is held; no solver repair, tuning, rerun, Gazebo or physical motion.
+
+Finalcenter40.27mm/axis26.02°/fullrotation26.08°/speedL1.00897rad_s. Its achieved
+wristmargin is.00744rad (~.43°), not the endpoint IK witness margin. Top-left
+already departs>5.24rad from its witness despite accurate pose/collisionclearance,
+with joint7 near its upper limit; bottomleft joint7 is~.245° below the upper
+limit. Optimized static joint comfort did not transfer through EE-only MPC.
+No cause/solver-defect or global-infeasibility claim is made.
+
+Duration43.8686splant/186.42srecorderwall;73167solves. Wrappermedian/p95
+.315/2.275ms, native.224/2.165ms, descriptive with recording/plant overhead.
+Raw `/workspace/GATO/_expr_results/square-front20cm-v6-internal-20261012/`;
+new compact report/full-robot actual-motion GIF/PDF in
+`/workspace/GATO/thesis_results/square-front-center-motion/`.
+The static four-posture export stays separate; old v5 and all CPU failures remain.
