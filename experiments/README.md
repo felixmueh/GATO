@@ -94,6 +94,25 @@ separately logged simulator restoration before every trial and fresh PAL
 observations; see the Git handoff for actual ROS/configuration prerequisites.
 The runner does not start Gazebo, change the environment or run a robot.
 
+For the optional M03 fault study, use the separately recorded position-mode
+successor rather than the historical M03 entry in the23-case plan. Its
+`position-only-v2` contract requires position control active, with gravity
+compensation and GATO effort not active, matching production handback. The old
+plan/readiness contract and historical results stay unchanged. The successor
+changes readiness and restoration classification only; the original20cases,
+leading baseline preflight, motion, injections and restoration commands remain.
+Source `78d05872f34881df3ff84c58e580dd3fa4d2ce49` must be published as
+`experiment/deployment-source-78d05872f348`; target native/live checks remain
+pending. With the existing simulator/configuration/receipt ready, inspect and
+manually execute using a fresh successor result root:
+
+```sh
+git fetch origin refs/heads/experiment/deployment-source-78d05872f348:refs/experiment/deployment/78d05872f34881df3ff84c58e580dd3fa4d2ce49
+python3 experiments/run.py --machine rtx5060 --plan experiments/launch/rtx5060_gazebo_m03_position.json --dry-run
+python3 experiments/run.py --machine rtx5060 --plan experiments/launch/rtx5060_gazebo_m03_position.json --python /opt/gato-venv/bin/python3 --cache .experiment-cache/rtx5060-m03-position-only-20261012 --output .experiment-results/rtx5060-m03-position-only-20261012
+python3 experiments/collect.py --output .experiment-results/rtx5060-m03-position-only-20261012 --export .experiment-work/rtx5060-m03-position-only-20261012-results.tar.gz
+```
+
 **Git publication:** pull-only needs the runner branch and every advertised
 `experiment/deployment-source-<pin12>` source ref published to the same origin.
 Exact publication/clone/pull commands and pending remote status are in the

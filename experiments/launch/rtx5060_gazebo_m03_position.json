@@ -1,0 +1,244 @@
+{
+  "version": 1,
+  "status": "prepared_M03_position_successor_not_executed",
+  "experiments": [
+    {
+      "id": "M03",
+      "research_question": "RQ-monitor",
+      "source_commit": "78d05872f34881df3ff84c58e580dd3fa4d2ce49",
+      "protocol": "live-fault-campaign-position-only-v2-zero-pcg-20261012",
+      "machines": [
+        "rtx5060"
+      ],
+      "timing_mode": "live",
+      "backend": "Gazebo",
+      "timeout_seconds": 600,
+      "build": {
+        "inputs": {
+          "native/CMakeLists.txt": "07c285afa3d2055c2c8f64c4645bdad01bdeb3391e77f2082aff3c70443df1e2",
+          "native/control_studies/CMakeLists.txt": "9bdaae9f2d3991a3c567666bf77d8a253666c3adee9b4e66598c83f647dc41c7",
+          "native/task_readiness/CMakeLists.txt": "90abec70a6f830071843841791f13b995cf963118659b7001d8ed0085a8da6a6"
+        },
+        "commands": [
+          [
+            "cmake",
+            "-S",
+            "{runner}/native/control_studies",
+            "-B",
+            "{build}",
+            "-DGATO_SOURCE_DIR={source}",
+            "-DKNOTS=32;64",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DGATO_EXPERIMENT_TELEMETRY=ON",
+            "-DCMAKE_CUDA_ARCHITECTURES={cuda_arch}-real",
+            "-DPython3_EXECUTABLE={python}"
+          ],
+          [
+            "cmake",
+            "--build",
+            "{build}",
+            "--parallel",
+            "2"
+          ]
+        ],
+        "artifacts": [
+          "modules/bsqpN32_tiago_right*.so",
+          "modules/bsqpN64_tiago_right*.so",
+          "cuda_access_smoke"
+        ]
+      },
+      "preflight": {
+        "group": "m03-position-only-20261012",
+        "command": [
+          "{python}",
+          "{runner}/adapters/simulated_fault_trial.py",
+          "--source",
+          "{source}",
+          "--build",
+          "{build}",
+          "--simulator-config",
+          "{runner}/local.json",
+          "--output",
+          "{output}",
+          "--preflight",
+          "--control-mode-contract",
+          "position-only-v2"
+        ]
+      },
+      "command": [
+        "{python}",
+        "{runner}/adapters/simulated_fault_trial.py",
+        "--source",
+        "{source}",
+        "--build",
+        "{build}",
+        "--simulator-config",
+        "{runner}/local.json",
+        "--output",
+        "{output}",
+        "--case",
+        "{case}",
+        "--control-mode-contract",
+        "position-only-v2"
+      ],
+      "cases": [
+        {
+          "id": "01-trajectory_nan",
+          "parameters": {
+            "fault": "trajectory_nan",
+            "description": "One outgoing torque horizon contains NaN"
+          }
+        },
+        {
+          "id": "02-trajectory_shape",
+          "parameters": {
+            "fault": "trajectory_shape",
+            "description": "One outgoing horizon has six joint columns"
+          }
+        },
+        {
+          "id": "03-trajectory_dt_zero",
+          "parameters": {
+            "fault": "trajectory_dt_zero",
+            "description": "One outgoing horizon has dt=0"
+          }
+        },
+        {
+          "id": "04-trajectory_expired",
+          "parameters": {
+            "fault": "trajectory_expired",
+            "description": "One outgoing horizon starts ten seconds in the past"
+          }
+        },
+        {
+          "id": "05-trajectory_future",
+          "parameters": {
+            "fault": "trajectory_future",
+            "description": "One outgoing horizon starts thirty seconds in the future"
+          }
+        },
+        {
+          "id": "06-trajectory_start_nan",
+          "parameters": {
+            "fault": "trajectory_start_nan",
+            "description": "One outgoing horizon has a NaN start timestamp"
+          }
+        },
+        {
+          "id": "07-torque_spike",
+          "parameters": {
+            "fault": "torque_spike",
+            "description": "One outgoing horizon requests 60 Nm on every joint; clamp remains enabled"
+          }
+        },
+        {
+          "id": "08-planner_exception",
+          "parameters": {
+            "fault": "planner_exception",
+            "description": "Planner raises while submitting the next horizon"
+          }
+        },
+        {
+          "id": "09-planner_stall",
+          "parameters": {
+            "fault": "planner_stall",
+            "description": "Planner sleeps for two wall-clock seconds before submitting"
+          }
+        },
+        {
+          "id": "10-planner_exit",
+          "parameters": {
+            "fault": "planner_exit",
+            "description": "Planner exits abruptly without Python cleanup"
+          }
+        },
+        {
+          "id": "11-feedback_drop",
+          "parameters": {
+            "fault": "feedback_drop",
+            "description": "Controller callback discards all subsequent joint states"
+          }
+        },
+        {
+          "id": "12-feedback_nan",
+          "parameters": {
+            "fault": "feedback_nan",
+            "description": "Controller receives NaN for one right-arm position"
+          }
+        },
+        {
+          "id": "13-feedback_frozen",
+          "parameters": {
+            "fault": "feedback_frozen",
+            "description": "Controller receives frozen positions/velocities with fresh timestamps"
+          }
+        },
+        {
+          "id": "14-feedback_stamp_backwards",
+          "parameters": {
+            "fault": "feedback_stamp_backwards",
+            "description": "Controller receives timestamps ten seconds earlier"
+          }
+        },
+        {
+          "id": "15-safety_exit",
+          "parameters": {
+            "fault": "safety_exit",
+            "description": "Controller kills its own safety worker"
+          }
+        },
+        {
+          "id": "16-controller_stall",
+          "parameters": {
+            "fault": "controller_stall",
+            "description": "Controller sleeps for two seconds while publishing effort"
+          }
+        },
+        {
+          "id": "17-controller_exit",
+          "parameters": {
+            "fault": "controller_exit",
+            "description": "Controller exits abruptly while publishing effort"
+          }
+        },
+        {
+          "id": "18-publish_exception",
+          "parameters": {
+            "fault": "publish_exception",
+            "description": "Effort publication raises, including during cleanup"
+          }
+        },
+        {
+          "id": "19-restore_exception",
+          "parameters": {
+            "fault": "restore_exception",
+            "description": "Planner raises, then default-controller restoration raises"
+          }
+        },
+        {
+          "id": "20-baseline",
+          "parameters": {
+            "fault": "baseline",
+            "description": "Unmodified planner, controller, and feedback"
+          }
+        }
+      ],
+      "cohort_id": "m03-position-only-20261012",
+      "stopping_policy": "zero_pcg_or_finite_kkt",
+      "original_runtime_source_commit": "c887bea29d3ed8a24de339478a7390bd4bac1915",
+      "original_scientific_protocol": "unchanged-live-fault-campaign-v1",
+      "preparation_status": "fresh matching build and target preflight pending",
+      "control_mode_contract": "position-only-v2"
+    }
+  ],
+  "parent_plan": "experiments/launch/rtx5060_gazebo.json",
+  "parent_plan_sha256": "11706351c2269b6f7034452b3d7f7aa714ddc73099c8012afce6c466a0a31114",
+  "cohort_id": "m03-position-only-20261012",
+  "scope": "Separate optional M03 successor: exclusive position-mode readiness and restoration classification. Original20 cases and leading baseline preflight unchanged; historical plans/results preserved. No solver, motion, injection or restoration-command changes. No physical robot.",
+  "paths": {
+    "output": ".experiment-results/rtx5060-m03-position-only-20261012",
+    "cache": ".experiment-cache/rtx5060-m03-position-only-20261012",
+    "archive": ".experiment-work/rtx5060-m03-position-only-20261012-results.tar.gz"
+  },
+  "prerequisites": "Existing simulator-only local.json, matching successful canonical live receipt, separately logged assisted restoration before every trial, and fresh independent PAL observations. Position active; gravity and GATO effort not active. Live/native preflight remains pending actual manual execution."
+}

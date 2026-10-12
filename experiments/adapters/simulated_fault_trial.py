@@ -18,10 +18,14 @@ from recording import write_json,sha
 from adapters import task_suite
 
 DEFAULTS={'arm_right_controller','arm_right_gravity_compensation_controller'}
+LEGACY_CONTRACT='position-plus-gravity-v1'
+POSITION_CONTRACT='position-only-v2'
 RUNTIME_FILES=('tiago_src/gato_tiago/tiago_mpc_controller.py','tiago_src/gato_tiago/tiago_controller_process.py','tiago_src/gato_tiago/ros_tiago.py')
 
 
-def prerequisites(config,source,now):
+def prerequisites(config,source,now,control_mode_contract=LEGACY_CONTRACT):
+    if control_mode_contract not in (LEGACY_CONTRACT,POSITION_CONTRACT):
+        raise ValueError('Unknown fault-trial control-mode contract')
     if config.get('simulation_only') is not True or config.get('domain') not in (1,91):
         raise ValueError('Explicit local Gazebo-only simulator/domain configuration required')
     receipt_path=Path(config['canonical_live_preflight_receipt'])
@@ -43,26 +47,31 @@ def prerequisites(config,source,now):
     if not complete:raise ValueError('PAL controller observations unavailable; no motion authorized by this setup')
     latest=complete[-1];active={c['name'] for c in latest['controllers'] if c['state']=='active'}
     age=now-latest['wall']
-    if age<0 or age>config.get('maximum_pal_observation_age_s',2.) or not DEFAULTS<=active or 'gato_arm_effort_forward_runtime' in active:
+    if control_mode_contract==POSITION_CONTRACT:
+        restored='arm_right_controller' in active and not {'arm_right_gravity_compensation_controller','gato_arm_effort_forward_runtime'} & active
+    else:
+        restored=DEFAULTS<=active and 'gato_arm_effort_forward_runtime' not in active
+    if age<0 or age>config.get('maximum_pal_observation_age_s',2.) or not restored:
         raise ValueError('Fresh observed default controllers required after separately logged simulator restoration')
     return dict(canonical_receipt_sha256=sha(receipt_path),canonical_protocol_sha256=sha(receipt_path.parent/'protocol.json'),
-        canonical_provenance_sha256=sha(receipt_path.parent/'provenance.json'),pal_snapshot=latest,pal_age_s=age)
+        canonical_provenance_sha256=sha(receipt_path.parent/'provenance.json'),pal_snapshot=latest,pal_age_s=age,
+        control_mode_contract=control_mode_contract)
 
 
-def run(source,build,config_path,case,output,preflight=False):
+def run(source,build,config_path,case,output,preflight=False,control_mode_contract=LEGACY_CONTRACT):
     source,build,config_path,output=map(lambda p:Path(p).resolve(),(source,build,config_path,output))
     output.mkdir(parents=True,exist_ok=True)
     metrics=dict(campaign_id='M03',research_question='RQ-monitor',execution_backend='Gazebo',timing_mode='live',
-        task_success=None,physical_pass=None,execution_error=None,simulation_only=True)
+        task_success=None,physical_pass=None,execution_error=None,simulation_only=True,control_mode_contract=control_mode_contract)
     try:
-        config=json.loads(config_path.read_text())['simulator_faults'];proof=prerequisites(config,source,time.monotonic())
+        config=json.loads(config_path.read_text())['simulator_faults'];proof=prerequisites(config,source,time.monotonic(),control_mode_contract)
         modules=list((build/'modules').glob('bsqpN64_tiago_right*.so'))
         if len(modules)!=1:raise ValueError('Expected exact isolated N64 native module')
         if preflight and task_suite.run(source,build,output/'native-task-suite'):
             raise RuntimeError('Required genuine target native task suite failed; no simulator trial started')
         # The suite can take minutes. PAL observations must still be fresh when
         # the original supervisor starts; never reuse a stale startup snapshot.
-        proof=prerequisites(config,source,time.monotonic())
+        proof=prerequisites(config,source,time.monotonic(),control_mode_contract)
         selected='baseline' if preflight else case['parameters']['fault']
         script=source/'tiago_examples/fault_campaign/run.py'
         command=[sys.executable,'-B',str(script),'trial','--case',selected,'--output',str(output/'trial'),
@@ -81,6 +90,8 @@ def run(source,build,config_path,case,output,preflight=False):
         metrics.update(original_returncode=result.returncode,original_summary=summary,
             fault_response_observed=summary.get('outcome')=='default_control_observed',
             baseline_setup_pass=summary.get('outcome')=='baseline_completed' if preflight else None)
+        if control_mode_contract==POSITION_CONTRACT and summary.get('control_mode_contract')!=POSITION_CONTRACT:
+            raise RuntimeError('Fault-trial classifier differs from requested position-only-v2 contract')
         if result.returncode or not summary or (preflight and not metrics['baseline_setup_pass']):
             raise RuntimeError('Original simulator trial incomplete or baseline setup failed; retain all observations')
         metrics['outcome']='fault_trial_observed'
@@ -94,6 +105,7 @@ if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
     for key in ('source','build','simulator-config','output'):parser.add_argument('--'+key,type=Path,required=True)
     parser.add_argument('--case',type=Path);parser.add_argument('--preflight',action='store_true')
+    parser.add_argument('--control-mode-contract',choices=(LEGACY_CONTRACT,POSITION_CONTRACT),default=LEGACY_CONTRACT)
     args=parser.parse_args()
     if not args.case and not args.preflight:parser.error('--case or --preflight required')
-    sys.exit(run(args.source,args.build,args.simulator_config,json.loads(args.case.read_text()) if args.case else None,args.output,args.preflight))
+    sys.exit(run(args.source,args.build,args.simulator_config,json.loads(args.case.read_text()) if args.case else None,args.output,args.preflight,args.control_mode_contract))

@@ -49,3 +49,46 @@ def test_pal_freshness_is_rechecked_after_target_suite(tmp_path,monkeypatch):
     assert adapter.run(source,build,path,None,tmp_path/'output',True)==1
     metrics=json.loads((tmp_path/'output/metrics.json').read_text())
     assert 'Fresh observed' in metrics['execution_error']
+
+
+@pytest.mark.parametrize('active,restored', [
+    (['arm_right_controller'], True),
+    (['arm_right_controller','arm_right_gravity_compensation_controller'], False),
+    (['arm_right_controller','gato_arm_effort_forward_runtime'], False),
+    (['arm_right_gravity_compensation_controller'], False),
+    (['gato_arm_effort_forward_runtime'], False),
+    ([], False),
+])
+def test_position_successor_readiness_requires_exclusive_position_mode(tmp_path,active,restored):
+    source,c=config(tmp_path)
+    controllers=[dict(name=name,state='active' if name in active else 'inactive') for name in (
+        'arm_right_controller','arm_right_gravity_compensation_controller','gato_arm_effort_forward_runtime')]
+    Path(c['pal_controller_log']).write_text(json.dumps(dict(wall=9.9,controllers=controllers))+'\n')
+    if restored:
+        proof=adapter.prerequisites(c,source,10.,adapter.POSITION_CONTRACT)
+        assert proof['control_mode_contract']==adapter.POSITION_CONTRACT
+    else:
+        with pytest.raises(ValueError,match='Fresh observed'):
+            adapter.prerequisites(c,source,10.,adapter.POSITION_CONTRACT)
+
+
+def test_legacy_readiness_contract_remains_frozen(tmp_path):
+    source,c=config(tmp_path)
+    assert adapter.prerequisites(c,source,10.)['control_mode_contract']==adapter.LEGACY_CONTRACT
+    with pytest.raises(ValueError,match='Fresh observed'):
+        adapter.prerequisites(c,source,10.,adapter.POSITION_CONTRACT)
+
+
+def test_position_successor_plan_preserves_fault_cases_and_commands():
+    directory=Path(__file__).parent/'launch'
+    parent=json.loads((directory/'rtx5060_gazebo.json').read_text())
+    successor=json.loads((directory/'rtx5060_gazebo_m03_position.json').read_text())
+    old=next(e for e in parent['experiments'] if e['id']=='M03')
+    new=successor['experiments'][0]
+    assert len(successor['experiments'])==1 and new['cases']==old['cases']
+    assert new['build']==old['build'] and new['timeout_seconds']==old['timeout_seconds']
+    assert new['source_commit']!=old['source_commit'] and new['protocol']!=old['protocol']
+    for field in ('command','preflight'):
+        original=old[field] if field=='command' else old[field]['command']
+        changed=new[field] if field=='command' else new[field]['command']
+        assert changed==original+['--control-mode-contract',adapter.POSITION_CONTRACT]
