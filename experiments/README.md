@@ -40,9 +40,8 @@ cohort, not a migration replay.
 
 Jetson scope retains the approved six cylinder cases, all 100 BB pairs once
 per B1/B16 arm, and the full prepared timing/force coverage. BA is absent.
-Before manual Jetson execution, review the duration/storage estimate with
-Felix as required by the campaign revision; no shorter protocol is silently
-selected. Current estimates and their uncertainty are recorded below.
+Before running, allow for the duration/storage estimates below. The full agreed
+scope is retained; any shorter protocol needs an explicit decision.
 
 **Jetson planning estimate: 6–24 hours and 30–150 GiB of raw results**, plus
 native builds, transfer archive and free headroom. About 350 GiB available is
@@ -98,7 +97,7 @@ all exact source pins automatically into a checkout inside the transfer
 directory; no manual source worktrees or ignored-asset copies are required.
 All launch inputs/native helper files are tracked. `runner-assets.tar.gz`
 remains a compatibility payload for older handoffs; this bootstrap does not
-need it. Apply the same environment and Jetson discussion requirements.
+need it. Apply the same environment and storage requirements.
 
 ## Revised campaign preparation
 
