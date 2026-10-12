@@ -82,6 +82,27 @@ class CollectionTests(unittest.TestCase):
             self.assertFalse(any('pytest-cache' in n for n in names))
         self.assertTrue((cache / 'nodeids').exists())
 
+    def test_pytest_current_alias_keeps_real_test_files(self):
+        output = self.root / 'results'
+        attempt = self.attempt(output, status='failed')
+        temp = attempt / 'task_suite/pytest-tmp'
+        target = temp / 'test_task0'
+        target.mkdir(parents=True)
+        (target / 'metrics.json').write_text('{"task_success": false}')
+        alias = temp / 'test_taskcurrent'
+        alias.symlink_to(target.name, target_is_directory=True)
+        archive = C.export_results(output, self.root / 'results.tar.gz')
+        with tarfile.open(archive) as package:
+            names = package.getnames()
+            self.assertTrue(any(n.endswith('test_task0/metrics.json') for n in names))
+            self.assertFalse(any('test_taskcurrent' in n for n in names))
+        self.assertTrue(alias.is_symlink())
+        outside = self.root / 'outside'
+        outside.mkdir()
+        (temp / 'outsidecurrent').symlink_to(outside, target_is_directory=True)
+        with self.assertRaises(ValueError):
+            C.export_results(output, self.root / 'invalid.tar.gz')
+
     def test_registration_failure_keeps_import_indexed(self):
         source=self.root/'extracted'
         self.attempt(source,metrics={'timing_mode':'B','execution_backend':'internal'})

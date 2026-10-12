@@ -92,6 +92,12 @@ def result_files(root):
         if {'.pytest_cache', 'pytest-cache'} & set(path.relative_to(root).parts):
             continue
         if path.is_symlink():
+            # Pytest's *current aliases point to sibling test directories.
+            # Their ordinary target files are collected independently below.
+            if ('pytest-tmp' in path.relative_to(root).parts
+                    and path.name.endswith('current') and path.is_dir()
+                    and path.resolve().is_relative_to(path.parent.resolve())):
+                continue
             raise ValueError(f'Result export/import requires ordinary files, not symlink: {path}')
         if path.is_dir() and (path.name in forbidden or path.name.startswith('build-')):
             raise ValueError(f'This is an execution workspace, not a result collection: {path}. Use the experiment result exporter.')
