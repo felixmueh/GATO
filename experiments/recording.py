@@ -6,6 +6,7 @@ manifest(), or use a context manager on handled failures to retain that chunk.
 Old per-event NPZ recordings remain readable without rewriting their evidence.
 """
 import hashlib
+from copy import deepcopy
 import json
 import math
 from pathlib import Path
@@ -44,7 +45,7 @@ def write_json(path, value):
 
 
 class RawRecorder:
-    def __init__(self, output, max_events=64, max_bytes=16 * 1024 * 1024):
+    def __init__(self, output, max_events=64, max_bytes=16 * 1024 * 1024, references=False):
         if max_events < 1 or max_bytes < 1:
             raise ValueError('Chunk limits must be positive')
         self.output = Path(output)
@@ -59,6 +60,10 @@ class RawRecorder:
         # their bytes are still cached, avoiding a second cold read at the end.
         self._chunk_hashes = {}
         self._closed = False
+        self.references = references
+        self._previous = {}
+        if references:
+            write_json(self.output / 'recording.json', dict(recording_format='chunk-refs-v1', reference_window_events=16))
 
     def __call__(self, kind, record):
         if self._closed:
@@ -82,7 +87,21 @@ class RawRecorder:
                 return [pack(v) for v in value]
             return value
 
-        metadata = pack(record)
+        family = None
+        if self.references and kind.startswith(('solve_', 'plan_')) and 'solve_index' in record:
+            family = ('solve', record['solve_index'])
+        elif self.references and kind.startswith('step_'):
+            family = ('step', record.get('time_s'), record.get('plan_solve_index'))
+        previous = self._previous.get(family[0]) if family else None
+        reference = None
+        removed = []
+        payload = record
+        if previous and previous[0] == family and self.count - previous[1] <= 16:
+            base = previous[2]
+            payload = {k: v for k, v in record.items() if k not in base or not same_value(v, base[k])}
+            removed = [k for k in base if k not in record]
+            reference = previous[1]
+        metadata = pack(payload)
         # Validate before modifying the buffer, including unsupported values.
         metadata_bytes = len(json.dumps(metadata, allow_nan=False).encode())
         size = sum(a.nbytes for a in arrays.values()) + metadata_bytes
@@ -91,12 +110,19 @@ class RawRecorder:
         event = {'event_index': self.count, 'event': kind,
                  'recorder_wall_elapsed_s': time.perf_counter() - self.started,
                  'raw_file': f'raw/chunk-{self.chunk:07d}.npz', 'record': metadata}
+        if reference is not None:
+            event['record_ref'] = reference
+            if removed:
+                event['record_removed'] = removed
         self._events.append(event)
         self._arrays.update(arrays)
         self.buffer_bytes += size
         self.count += 1
+        if family:
+            self._previous[family[0]] = (family, event['event_index'], deepcopy(record))
         if len(self._events) >= self.max_events or self.buffer_bytes >= self.max_bytes:
             self.flush()
+        return event
 
     def flush(self):
         if not self._events:
@@ -132,7 +158,7 @@ class RawRecorder:
         files += [self.output / name for name in (
             'events.jsonl', 'execution.npz', 'protocol.json', 'provenance.json',
             'controller_stats.json', 'metrics.json', 'screening.json',
-            'readiness.json', 'build_receipt.json') if (self.output / name).is_file()]
+            'readiness.json', 'build_receipt.json', 'recording.json') if (self.output / name).is_file()]
         write_json(self.output / 'SHA256SUMS.json',
                    {str(p.relative_to(self.output)): self._chunk_hashes[str(p.relative_to(self.output))]
                     if str(p.relative_to(self.output)) in self._chunk_hashes else sha(p) for p in sorted(files)})
@@ -146,6 +172,8 @@ def iter_events(output):
     """
     output = Path(output)
     raw_file, archive = None, None
+    recent = {}
+    reference_layout = (output / 'recording.json').is_file()
 
     def unpack(value):
         if isinstance(value, dict):
@@ -168,7 +196,55 @@ def iter_events(output):
                         archive.close()
                     raw_file = event['raw_file']
                     archive = np.load(output / raw_file, allow_pickle=False)
-                yield dict(event, record=unpack(event['record']))
+                record = unpack(event['record'])
+                if 'record_ref' in event:
+                    reference = event['record_ref']
+                    if reference not in recent or not 0 < event['event_index'] - reference <= 16:
+                        raise ValueError('Missing or out-of-window raw event reference')
+                    base = deepcopy(recent[reference])
+                    for key in event.get('record_removed', []):
+                        del base[key]
+                    base.update(record)
+                    record = base
+                if reference_layout:
+                    recent[event['event_index']] = deepcopy(record)
+                    recent.pop(event['event_index'] - 16, None)
+                yield dict(event, record=record)
     finally:
         if archive is not None:
             archive.close()
+
+
+def same_value(a, b):
+    """Exact stored-value reuse, including NaNs; never a numerical tolerance."""
+    if type(a) is not type(b):
+        return False
+    if isinstance(a, np.ndarray):
+        return a.dtype == b.dtype and a.shape == b.shape and np.array_equal(
+            a, b, equal_nan=np.issubdtype(a.dtype, np.inexact))
+    if isinstance(a, dict):
+        return a.keys() == b.keys() and all(same_value(a[k], b[k]) for k in a)
+    if isinstance(a, (list, tuple)):
+        return len(a) == len(b) and all(same_value(x, y) for x, y in zip(a, b))
+    if isinstance(a, (float, np.floating)) and math.isnan(a):
+        return math.isnan(b)
+    return bool(a == b)
+
+
+def load_controller_stats(output):
+    """Read historical numeric JSON or a compact summary NPZ envelope."""
+    output = Path(output)
+    value = json.loads((output / 'controller_stats.json').read_text())
+    if value.get('recording_format') != 'demo-chunk-refs-v1':
+        return value
+    with np.load(output / value['raw_file'], allow_pickle=False) as archive:
+        def unpack(v):
+            if isinstance(v, dict):
+                if 'npz_key' in v:
+                    array = archive[v['npz_key']].copy()
+                    return array[()] if v.get('scalar') else array
+                return {k: unpack(x) for k, x in v.items()}
+            if isinstance(v, list):
+                return [unpack(x) for x in v]
+            return v
+        return unpack(value['record'])

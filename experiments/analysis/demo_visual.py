@@ -15,7 +15,7 @@ import sys
 import numpy as np
 
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
-from recording import sha,write_json
+from recording import sha,write_json,load_controller_stats
 from analysis.f01ab import csv_write
 
 
@@ -63,7 +63,7 @@ def analyze(raw,source,output,gifs=True):
                 evidence_kind=metrics.get('evidence_kind','recorded'),task_success=metrics.get('task_success'),settling_success=metrics.get('settling_success'),physical_pass=metrics.get('physical_pass'),execution_error=metrics.get('execution_error'),handback_confirmed=metrics.get('handback_confirmed'))
             attempts.append(row)
             if not (attempt/'protocol.json').exists():row['visual_unavailable']='Sequence aggregate; subtask artifacts rendered separately';continue
-            protocol=json.loads((attempt/'protocol.json').read_text());stats=json.loads((attempt/'controller_stats.json').read_text())
+            protocol=json.loads((attempt/'protocol.json').read_text());stats=load_controller_stats(attempt)
             provenance=json.loads((attempt/'provenance.json').read_text())
             row.update(runtime_source=provenance.get('runtime_source_commit'),module_sha256=provenance.get('module',{}).get('sha256'),input_sha256=protocol.get('input_sha256'))
             if sha(model_path)!=protocol['urdf']['sha256']:raise ValueError('Visualization model differs from recorded task asset')
