@@ -1,0 +1,35 @@
+{
+  "collector_checkpoint": "734430ebf7435ebb145afc9dc7db976a926469da",
+  "runtime_source": "fa6f6bede286c122cc41ac65f42a583da84290e0",
+  "raw_root": "/workspace/GATO/_expr_results/square-right10cm-v8-internal-20261012",
+  "simulated_duration_s": 13.992677084782628,
+  "recorder_wall_elapsed_s": 59.4404605239979,
+  "solve_count": 21879,
+  "feedback_samples": 21879,
+  "actual_MPC_episodes": 1,
+  "canonical_preflight_episodes": 1,
+  "launch_failures_before_motion": 1,
+  "adoption": "HELD: sampled clearance below 40 mm",
+  "gif_frames": 60,
+  "playback_duration_s": 4.8,
+  "playback_speed": 2.9151410593297142,
+  "rough_success": [
+    true,
+    true,
+    true,
+    true
+  ],
+  "strict_success": [
+    true,
+    true,
+    true,
+    true
+  ],
+  "physical_pass": true,
+  "actual_collision_pass": false,
+  "min_clearance_m": 0.034450662180192784,
+  "below_40mm": 77,
+  "collision_samples": 1401,
+  "contacts": 0,
+  "report": "/workspace/GATO/thesis_results/square-right10cm-motion/README.md"
+}

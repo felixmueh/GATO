@@ -17,6 +17,8 @@ def main():
     parser.add_argument('--center',default='.5,0,-.1')
     parser.add_argument('--side',type=float,default=.20)
     parser.add_argument('--corners-only',action='store_true',help='Explicitly approved scope excluding center reach')
+    parser.add_argument('--seed-screen',type=Path,help='One previous validated posture per corner as a fixed seed')
+    parser.add_argument('--prefer-clearance',type=float,default=0.,help='Soft endpoint clearance ranking preference; 40 mm gate unchanged')
     args=parser.parse_args()
     center=np.fromstring(args.center,sep=',');assert center.shape==(3,)
     args.output.mkdir(parents=True,exist_ok=False)
@@ -32,12 +34,15 @@ def main():
         cq,_=state_to_qv(collision.model,NamedJointState(position=body,velocity={k:0. for k in body}))
         return min(compute_pair_distances(collision,cq),key=lambda p:p.distance_m)
     previous=START_Q.copy();selected=[];attempts=[]
+    previous_screen=json.loads((args.seed_screen/'screen.json').read_text()) if args.seed_screen else None
+    prior={r['goal']:np.asarray(r['q_rad']) for r in previous_screen['center_outcomes'][0]['goals']} if previous_screen else {}
     labels=LABELS[:4] if args.corners_only else LABELS
     for label,offset in zip(labels,np.asarray(OFFSETS_M)*(args.side/.30)):
         target=center+offset;axis=-offset if label!='center' else np.array((1.,0.,0.));axis=axis/np.linalg.norm(axis)
         candidates=[]
         seeds=[('previous',previous),('initial',START_Q),
-               ('v5-top-left',known['top-left']),('v5-bottom-left',known['bottom-left'])]
+               ('v5-top-left',known['top-left']),
+               ('validated-previous-placement',prior[label]) if label in prior else ('v5-bottom-left',known['bottom-left'])]
         if label=='center':seeds.append(('v5-center',known['center']))
         for seedlabel,seed in seeds:
             def residual(q):
@@ -61,7 +66,7 @@ def main():
                 selected_rotation=R.tolist(),joint_travel_rad=float(np.linalg.norm(delta)),
                 max_per_joint_step_rad=float(np.max(np.abs(delta))),wrist_travel_rad=float(np.linalg.norm(delta[4:])),
                 joint_margin_rad=float(np.min(margin)),wrist_margin_rad=float(np.min(margin[4:])),
-                score=float(np.linalg.norm(delta)+.35*np.linalg.norm(delta[4:])+.05/max(np.min(margin),.02)),
+                score=float(np.linalg.norm(delta)+.35*np.linalg.norm(delta[4:])+.05/max(np.min(margin),.02)+100.*max(args.prefer_clearance-minimum.distance_m,0.)),
                 accepted_endpoint=pe<.001 and oe<.02 and minimum.distance_m>=.04)
             attempts.append(row)
             if row['accepted_endpoint']:candidates.append(row)
@@ -74,7 +79,7 @@ def main():
             print(json.dumps(dict(center=center.tolist(),failed_goal=label,endpoint_candidates=len(candidates))),flush=True);break
         selected.append(chosen);previous=np.asarray(chosen['q_rad'])
     complete=len(selected)==len(labels)
-    receipt=dict(side_m=args.side,centers_m=[center.tolist()],body_positions=BODY_POSITIONS,initial_q_rad=START_Q.tolist(),
+    receipt=dict(side_m=args.side,seed_screen=str(args.seed_screen) if args.seed_screen else None,clearance_ranking_preference_m=args.prefer_clearance,centers_m=[center.tolist()],body_positions=BODY_POSITIONS,initial_q_rad=START_Q.tolist(),
         orientation_selection='Continuous axial roll free in CPU position+tool-Z IK; all full rotations then frozen, same inward corner axes and center+X. Runtime orientation costs unchanged.',
         scope='Endpoint IK/4cm monitored clearance and 21-sample joint interpolation; no MPC/dynamic/swept/physical qualification',
         attempts=attempts,center_outcomes=[dict(center_m=center.tolist(),goals=selected,complete=complete)],

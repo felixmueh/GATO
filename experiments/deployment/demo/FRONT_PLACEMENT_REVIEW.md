@@ -198,3 +198,20 @@ unchanged fa6 runtime and compact recorder will run one fresh canonical and,
 if that passes, one four-corner internal episode. Actual full-body monitoring
 will independently evaluate the resulting motion. No center, live motion,
 solver change, retry or extra placement search is authorized for this cohort.
+
+The 10 cm v8 actual episode strictly settles all four goals and passes plant
+limits, but actual 10 ms collision sampling fails: 77/1,401 samples below 40 mm,
+minimum 34.45 mm on bottom-left between arm link 4 and gripper base, no contacts.
+The initial launch error used the preflight parent directory and made zero
+solver calls; its data are retained. One corrected launch performs the only
+actual episode. The report and 60-frame GIF are in thesis_results/square-right10cm-motion/.
+
+Felix's continuing objective is a valid four-corner configuration. Root
+authorizes one fixed nearby successor at [0.55,-0.35,-0.15] m, still 10 cm,
+with the same inward axes and no center. Sixteen bounded CPU IK calls reuse
+previous validated postures among fixed seeds. A 50 mm soft endpoint-clearance
+ranking preference retains the original 40 mm gate. All four endpoints and
+21-sample transitions pass, with endpoint minima 73.10/68.56/70.76/61.31 mm and
+transition minima 46.02/68.56/68.56/61.31 mm. No additional posture refinement,
+placement grid or controller change is made. Separate proposal_right10_forward.json
+freezes these selected full poses for root review before one internal episode.
