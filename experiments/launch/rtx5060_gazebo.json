@@ -95,6 +95,111 @@
       "preparation_status": "fresh matching build and target preflight pending"
     },
     {
+      "id": "SquareDemo-v5-Gazebo",
+      "name": "Accepted five-goal square with forward-pointing center",
+      "research_question": "RQ-control",
+      "protocol": "accepted-square-center-forward-v5-live-20261012",
+      "source_commit": "8dbb8b8d6dc1d65e902373a9aa58693e33329c14",
+      "collector_source_commit": "2574409ee4236b7c32035ec27dbaca19cd27dfeb",
+      "machines": [
+        "rtx5060"
+      ],
+      "timing_mode": "live",
+      "backend": "gazebo",
+      "build": {
+        "inputs": {
+          "native/CMakeLists.txt": "07c285afa3d2055c2c8f64c4645bdad01bdeb3391e77f2082aff3c70443df1e2"
+        },
+        "commands": [
+          [
+            "cmake",
+            "-S",
+            "{runner}/native",
+            "-B",
+            "{build}",
+            "-DGATO_SOURCE_DIR={source}",
+            "-DKNOTS=32",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DGATO_EXPERIMENT_TELEMETRY=ON",
+            "-DCMAKE_CUDA_ARCHITECTURES={cuda_arch}-real",
+            "-DPython3_EXECUTABLE={python}"
+          ],
+          [
+            "cmake",
+            "--build",
+            "{build}",
+            "--parallel",
+            "2"
+          ]
+        ],
+        "artifacts": [
+          "modules/bsqpN32_tiago_right*.so"
+        ]
+      },
+      "inputs": {
+        "experiments/inputs/demo_square_v5/proposal.json": "46e6b66efdfae2c6365d004e129d0f18fbd06da4f7043c0b3c8679897ed6f068"
+      },
+      "command": [
+        "{python}",
+        "{runner}/adapters/demo.py",
+        "--source",
+        "{source}",
+        "--build",
+        "{build}",
+        "--case",
+        "{case}",
+        "--output",
+        "{output}",
+        "--backend",
+        "gazebo",
+        "--inputs",
+        "{inputs}/experiments/inputs/demo_square_v5",
+        "--runtime-pin",
+        "8dbb8b8d6dc1d65e902373a9aa58693e33329c14",
+        "--collector-pin",
+        "2574409ee4236b7c32035ec27dbaca19cd27dfeb"
+      ],
+      "preflight": {
+        "group": "square-v5-gazebo-canonical",
+        "command": [
+          "{python}",
+          "{runner}/adapters/demo.py",
+          "--source",
+          "{source}",
+          "--build",
+          "{build}",
+          "--case",
+          "{case}",
+          "--output",
+          "{output}",
+          "--backend",
+          "gazebo",
+          "--inputs",
+          "{inputs}/experiments/inputs/demo_square_v5",
+          "--runtime-pin",
+          "8dbb8b8d6dc1d65e902373a9aa58693e33329c14",
+          "--collector-pin",
+          "2574409ee4236b7c32035ec27dbaca19cd27dfeb",
+          "--preflight"
+        ]
+      },
+      "repeats": 1,
+      "cases": [
+        {
+          "id": "square",
+          "parameters": {
+            "backend": "gazebo"
+          }
+        }
+      ],
+      "cohort_id": "square-v5-accepted-20261012",
+      "stopping_policy": "zero_pcg_or_finite_kkt",
+      "qualification": "Felix accepts v5 as-is: internal1070rough5/5,strict2/5,sampledphysicalpass. Live Gazebo canonical/safety/handback still required. One square task only; no implicit figure-eight sequence or physical robot.",
+      "accepted_internal_source_setup": "b9b668d",
+      "accepted_internal_evidence": "/workspace/GATO/_expr_results/square-demo-center-forward-v5-20261012/attempt-001",
+      "accepted_internal_protocol_sha256": "8d59e5ee8bd5b767c6cf59edd1e7574d29b8391b15a86d409157340bf892948f"
+    },
+    {
       "id": "M03",
       "research_question": "RQ-monitor",
       "source_commit": "c887bea29d3ed8a24de339478a7390bd4bac1915",
@@ -352,5 +457,5 @@
   "note": "Explicit successor solver cohorts; previous results remain historical. Fresh matching builds/preflights pending; faster tracking is simulation only. No physical robot queue.",
   "deployment_parent_plan": "experiments/successor/merged/rtx5060_gazebo.json",
   "deployment_parent_sha256": "55f1f5d90c53fcc29f757acb10426a2ddc9c2a2fdcb849c43e49fdb843b5efed",
-  "scope_note": "Two integration families only: two focused motion tasks and all20distinctfault/baseline conditions. No hardware timing, algorithm sweep, square motion or physical robot. Launch only manually with the Gazebo environment running."
+  "scope_note": "Three integration families: two focused D01 motion cases, one accepted v5 square worker covering five goals, and all20distinct M03 fault/baseline cases. No hardware timing, algorithm sweep, historical failed square protocol or physical robot. Manual Gazebo only after RTX5060 internal success."
 }

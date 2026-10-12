@@ -19,8 +19,11 @@ import numpy as np
 COLLECTOR='2c7e2b11bd5bab8fa3a761d17cf55c1aa9cff55e'
 
 
-def collector_source(repository,build):
-    pin=subprocess.check_output(['git','-C',str(repository),'rev-parse',COLLECTOR],text=True).strip()
+def collector_source(repository,build,collector_pin=None):
+    requested=collector_pin or COLLECTOR
+    if len(requested)!=40:raise ValueError('Collector pin must be a full immutable Git commit')
+    pin=subprocess.check_output(['git','-C',str(repository),'rev-parse',requested],text=True).strip()
+    if pin!=requested:raise ValueError('Collector pin must resolve to its exact immutable commit')
     target=Path(build)/'demo-collectors'/pin
     if not target.exists():
         payload=subprocess.check_output(['git','-C',str(repository),'archive','--format=tar',pin,'experiments/deployment'])
@@ -131,21 +134,25 @@ def load_collector(path):
     # Frozen JSON force values stay unchanged; the native API requires arrays.
     text=path.read_text();original="constant_f_ext=p['constant_f_ext']"
     replacement="constant_f_ext=np.asarray(p['constant_f_ext'],dtype=np.float32)"
-    if text.count(original)!=1:raise ValueError('Frozen collector force argument seam changed')
-    text = text.replace(original,replacement)
+    if text.count(original)==1 and text.count(replacement)==0:
+        text = text.replace(original,replacement);force_override=True
+    elif text.count(original)==0 and text.count(replacement)==1:
+        force_override=False  # New collector owns the reviewed array boundary.
+    else:raise ValueError('Frozen collector force argument seam changed')
     summary_seam="        recorder('controller_stats',stats)\n        write_json(output/'controller_stats.json',stats)"
     if 'RawRecorder' in text:
         if text.count(summary_seam) != 1:
             raise ValueError('Frozen collector summary recording seam changed')
         text = text.replace(summary_seam, "        recorder.write_controller_stats(stats)")
     exec(compile(text,str(path),'exec'),worker.__dict__)
+    worker.GATO_FORCE_ARRAY_OVERRIDE_APPLIED=force_override
     if hasattr(worker,'RawRecorder'):
         worker.RawRecorder = DemoRecorder
     return worker
 
-def run(source,build,case,output,backend,preflight=False,inputs=None,runtime_pin=None):
+def run(source,build,case,output,backend,preflight=False,inputs=None,runtime_pin=None,collector_pin=None):
     source,build,output=map(lambda p:Path(p).resolve(),(source,build,output))
-    collector,pin=collector_source(source,build)
+    collector,pin=collector_source(source,build,collector_pin)
     sys.path.insert(0,str(collector))
     path=collector/'experiments/deployment/demo/run_demo.py'
     worker=load_collector(path)
@@ -169,8 +176,9 @@ def run(source,build,case,output,backend,preflight=False,inputs=None,runtime_pin
         candidates=[root/relative for root in output.parents if (root/relative/'metrics.json').is_file()]
         if len(candidates)!=1:raise ValueError('Preflight path does not resolve uniquely')
         preflight_output=candidates[0]
-    if backend=='gazebo' and not preflight:
-        if case['id']!='all-demo-tasks':raise ValueError('Gazebo demo runs one held-on-failure live sequence')
+    if backend=='gazebo' and not preflight and case['id'] not in ('square','all-demo-tasks'):
+        raise ValueError('Gazebo demo selects standalone square or the historical held-on-failure sequence')
+    if backend=='gazebo' and not preflight and case['id']=='all-demo-tasks':
         sequence=output/'sequence'
         sys.argv=[str(path),'--backend','gazebo','--source',str(source),'--module',str(matches[0]),
                   '--output',str(sequence),'--preflight-output',str(preflight_output)]
@@ -188,8 +196,9 @@ def run(source,build,case,output,backend,preflight=False,inputs=None,runtime_pin
         protocol=worker.resolve_preflight(backend) if preflight else worker.resolve(backend,case['id'])
         metrics=worker.run_task(protocol,source,matches[0],output,preflight_output)
     metrics.update(collector_source_commit=pin,collection_adapter_sha256=sha(__file__),
-        collector_adapter_overrides=['Force constructor argument list to float32 array; frozen protocol unchanged',
-            'Bounded chunk recording with exact lifecycle references and one compact controller summary; task/solver settings unchanged'],
+        collector_adapter_overrides=(['Force constructor argument list to float32 array; frozen protocol unchanged']
+            if getattr(worker,'GATO_FORCE_ARRAY_OVERRIDE_APPLIED',True) else [])+
+            ['Bounded chunk recording with exact lifecycle references and one compact controller summary; task/solver settings unchanged'],
         manifest_override_version=MANIFEST_OVERRIDE_VERSION,
         recording_format=MANIFEST_OVERRIDE_VERSION)
     write_json(output/'metrics.json',metrics)
@@ -205,5 +214,6 @@ if __name__=='__main__':
     parser.add_argument('--preflight',action='store_true')
     parser.add_argument('--inputs',type=Path,required=True)
     parser.add_argument('--runtime-pin')
+    parser.add_argument('--collector-pin',help='Optional full collector commit; historical collector remains the default')
     args=parser.parse_args()
-    raise SystemExit(run(args.source,args.build,json.loads(args.case.read_text()),args.output,args.backend,args.preflight,args.inputs,args.runtime_pin))
+    raise SystemExit(run(args.source,args.build,json.loads(args.case.read_text()),args.output,args.backend,args.preflight,args.inputs,args.runtime_pin,args.collector_pin))

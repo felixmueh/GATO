@@ -3,23 +3,25 @@
 Current campaign decisions are in the main
 [results review](/workspace/GATO/felixnotes/RESULTS_REVIEW_2026-10-11.md) and
 [revision addendum](/workspace/GATO/EXPERIMENT_PLAN_REVISION_2026-10-10.md).
-Use the explicit **restored-zero-PCG successor plans** below. Historical plans
+Use the reviewed machine plans in `experiments/launch/`. Historical plans
 and raw results remain preserved with their original stopping policy and inputs.
 The runner does not launch remote jobs or physical robots.
 
-Current manual handoff: `.experiment-work/prepared-manual-machines-20261012T121619Z/`
-and the self-contained `.tar.gz` beside it. Its inventory pins the reviewed
-runner/sources and the narrowed89/84/22-case plans described below. The older
-broad transfer package is preserved separately.
+Current manual handoff: [Git-based machine instructions](/workspace/GATO/felixnotes/HANDOFF_REMOTE_MACHINE_RUNS.md).
+Felix wants a branch pull and local commands; source archives are historical
+handoff artifacts, not the current provisioning workflow. Publication of the
+runner and exact side-source refs remains required; no push is claimed.
 
 ## Manual Jetson and RTX5060 launch
 
 Latest machine selection is [the question-based coverage table](machine_coverage.md):
-**89 RTX5060/internal cases,84 Jetson cases,22 separate Gazebo cases**.
+**89 RTX5060/internal cases,84 Jetson cases,23 separate Gazebo cases**.
 The full earlier successor plans remain provenance. **Completed main Jetson
 F01ab is reused and never rerun by this launch**; its older source/stopping-policy
-labels remain separate. Square motion and four original-force tasks per target
-stay held. No remote agents or automatic Gazebo/physical robot launch.
+labels remain separate. The accepted v5 square is one separate Gazebo case;
+older failed square protocols remain historical and are not queued. Four
+original-force tasks per target stay held. No remote agents or automatic
+Gazebo/physical robot launch.
 
 Run in the existing CUDA development environment with Git, CMake >=3.24,
 a C++ compiler, CUDA `nvcc`, Python headers, NumPy, Pinocchio, pybind11 and pytest.
@@ -44,7 +46,7 @@ and independent cases continue. The plan choices/settings and limitations are
 in the coverage table. The Jetson planning estimate is roughly2–8h/10–50GiB raw
 plus builds/archive/headroom, with120GiB free a conservative recommendation,
 not a hard gate. This is not measured successor Jetson performance. Put the
-checkout or extracted package on a volume with room; the launcher prints free
+checkout on a volume with room; the launcher prints free
 storage. The old6–24h estimate applied to the superseded broad plan.
 
 Results stay under `.experiment-results/<machine>-zero-pcg-20261011/`; source
@@ -68,10 +70,10 @@ python3 experiments/machine_launch.py jetson --collect-only
 Substitute `rtx5060` on that machine. Copy the printed archive to the desktop's
 `/workspace/GATO/_expr_results/` and keep a separate raw backup. There are no
 existing remote results requiring migration. Future demo recordings use
-[compact raw references](demo_recording.md); this plan contains no demos.
+[compact raw references](demo_recording.md); the internal plans contain no demos.
 
 Gazebo is separate. With the existing Gazebo/ROS environment already running,
-inspect then manually run the two-family22-case integration plan:
+inspect then manually run the three-family23-case integration plan:
 
 ```sh
 python3 experiments/run.py --machine rtx5060 --plan experiments/launch/rtx5060_gazebo.json --dry-run
@@ -79,25 +81,19 @@ python3 experiments/run.py --machine rtx5060 --plan experiments/launch/rtx5060_g
 python3 experiments/collect.py --output .experiment-results/rtx5060-gazebo --export .experiment-work/rtx5060-gazebo-results.tar.gz
 ```
 
-It measures task/integration and distinct fault reactions, not GPU timing or
-performance. It does not start Gazebo, change the environment or run a robot.
+It measures two reaching/tracking integration tasks, one accepted five-goal
+square and the20 distinct fault/baseline conditions; no GPU timing/performance
+studies. Run Gazebo after RTX5060 internal success. M03 requires host-assisted,
+separately logged simulator restoration before every trial and fresh PAL
+observations; see the Git handoff for actual ROS/configuration prerequisites.
+The runner does not start Gazebo, change the environment or run a robot.
 
-**Publication and offline fallback:** pull-only needs the runner branch and side
-source pins published. The desktop SSH remote currently fails host-key
-verification, so publication is not claimed and trust settings were unchanged.
-The prepared transfer inventory records exact runner/source hashes. If publishing
-is unavailable, copy/extract the complete transfer archive and use one command:
-
-```sh
-python3 start.py rtx5060
-```
-
-Use `jetson` on the Jetson. `start.py` clones the bundled runner and imports exact
-source pins automatically into `GATO-experiment-runner/` inside the transfer
-directory. No manual worktrees or ignored-asset copies are needed; all launch
-inputs/native helpers are tracked. `runner-assets.tar.gz` is a compatibility
-payload for older handoffs and is unused by this bootstrap. The same environment
-and storage requirements apply. Gazebo keeps its separate manual commands.
+**Git publication:** pull-only needs the runner branch and every advertised
+`experiment/deployment-source-<pin12>` source ref published to the same origin.
+Exact publication/clone/pull commands and pending remote status are in the
+[Git handoff](/workspace/GATO/felixnotes/HANDOFF_REMOTE_MACHINE_RUNS.md).
+All frozen inputs/native helpers are tracked; the launcher imports missing
+sources through Git and owns builds/worktrees. No source archive copy is required.
 
 ## Revised campaign preparation
 

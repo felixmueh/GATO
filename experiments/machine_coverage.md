@@ -3,7 +3,8 @@
 Felix's latest instruction supersedes blanket repetition on every machine.
 Each machine is selected by the thesis question. Full older prepared plans remain
 in `successor/merged/`; this selection preserves their source, inputs, per-case
-settings and historical outcomes. It does not create a new tuned protocol.
+settings and historical outcomes. It does not create a new tuned protocol. Felix separately accepted the v5 square as-is and added
+one Gazebo case; historical square failures remain preserved.
 
 | Study/question | GTX1070 | RTX5060 internal | Jetson internal | Gazebo | Reason and limits |
 | --- | --- | --- | --- | --- | --- |
@@ -19,7 +20,8 @@ settings and historical outcomes. It does not create a new tuned protocol.
 | C01/C03–C06/C08 ControlChoices, X01/X02 extensions, Q02 model checks, TIAGo X03/X04 cylinder routes |Saved sweeps/checks/tasks |None |None |None |Setup/model/algorithm evidence reused on1070. Cylinder routing conclusions remain1070-specific. |
 | M02 geometry/query comparison |Saved study |None |None |None |No added onboard monitor query-frequency claim. |
 | D01/M03 live integration/fault reactions |Not a timing study |Separate Gazebo environment |None |2 task cases +20 fault/baseline cases |D01 goal-1,figure8-12s. M03 all20 conditions retained because each tests a distinct existing software/safety/handback path. No timing matrix or physical-robot guarantee. |
-| Square/visual demos and physical D02 |Saved failures retained; diagnosis separate |Withheld |Withheld |Withheld |Square rough1/5 and q-limit excess retained. No automatic ROS/robot motion; physical scripts remain standalone/manual. |
+| Accepted v5 square |Saved rough5/5, strict2/5, physical pass |No internal rerun |No internal rerun |One separate five-goal square case |Exact accepted orientations with center+X,30cm placement,current weights,N32,15s/goal and final approach retained as-is. Target Gazebo canonical/safety/handback remain required. |
+| Historical square failures, other visual demos and physical D02 |Original/v4 failures preserved |Withheld |Withheld |No old square or extra figure-eight demo queued |No automatic physical motion. Other live figure eights remain unchanged; physical scripts remain standalone/manual. |
 | M04 effort/response/braking illustration |Reuse available1070 simulation evidence |None |No extra remote study |M03 provides focused integration |Effort, state-age, response, braking/clearance illustrations stay qualified by their recorded simulation scope; do not assert missing raw evidence. |
 | F02 cylinder matrix, F03 Indy7, M01 geometry, C07 repair progression, L00 SciPy landscape, IIWA X03 |Retained records only |None |None |None |No rerun anywhere, including source/format migrations. C02 also remains record-only without a new concrete question. |
 | B02/QDLDL, BA seeds-alone |Dropped; saved history retained |None |None |None |Latest accepted removals; no new tasks. |
@@ -27,9 +29,10 @@ settings and historical outcomes. It does not create a new tuned protocol.
 | Q01/Q03/Q04/V01 target setup, original task suite, timing checks, canonical rough reach |Automatic relevant readiness |Automatic relevant readiness |Automatic relevant readiness |Relevant integration readiness |Not extra scientific cohorts; unchanged passed same-machine evidence reused where valid. |
 
 The concrete plans contain **89 RTX5060 cases in four families**, **84 Jetson
-cases in ten experiment entries**, and **22 Gazebo cases in two families**.
+cases in ten experiment entries**, and **23 Gazebo cases in three families**.
 Case counts are workers, not families: timing workers contain frozen samples,
-BB has two workers per pair, and M03's20 cases test distinct fault conditions.
+BB has two workers per pair, and M03's20 cases test distinct fault conditions. The square worker covers five
+goals but is one case.
 Required target task suites/canonical preflights are readiness checks in addition
 to these scientific cases. Failed cases/holds retain raw data and do not become
 passes through this scope selection.
@@ -42,6 +45,6 @@ preflights and recording/export; this is a broad planning estimate rather than
 measured new-Jetson performance. Allow roughly **10–50GiB raw**, plus source/build
 cache, return archive and headroom. Around120GiB free is a conservative planning
 recommendation, not a hard gate. Compact recording changes only future demo
-recordings; this smaller plan has no demos, so no unmeasured compression saving
+recordings; these internal plans have no demos, so no unmeasured compression saving
 is assumed here. The launcher prints actual free storage. Results can vary,
 particularly under the higher-budget N32 timing and force methods.

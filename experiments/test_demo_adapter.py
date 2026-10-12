@@ -130,3 +130,68 @@ def test_finalization_cached_raw_is_exact_and_nonraw_foreign_still_hashed(tmp_pa
     assert set(calls)=={foreign,tmp_path/'events.jsonl',tmp_path/'metrics.json'}
     (tmp_path/'metrics.json').write_text('changed final metrics\n')
     assert demo.manifest_hashes(recorder)['metrics.json']==digest(tmp_path/'metrics.json')
+
+
+def test_gazebo_square_uses_explicit_collector_and_only_one_task(tmp_path,monkeypatch):
+    source=tmp_path/'source';source.mkdir();build=tmp_path/'build';(build/'modules').mkdir(parents=True)
+    (build/'modules/bsqpN32_tiago_right.test.so').write_bytes(b'checked module')
+    collector=tmp_path/'collector';collector.mkdir();inputs=tmp_path/'inputs';inputs.mkdir()
+    (inputs/'proposal.json').write_text('{}');input_file=collector/'proposal.json';input_file.write_text('{}')
+    preflight=tmp_path/'rtx5060/_preflight/square/attempt-001';preflight.mkdir(parents=True)
+    (preflight/'metrics.json').write_text('{}')
+    output=tmp_path/'rtx5060/square/case/attempt-001';output.mkdir(parents=True)
+    (output/'receipt.json').write_text(json.dumps(dict(preflight_path=str(preflight.relative_to(tmp_path)))))
+    pin='a'*40;seen=[]
+    class Worker:
+        INPUT=input_file
+        def main(self):raise AssertionError('Standalone square must not launch the four-task sequence')
+        def resolve(self,backend,task):return dict(backend=backend,task_id=task)
+        def run_task(self,protocol,s,m,o,pf):
+            seen.append((protocol,pf));(o/'SHA256SUMS.json').write_text('{}')
+            return dict(task_id='square',task_success=True,physical_pass=True,execution_error=None,handback_confirmed=True)
+    worker=Worker()
+    def selected_collector(s,b,requested):
+        assert requested==pin;return collector,pin
+    monkeypatch.setattr(demo,'collector_source',selected_collector)
+    monkeypatch.setattr(demo,'load_collector',lambda *a:worker)
+    assert demo.run(source,build,dict(id='square'),output,'gazebo',False,inputs,None,pin)==0
+    assert seen==[(dict(backend='gazebo',task_id='square'),preflight)]
+    metrics=json.loads((output/'metrics.json').read_text())
+    assert metrics['collector_source_commit']==pin and metrics['task_id']=='square'
+    assert 'sequence_index' not in metrics
+
+
+def test_corrected_collector_array_boundary_is_used_without_second_override(tmp_path):
+    import numpy as np
+    path=tmp_path/'corrected_collector.py'
+    path.write_text("import numpy as np\ndef run_task(p,constructor):\n    return constructor(constant_f_ext=np.asarray(p['constant_f_ext'],dtype=np.float32))\n")
+    before=path.read_bytes();worker=demo.load_collector(path)
+    assert worker.GATO_FORCE_ARRAY_OVERRIDE_APPLIED is False
+    result=worker.run_task({'constant_f_ext':[0.]*6},lambda constant_f_ext:constant_f_ext)
+    assert isinstance(result,np.ndarray) and result.dtype==np.float32
+    assert path.read_bytes()==before
+
+
+def test_accepted_square_plan_pins_materialized_collector_and_n32_only(tmp_path):
+    repository=Path(__file__).resolve().parents[1]
+    plan=json.loads((repository/'experiments/launch/rtx5060_gazebo.json').read_text())
+    assert sum(len(e['cases'])*e.get('repeats',1) for e in plan['experiments'])==23
+    square=next(e for e in plan['experiments'] if e['id']=='SquareDemo-v5-Gazebo')
+    assert [c['id'] for c in square['cases']]==['square']
+    assert square['source_commit']=='8dbb8b8d6dc1d65e902373a9aa58693e33329c14'
+    assert '-DKNOTS=32' in square['build']['commands'][0]
+    assert len(next(e for e in plan['experiments'] if e['id']=='D01')['cases'])==2
+    assert len(next(e for e in plan['experiments'] if e['id']=='M03')['cases'])==20
+    pin=square['collector_source_commit']
+    collector,actual=demo.collector_source(repository,tmp_path/'build',pin)
+    assert actual==pin and '--collector-pin' in square['command']
+    frozen=repository/next(iter(square['inputs']))
+    archived=collector/'experiments/deployment/demo/proposal.json'
+    assert frozen.read_bytes()==archived.read_bytes()
+    proposal=json.loads(frozen.read_text())
+    assert len(proposal['goals'])==5 and proposal['goals'][-1]['tool_axis']==[1.0,0.0,0.0]
+    worker=demo.load_collector(collector/'experiments/deployment/demo/run_demo.py')
+    selected=worker.resolve('gazebo','square')
+    assert selected['goals']==proposal['goals'] and selected['N']==32
+    assert selected['runtime_pin']==square['source_commit']
+    assert worker.GATO_FORCE_ARRAY_OVERRIDE_APPLIED is False
