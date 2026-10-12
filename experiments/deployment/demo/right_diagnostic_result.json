@@ -1,0 +1,434 @@
+{
+  "id": "square-right20cm-v7",
+  "collector": "97c5a7f1696820962f5cdb8afc116c2e41382952",
+  "raw_root": "/workspace/GATO/_expr_results/square-right20cm-v7-internal-20261012",
+  "metrics": {
+    "task_id": "square",
+    "campaign_id": "demo_visual_square",
+    "machine": "gtx1070",
+    "input_sha256": "72284ba1fb78fa5ccec42f559745a70c26bcb0d3729d2207a7998e6b56bc2a07",
+    "preflight_setup_sha256": "f80e1947d4c04b7f10e480444e59bce5db7bf61eeed3a8467aa4adc9bfc486af",
+    "backend": "internal",
+    "timing_mode": "B",
+    "task_success": false,
+    "physical_pass": true,
+    "solver_numerical_pass": null,
+    "execution_error": null,
+    "physical_scope": "All recorded simulatedplant substeps/controls",
+    "measured_actuator_torque_available": false,
+    "full_physical_compliance": null,
+    "physical_limits": {
+      "position_violation_rad": 0.0,
+      "velocity_violation_rad_s": 0.0,
+      "published_effort_violation_Nm": 0.0
+    },
+    "simulated_applied_control_available": true,
+    "wrapper_wall_s": {
+      "count": 43789,
+      "mean": 0.0006282598675904374,
+      "median": 0.0002963590086437762,
+      "p95": 0.0021800416288897395,
+      "maximum": 0.013049473986029625
+    },
+    "returned_native_time_us": {
+      "count": 43789,
+      "mean": 531.1648587544818,
+      "median": 194.0,
+      "p95": 2069.5999999999985,
+      "maximum": 12928.0
+    },
+    "final_approach_switches": [
+      {
+        "time_s": 2.089946388413664,
+        "goal_index": 0,
+        "distance_m": 0.060970053681128684,
+        "max_joint_speed_rad_s": 0.09994032174336362,
+        "before": {
+          "q_cost": 4.0,
+          "qd_cost": 0.1,
+          "u_cost": 0.0001,
+          "N_cost": 80.0,
+          "ee_orient_cost": 0.1,
+          "ee_orient_N_cost": 2.0,
+          "q_lim_cost": 0.01,
+          "vel_lim_cost": 0.1,
+          "ctrl_lim_cost": 0.05,
+          "max_sqp_iters": 5,
+          "mu": 1.0,
+          "pcg_tol": 0.001
+        },
+        "after": {
+          "q_cost": 400.0,
+          "qd_cost": 1.0,
+          "u_cost": 0.0003,
+          "N_cost": 1200.0,
+          "ee_orient_cost": 10.0,
+          "ee_orient_N_cost": 10.0,
+          "q_lim_cost": 0.01,
+          "vel_lim_cost": 0.1,
+          "ctrl_lim_cost": 0.05,
+          "max_sqp_iters": 20,
+          "mu": 30.0,
+          "pcg_tol": 0.001
+        }
+      },
+      {
+        "time_s": 5.228862001241651,
+        "goal_index": 1,
+        "distance_m": 0.020644010771960205,
+        "max_joint_speed_rad_s": 0.09998433783174913,
+        "before": {
+          "q_cost": 4.0,
+          "qd_cost": 0.1,
+          "u_cost": 0.0001,
+          "N_cost": 80.0,
+          "ee_orient_cost": 0.1,
+          "ee_orient_N_cost": 2.0,
+          "q_lim_cost": 0.01,
+          "vel_lim_cost": 0.1,
+          "ctrl_lim_cost": 0.05,
+          "max_sqp_iters": 5,
+          "mu": 1.0,
+          "pcg_tol": 0.001
+        },
+        "after": {
+          "q_cost": 400.0,
+          "qd_cost": 1.0,
+          "u_cost": 0.0003,
+          "N_cost": 1200.0,
+          "ee_orient_cost": 10.0,
+          "ee_orient_N_cost": 10.0,
+          "q_lim_cost": 0.01,
+          "vel_lim_cost": 0.1,
+          "ctrl_lim_cost": 0.05,
+          "max_sqp_iters": 20,
+          "mu": 30.0,
+          "pcg_tol": 0.001
+        }
+      },
+      {
+        "time_s": 7.673882974807639,
+        "goal_index": 2,
+        "distance_m": 0.005679548482070286,
+        "max_joint_speed_rad_s": 0.09998371591255598,
+        "before": {
+          "q_cost": 4.0,
+          "qd_cost": 0.1,
+          "u_cost": 0.0001,
+          "N_cost": 80.0,
+          "ee_orient_cost": 0.1,
+          "ee_orient_N_cost": 2.0,
+          "q_lim_cost": 0.01,
+          "vel_lim_cost": 0.1,
+          "ctrl_lim_cost": 0.05,
+          "max_sqp_iters": 5,
+          "mu": 1.0,
+          "pcg_tol": 0.001
+        },
+        "after": {
+          "q_cost": 400.0,
+          "qd_cost": 1.0,
+          "u_cost": 0.0003,
+          "N_cost": 1200.0,
+          "ee_orient_cost": 10.0,
+          "ee_orient_N_cost": 10.0,
+          "q_lim_cost": 0.01,
+          "vel_lim_cost": 0.1,
+          "ctrl_lim_cost": 0.05,
+          "max_sqp_iters": 20,
+          "mu": 30.0,
+          "pcg_tol": 0.001
+        }
+      },
+      {
+        "time_s": 11.477532887512353,
+        "goal_index": 3,
+        "distance_m": 0.029932672677910124,
+        "max_joint_speed_rad_s": 0.09998847425407678,
+        "before": {
+          "q_cost": 4.0,
+          "qd_cost": 0.1,
+          "u_cost": 0.0001,
+          "N_cost": 80.0,
+          "ee_orient_cost": 0.1,
+          "ee_orient_N_cost": 2.0,
+          "q_lim_cost": 0.01,
+          "vel_lim_cost": 0.1,
+          "ctrl_lim_cost": 0.05,
+          "max_sqp_iters": 5,
+          "mu": 1.0,
+          "pcg_tol": 0.001
+        },
+        "after": {
+          "q_cost": 400.0,
+          "qd_cost": 1.0,
+          "u_cost": 0.0003,
+          "N_cost": 1200.0,
+          "ee_orient_cost": 10.0,
+          "ee_orient_N_cost": 10.0,
+          "q_lim_cost": 0.01,
+          "vel_lim_cost": 0.1,
+          "ctrl_lim_cost": 0.05,
+          "max_sqp_iters": 20,
+          "mu": 30.0,
+          "pcg_tol": 0.001
+        }
+      },
+      {
+        "time_s": 21.087283535192256,
+        "goal_index": 4,
+        "distance_m": 0.056234365054554564,
+        "max_joint_speed_rad_s": 0.09999204909941443,
+        "before": {
+          "q_cost": 4.0,
+          "qd_cost": 0.1,
+          "u_cost": 0.0001,
+          "N_cost": 80.0,
+          "ee_orient_cost": 0.1,
+          "ee_orient_N_cost": 2.0,
+          "q_lim_cost": 0.01,
+          "vel_lim_cost": 0.1,
+          "ctrl_lim_cost": 0.05,
+          "max_sqp_iters": 5,
+          "mu": 1.0,
+          "pcg_tol": 0.001
+        },
+        "after": {
+          "q_cost": 400.0,
+          "qd_cost": 1.0,
+          "u_cost": 0.0003,
+          "N_cost": 1200.0,
+          "ee_orient_cost": 10.0,
+          "ee_orient_N_cost": 10.0,
+          "q_lim_cost": 0.01,
+          "vel_lim_cost": 0.1,
+          "ctrl_lim_cost": 0.05,
+          "max_sqp_iters": 20,
+          "mu": 30.0,
+          "pcg_tol": 0.001
+        }
+      }
+    ],
+    "rough_goal_success": [
+      true,
+      true,
+      true,
+      true,
+      false
+    ],
+    "settling_goal_outcomes": [
+      "reached",
+      "reached",
+      "reached",
+      "reached",
+      "timeout"
+    ],
+    "settling_success": false,
+    "rough_scope": "Any recordedfeedback inroughregion pergoal, plus stricter reachedterminal observations; zero roughdwell",
+    "unavailable": {
+      "full_motion_collision_certificate": "notclaimed; runtime monitoractive live, screensendpointonly",
+      "tracking_axis_gate": null
+    }
+  },
+  "per_goal": [
+    {
+      "goal": "bottom-right",
+      "rough_pass": true,
+      "strict_outcome": "reached",
+      "last_recorded_time_s": 3.239180701582227,
+      "terminal_position_m": 0.0016913112376159079,
+      "terminal_axis_deg": 0.6381886870017139,
+      "terminal_full_rotation_deg": 0.6473455518755766,
+      "terminal_speed_L1_rad_s": 0.09667660114710018,
+      "achieved_q_rad": [
+        -1.0778632339501277,
+        -1.0185827150473106,
+        0.5487010833381325,
+        -1.9785159401364414,
+        0.15364490717974066,
+        -1.118404151746111,
+        -0.00033069205577858504
+      ],
+      "achieved_joint_limit_margin_rad": 0.4649450126556198,
+      "achieved_wrist_limit_margin_rad": 0.7665514404077649,
+      "reference_configuration_kind": "qualified endpoint IK witness",
+      "distance_from_reference_configuration_rad": 0.06055684376532714,
+      "distance_from_ik_witness_rad": 0.06055684376532714,
+      "collision_samples": 322,
+      "sampled_minimum_clearance_m": 0.04609130595509318,
+      "sampled_below_40mm": 0,
+      "sampled_contacts": 0
+    },
+    {
+      "goal": "top-right",
+      "rough_pass": true,
+      "strict_outcome": "reached",
+      "last_recorded_time_s": 6.010587878089864,
+      "terminal_position_m": 0.0015895727103036109,
+      "terminal_axis_deg": 0.6785444404661537,
+      "terminal_full_rotation_deg": 0.6895027647080006,
+      "terminal_speed_L1_rad_s": 0.09872611400004079,
+      "achieved_q_rad": [
+        -2.1005795139311414,
+        -1.5373026927549835,
+        1.0192116116357894,
+        -1.8200677329209336,
+        -0.28733245338040897,
+        -1.4960358292805143,
+        0.23621536091506865
+      ],
+      "achieved_joint_limit_margin_rad": 0.3889197628733616,
+      "achieved_wrist_limit_margin_rad": 0.3889197628733616,
+      "reference_configuration_kind": "qualified endpoint IK witness",
+      "distance_from_reference_configuration_rad": 0.33602228928212097,
+      "distance_from_ik_witness_rad": 0.33602228928212097,
+      "collision_samples": 279,
+      "sampled_minimum_clearance_m": 0.05399396665188074,
+      "sampled_below_40mm": 0,
+      "sampled_contacts": 0
+    },
+    {
+      "goal": "top-left",
+      "rough_pass": true,
+      "strict_outcome": "reached",
+      "last_recorded_time_s": 8.561320812529885,
+      "terminal_position_m": 0.0018752051417812738,
+      "terminal_axis_deg": 1.0988164731629217,
+      "terminal_full_rotation_deg": 1.3473292204458243,
+      "terminal_speed_L1_rad_s": 0.12152672113651349,
+      "achieved_q_rad": [
+        -2.894327109078349,
+        -1.856459461685671,
+        1.0087727373893922,
+        -2.1430312095214874,
+        -0.8744691266497432,
+        -1.6641680950986635,
+        0.1866975664096673
+      ],
+      "achieved_joint_limit_margin_rad": 0.2207874970552124,
+      "achieved_wrist_limit_margin_rad": 0.2207874970552124,
+      "reference_configuration_kind": "qualified endpoint IK witness",
+      "distance_from_reference_configuration_rad": 0.3087566103652288,
+      "distance_from_ik_witness_rad": 0.3087566103652288,
+      "collision_samples": 256,
+      "sampled_minimum_clearance_m": 0.04471448713342592,
+      "sampled_below_40mm": 0,
+      "sampled_contacts": 0
+    },
+    {
+      "goal": "bottom-left",
+      "rough_pass": true,
+      "strict_outcome": "reached",
+      "last_recorded_time_s": 12.535912588792854,
+      "terminal_position_m": 0.0038574658826885577,
+      "terminal_axis_deg": 1.8634904033166113,
+      "terminal_full_rotation_deg": 1.9886982307379455,
+      "terminal_speed_L1_rad_s": 0.13588053741266232,
+      "achieved_q_rad": [
+        -4.113463967117255,
+        -1.506827963399253,
+        0.20249783197886453,
+        -2.418039654298951,
+        -1.2009127037534852,
+        -1.66568020718364,
+        0.038356593493718984
+      ],
+      "achieved_joint_limit_margin_rad": 0.025421298493110367,
+      "achieved_wrist_limit_margin_rad": 0.2192753849702358,
+      "reference_configuration_kind": "qualified endpoint IK witness",
+      "distance_from_reference_configuration_rad": 0.09022395563037053,
+      "distance_from_ik_witness_rad": 0.09022395563037053,
+      "collision_samples": 399,
+      "sampled_minimum_clearance_m": 0.02989315679647122,
+      "sampled_below_40mm": 102,
+      "sampled_contacts": 0
+    },
+    {
+      "goal": "center",
+      "rough_pass": false,
+      "strict_outcome": "timeout",
+      "last_recorded_time_s": 27.53620245677419,
+      "terminal_position_m": 0.033752862567234095,
+      "terminal_axis_deg": 34.84813452617557,
+      "terminal_full_rotation_deg": 34.93785109128681,
+      "terminal_speed_L1_rad_s": 0.0009873416366097264,
+      "achieved_q_rad": [
+        -4.451524347836585,
+        1.123879486976647,
+        -2.0563666453964107,
+        -2.3853405730033588,
+        -1.5638769036681281,
+        -0.586726730437323,
+        1.1364213800250482
+      ],
+      "achieved_joint_limit_margin_rad": 0.006919423126768409,
+      "achieved_wrist_limit_margin_rad": 0.006919423126768409,
+      "reference_configuration_kind": "unqualified axial-roll selection candidate",
+      "distance_from_reference_configuration_rad": 5.29790119167821,
+      "collision_samples": 1501,
+      "sampled_minimum_clearance_m": 0.0387857647937139,
+      "sampled_below_40mm": 81,
+      "sampled_contacts": 0
+    }
+  ],
+  "collision_metrics": {
+    "scope": "Actual saved feedback samples selected at10ms targetspacing plusgoalboundaries; fixedbodyassumption; no continuoussweptcertificate or runtimecollisionenforcement inarm-onlyinternalplant",
+    "finite_feedback_prefix_samples": 43789,
+    "nonfinite_feedback_samples": 0,
+    "collision_samples": 2757,
+    "below_40mm": 183,
+    "contacts": 0,
+    "minimum": {
+      "time_s": 8.971013756731992,
+      "goal_index": 3,
+      "feedback_index": 10073,
+      "minimum_clearance_m": 0.02989315679647122,
+      "closest_pair_index": 450,
+      "closest_pair": {
+        "index": 450,
+        "geometry_a": "arm_right_4_link_0",
+        "geometry_b": "gripper_right_base_link_0",
+        "link_a": "arm_right_4_link",
+        "link_b": "gripper_right_base_link",
+        "parent_joint_a": "arm_right_4_joint",
+        "parent_joint_b": "arm_right_7_joint",
+        "distance_m": 0.02989315679647122,
+        "in_collision": false,
+        "nearest_point_a": [
+          0.4703164165017941,
+          -0.1639967204292045,
+          0.8743372360350382
+        ],
+        "nearest_point_b": [
+          0.46748854826303504,
+          -0.1717028658576723,
+          0.845593205226574
+        ]
+      }
+    },
+    "all_sampled_at_least_40mm": false,
+    "body_positions": {
+      "torso_lift_joint": 0.1,
+      "head_1_joint": 0.0,
+      "head_2_joint": 0.0,
+      "arm_left_1_joint": 0.36,
+      "arm_left_2_joint": -1.83,
+      "arm_left_3_joint": 0.47,
+      "arm_left_4_joint": -2.35,
+      "arm_left_5_joint": 0.0,
+      "arm_left_6_joint": -1.2,
+      "arm_left_7_joint": 0.0
+    },
+    "violating_closest_pairs": [
+      {
+        "closest_pair_index": 450,
+        "geometry_a": "arm_right_4_link_0",
+        "geometry_b": "gripper_right_base_link_0",
+        "samples_below_40mm": 183,
+        "contact_samples": 0
+      }
+    ],
+    "limitation": "Counts identify the closest monitored pair per sampled state; simultaneous additional violating pairs are not exhaustively counted."
+  },
+  "adoption": "held: center rough failure and sampled40mmclearance failure"
+}

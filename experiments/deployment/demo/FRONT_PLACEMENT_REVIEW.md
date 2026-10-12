@@ -161,3 +161,20 @@ Raw `/workspace/GATO/_expr_results/square-front20cm-v6-internal-20261012/`;
 new compact report/full-robot actual-motion GIF/PDF in
 `/workspace/GATO/thesis_results/square-front-center-motion/`.
 The static four-posture export stays separate; old v5 and all CPU failures remain.
+
+## Right-shifted 20 cm successor (2026-10-12)
+
+One canonical preflight and one internal episode tested center [0.50,-0.30,-0.10]
+m at unchanged size, directions, controller settings, initialization and fa6
+runtime/module. Four corners pass rough and strict reaching; the center fails
+rough reaching (33.75 mm position,34.85 degree axis error). Recorded plant
+joint position, velocity and applied-control limits pass. Actual collision
+sampling has no contacts, but183/2757 samples are below40 mm; minimum29.89 mm
+between right-arm link4 and right-gripper base. Full task/live adoption is held.
+
+Compared with the previous placement, corner settling and observed posture
+consistency improve and sampled contacts disappear. This changes placement
+and selected axial rotations; it is not a pure translation causal comparison.
+All prior failures remain. Report and90-frame actual-mesh GIF are in
+/workspace/GATO/thesis_results/square-right20cm-motion/. No further runs or
+tuning are part of this cohort.

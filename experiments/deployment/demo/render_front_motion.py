@@ -39,7 +39,8 @@ def main():
     tool_x,=ax.plot([],[],[],color='#bc3e79',lw=2);tool_y,=ax.plot([],[],[],color='#18a3a7',lw=2)
     ax.set(xlim=(-.4,.85),ylim=(-.55,.45),zlim=(-.97,.52),xlabel='Torso X / forward (m)',ylabel='Torso Y / left (m)',zlabel='Torso Z (m)')
     ax.set_box_aspect((1.25,1.,1.49));ax.view_init(elev=18,azim=-35)
-    fig.suptitle('20 cm front square — actual saved internal MPC motion',fontsize=14,y=.98)
+    center=protocol['square_center_torso_m']
+    fig.suptitle(f'20 cm square, torso [{center[0]:.2f}, {center[1]:.2f}, {center[2]:.2f}] m — actual internal MPC',fontsize=12,y=.98)
     m=p['metrics'];cm=p['collision_metrics'];summary=f"Rough {sum(g['rough_pass'] for g in p['per_goal'])}/5 • Strict {sum(g['strict_outcome']=='reached' for g in p['per_goal'])}/5 • q/v/applied-control {'PASS' if m['physical_pass'] else 'FAIL'}"
     fig.text(.5,.942,summary,ha='center',fontsize=10)
     fig.text(.5,.911,f"Full-body collision {'PASS' if cm['all_sampled_at_least_40mm'] else 'FAIL'}: min {cm['minimum']['minimum_clearance_m']*1000:.1f} mm • Below 40 mm: {cm['below_40mm']}/{cm['collision_samples']}",ha='center',fontsize=9,color='#238b45' if cm['all_sampled_at_least_40mm'] else '#b2322b')

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Saved-motion analysis and bounded full-body collision sampling; no solver."""
 import csv
+import argparse
 from collections import Counter
 import json
 from pathlib import Path
@@ -16,7 +17,10 @@ from gato_tiago.tiago_tools import compute_pair_distance_values, compute_pair_di
 
 
 def main():
-    raw=Path(sys.argv[1]);out=Path(sys.argv[2]);out.mkdir(parents=True,exist_ok=True)
+    parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('raw',type=Path);parser.add_argument('output',type=Path)
+    parser.add_argument('--frames',type=int,default=180);args=parser.parse_args()
+    if args.frames<2:raise ValueError('At least two actual-state frames required')
+    raw=args.raw;out=args.output;out.mkdir(parents=True,exist_ok=True)
     protocol=json.loads((raw/'protocol.json').read_text());metrics=json.loads((raw/'metrics.json').read_text());stats=load_controller_stats(raw)
     model=pin.buildModelFromUrdf(str(ROOT/protocol['urdf']['path']));data=model.createData();tool=model.getFrameId('arm_right_tool_link')
     times=np.asarray(stats['timestamps']);q=np.asarray(stats['joint_positions']);v=np.asarray(stats['joint_velocities']);goals=np.asarray(stats['goal_indices'],dtype=int)
@@ -66,7 +70,7 @@ def main():
         writer=csv.DictWriter(stream,fieldnames=list(collision_rows[0]));writer.writeheader();writer.writerows(collision_rows)
     write_json(out/'collision_metrics.json',collision_summary);write_json(out/'per_goal.json',rows)
     # Compact editable actual frames; never interpolate IK configurations.
-    frame_ids=np.unique(np.clip(np.searchsorted(times[:valid_end],np.linspace(times[0],times[valid_end-1],180)),0,valid_end-1))
+    frame_ids=np.unique(np.clip(np.searchsorted(times[:valid_end],np.linspace(times[0],times[valid_end-1],args.frames)),0,valid_end-1))
     with (out/'motion_frames.csv').open('w') as stream:
         writer=csv.writer(stream);writer.writerow(['time_s','goal_index',*[f'q{i+1}_rad' for i in range(7)]])
         for index in frame_ids:writer.writerow([times[index],goals[index],*q[index]])
