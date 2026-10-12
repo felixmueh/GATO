@@ -1,10 +1,12 @@
 """Focused CPU packaging checks; no ROS/native imports or motion."""
 import json
 import sys
+import types
 from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
+import numpy as np
 
 from adapters import deployment
 from recording import write_json, load_controller_stats
@@ -60,6 +62,39 @@ def test_worker_final_json_preserves_compact_summary_and_gate(tmp_path, monkeypa
     worker.run_case = run_case
     monkeypatch.setattr(deployment.importlib, 'import_module', lambda name: worker)
     monkeypatch.setattr(deployment, 'native_module', lambda *args: (object(), module))
+    monkeypatch.setattr(deployment, 'adapt_force_argument', lambda worker: None)
     assert deployment._run(source, tmp_path, {}, output, True) == 0
     assert json.loads((output / 'controller_stats.json').read_text())['recording_format'] == 'task-observations-v1'
     assert load_controller_stats(output)['goal_outcomes'] == ['reached']
+
+
+def test_pinned_force_seam_converts_argument_without_changing_protocol(tmp_path):
+    path = tmp_path / 'worker.py'
+    path.write_text("# Pinned worker fixture\n\ndef run_case(protocol):\n    return constructor(constant_f_ext=protocol['constant_f_ext'])\n")
+    worker = types.ModuleType('force_fixture')
+    worker.__file__ = str(path)
+    def constructor(*, constant_f_ext):
+        assert isinstance(constant_f_ext, np.ndarray)
+        assert constant_f_ext.dtype == np.float32
+        return constant_f_ext
+    worker.constructor = constructor
+    exec(compile(path.read_text(), str(path), 'exec'), worker.__dict__)
+    before = path.read_bytes()
+    original_line = worker.run_case.__code__.co_firstlineno
+    protocol = dict(constant_f_ext=[0., 1., 2., 3., 4., 5.])
+    deployment.adapt_force_argument(worker)
+    assert worker.run_case.__code__.co_firstlineno == original_line
+    np.testing.assert_array_equal(worker.run_case(protocol), protocol['constant_f_ext'])
+    assert protocol['constant_f_ext'] == [0., 1., 2., 3., 4., 5.]
+    assert path.read_bytes() == before
+    deployment.adapt_force_argument(worker)  # Only one override per subprocess.
+
+
+def test_changed_force_seam_is_rejected(tmp_path):
+    path = tmp_path / 'worker.py'
+    path.write_text('def run_case(protocol):\n    return protocol\n')
+    worker = types.ModuleType('changed_force_fixture')
+    worker.__file__ = str(path)
+    exec(compile(path.read_text(), str(path), 'exec'), worker.__dict__)
+    with pytest.raises(ValueError, match='seam changed'):
+        deployment.adapt_force_argument(worker)

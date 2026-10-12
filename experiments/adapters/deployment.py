@@ -2,10 +2,13 @@
 """Compact recording wrapper around the reviewed live D01 Gazebo worker."""
 import argparse
 import importlib
+import inspect
 import json
 from pathlib import Path
 import sys
 import traceback
+
+import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from recording import sha, write_json
@@ -25,6 +28,22 @@ class LiveRecorder(TaskRecorder):
         write_json(path, hashes)
 
 
+def adapt_force_argument(worker):
+    """Apply the existing demo's array boundary without editing pinned sources."""
+    if getattr(worker, '_force_array_adapter', False):
+        return
+    text = inspect.getsource(worker.run_case)
+    seam = "constant_f_ext=protocol['constant_f_ext']"
+    if text.count(seam) != 1:
+        raise ValueError('Frozen D01 force argument seam changed')
+    text = text.replace(seam, "constant_f_ext=np.asarray(protocol['constant_f_ext'], dtype=np.float32)")
+    worker.np = np
+    # Keep original line numbers in any subsequent live failure traceback.
+    text = '\n' * (worker.run_case.__code__.co_firstlineno - 1) + text
+    exec(compile(text, worker.__file__, 'exec'), worker.__dict__)
+    worker._force_array_adapter = True
+
+
 def preflight_path(output):
     receipt = json.loads((output / 'receipt.json').read_text())
     relative = receipt.get('preflight_path')
@@ -42,6 +61,7 @@ def _run(source, build, case, output, preflight=False):
     worker = importlib.import_module('experiments.deployment.run_d01')
     if Path(worker.__file__).resolve() != source / 'experiments/deployment/run_d01.py':
         raise ValueError('D01 worker imported from a different checkout')
+    adapt_force_argument(worker)
     worker.RawRecorder = LiveRecorder
     original_write = worker.write_json
     def compact_write(path, value):
@@ -63,6 +83,7 @@ def _run(source, build, case, output, preflight=False):
     metrics = json.loads(metrics_path.read_text())
     metrics.update(collection_protocol='simple-d01-v1', research_question='RQ-control',
                    collector_sha256=sha(__file__), module_sha256=sha(module),
+                   collector_adapter_overrides=['Force constructor argument list to float32 array; frozen protocol unchanged'],
                    recording_format=TASK_RECORDING_FORMAT)
     write_json(metrics_path, metrics)
     manifest = json.loads((output / 'SHA256SUMS.json').read_text())
