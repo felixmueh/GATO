@@ -285,9 +285,9 @@ def run(args):
     print(f"Machine: {selected}", flush=True)
     profile = profiles[selected]
     # Keep the venv path: resolving executable symlinks discards its packages.
-    python = str(Path(config.get("python", sys.executable)).expanduser().absolute())
+    python = str(Path(getattr(args, "python", None) or config.get("python", sys.executable)).expanduser().absolute())
     output = Path(args.output or config.get("output", ROOT / ".experiment-results")).expanduser().resolve()
-    cache = Path(config.get("cache", ROOT / ".experiment-cache")).expanduser().resolve()
+    cache = Path(getattr(args, "cache", None) or config.get("cache", ROOT / ".experiment-cache")).expanduser().resolve()
     previous = discover(output)
     pending, seen, failures = [], set(), 0
     for experiment in plan["experiments"]:
@@ -516,6 +516,8 @@ def main():
     parser.add_argument("--plan", type=Path, help="Explicit reviewed experiment plan (required for runs)")
     parser.add_argument("--machine", help="Override automatic machine detection")
     parser.add_argument("--output", help="Override local.json/default output folder")
+    parser.add_argument("--cache", help="Override local.json/default source/build cache")
+    parser.add_argument("--python", help="Python executable with the experiment dependencies")
     parser.add_argument("--only", nargs="+", help="Run only these experiment ids")
     parser.add_argument("--dry-run", action="store_true", help="List pending cases without fetching, builds or execution")
     parser.add_argument("--retry-failed", action="store_true", help="Make new attempts for failed/blocked executions")

@@ -10,6 +10,7 @@ from copy import deepcopy
 import json
 from pathlib import Path
 import subprocess
+import shutil
 import tarfile
 import uuid
 
@@ -143,6 +144,9 @@ def package(output,inventory,plans_output=None):
             if path.is_file():
                 relative=str(path.relative_to(ROOT)) if path.is_relative_to(ROOT) else 'experiments/merged/'+path.name
                 archive.add(path,arcname=relative,recursive=False)
+    # One local command after extraction; clone/import exact source refs automatically.
+    launcher=ROOT/'experiments/transfer_start.py'
+    if launcher.exists():shutil.copyfile(launcher,output/'start.py')
     write(output/'inventory.json',dict(inventory,runner_commit=runner,runner_bundle_branch=runner_ref.removeprefix('refs/heads/'),
         package_sha256={name:hashlib.sha256((output/name).read_bytes()).hexdigest() for name in ('sources.bundle','runner-assets.tar.gz')},
         bundle_scope='Exact source Git objects, including tracked historical objects; no working-tree result/build/cache trees.',

@@ -7,6 +7,99 @@ Use the explicit **restored-zero-PCG successor plans** below. Historical plans
 and raw results remain preserved with their original stopping policy and inputs.
 The runner does not launch remote jobs or physical robots.
 
+## Manual Jetson and RTX5060 launch
+
+Run in the existing CUDA development environment with Git, CMake >=3.24,
+a C++ compiler, CUDA `nvcc`, Python headers, NumPy, Pinocchio, pybind11 and pytest.
+RTX5060 builds require a toolkit supporting `120-real`; Jetson builds use
+`87-real`. The launcher uses `/opt/gato-venv/bin/python3` when present, otherwise
+the interpreter invoking it. Override with `--python /path/to/python3` if needed.
+It reports a missing dependency before starting measurements; it does not
+install system packages or change container/device settings.
+
+From the published `experiment/simple-runner` checkout, run one local command:
+
+```sh
+python3 experiments/machine_launch.py rtx5060
+python3 experiments/machine_launch.py jetson
+```
+
+Use only the command for that machine. The frozen manual plans are
+`experiments/launch/rtx5060.json` (712 executable cases) and
+`experiments/launch/jetson.json` (368). The launcher checks inputs and source
+pins, fetches missing published immutable source refs, prints the explicit
+plan/dry-run, then lets the existing runner build, preflight and execute
+sequentially. Failed preflights hold dependent families; independent cases
+continue. Nothing is dispatched remotely. Gazebo and physical robot motion
+have separate reviewed/manual workflows and are never launched here.
+The square case remains held with its original definition/reason in the
+RTX5060 plan; the three figure-eight demo cases remain. Four E02-original
+cases per target remain held in the parent inventory. The saved old Jetson
+F01ab is retained; the queued F01ab is an explicit restored-solver successor
+cohort, not a migration replay.
+
+Jetson scope retains the approved six cylinder cases, all 100 BB pairs once
+per B1/B16 arm, and the full prepared timing/force coverage. BA is absent.
+Before manual Jetson execution, review the duration/storage estimate with
+Felix as required by the campaign revision; no shorter protocol is silently
+selected. Current estimates and their uncertainty are recorded below.
+
+**Jetson planning estimate: 6–24 hours and 30–150 GiB of raw results**, plus
+native builds, transfer archive and free headroom. About 350 GiB available is
+a conservative planning recommendation, not an execution gate. The launcher
+prints available space; place the checkout or extracted transfer package on
+a volume with enough room. These are broad estimates, not measured successor
+Jetson timings or a hardware scaling claim. The matching GTX1070 workers in
+the Jetson subset took about 2.8 hours excluding builds/preflights. Saved
+old-solver Jetson F01ab took 42.96 minutes with an 817 MiB transfer archive;
+that source/protocol differs. Known recording overhead and new compact
+recording make actual time/storage uncertain. The shorter alternative would
+reduce scientific coverage and therefore requires Felix's explicit decision;
+the command preserves the full prepared plan.
+
+Results stay under `.experiment-results/<machine>-zero-pcg-20261011/`; source
+worktrees/builds stay in `.experiment-cache/<machine>-zero-pcg-20261011/`.
+These explicit paths override legacy `local.json` paths. Repeating the same
+command resumes completed work and preserves failures. Only an explicitly
+requested `--retry-failed` makes fresh attempts for failed/blocked cases.
+`--dry-run` checks sources/inputs and lists cases without builds or GPU work.
+The launcher does not start a background supervisor; use an existing persistent
+terminal session if the local shell may disconnect.
+
+On completion or handled interruption, all local raw attempts, partial data,
+inputs, logs and deployment identities are indexed and exported, using the
+existing exporter with gzip level 1, to one portable archive:
+`.experiment-work/<machine>-zero-pcg-20261011-results.tar.gz`.
+Build/source caches stay out. Keep room for both raw results and the archive;
+replacing an existing archive temporarily requires room for the old and new
+archives too. Regenerate only the collection/archive with:
+
+```sh
+python3 experiments/machine_launch.py jetson --collect-only
+```
+
+Substitute `rtx5060` on that machine. Copy the printed archive to the desktop's
+`/workspace/GATO/_expr_results/` for analysis and keep a separate raw backup.
+There are no existing remote results that need migration for this handoff.
+
+**Publication and offline fallback:** pull-only requires the runner branch plus
+its side-branch source pins to be published. The desktop's SSH remote currently
+fails host-key verification, so publication is not claimed. No trust settings
+were changed. Once a reviewed package is created, its `inventory.json` gives
+the exact runner/source identities. If publication is unavailable, copy and
+extract the complete prepared transfer archive, then run:
+
+```sh
+python3 start.py rtx5060
+```
+
+Use `jetson` on the Jetson. `start.py` clones the bundled runner and imports
+all exact source pins automatically into a checkout inside the transfer
+directory; no manual source worktrees or ignored-asset copies are required.
+All launch inputs/native helper files are tracked. `runner-assets.tar.gz`
+remains a compatibility payload for older handoffs; this bootstrap does not
+need it. Apply the same environment and Jetson discussion requirements.
+
 ## Revised campaign preparation
 
 
