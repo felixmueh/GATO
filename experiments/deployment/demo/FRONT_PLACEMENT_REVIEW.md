@@ -223,3 +223,25 @@ forward shift does not improve the transient shortfall relative to v8. No
 additional optimization, placement, run or GIF is produced; root reviews the
 next scope. The valid static witnesses are not the MPC path. Compact result:
 thesis_results/square-right10cm-forward-check/.
+
+## Bottom-left axial orientation diagnostic
+
+The saved v8/v9 transient minima show wrist joint 6 folding to approximately
+-1.8 rad while the tool axis tilts backward. The CPU linear-q witness does not
+represent this executed route. At fixed v8 geometry and unchanged first three
+goals, four bottom-left full rotations are screened with 11 sequential
+Cartesian-position/SO(3) IK samples from the recorded top-left posture. The
+minimal axis-transported orientation rotates the bottom-left tool axially
++61.24 degrees from v8, preserving its inward axis. Its endpoint clearance is
+46.57 mm, but the proxy fails the original 40 mm gate at 39.922 mm. This failure
+is preserved without tolerance changes or numerical investigation. Other
+choices also fail; no further CPU search is performed.
+
+Root authorizes one actual diagnostic of the transported target because its
+full orientation change falls from 105.62 to 90.76 degrees and the proxy avoids
+the observed wrist-pitch fold. Separate proposal_right10_roll.json changes only
+the last target full rotation and setup metadata; first three poses, geometry,
+axes, controller, runtime and initialization remain fixed. The proxy is not
+the controller trajectory or a dynamic certificate. One passing canonical and
+one actual episode will independently evaluate task, plant limits and actual
+full-body clearance. If it fails, stop for user review; no extra run or search.
