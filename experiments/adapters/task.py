@@ -15,7 +15,8 @@ import numpy as np
 
 EXPERIMENTS = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(EXPERIMENTS))
-from recording import RawRecorder, sha, write_json
+from recording import sha, write_json
+from adapters.task_recording import TaskRecorder, TASK_RECORDING_FORMAT
 
 
 def load(name, path):
@@ -92,7 +93,7 @@ def execute(controller, protocol, emit, helpers):
 def run(source, build, case, output, mode='B', preflight=False, inputs=None):
     source, build, output = map(lambda p: Path(p).resolve(), (source, build, output))
     # Opening the recorder first rejects old attempts before overwriting evidence.
-    with RawRecorder(output) as recorder:
+    with TaskRecorder(output) as recorder:
         return _run(source, build, case, output, mode, preflight, recorder, inputs)
 
 
@@ -112,7 +113,8 @@ def _run(source, build, case, output, mode, preflight, recorder, inputs):
     stats, error = {}, None
     metrics = dict(research_question='RQ-control', campaign_id='V01' if preflight else 'T01',
                    execution_backend='internal', timing_mode=mode, offline_timing=protocol['offline_timing'],
-                   machine=os.environ.get('GATO_MACHINE'), configuration=protocol,
+                   machine=os.environ.get('GATO_MACHINE'), configuration_file='protocol.json',
+                   recording_format=TASK_RECORDING_FORMAT,
                    task_success=None, physical_pass=None, solver_numerical_pass=None)
     def interrupted(signum, frame):
         raise KeyboardInterrupt(f'Signal {signum}')
@@ -146,13 +148,12 @@ def _run(source, build, case, output, mode, preflight, recorder, inputs):
     finally:
         for sig, handler in previous.items():
             signal.signal(sig, handler)
-        recorder('final_raw_solves', {'solves': stats.get('raw_solves', [])})
         complete = [step for step in stats.get('raw_execution', []) if 'state_after' in step]
         x = np.asarray([protocol['initial_state']] + [step['state_after'] for step in complete])
         u = np.asarray([step['control'] for step in complete]).reshape(-1, 7)
         t = np.asarray([0.] + [step['time_s'] + step['step_dt_s'] for step in complete])
         np.savez(output / 'execution.npz', x=x, u=u, t=t)
-        write_json(output / 'controller_stats.json', {k: v for k, v in stats.items() if k not in ('raw_solves', 'raw_execution')})
+        recorder.write_controller_stats(stats)
         try:
             if controller is not None:
                 metrics.update(helpers.trace_metrics(protocol, controller.model, x, u, t, stats, error, output))

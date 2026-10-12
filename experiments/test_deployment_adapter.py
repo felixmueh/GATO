@@ -7,7 +7,7 @@ from types import SimpleNamespace
 import pytest
 
 from adapters import deployment
-from recording import write_json
+from recording import write_json, load_controller_stats
 
 
 def test_compact_live_manifest_includes_observer_histories(tmp_path):
@@ -38,3 +38,28 @@ def test_setup_failure_retained_without_native(tmp_path, monkeypatch):
     metrics=json.loads((tmp_path/'failed/metrics.json').read_text())
     assert 'retained setup failure' in metrics['execution_error']
     assert metrics['execution_backend'] == 'gazebo'
+
+
+def test_worker_final_json_preserves_compact_summary_and_gate(tmp_path, monkeypatch):
+    source = tmp_path / 'source'
+    module = tmp_path / 'module.so'
+    module.write_bytes(b'fixture module')
+    output = tmp_path / 'attempt'
+    stats = dict(goal_outcomes=['reached'], timestamps=[.03])
+    worker = SimpleNamespace(__file__=str(source / 'experiments/deployment/run_d01.py'),
+                             write_json=write_json, gazebo_environment_guard=lambda: None)
+    def run_case(case, path):
+        with worker.RawRecorder(path) as recorder:
+            recorder('controller_stats', stats)
+            worker.write_json(path / 'controller_stats.json', stats)
+            worker.write_json(path / 'metrics.json', dict(task_success=True, physical_pass=True,
+                                                          handback_confirmed=True))
+            recorder.manifest()
+        assert stats == dict(goal_outcomes=['reached'], timestamps=[.03])
+        return 0
+    worker.run_case = run_case
+    monkeypatch.setattr(deployment.importlib, 'import_module', lambda name: worker)
+    monkeypatch.setattr(deployment, 'native_module', lambda *args: (object(), module))
+    assert deployment._run(source, tmp_path, {}, output, True) == 0
+    assert json.loads((output / 'controller_stats.json').read_text())['recording_format'] == 'task-observations-v1'
+    assert load_controller_stats(output)['goal_outcomes'] == ['reached']

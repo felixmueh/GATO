@@ -13,11 +13,21 @@ from types import SimpleNamespace
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from recording import RawRecorder, sha, write_json
 from adapters import f01ab
+from adapters.task_recording import project_task_record, NATIVE_DIAGNOSTIC_REPRESENTATION
 from adapters import resource_profiles_common as C, resource_profiles_science as science
 
 SOURCE = '4e5301feaea5f2d06530922ba46aa543e1995d47'
 PROTOCOL = 'simple-resource-profiles-v1'
 BANK_SHA256 = 'f8a8217982f3fa2b1b4fd2629e8cb45949d372f6d43c6137bbdaa7e52acc7007'
+
+
+def project_performance_record(kind, record):
+    """Keep timings/work/quality; the frozen input bank is retained once."""
+    compact = project_task_record(kind, record)
+    # All inputs here are static-bank requests, unlike ordinary measured task states.
+    if kind.startswith(('owner_', 'solve')):
+        compact = {key: value for key, value in compact.items() if key != 'state'}
+    return compact
 
 
 def validate_case(case):
@@ -89,6 +99,17 @@ def run_case(case, output, source, module, inputs, machine=None, *, builder=None
             for sig in (signal.SIGTERM, signal.SIGINT):
                 handlers[sig] = signal.signal(sig, interrupt)
             parameters = validate_case(case)
+            def emit(kind, record):
+                return recorder(kind, project_performance_record(kind, record)
+                                if parameters['study'] == 'F05' else record)
+            write_json(output/'recording.json', dict(
+                recording_format='performance-observations-v1' if parameters['study']=='F05' else 'resource-query-v1',
+                projection_sha256=sha(Path(__file__).with_name('task_recording.py')),
+                native_diagnostic_representation=NATIVE_DIAGNOSTIC_REPRESENTATION,
+                retained='Every timing, stage profile, native work/quality, warmup, failure and input/candidate identity',
+                omitted='F05 repeated frozen-bank inputs and solver matrices; array quality summaries retained',
+                input_bank='Unchanged frozen bank retained once in runner family _inputs, identified by provenance hashes',
+                timing_scope='Recording remains in sustained wall loop; changed overhead can change call count. No timing equivalence claim.'))
             flags = dict(GATO_EXPERIMENT_STAGE_TIMING=parameters['stage_timing'],
                          GATO_EXPERIMENT_RESOURCE_QUERY=True, GATO_EXPERIMENT_TELEMETRY=True)
             info = dict(path=str(module), source_root=str(source), sha256=sha(module), flags=flags)
@@ -109,8 +130,8 @@ def run_case(case, output, source, module, inputs, machine=None, *, builder=None
                 persistent_state='fresh owner eachcall; native dual/rho/drho unavailable; resets retained'))
             C.F = f01ab.load(source,'experiments/frequency_campaign/factory.py','profiles_capture')
             C.E = f01ab.load(source,'experiments/frequency_campaign/episode.py','profiles_episode')
-            events = C.F.Events(recorder)
-            result.update(science.execute(parameters, context, inputs, events, recorder,
+            events = C.F.Events(emit)
+            result.update(science.execute(parameters, context, inputs, events, emit,
                                           builder or Factory, resource_query or query, clock))
         except BaseException:
             result.update(status='execution_failed',execution_error=dict(type='AdapterFailure',error=traceback.format_exc()))

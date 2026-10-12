@@ -7,6 +7,7 @@ import pytest
 
 from adapters.demo import DemoRecorder, collector_source, load_collector
 from recording import iter_events, load_controller_stats, same_value
+from adapters.task_recording import project_task_record
 
 
 def payload():
@@ -20,9 +21,10 @@ def test_lifecycle_deltas_cross_chunks_snapshot_and_failure(tmp_path):
     with DemoRecorder(tmp_path) as recorder:
         record=payload()
         def emit(kind):
-            expected.append((kind,deepcopy(record)));recorder(kind,record)
+            expected.append((kind,deepcopy(project_task_record(kind,record))));recorder(kind,record)
         emit('solve_started')
-        assert len(list(iter_events(tmp_path)))==1  # Inputs durable before solve.
+        recorder.flush()
+        assert len(list(iter_events(tmp_path)))==1  # Explicit flush retains observation.
         record.update(status='completed', output=np.ones((1,665),np.float32),
                       solver_stats={'pcg_iters':np.array([[0],[2]],np.int32)},wall_solve_time_s=.004)
         emit('solve_completed');recorder.flush()
@@ -70,7 +72,9 @@ def test_summary_preserves_unique_feedback_and_metric_semantics(tmp_path):
     assert same_value(restored['ee_actual'],stats['ee_actual'])  # NaN not converted to null.
     for key in ('sqp_iters','pcg_iters','pcg_times_us','kkt_converged'):
         assert key not in restored and key in restored['history_references']
-    assert same_value(next(e for e in iter_events(tmp_path/'attempt') if e['event']=='solve_selected')['record']['solver_stats'],native)
+    restored_native=next(e for e in iter_events(tmp_path/'attempt') if e['event']=='solve_selected')['record']['solver_stats']
+    for key in native:
+        np.testing.assert_array_equal(restored_native[key],native[key])
     # A differently scoped solver-history value is unique and must be retained.
     stats['pcg_iters']=[np.array([[7]],np.int32)]
     recorder.write_controller_stats(stats)

@@ -13,8 +13,7 @@ import shutil
 
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 from recording import sha,write_json
-from recording import RawRecorder, same_value
-import numpy as np
+from adapters.task_recording import TaskRecorder, TASK_RECORDING_FORMAT
 
 COLLECTOR='2c7e2b11bd5bab8fa3a761d17cf55c1aa9cff55e'
 
@@ -44,7 +43,7 @@ def collector_source(repository,build,collector_pin=None):
     return target,pin
 
 
-MANIFEST_OVERRIDE_VERSION='demo-chunk-refs-v1'
+MANIFEST_OVERRIDE_VERSION=TASK_RECORDING_FORMAT
 FINALIZED_FILES=('events.jsonl','case.json','protocol.json','provenance.json',
     'controller_stats.json','metrics.json','ros_observations.jsonl',
     'controller_state_history.csv','full_joint_state_history.jsonl')
@@ -62,62 +61,8 @@ def manifest_hashes(recorder):
     return result
 
 
-class DemoRecorder(RawRecorder):
-    """Bounded chunks and lifecycle deltas; original task stats stay untouched."""
-    def __init__(self, output):
-        super().__init__(output, references=True)
-        self.solve_count = self.step_count = 0
-        write_json(self.output/'recording.json', dict(
-            recording_format=MANIFEST_OVERRIDE_VERSION, max_events=self.max_events,
-            max_bytes=self.max_bytes, reference_window_events=16,
-            durability='Completed chunks retained; solve_started flushes prior events and its inputs. Hard kill may lose current chunk.',
-            timing_scope='Callbacks outside solve timer; recording resource pressure can affect measured solve wall/native time and mode B feedback. No production timing equivalence claim.'))
-
-    def __call__(self, kind, record):
-        event = super().__call__(kind, record)
-        if kind == 'solve_started':
-            self.solve_count += 1
-            self.flush()
-        elif kind == 'step_started':
-            self.step_count += 1
-        return event
-
-    def write_controller_stats(self, stats):
-        summary = dict(stats)
-        references = {}
-        for key, count, events in (('raw_solves', self.solve_count, 'solve_* and plan_*'),
-                                   ('raw_execution', self.step_count, 'step_*')):
-            if key in summary and len(summary[key]) == count:
-                summary.pop(key)
-                references[key] = dict(events=events, count=count)
-        # These four histories are exact copies of selected non-bootstrap solves.
-        # Keep them if a changed collector supplies a different scope/value.
-        solves = [s for s in stats.get('raw_solves', [])
-                  if s.get('category') != 'startup/cold' and s.get('status') == 'completed']
-        for key in ('pcg_iters', 'pcg_times_us', 'kkt_converged', 'sqp_iters'):
-            values = stats.get(key)
-            if values is None or len(values) != len(solves):
-                continue
-            expected = []
-            for solve in solves:
-                native = solve.get('solver_stats', {})
-                if key == 'sqp_iters':
-                    lanes = np.asarray(native.get(key, [])).reshape(-1)
-                    lane = solve.get('best_trajectory_id', 0)
-                    expected.append(int(lanes[lane]) if len(lanes) else 0)
-                else:
-                    expected.append(np.asarray(native.get(key, [])))
-            if all(same_value(np.asarray(a), np.asarray(b)) for a, b in zip(values, expected)):
-                summary.pop(key)
-                references[key] = dict(events='solve_selected', exclude_category='startup/cold',
-                                       field='solver_stats.'+key, count=len(solves),
-                                       selected_lane=key == 'sqp_iters')
-        summary['history_references'] = references
-        event = self('controller_stats', summary)
-        self.flush()
-        # Metadata only; unique feedback arrays live once in the final chunk.
-        write_json(self.output/'controller_stats.json', dict(event, recording_format=MANIFEST_OVERRIDE_VERSION))
-
+class DemoRecorder(TaskRecorder):
+    """Ordinary demo observations, with collector-owned final file manifests."""
     def manifest(self):
         super().manifest()
         path = self.output/'SHA256SUMS.json'
@@ -198,7 +143,7 @@ def run(source,build,case,output,backend,preflight=False,inputs=None,runtime_pin
     metrics.update(collector_source_commit=pin,collection_adapter_sha256=sha(__file__),
         collector_adapter_overrides=(['Force constructor argument list to float32 array; frozen protocol unchanged']
             if getattr(worker,'GATO_FORCE_ARRAY_OVERRIDE_APPLIED',True) else [])+
-            ['Bounded chunk recording with exact lifecycle references and one compact controller summary; task/solver settings unchanged'],
+            ['Ordinary task observations with full executed motion/timing/work/quality; routine solver I/O omitted; task/solver settings unchanged'],
         manifest_override_version=MANIFEST_OVERRIDE_VERSION,
         recording_format=MANIFEST_OVERRIDE_VERSION)
     write_json(output/'metrics.json',metrics)

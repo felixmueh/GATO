@@ -118,6 +118,9 @@ def test_first_response_profile_warmups_reset_and_clocks(runtime,tmp_path,arm,co
     assert [r['category'] for r in started]==(['warmup','measured'] if arm=='profile' else ['measured'])
     native=[e['record']['native_reply'] for e in iter_events(tmp_path/arm) if e['event']=='native_return']
     assert ('experiment_profile_stages' in native[0])==(arm=='profile')
+    assert 'XU' not in native[0] and native[0]['sqp_time_us']==1000.
+    assert native[0]['omitted_array_quality']['XU']['finite'] is True
+    assert all('warm_start' not in r and 'state' not in r and 'reference' not in r for r in started)
 
 
 def test_sustained_checks_boundary_before_next_request_and_retains_overrun(runtime,tmp_path):
@@ -136,7 +139,7 @@ def test_sustained_checks_boundary_before_next_request_and_retains_overrun(runti
 
 
 @pytest.mark.parametrize('failure',['constructor','nonfinite','profile_missing','unexpected_profile'])
-def test_failures_retain_native_bytes_and_metrics(runtime,tmp_path,failure):
+def test_failures_retain_native_quality_and_metrics(runtime,tmp_path,failure):
     source,module=runtime;log=[]
     arm='profile' if failure=='profile_missing' else 'first_response'
     case=next(c for c in C.cases() if c['arm']==arm)
@@ -145,7 +148,10 @@ def test_failures_retain_native_bytes_and_metrics(runtime,tmp_path,failure):
     assert result['execution_error'] and result['completed_calls']==0
     assert result['native_calls']==(0 if failure=='constructor' else 1)
     returns=[e['record']['native_reply'] for e in iter_events(tmp_path/failure) if e['event']=='native_return']
-    if failure=='nonfinite':assert np.isnan(returns[0]['XU'][0,0])
+    if failure=='nonfinite':
+        assert 'XU' not in returns[0]
+        quality=returns[0]['omitted_array_quality']['XU']
+        assert quality['finite'] is False and quality['nonfinite_count']==1
     assert (tmp_path/failure/'SHA256SUMS.json').exists()
 
 

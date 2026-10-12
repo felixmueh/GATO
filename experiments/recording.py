@@ -235,7 +235,7 @@ def load_controller_stats(output):
     """Read historical numeric JSON or a compact summary NPZ envelope."""
     output = Path(output)
     value = json.loads((output / 'controller_stats.json').read_text())
-    if value.get('recording_format') != 'demo-chunk-refs-v1':
+    if value.get('recording_format') not in ('demo-chunk-refs-v1', 'task-observations-v1'):
         return value
     with np.load(output / value['raw_file'], allow_pickle=False) as archive:
         def unpack(v):

@@ -53,9 +53,9 @@ class BBAdapterTests(unittest.TestCase):
         self.assertTrue(metrics['physical_pass'])
         self.assertIsNone(metrics['solver_numerical_pass'])
         events = list(iter_events(self.output))
-        array = events[0]['record']['optimized']
-        self.assertEqual(array.dtype, np.float32)
-        self.assertTrue(np.isnan(array[0]) and np.isinf(array[1]))
+        quality = events[0]['record']['omitted_array_quality']['optimized']
+        self.assertFalse(quality['finite'])
+        self.assertEqual(quality['nonfinite_count'], 2)
 
     def test_episode_exception_preserves_partial_raw_and_execution_failure(self):
         class Worker:

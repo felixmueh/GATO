@@ -18,7 +18,8 @@ from types import SimpleNamespace
 
 EXPERIMENTS = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(EXPERIMENTS))
-from recording import RawRecorder, sha, write_json
+from recording import sha, write_json
+from adapters.task_recording import TaskRecorder, TASK_RECORDING_FORMAT
 
 
 def load_worker(source, module):
@@ -41,7 +42,7 @@ def run_case(source, module, pool, protocol_path, case, output, *, machine=None,
     source, module, pool, protocol_path, output = map(lambda p: Path(p).resolve(), (source, module, pool, protocol_path, output))
     result = dict(campaign_id='BB-readiness' if preflight_input else 'BB', research_question='RQ-batching',
                   execution_backend='internal', timing_mode='B', offline_timing='solve_time', machine=machine,
-                  collection_protocol='compact-recording-v1',
+                  collection_protocol=TASK_RECORDING_FORMAT,
                   evidence_kind='synthetic_test' if worker is not None else 'measurement',
                   task_success=None, physical_pass=None, solver_numerical_pass=None, execution_error=None)
     previous = {}
@@ -49,7 +50,7 @@ def run_case(source, module, pool, protocol_path, case, output, *, machine=None,
     def interrupted(signum, frame):
         raise KeyboardInterrupt(f'BB interrupted by signal {signum}')
 
-    with RawRecorder(output) as recorder:
+    with TaskRecorder(output) as recorder:
         try:
             for sig in (signal.SIGINT, signal.SIGTERM):
                 previous[sig] = signal.signal(sig, interrupted)
@@ -71,7 +72,7 @@ def run_case(source, module, pool, protocol_path, case, output, *, machine=None,
                 frozen_protocol_path=str(protocol_path), frozen_protocol_sha256=sha(protocol_path),
                 inputs={name: sha(pool / name) for name in ('pool.npz', 'pairs.npz')},
                 machine=machine, historical_campaign_manager_used=False,
-                recording='bounded raw event chunks; full executed history and physical summary only on finalization'))
+                recording='ordinary task observations; full executed history, lane assessments, work, quality and timing; solver horizons omitted'))
             worker = worker or load_worker(source, module)
             args = SimpleNamespace(protocol=protocol_path, pool=pool, output=output / 'episode',
                 preflight_input=Path(preflight_input) if preflight_input else None,

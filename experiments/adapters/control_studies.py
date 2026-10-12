@@ -15,7 +15,7 @@ import numpy as np
 
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 from adapters import task,task_suite
-from recording import sha,write_json
+from recording import sha,write_json,load_controller_stats
 
 PARAM_KEYS=('q_cost','qd_cost','u_cost','N_cost','ee_orient_cost','ee_orient_N_cost','q_lim_cost','vel_lim_cost','ctrl_lim_cost','max_sqp_iters','mu','pcg_tol')
 
@@ -78,7 +78,7 @@ def window_metrics(output,holding=False):
     with (output/'executed_trace.csv').open() as stream:rows=list(csv.DictReader(stream))
     rough=[float(r['position_error_m'])<=.05 and float(r['tool_axis_error_deg'])<=30 and float(r['speed_L1_rad_s'])<=1 for r in rows]
     complete=bool(rows and abs(float(rows[-1]['time_s'])-8.)<1e-8 and metrics.get('execution_error') is None)
-    stats=json.loads((output/'controller_stats.json').read_text())
+    stats=load_controller_stats(output)
     metrics.update(observation_completed=complete,public_controller_goal_outcomes=stats.get('goal_outcomes'),
         public_stop_semantics='timeout ends explicit8s observation; rough success uses zero dwell separately',
         rough_success_zero_dwell=bool(any(rough)),first_rough_success_s=next((float(r['time_s']) for r,good in zip(rows,rough) if good),None),

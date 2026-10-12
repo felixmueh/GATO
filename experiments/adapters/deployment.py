@@ -8,11 +8,12 @@ import sys
 import traceback
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from recording import RawRecorder, sha, write_json
+from recording import sha, write_json
+from adapters.task_recording import TaskRecorder, TASK_RECORDING_FORMAT
 from adapters.task import native_module
 
 
-class LiveRecorder(RawRecorder):
+class LiveRecorder(TaskRecorder):
     def manifest(self):
         super().manifest()
         path = self.output / 'SHA256SUMS.json'
@@ -42,6 +43,15 @@ def _run(source, build, case, output, preflight=False):
     if Path(worker.__file__).resolve() != source / 'experiments/deployment/run_d01.py':
         raise ValueError('D01 worker imported from a different checkout')
     worker.RawRecorder = LiveRecorder
+    original_write = worker.write_json
+    def compact_write(path, value):
+        if Path(path).name == 'controller_stats.json':
+            # The immediately preceding callback wrote its compact NPZ envelope.
+            if not Path(path).is_file():
+                raise ValueError('Missing compact controller summary')
+            return
+        return original_write(path, value)
+    worker.write_json = compact_write
     # The public worker still resolves model, task and live controller defaults.
     case = dict(id='preflight-goal-1', repeat=0, parameters=dict(backend='gazebo')) if preflight else dict(case)
     if not preflight:
@@ -52,7 +62,8 @@ def _run(source, build, case, output, preflight=False):
     metrics_path = output / 'metrics.json'
     metrics = json.loads(metrics_path.read_text())
     metrics.update(collection_protocol='simple-d01-v1', research_question='RQ-control',
-                   collector_sha256=sha(__file__), module_sha256=sha(module))
+                   collector_sha256=sha(__file__), module_sha256=sha(module),
+                   recording_format=TASK_RECORDING_FORMAT)
     write_json(metrics_path, metrics)
     manifest = json.loads((output / 'SHA256SUMS.json').read_text())
     manifest['metrics.json'] = sha(metrics_path)

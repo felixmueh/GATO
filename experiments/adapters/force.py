@@ -21,8 +21,11 @@ def run(source,build,inputs,output,case=None,preflight=False,mode=None,execute=s
     params=case['parameters'] if case else {}
     bank=params.get('study')=='E03' and not preflight
     worker='run_native' if bank else 'run_task'
-    command=[sys.executable,'-m','experiments.force_adapter.'+worker,'--build',str(build),
+    wrapper=Path(__file__).resolve().with_name('force_worker.py')
+    command=[sys.executable,str(wrapper),'--source',str(source),'--worker',worker,'--build',str(build),
         '--runner',str(Path(__file__).resolve().parents[1]),'--inputs',str(inputs),'--output',str(output)]
+    full_io=bank or bool(params.get('record_full_io',False))
+    if full_io:command+=['--full-io']
     if preflight:command+=['--preflight','--mode',mode,'--force-N','0','--repeat','0']
     else:
         path=output/'worker_case.json';write_json(path,case);command+=['--case',str(path)]
@@ -31,6 +34,10 @@ def run(source,build,inputs,output,case=None,preflight=False,mode=None,execute=s
     write_json(output/'runner_force_adapter.json',dict(source_commit=subprocess.check_output(
         ['git','-C',str(source),'rev-parse','HEAD'],text=True).strip(),
         adapter_sha256=sha(__file__),worker_sha256=sha(source/'experiments/force_adapter'/f'{worker}.py'),
+        recording_wrapper_sha256=sha(wrapper),recording_projection_sha256=sha(wrapper.with_name('force_recording.py')),
+        recording_common_projection_sha256=sha(wrapper.with_name('task_recording.py')),
+        measurement_contract='force-comparison-full-io-v1' if full_io else 'force-task-measurements-v1',
+        full_solver_io=full_io,
         command=command,parameters=params,canonical_force_N=0 if preflight else None,
         note='Undisturbed canonical readiness; disturbance task physical outcomes are checked in actual runs.'))
     try:

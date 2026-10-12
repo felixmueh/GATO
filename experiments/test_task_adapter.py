@@ -8,7 +8,7 @@ import numpy as np
 import pytest
 
 from adapters import task
-from recording import iter_events, sha
+from recording import iter_events, sha, load_controller_stats
 
 
 def canonical():
@@ -157,11 +157,11 @@ def test_partial_execution_and_scientific_negative(tmp_path, monkeypatch, interr
                     inputs=copied_inputs) == expected_status
     result = json.loads((output / 'metrics.json').read_text())
     assert result['task_success'] is False and result['physical_pass'] is False
-    assert result['configuration']['goal'] == config['goal']
+    assert result['configuration_file'] == 'protocol.json'
     assert json.loads((output / 'protocol.json').read_text())['goal'] == config['goal']
     assert result['outcome'] == ('execution_failed' if interrupt else 'task_failed')
     events = list(iter_events(output))
     assert np.isnan(events[0]['record']['state']).all()
-    final = next(e for e in events if e['event'] == 'final_raw_solves')
-    assert np.isposinf(final['record']['solves'][0]['selected_metadata'][0])
+    assert not any(e['event'] == 'final_raw_solves' for e in events)
+    assert np.isposinf(load_controller_stats(output)['raw_solves'][0]['selected_metadata'][0])
     assert observed and (observed[0] is not None) == interrupt

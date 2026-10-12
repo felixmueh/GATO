@@ -5,6 +5,7 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import numpy as np
+import pytest
 
 import control_studies_plan as plans
 from adapters import control_studies as adapter
@@ -44,9 +45,15 @@ def test_cold_and_unshifted_are_reanchored_without_changed_inputs():
     assert previous[0,0]==0
 
 
-def test_observation_timeout_and_rough_success_are_separate(tmp_path):
+@pytest.mark.parametrize('compact', [False, True])
+def test_observation_timeout_and_rough_success_are_separate(tmp_path, compact):
     (tmp_path/'metrics.json').write_text(json.dumps(dict(task_success=False,task_gates={'public_reached':False},execution_error=None)))
-    (tmp_path/'controller_stats.json').write_text(json.dumps(dict(goal_outcomes=['timeout'])))
+    if compact:
+        from adapters.task_recording import TaskRecorder
+        with TaskRecorder(tmp_path) as recorder:
+            recorder.write_controller_stats(dict(goal_outcomes=['timeout']))
+    else:
+        (tmp_path/'controller_stats.json').write_text(json.dumps(dict(goal_outcomes=['timeout'])))
     fields=('time_s','position_error_m','tool_axis_error_deg','speed_L1_rad_s')
     with (tmp_path/'executed_trace.csv').open('w') as stream:
         w=csv.DictWriter(stream,fieldnames=fields);w.writeheader()
