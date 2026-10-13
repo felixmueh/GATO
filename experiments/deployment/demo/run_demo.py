@@ -14,9 +14,9 @@ import sys
 import traceback
 
 ROOT=Path(__file__).resolve().parents[3]
-INPUT=Path(__file__).with_name('proposal_right10_roll.json')
+INPUT=Path(__file__).with_name('proposal_torque24_limits_only.json')
 RUNTIME_PINS={'internal':'fa6f6bede286c122cc41ac65f42a583da84290e0',
-              'gazebo':'8dbb8b8d6dc1d65e902373a9aa58693e33329c14',
+              'gazebo':'ab00875006741688a98e76fc3a56ad3103dab7ff',
               'physical_robot':'8dbb8b8d6dc1d65e902373a9aa58693e33329c14'}
 TASKS=('square',)  # Accepted four-corner cohort; upward tracking keeps collector2574409
 sys.path.insert(0,str(ROOT))
