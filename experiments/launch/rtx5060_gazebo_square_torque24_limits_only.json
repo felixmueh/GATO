@@ -1,0 +1,135 @@
+{
+  "version": 1,
+  "status": "prepared_after_v12_internal_review_not_executed",
+  "experiments": [
+    {
+      "id": "SquareTorque24-LimitsOnly-Gazebo",
+      "name": "Four-corner square with24 Nm soft limits",
+      "research_question": "RQ-control",
+      "protocol": "square-torque24-limits-only-v12-live-20261013",
+      "source_commit": "ab00875006741688a98e76fc3a56ad3103dab7ff",
+      "collector_source_commit": "529fd86863ddb4bc0eaa50f3d2171a2f10b92a88",
+      "machines": [
+        "rtx5060"
+      ],
+      "timing_mode": "live",
+      "backend": "gazebo",
+      "build": {
+        "inputs": {
+          "native/CMakeLists.txt": "07c285afa3d2055c2c8f64c4645bdad01bdeb3391e77f2082aff3c70443df1e2"
+        },
+        "commands": [
+          [
+            "cmake",
+            "-S",
+            "{runner}/native",
+            "-B",
+            "{build}",
+            "-DGATO_SOURCE_DIR={source}",
+            "-DKNOTS=32",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DGATO_EXPERIMENT_TELEMETRY=ON",
+            "-DCMAKE_CUDA_ARCHITECTURES={cuda_arch}-real",
+            "-DPython3_EXECUTABLE={python}"
+          ],
+          [
+            "cmake",
+            "--build",
+            "{build}",
+            "--parallel",
+            "2"
+          ]
+        ],
+        "artifacts": [
+          "modules/bsqpN32_tiago_right*.so"
+        ]
+      },
+      "inputs": {
+        "experiments/inputs/square_torque24_limits_only/proposal.json": "ec4dc077930d19032caa197564a5fdb2def28b5e9c9f31f50ee8f86f8eff5401"
+      },
+      "command": [
+        "{python}",
+        "{runner}/adapters/demo.py",
+        "--source",
+        "{source}",
+        "--build",
+        "{build}",
+        "--case",
+        "{case}",
+        "--output",
+        "{output}",
+        "--backend",
+        "gazebo",
+        "--inputs",
+        "{inputs}/experiments/inputs/square_torque24_limits_only",
+        "--runtime-pin",
+        "ab00875006741688a98e76fc3a56ad3103dab7ff",
+        "--collector-pin",
+        "529fd86863ddb4bc0eaa50f3d2171a2f10b92a88"
+      ],
+      "preflight": {
+        "group": "square-torque24-limits-only-gazebo-canonical",
+        "command": [
+          "{python}",
+          "{runner}/adapters/demo.py",
+          "--source",
+          "{source}",
+          "--build",
+          "{build}",
+          "--case",
+          "{case}",
+          "--output",
+          "{output}",
+          "--backend",
+          "gazebo",
+          "--inputs",
+          "{inputs}/experiments/inputs/square_torque24_limits_only",
+          "--runtime-pin",
+          "ab00875006741688a98e76fc3a56ad3103dab7ff",
+          "--collector-pin",
+          "529fd86863ddb4bc0eaa50f3d2171a2f10b92a88",
+          "--preflight"
+        ]
+      },
+      "repeats": 1,
+      "cases": [
+        {
+          "id": "square",
+          "parameters": {
+            "backend": "gazebo"
+          }
+        }
+      ],
+      "cohort_id": "square-torque24-limits-only-v12-20261013",
+      "stopping_policy": "zero_pcg_or_finite_kkt",
+      "qualification": "Root accepted v12 internal gates:4/4 rough and strict reaches, q/v/applied26Nm pass;25,753 final31-row horizons and26,595 applied substeps finite/within26Nm, maximum17.448Nm. Sampled1,506 actual full-body states clear40mm, minimum43.293mm. One internal run; live outcome unproved.26Nm guard/clampfalse, safety and handback unchanged.",
+      "accepted_internal_source_setup": "72d598a3f1bb449835c59e5a88fe0f710c3026c3",
+      "accepted_internal_evidence": "/workspace/GATO/_expr_results/square-torque24-limits-only-v12-internal-20261013/attempt-001/square",
+      "accepted_internal_protocol_sha256": "65d3f2139f66c8e032091cc0b4209f9e269d8a17ab45a930bdf493d8ae6b31d9",
+      "accepted_internal_input_sha256": "ec4dc077930d19032caa197564a5fdb2def28b5e9c9f31f50ee8f86f8eff5401",
+      "accepted_internal_goals_count": 4,
+      "center_reach_included": false,
+      "accepted_internal_native_source_commit": "228cfa81e10ac694c01bf6ed3c33613e59f75e34",
+      "native_setup": {
+        "parent_live_runtime": "8dbb8b8d6dc1d65e902373a9aa58693e33329c14",
+        "changed_file": "gato/dynamics/tiago_right/tiago_right_limits.cuh",
+        "optimizer_soft_onset_Nm": 24,
+        "hard_optimizer_control_bounds": false,
+        "controller_max_abs_torque_Nm": 26,
+        "clamp_torque": false,
+        "original_costs_and_goals_unchanged": true
+      },
+      "accepted_internal_report": "/workspace/GATO/thesis_results/square-torque24-limits-only/README.md"
+    }
+  ],
+  "parent_plan": "experiments/launch/rtx5060_gazebo_four_corner_v10.json",
+  "parent_plan_sha256": "13122636d0f5cd57c2d5b3b57c9b65364f9948e4a453279e7e5754c0daefc8fe",
+  "cohort_id": "rtx5060-gazebo-square-torque24-limits-only-v12-20261013",
+  "scope": "Single limits-only square successor. Previous v10 Gazebo guard failure and heavy-v11 internal failure preserved. No upward figure-eight, goal1, Jetson supplement, optionalfault or physicalrobot rerun.",
+  "paths": {
+    "output": ".experiment-results/rtx5060-gazebo-square-torque24-limits-only-v12-20261013",
+    "cache": ".experiment-cache/rtx5060-gazebo",
+    "archive": ".experiment-work/rtx5060-gazebo-square-torque24-limits-only-v12-20261013-results.tar.gz"
+  },
+  "note": "Different source commit produces a distinct native build cache identity. Only native soft thresholds change; controller guard26Nm/clampfalse and scientific goals/costs/feedback/finalapproach remain. Fresh cohort/module/canonical; no old failure relabeled or safety gate waived. Preparation only, no publication or live outcome claimed."
+}
