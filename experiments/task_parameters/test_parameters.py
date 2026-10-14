@@ -14,7 +14,7 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / 'tiago_src'))
 sys.path.insert(0, str(Path(__file__).parent))
 from protocol import periodic_reference, resolve_protocol, safety_policy
-from worker import make_finite_recorder
+from worker import make_finite_recorder, run_native_readiness
 from gato_tiago import safety_monitor as safety
 from gato_tiago.tiago_controller_process import (
     _validate_trajectory, _require_gazebo_report_only_context, TorqueTrajectory)
@@ -131,3 +131,43 @@ def test_finite_guard_records_before_error_and_does_not_add_limits():
         with pytest.raises(ValueError, match='nonfinite execution'):
             recorder(kind, record)
         assert events[-1] == (kind, record)
+
+
+@pytest.mark.parametrize('nonfinite', [False, True])
+def test_native_readiness_preserves_new_N_one_call_and_final_output_gate(inputs, tmp_path, monkeypatch, nonfinite):
+    # Explicit CPU fixture for collector wiring; not native/GPU qualification.
+    sys.path.insert(0, '/workspace/GATO-experiment-runner-simple/experiments')
+    from adapters import task
+    import worker
+    module = tmp_path / 'fixture.so'; module.write_bytes(b'CPU fixture only')
+    native = object(); calls = []
+    monkeypatch.setattr(task, 'native_module', lambda source, build, N: (native, module))
+    class Solver:
+        def __init__(self, *args, **kwargs):
+            assert args[1:4] == (1, 256, .03)
+            assert kwargs['max_sqp_iters'] == 1 and kwargs['max_pcg_iters'] == 120
+            self.lib = native; self.stats = {'kkt_converged': [False]}
+        def solve(self, state, reference, seed):
+            calls.append((state.copy(), reference.copy(), seed.copy()))
+            result = seed.copy()
+            if nonfinite:
+                result[0, -1] = np.nan
+            return result, np.array([10.])
+    interface = SimpleNamespace(__file__=str(ROOT / 'python/bsqp/interface.py'), BSQP=Solver)
+    original_import = worker.importlib.import_module
+    monkeypatch.setattr(worker.importlib, 'import_module',
+        lambda name: interface if name == 'bsqp.interface' else original_import(name))
+    args = SimpleNamespace(backend='internal', preflight=False, dangerously_disable_safety_stops=False,
+        inputs=inputs, dry_run=False, runner_root=Path('/workspace/GATO-experiment-runner-simple'),
+        source=ROOT, build=tmp_path / 'build', output=tmp_path / 'result', collector_pin='0' * 40)
+    case = dict(id='goal-3', parameters=dict(N=256, dt_s=.03, sqp_max_iter=1, pcg_max_iter=120))
+    status = run_native_readiness(args, case)
+    metrics = json.loads((args.output / 'metrics.json').read_text())
+    p = json.loads((args.output / 'protocol.json').read_text())
+    canonical = json.loads((inputs / 'v01.json').read_text())
+    assert len(calls) == 1 and metrics['optimizer_calls'] == 1 and metrics['N'] == 256
+    assert p['goal'] == canonical['goal'] and p['initial_state'] == canonical['initial_state']
+    assert metrics['motion_executed'] is False and metrics['task_success'] is None
+    assert metrics['finite_readiness_pass'] is (not nonfinite)
+    assert status == int(nonfinite)
+    assert (args.output / 'native_output.npz').is_file()

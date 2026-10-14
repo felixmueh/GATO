@@ -61,8 +61,8 @@ def resolve_protocol(inputs, case, backend, preflight=False, report_only=False):
     dt = parameters.get('dt_s', .03)
     sqp = parameters.get('sqp_max_iter', 5)
     pcg = parameters.get('pcg_max_iter', 120)
-    if type(N) is not int or N not in (16, 32, 64, 128):
-        raise ValueError('N must be 16,32,64,128')
+    if type(N) is not int or N not in (16, 32, 64, 128, 256, 512):
+        raise ValueError('N must be 16,32,64,128,256,512')
     if type(dt) not in (int, float) or dt not in (.01, .015, .02, .03, .045, .06):
         raise ValueError('dt_s must be a declared study knot spacing')
     if type(sqp) is not int or sqp not in (1, 2, 5) or type(pcg) is not int or pcg != 120:

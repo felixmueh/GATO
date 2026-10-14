@@ -3,7 +3,10 @@
 This experiment-only source starts from live runtime `8dbb8b8`. Internal tasks
 continue using the unchanged `fa6f6be` runtime supplied through `--source`.
 Native solver, generated dynamics, soft penalties and physical URDF limits are
-unchanged. No build, GPU solve, ROS motion, Gazebo run or publication was performed
+unchanged in arithmetic. This large-horizon testing successor adds only PCG
+shared-memory launch setup; ordinary float32 N<=128 adds no CUDA queries or
+attribute calls. It is separate from the original fa6/90bdb small-horizon sources.
+No optimizer solve, ROS motion, Gazebo run or publication was performed
 while preparing this source. Target canonical, per-module readiness and pilots
 remain necessary before measurements; CPU tests do not qualify task behavior.
 
@@ -81,3 +84,36 @@ internal torque/joint/collision gate and does not inspect intermediate SQP
 diagnostics. The unchanged internal runtime alone did not enforce this policy;
 this guard is part of the new study's collection setup. The followup focused
 subset contains 10 passing checks.
+
+## Large-horizon testing successor
+
+Standalone internal core commit `3bc10fff411ad87078e94c8bfc5d96830b82a66e`
+is cleanly cherry-pickable: shared resource helper plus two BSQP constructor
+hooks, before allocation and outside solve timing. Equivalent live cherry-pick:
+`5f258acfc074c69852719df39b080d677dd7465e`. No kernel arithmetic changed.
+The resource probe is a separate commit and now queries the same policy and
+actual configured function allowance without launching any kernel with null
+operands. An unsupported requested dynamic+compiled-static total yields a clear
+error instead of proceeding to solver allocation/execution.
+
+Allowed N now includes 256 and 512. Hardware support is conditional; this does
+not qualify either horizon for tasks. Local GTX1070 resource probes compiled
+and were queried once each: N32 uses 13,764 dynamic+32 static bytes and fits
+49,152 with no opt-in; N256 requests 76,484+32 and exceeds that device's actual
+49,152 opt-in limit. Both performed zero kernel launches. Raw evidence:
+`/workspace/GATO/_expr_results/pcg-shmem-optin-validation-20261014/`.
+Successful opt-in on RTX/Orin, N512 resource support and task behavior remain
+remote checks, not local qualification. No new native optimizer/task run occurred.
+
+Before each new horizon's task pilot, manually perform capacity then
+`worker.py --native-readiness` with the ordinary CLI paths, internal backend and
+case parameters N=<new N>,dt_s=0.03,sqp_max_iter=1,pcg_max_iter=120.
+The worker uses the frozen v01 state/goal, keeps the requested N, and executes
+exactly one cold public BSQP B1 call with constant-state/zero-control seed.
+It retains input/output NPZ, finite flags, wrapper/native time and exact
+source/module/input provenance. There is no plant/controller/ROS/motion and no
+KKT/intermediate-array convergence gate. Nonfinite final packed execution
+output or a native exception fails readiness; it is not a reaching outcome.
+Neither the unsafe flag nor canonical-preflight mode can be combined with it.
+The two CPU binding fixtures are plumbing checks only. Combined relevant CPU
+checks (parameter worker plus shared-memory API stubs) recorded 13 passed.
