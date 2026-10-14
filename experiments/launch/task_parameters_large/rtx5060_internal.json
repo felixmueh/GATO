@@ -1,0 +1,1019 @@
+{
+  "version": 1,
+  "name": "Additional supported large-horizon task cells",
+  "status": "prepared_capacity_finite_readiness_and_pilots_pending",
+  "cohort_id": "task-parameters-large-optin-20261014",
+  "setting": "rtx5060_internal",
+  "scientific_episodes": 19,
+  "base_study": "The unchanged 293-episode N16\u2013128 plans retain original pins/evidence; no campaign rerun",
+  "study_B_30ms_reuse": "Use this extension Study A SQP5 tracking cases at each new N; no additional episodes",
+  "execution_policy": "Manual capacity then finite native readiness then same-cell task pilot for each ascending N; review wall cost before full grid",
+  "experiments": [
+    {
+      "id": "A-N256-SQP1",
+      "name": "Horizon length and solver budget",
+      "source_commit": "a17e3e631e52e927bb6b81675b9a8f958d473d3d",
+      "collector_source_commit": "f6cb96f1aa0c014ffc221b1b81adb2beebbb9564",
+      "protocol": "task-parameters-large-optin-20261014",
+      "cohort_id": "task-parameters-large-optin-20261014",
+      "research_question": "RQ-control",
+      "timing_mode": "B",
+      "backend": "internal",
+      "machines": [
+        "rtx5060"
+      ],
+      "build": {
+        "inputs": {
+          "native/CMakeLists.txt": "07c285afa3d2055c2c8f64c4645bdad01bdeb3391e77f2082aff3c70443df1e2",
+          "native/qualified/CMakeLists.txt": "9bdaae9f2d3991a3c567666bf77d8a253666c3adee9b4e66598c83f647dc41c7",
+          "native/task_readiness/CMakeLists.txt": "90abec70a6f830071843841791f13b995cf963118659b7001d8ed0085a8da6a6"
+        },
+        "commands": [
+          [
+            "cmake",
+            "-S",
+            "{runner}/native/qualified",
+            "-B",
+            "{build}",
+            "-DGATO_SOURCE_DIR={source}",
+            "-DKNOTS=32;256",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DGATO_EXPERIMENT_TELEMETRY=ON",
+            "-DCMAKE_CUDA_ARCHITECTURES={cuda_arch}-real",
+            "-DPython3_EXECUTABLE={python}"
+          ],
+          [
+            "cmake",
+            "--build",
+            "{build}",
+            "--parallel",
+            "2"
+          ]
+        ],
+        "artifacts": [
+          "modules/bsqpN32_tiago_right*.so",
+          "modules/bsqpN256_tiago_right*.so",
+          "cuda_access_smoke"
+        ]
+      },
+      "inputs": {
+        "experiments/inputs/t01/t01.json": "aec47cfa3819de5adbb8633b637f5bd9bcd327cb3afc5043a856b323af5aac41",
+        "experiments/inputs/t01/v01.json": "20920040853786cf3d96f13ba240f82918a9f0f5020270fbe67715666477cc81",
+        "experiments/inputs/task_parameters/canonical_case.json": "f45af2548bb0e759e197b70d648fac27bf701bd265d431c17f5b71f80381c3f1"
+      },
+      "parameters": {
+        "collector_source_commit": "f6cb96f1aa0c014ffc221b1b81adb2beebbb9564",
+        "pcg_max_iter": 120,
+        "native_shared_memory_policy": "conditional_opt_in_only_above_default_and_device_fit"
+      },
+      "command": [
+        "{python}",
+        "{runner}/adapters/task_parameters.py",
+        "--source",
+        "{source}",
+        "--build",
+        "{build}",
+        "--inputs",
+        "{inputs}/experiments/inputs/t01",
+        "--case",
+        "{case}",
+        "--output",
+        "{output}",
+        "--backend",
+        "internal",
+        "--collector-pin",
+        "f6cb96f1aa0c014ffc221b1b81adb2beebbb9564"
+      ],
+      "preflight": {
+        "command": [
+          "{python}",
+          "{runner}/adapters/task_parameters.py",
+          "--source",
+          "{source}",
+          "--build",
+          "{build}",
+          "--inputs",
+          "{inputs}/experiments/inputs/t01",
+          "--case",
+          "{inputs}/experiments/inputs/task_parameters/canonical_case.json",
+          "--output",
+          "{output}",
+          "--backend",
+          "internal",
+          "--collector-pin",
+          "f6cb96f1aa0c014ffc221b1b81adb2beebbb9564",
+          "--preflight"
+        ],
+        "group": "task-parameters-large-optin-20261014-internal-N256"
+      },
+      "cases": [
+        {
+          "id": "goal-3",
+          "name": "317 mm reach",
+          "parameters": {
+            "N": 256,
+            "dt_s": 0.03,
+            "sqp_max_iter": 1,
+            "pcg_max_iter": 120
+          }
+        },
+        {
+          "id": "figure8-6s",
+          "name": "6-second figure-eight",
+          "parameters": {
+            "N": 256,
+            "dt_s": 0.03,
+            "sqp_max_iter": 1,
+            "pcg_max_iter": 120
+          }
+        },
+        {
+          "id": "figure8-12s",
+          "name": "12-second figure-eight",
+          "parameters": {
+            "N": 256,
+            "dt_s": 0.03,
+            "sqp_max_iter": 1,
+            "pcg_max_iter": 120
+          }
+        }
+      ],
+      "repeats": 1,
+      "timeout_seconds": 1800
+    },
+    {
+      "id": "A-N256-SQP2",
+      "name": "Horizon length and solver budget",
+      "source_commit": "a17e3e631e52e927bb6b81675b9a8f958d473d3d",
+      "collector_source_commit": "f6cb96f1aa0c014ffc221b1b81adb2beebbb9564",
+      "protocol": "task-parameters-large-optin-20261014",
+      "cohort_id": "task-parameters-large-optin-20261014",
+      "research_question": "RQ-control",
+      "timing_mode": "B",
+      "backend": "internal",
+      "machines": [
+        "rtx5060"
+      ],
+      "build": {
+        "inputs": {
+          "native/CMakeLists.txt": "07c285afa3d2055c2c8f64c4645bdad01bdeb3391e77f2082aff3c70443df1e2",
+          "native/qualified/CMakeLists.txt": "9bdaae9f2d3991a3c567666bf77d8a253666c3adee9b4e66598c83f647dc41c7",
+          "native/task_readiness/CMakeLists.txt": "90abec70a6f830071843841791f13b995cf963118659b7001d8ed0085a8da6a6"
+        },
+        "commands": [
+          [
+            "cmake",
+            "-S",
+            "{runner}/native/qualified",
+            "-B",
+            "{build}",
+            "-DGATO_SOURCE_DIR={source}",
+            "-DKNOTS=32;256",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DGATO_EXPERIMENT_TELEMETRY=ON",
+            "-DCMAKE_CUDA_ARCHITECTURES={cuda_arch}-real",
+            "-DPython3_EXECUTABLE={python}"
+          ],
+          [
+            "cmake",
+            "--build",
+            "{build}",
+            "--parallel",
+            "2"
+          ]
+        ],
+        "artifacts": [
+          "modules/bsqpN32_tiago_right*.so",
+          "modules/bsqpN256_tiago_right*.so",
+          "cuda_access_smoke"
+        ]
+      },
+      "inputs": {
+        "experiments/inputs/t01/t01.json": "aec47cfa3819de5adbb8633b637f5bd9bcd327cb3afc5043a856b323af5aac41",
+        "experiments/inputs/t01/v01.json": "20920040853786cf3d96f13ba240f82918a9f0f5020270fbe67715666477cc81",
+        "experiments/inputs/task_parameters/canonical_case.json": "f45af2548bb0e759e197b70d648fac27bf701bd265d431c17f5b71f80381c3f1"
+      },
+      "parameters": {
+        "collector_source_commit": "f6cb96f1aa0c014ffc221b1b81adb2beebbb9564",
+        "pcg_max_iter": 120,
+        "native_shared_memory_policy": "conditional_opt_in_only_above_default_and_device_fit"
+      },
+      "command": [
+        "{python}",
+        "{runner}/adapters/task_parameters.py",
+        "--source",
+        "{source}",
+        "--build",
+        "{build}",
+        "--inputs",
+        "{inputs}/experiments/inputs/t01",
+        "--case",
+        "{case}",
+        "--output",
+        "{output}",
+        "--backend",
+        "internal",
+        "--collector-pin",
+        "f6cb96f1aa0c014ffc221b1b81adb2beebbb9564"
+      ],
+      "preflight": {
+        "command": [
+          "{python}",
+          "{runner}/adapters/task_parameters.py",
+          "--source",
+          "{source}",
+          "--build",
+          "{build}",
+          "--inputs",
+          "{inputs}/experiments/inputs/t01",
+          "--case",
+          "{inputs}/experiments/inputs/task_parameters/canonical_case.json",
+          "--output",
+          "{output}",
+          "--backend",
+          "internal",
+          "--collector-pin",
+          "f6cb96f1aa0c014ffc221b1b81adb2beebbb9564",
+          "--preflight"
+        ],
+        "group": "task-parameters-large-optin-20261014-internal-N256"
+      },
+      "cases": [
+        {
+          "id": "goal-3",
+          "name": "317 mm reach",
+          "parameters": {
+            "N": 256,
+            "dt_s": 0.03,
+            "sqp_max_iter": 2,
+            "pcg_max_iter": 120
+          }
+        },
+        {
+          "id": "figure8-6s",
+          "name": "6-second figure-eight",
+          "parameters": {
+            "N": 256,
+            "dt_s": 0.03,
+            "sqp_max_iter": 2,
+            "pcg_max_iter": 120
+          }
+        },
+        {
+          "id": "figure8-12s",
+          "name": "12-second figure-eight",
+          "parameters": {
+            "N": 256,
+            "dt_s": 0.03,
+            "sqp_max_iter": 2,
+            "pcg_max_iter": 120
+          }
+        }
+      ],
+      "repeats": 1,
+      "timeout_seconds": 1800
+    },
+    {
+      "id": "A-N256-SQP5",
+      "name": "Horizon length and solver budget",
+      "source_commit": "a17e3e631e52e927bb6b81675b9a8f958d473d3d",
+      "collector_source_commit": "f6cb96f1aa0c014ffc221b1b81adb2beebbb9564",
+      "protocol": "task-parameters-large-optin-20261014",
+      "cohort_id": "task-parameters-large-optin-20261014",
+      "research_question": "RQ-control",
+      "timing_mode": "B",
+      "backend": "internal",
+      "machines": [
+        "rtx5060"
+      ],
+      "build": {
+        "inputs": {
+          "native/CMakeLists.txt": "07c285afa3d2055c2c8f64c4645bdad01bdeb3391e77f2082aff3c70443df1e2",
+          "native/qualified/CMakeLists.txt": "9bdaae9f2d3991a3c567666bf77d8a253666c3adee9b4e66598c83f647dc41c7",
+          "native/task_readiness/CMakeLists.txt": "90abec70a6f830071843841791f13b995cf963118659b7001d8ed0085a8da6a6"
+        },
+        "commands": [
+          [
+            "cmake",
+            "-S",
+            "{runner}/native/qualified",
+            "-B",
+            "{build}",
+            "-DGATO_SOURCE_DIR={source}",
+            "-DKNOTS=32;256",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DGATO_EXPERIMENT_TELEMETRY=ON",
+            "-DCMAKE_CUDA_ARCHITECTURES={cuda_arch}-real",
+            "-DPython3_EXECUTABLE={python}"
+          ],
+          [
+            "cmake",
+            "--build",
+            "{build}",
+            "--parallel",
+            "2"
+          ]
+        ],
+        "artifacts": [
+          "modules/bsqpN32_tiago_right*.so",
+          "modules/bsqpN256_tiago_right*.so",
+          "cuda_access_smoke"
+        ]
+      },
+      "inputs": {
+        "experiments/inputs/t01/t01.json": "aec47cfa3819de5adbb8633b637f5bd9bcd327cb3afc5043a856b323af5aac41",
+        "experiments/inputs/t01/v01.json": "20920040853786cf3d96f13ba240f82918a9f0f5020270fbe67715666477cc81",
+        "experiments/inputs/task_parameters/canonical_case.json": "f45af2548bb0e759e197b70d648fac27bf701bd265d431c17f5b71f80381c3f1"
+      },
+      "parameters": {
+        "collector_source_commit": "f6cb96f1aa0c014ffc221b1b81adb2beebbb9564",
+        "pcg_max_iter": 120,
+        "native_shared_memory_policy": "conditional_opt_in_only_above_default_and_device_fit"
+      },
+      "command": [
+        "{python}",
+        "{runner}/adapters/task_parameters.py",
+        "--source",
+        "{source}",
+        "--build",
+        "{build}",
+        "--inputs",
+        "{inputs}/experiments/inputs/t01",
+        "--case",
+        "{case}",
+        "--output",
+        "{output}",
+        "--backend",
+        "internal",
+        "--collector-pin",
+        "f6cb96f1aa0c014ffc221b1b81adb2beebbb9564"
+      ],
+      "preflight": {
+        "command": [
+          "{python}",
+          "{runner}/adapters/task_parameters.py",
+          "--source",
+          "{source}",
+          "--build",
+          "{build}",
+          "--inputs",
+          "{inputs}/experiments/inputs/t01",
+          "--case",
+          "{inputs}/experiments/inputs/task_parameters/canonical_case.json",
+          "--output",
+          "{output}",
+          "--backend",
+          "internal",
+          "--collector-pin",
+          "f6cb96f1aa0c014ffc221b1b81adb2beebbb9564",
+          "--preflight"
+        ],
+        "group": "task-parameters-large-optin-20261014-internal-N256"
+      },
+      "cases": [
+        {
+          "id": "goal-3",
+          "name": "317 mm reach",
+          "parameters": {
+            "N": 256,
+            "dt_s": 0.03,
+            "sqp_max_iter": 5,
+            "pcg_max_iter": 120
+          }
+        },
+        {
+          "id": "figure8-6s",
+          "name": "6-second figure-eight",
+          "parameters": {
+            "N": 256,
+            "dt_s": 0.03,
+            "sqp_max_iter": 5,
+            "pcg_max_iter": 120
+          }
+        },
+        {
+          "id": "figure8-12s",
+          "name": "12-second figure-eight",
+          "parameters": {
+            "N": 256,
+            "dt_s": 0.03,
+            "sqp_max_iter": 5,
+            "pcg_max_iter": 120
+          }
+        }
+      ],
+      "repeats": 1,
+      "timeout_seconds": 1800
+    },
+    {
+      "id": "B-N256-dt10ms",
+      "name": "Knot spacing and horizon length",
+      "source_commit": "a17e3e631e52e927bb6b81675b9a8f958d473d3d",
+      "collector_source_commit": "f6cb96f1aa0c014ffc221b1b81adb2beebbb9564",
+      "protocol": "task-parameters-large-optin-20261014",
+      "cohort_id": "task-parameters-large-optin-20261014",
+      "research_question": "RQ-control",
+      "timing_mode": "B",
+      "backend": "internal",
+      "machines": [
+        "rtx5060"
+      ],
+      "build": {
+        "inputs": {
+          "native/CMakeLists.txt": "07c285afa3d2055c2c8f64c4645bdad01bdeb3391e77f2082aff3c70443df1e2",
+          "native/qualified/CMakeLists.txt": "9bdaae9f2d3991a3c567666bf77d8a253666c3adee9b4e66598c83f647dc41c7",
+          "native/task_readiness/CMakeLists.txt": "90abec70a6f830071843841791f13b995cf963118659b7001d8ed0085a8da6a6"
+        },
+        "commands": [
+          [
+            "cmake",
+            "-S",
+            "{runner}/native/qualified",
+            "-B",
+            "{build}",
+            "-DGATO_SOURCE_DIR={source}",
+            "-DKNOTS=32;256",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DGATO_EXPERIMENT_TELEMETRY=ON",
+            "-DCMAKE_CUDA_ARCHITECTURES={cuda_arch}-real",
+            "-DPython3_EXECUTABLE={python}"
+          ],
+          [
+            "cmake",
+            "--build",
+            "{build}",
+            "--parallel",
+            "2"
+          ]
+        ],
+        "artifacts": [
+          "modules/bsqpN32_tiago_right*.so",
+          "modules/bsqpN256_tiago_right*.so",
+          "cuda_access_smoke"
+        ]
+      },
+      "inputs": {
+        "experiments/inputs/t01/t01.json": "aec47cfa3819de5adbb8633b637f5bd9bcd327cb3afc5043a856b323af5aac41",
+        "experiments/inputs/t01/v01.json": "20920040853786cf3d96f13ba240f82918a9f0f5020270fbe67715666477cc81",
+        "experiments/inputs/task_parameters/canonical_case.json": "f45af2548bb0e759e197b70d648fac27bf701bd265d431c17f5b71f80381c3f1"
+      },
+      "parameters": {
+        "collector_source_commit": "f6cb96f1aa0c014ffc221b1b81adb2beebbb9564",
+        "pcg_max_iter": 120,
+        "native_shared_memory_policy": "conditional_opt_in_only_above_default_and_device_fit"
+      },
+      "command": [
+        "{python}",
+        "{runner}/adapters/task_parameters.py",
+        "--source",
+        "{source}",
+        "--build",
+        "{build}",
+        "--inputs",
+        "{inputs}/experiments/inputs/t01",
+        "--case",
+        "{case}",
+        "--output",
+        "{output}",
+        "--backend",
+        "internal",
+        "--collector-pin",
+        "f6cb96f1aa0c014ffc221b1b81adb2beebbb9564"
+      ],
+      "preflight": {
+        "command": [
+          "{python}",
+          "{runner}/adapters/task_parameters.py",
+          "--source",
+          "{source}",
+          "--build",
+          "{build}",
+          "--inputs",
+          "{inputs}/experiments/inputs/t01",
+          "--case",
+          "{inputs}/experiments/inputs/task_parameters/canonical_case.json",
+          "--output",
+          "{output}",
+          "--backend",
+          "internal",
+          "--collector-pin",
+          "f6cb96f1aa0c014ffc221b1b81adb2beebbb9564",
+          "--preflight"
+        ],
+        "group": "task-parameters-large-optin-20261014-internal-N256"
+      },
+      "cases": [
+        {
+          "id": "figure8-6s",
+          "name": "6-second figure-eight",
+          "parameters": {
+            "N": 256,
+            "dt_s": 0.01,
+            "sqp_max_iter": 5,
+            "pcg_max_iter": 120
+          }
+        },
+        {
+          "id": "figure8-12s",
+          "name": "12-second figure-eight",
+          "parameters": {
+            "N": 256,
+            "dt_s": 0.01,
+            "sqp_max_iter": 5,
+            "pcg_max_iter": 120
+          }
+        }
+      ],
+      "repeats": 1,
+      "timeout_seconds": 1800
+    },
+    {
+      "id": "B-N256-dt15ms",
+      "name": "Knot spacing and horizon length",
+      "source_commit": "a17e3e631e52e927bb6b81675b9a8f958d473d3d",
+      "collector_source_commit": "f6cb96f1aa0c014ffc221b1b81adb2beebbb9564",
+      "protocol": "task-parameters-large-optin-20261014",
+      "cohort_id": "task-parameters-large-optin-20261014",
+      "research_question": "RQ-control",
+      "timing_mode": "B",
+      "backend": "internal",
+      "machines": [
+        "rtx5060"
+      ],
+      "build": {
+        "inputs": {
+          "native/CMakeLists.txt": "07c285afa3d2055c2c8f64c4645bdad01bdeb3391e77f2082aff3c70443df1e2",
+          "native/qualified/CMakeLists.txt": "9bdaae9f2d3991a3c567666bf77d8a253666c3adee9b4e66598c83f647dc41c7",
+          "native/task_readiness/CMakeLists.txt": "90abec70a6f830071843841791f13b995cf963118659b7001d8ed0085a8da6a6"
+        },
+        "commands": [
+          [
+            "cmake",
+            "-S",
+            "{runner}/native/qualified",
+            "-B",
+            "{build}",
+            "-DGATO_SOURCE_DIR={source}",
+            "-DKNOTS=32;256",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DGATO_EXPERIMENT_TELEMETRY=ON",
+            "-DCMAKE_CUDA_ARCHITECTURES={cuda_arch}-real",
+            "-DPython3_EXECUTABLE={python}"
+          ],
+          [
+            "cmake",
+            "--build",
+            "{build}",
+            "--parallel",
+            "2"
+          ]
+        ],
+        "artifacts": [
+          "modules/bsqpN32_tiago_right*.so",
+          "modules/bsqpN256_tiago_right*.so",
+          "cuda_access_smoke"
+        ]
+      },
+      "inputs": {
+        "experiments/inputs/t01/t01.json": "aec47cfa3819de5adbb8633b637f5bd9bcd327cb3afc5043a856b323af5aac41",
+        "experiments/inputs/t01/v01.json": "20920040853786cf3d96f13ba240f82918a9f0f5020270fbe67715666477cc81",
+        "experiments/inputs/task_parameters/canonical_case.json": "f45af2548bb0e759e197b70d648fac27bf701bd265d431c17f5b71f80381c3f1"
+      },
+      "parameters": {
+        "collector_source_commit": "f6cb96f1aa0c014ffc221b1b81adb2beebbb9564",
+        "pcg_max_iter": 120,
+        "native_shared_memory_policy": "conditional_opt_in_only_above_default_and_device_fit"
+      },
+      "command": [
+        "{python}",
+        "{runner}/adapters/task_parameters.py",
+        "--source",
+        "{source}",
+        "--build",
+        "{build}",
+        "--inputs",
+        "{inputs}/experiments/inputs/t01",
+        "--case",
+        "{case}",
+        "--output",
+        "{output}",
+        "--backend",
+        "internal",
+        "--collector-pin",
+        "f6cb96f1aa0c014ffc221b1b81adb2beebbb9564"
+      ],
+      "preflight": {
+        "command": [
+          "{python}",
+          "{runner}/adapters/task_parameters.py",
+          "--source",
+          "{source}",
+          "--build",
+          "{build}",
+          "--inputs",
+          "{inputs}/experiments/inputs/t01",
+          "--case",
+          "{inputs}/experiments/inputs/task_parameters/canonical_case.json",
+          "--output",
+          "{output}",
+          "--backend",
+          "internal",
+          "--collector-pin",
+          "f6cb96f1aa0c014ffc221b1b81adb2beebbb9564",
+          "--preflight"
+        ],
+        "group": "task-parameters-large-optin-20261014-internal-N256"
+      },
+      "cases": [
+        {
+          "id": "figure8-6s",
+          "name": "6-second figure-eight",
+          "parameters": {
+            "N": 256,
+            "dt_s": 0.015,
+            "sqp_max_iter": 5,
+            "pcg_max_iter": 120
+          }
+        },
+        {
+          "id": "figure8-12s",
+          "name": "12-second figure-eight",
+          "parameters": {
+            "N": 256,
+            "dt_s": 0.015,
+            "sqp_max_iter": 5,
+            "pcg_max_iter": 120
+          }
+        }
+      ],
+      "repeats": 1,
+      "timeout_seconds": 1800
+    },
+    {
+      "id": "B-N256-dt20ms",
+      "name": "Knot spacing and horizon length",
+      "source_commit": "a17e3e631e52e927bb6b81675b9a8f958d473d3d",
+      "collector_source_commit": "f6cb96f1aa0c014ffc221b1b81adb2beebbb9564",
+      "protocol": "task-parameters-large-optin-20261014",
+      "cohort_id": "task-parameters-large-optin-20261014",
+      "research_question": "RQ-control",
+      "timing_mode": "B",
+      "backend": "internal",
+      "machines": [
+        "rtx5060"
+      ],
+      "build": {
+        "inputs": {
+          "native/CMakeLists.txt": "07c285afa3d2055c2c8f64c4645bdad01bdeb3391e77f2082aff3c70443df1e2",
+          "native/qualified/CMakeLists.txt": "9bdaae9f2d3991a3c567666bf77d8a253666c3adee9b4e66598c83f647dc41c7",
+          "native/task_readiness/CMakeLists.txt": "90abec70a6f830071843841791f13b995cf963118659b7001d8ed0085a8da6a6"
+        },
+        "commands": [
+          [
+            "cmake",
+            "-S",
+            "{runner}/native/qualified",
+            "-B",
+            "{build}",
+            "-DGATO_SOURCE_DIR={source}",
+            "-DKNOTS=32;256",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DGATO_EXPERIMENT_TELEMETRY=ON",
+            "-DCMAKE_CUDA_ARCHITECTURES={cuda_arch}-real",
+            "-DPython3_EXECUTABLE={python}"
+          ],
+          [
+            "cmake",
+            "--build",
+            "{build}",
+            "--parallel",
+            "2"
+          ]
+        ],
+        "artifacts": [
+          "modules/bsqpN32_tiago_right*.so",
+          "modules/bsqpN256_tiago_right*.so",
+          "cuda_access_smoke"
+        ]
+      },
+      "inputs": {
+        "experiments/inputs/t01/t01.json": "aec47cfa3819de5adbb8633b637f5bd9bcd327cb3afc5043a856b323af5aac41",
+        "experiments/inputs/t01/v01.json": "20920040853786cf3d96f13ba240f82918a9f0f5020270fbe67715666477cc81",
+        "experiments/inputs/task_parameters/canonical_case.json": "f45af2548bb0e759e197b70d648fac27bf701bd265d431c17f5b71f80381c3f1"
+      },
+      "parameters": {
+        "collector_source_commit": "f6cb96f1aa0c014ffc221b1b81adb2beebbb9564",
+        "pcg_max_iter": 120,
+        "native_shared_memory_policy": "conditional_opt_in_only_above_default_and_device_fit"
+      },
+      "command": [
+        "{python}",
+        "{runner}/adapters/task_parameters.py",
+        "--source",
+        "{source}",
+        "--build",
+        "{build}",
+        "--inputs",
+        "{inputs}/experiments/inputs/t01",
+        "--case",
+        "{case}",
+        "--output",
+        "{output}",
+        "--backend",
+        "internal",
+        "--collector-pin",
+        "f6cb96f1aa0c014ffc221b1b81adb2beebbb9564"
+      ],
+      "preflight": {
+        "command": [
+          "{python}",
+          "{runner}/adapters/task_parameters.py",
+          "--source",
+          "{source}",
+          "--build",
+          "{build}",
+          "--inputs",
+          "{inputs}/experiments/inputs/t01",
+          "--case",
+          "{inputs}/experiments/inputs/task_parameters/canonical_case.json",
+          "--output",
+          "{output}",
+          "--backend",
+          "internal",
+          "--collector-pin",
+          "f6cb96f1aa0c014ffc221b1b81adb2beebbb9564",
+          "--preflight"
+        ],
+        "group": "task-parameters-large-optin-20261014-internal-N256"
+      },
+      "cases": [
+        {
+          "id": "figure8-6s",
+          "name": "6-second figure-eight",
+          "parameters": {
+            "N": 256,
+            "dt_s": 0.02,
+            "sqp_max_iter": 5,
+            "pcg_max_iter": 120
+          }
+        },
+        {
+          "id": "figure8-12s",
+          "name": "12-second figure-eight",
+          "parameters": {
+            "N": 256,
+            "dt_s": 0.02,
+            "sqp_max_iter": 5,
+            "pcg_max_iter": 120
+          }
+        }
+      ],
+      "repeats": 1,
+      "timeout_seconds": 1800
+    },
+    {
+      "id": "B-N256-dt45ms",
+      "name": "Knot spacing and horizon length",
+      "source_commit": "a17e3e631e52e927bb6b81675b9a8f958d473d3d",
+      "collector_source_commit": "f6cb96f1aa0c014ffc221b1b81adb2beebbb9564",
+      "protocol": "task-parameters-large-optin-20261014",
+      "cohort_id": "task-parameters-large-optin-20261014",
+      "research_question": "RQ-control",
+      "timing_mode": "B",
+      "backend": "internal",
+      "machines": [
+        "rtx5060"
+      ],
+      "build": {
+        "inputs": {
+          "native/CMakeLists.txt": "07c285afa3d2055c2c8f64c4645bdad01bdeb3391e77f2082aff3c70443df1e2",
+          "native/qualified/CMakeLists.txt": "9bdaae9f2d3991a3c567666bf77d8a253666c3adee9b4e66598c83f647dc41c7",
+          "native/task_readiness/CMakeLists.txt": "90abec70a6f830071843841791f13b995cf963118659b7001d8ed0085a8da6a6"
+        },
+        "commands": [
+          [
+            "cmake",
+            "-S",
+            "{runner}/native/qualified",
+            "-B",
+            "{build}",
+            "-DGATO_SOURCE_DIR={source}",
+            "-DKNOTS=32;256",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DGATO_EXPERIMENT_TELEMETRY=ON",
+            "-DCMAKE_CUDA_ARCHITECTURES={cuda_arch}-real",
+            "-DPython3_EXECUTABLE={python}"
+          ],
+          [
+            "cmake",
+            "--build",
+            "{build}",
+            "--parallel",
+            "2"
+          ]
+        ],
+        "artifacts": [
+          "modules/bsqpN32_tiago_right*.so",
+          "modules/bsqpN256_tiago_right*.so",
+          "cuda_access_smoke"
+        ]
+      },
+      "inputs": {
+        "experiments/inputs/t01/t01.json": "aec47cfa3819de5adbb8633b637f5bd9bcd327cb3afc5043a856b323af5aac41",
+        "experiments/inputs/t01/v01.json": "20920040853786cf3d96f13ba240f82918a9f0f5020270fbe67715666477cc81",
+        "experiments/inputs/task_parameters/canonical_case.json": "f45af2548bb0e759e197b70d648fac27bf701bd265d431c17f5b71f80381c3f1"
+      },
+      "parameters": {
+        "collector_source_commit": "f6cb96f1aa0c014ffc221b1b81adb2beebbb9564",
+        "pcg_max_iter": 120,
+        "native_shared_memory_policy": "conditional_opt_in_only_above_default_and_device_fit"
+      },
+      "command": [
+        "{python}",
+        "{runner}/adapters/task_parameters.py",
+        "--source",
+        "{source}",
+        "--build",
+        "{build}",
+        "--inputs",
+        "{inputs}/experiments/inputs/t01",
+        "--case",
+        "{case}",
+        "--output",
+        "{output}",
+        "--backend",
+        "internal",
+        "--collector-pin",
+        "f6cb96f1aa0c014ffc221b1b81adb2beebbb9564"
+      ],
+      "preflight": {
+        "command": [
+          "{python}",
+          "{runner}/adapters/task_parameters.py",
+          "--source",
+          "{source}",
+          "--build",
+          "{build}",
+          "--inputs",
+          "{inputs}/experiments/inputs/t01",
+          "--case",
+          "{inputs}/experiments/inputs/task_parameters/canonical_case.json",
+          "--output",
+          "{output}",
+          "--backend",
+          "internal",
+          "--collector-pin",
+          "f6cb96f1aa0c014ffc221b1b81adb2beebbb9564",
+          "--preflight"
+        ],
+        "group": "task-parameters-large-optin-20261014-internal-N256"
+      },
+      "cases": [
+        {
+          "id": "figure8-6s",
+          "name": "6-second figure-eight",
+          "parameters": {
+            "N": 256,
+            "dt_s": 0.045,
+            "sqp_max_iter": 5,
+            "pcg_max_iter": 120
+          }
+        },
+        {
+          "id": "figure8-12s",
+          "name": "12-second figure-eight",
+          "parameters": {
+            "N": 256,
+            "dt_s": 0.045,
+            "sqp_max_iter": 5,
+            "pcg_max_iter": 120
+          }
+        }
+      ],
+      "repeats": 1,
+      "timeout_seconds": 1800
+    },
+    {
+      "id": "B-N256-dt60ms",
+      "name": "Knot spacing and horizon length",
+      "source_commit": "a17e3e631e52e927bb6b81675b9a8f958d473d3d",
+      "collector_source_commit": "f6cb96f1aa0c014ffc221b1b81adb2beebbb9564",
+      "protocol": "task-parameters-large-optin-20261014",
+      "cohort_id": "task-parameters-large-optin-20261014",
+      "research_question": "RQ-control",
+      "timing_mode": "B",
+      "backend": "internal",
+      "machines": [
+        "rtx5060"
+      ],
+      "build": {
+        "inputs": {
+          "native/CMakeLists.txt": "07c285afa3d2055c2c8f64c4645bdad01bdeb3391e77f2082aff3c70443df1e2",
+          "native/qualified/CMakeLists.txt": "9bdaae9f2d3991a3c567666bf77d8a253666c3adee9b4e66598c83f647dc41c7",
+          "native/task_readiness/CMakeLists.txt": "90abec70a6f830071843841791f13b995cf963118659b7001d8ed0085a8da6a6"
+        },
+        "commands": [
+          [
+            "cmake",
+            "-S",
+            "{runner}/native/qualified",
+            "-B",
+            "{build}",
+            "-DGATO_SOURCE_DIR={source}",
+            "-DKNOTS=32;256",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DGATO_EXPERIMENT_TELEMETRY=ON",
+            "-DCMAKE_CUDA_ARCHITECTURES={cuda_arch}-real",
+            "-DPython3_EXECUTABLE={python}"
+          ],
+          [
+            "cmake",
+            "--build",
+            "{build}",
+            "--parallel",
+            "2"
+          ]
+        ],
+        "artifacts": [
+          "modules/bsqpN32_tiago_right*.so",
+          "modules/bsqpN256_tiago_right*.so",
+          "cuda_access_smoke"
+        ]
+      },
+      "inputs": {
+        "experiments/inputs/t01/t01.json": "aec47cfa3819de5adbb8633b637f5bd9bcd327cb3afc5043a856b323af5aac41",
+        "experiments/inputs/t01/v01.json": "20920040853786cf3d96f13ba240f82918a9f0f5020270fbe67715666477cc81",
+        "experiments/inputs/task_parameters/canonical_case.json": "f45af2548bb0e759e197b70d648fac27bf701bd265d431c17f5b71f80381c3f1"
+      },
+      "parameters": {
+        "collector_source_commit": "f6cb96f1aa0c014ffc221b1b81adb2beebbb9564",
+        "pcg_max_iter": 120,
+        "native_shared_memory_policy": "conditional_opt_in_only_above_default_and_device_fit"
+      },
+      "command": [
+        "{python}",
+        "{runner}/adapters/task_parameters.py",
+        "--source",
+        "{source}",
+        "--build",
+        "{build}",
+        "--inputs",
+        "{inputs}/experiments/inputs/t01",
+        "--case",
+        "{case}",
+        "--output",
+        "{output}",
+        "--backend",
+        "internal",
+        "--collector-pin",
+        "f6cb96f1aa0c014ffc221b1b81adb2beebbb9564"
+      ],
+      "preflight": {
+        "command": [
+          "{python}",
+          "{runner}/adapters/task_parameters.py",
+          "--source",
+          "{source}",
+          "--build",
+          "{build}",
+          "--inputs",
+          "{inputs}/experiments/inputs/t01",
+          "--case",
+          "{inputs}/experiments/inputs/task_parameters/canonical_case.json",
+          "--output",
+          "{output}",
+          "--backend",
+          "internal",
+          "--collector-pin",
+          "f6cb96f1aa0c014ffc221b1b81adb2beebbb9564",
+          "--preflight"
+        ],
+        "group": "task-parameters-large-optin-20261014-internal-N256"
+      },
+      "cases": [
+        {
+          "id": "figure8-6s",
+          "name": "6-second figure-eight",
+          "parameters": {
+            "N": 256,
+            "dt_s": 0.06,
+            "sqp_max_iter": 5,
+            "pcg_max_iter": 120
+          }
+        },
+        {
+          "id": "figure8-12s",
+          "name": "12-second figure-eight",
+          "parameters": {
+            "N": 256,
+            "dt_s": 0.06,
+            "sqp_max_iter": 5,
+            "pcg_max_iter": 120
+          }
+        }
+      ],
+      "repeats": 1,
+      "timeout_seconds": 1800
+    }
+  ]
+}

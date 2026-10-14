@@ -1,0 +1,127 @@
+{
+  "version": 1,
+  "status": "prepared_optin_capacity_observations_not_executed",
+  "name": "PCG opt-in capacity observations",
+  "experiments": [
+    {
+      "id": "capacity-N256",
+      "name": "256-knot native capacity probe",
+      "source_commit": "a17e3e631e52e927bb6b81675b9a8f958d473d3d",
+      "protocol": "task-parameter-capacity-optin-20261014",
+      "backend": "internal_resource_probe",
+      "machines": [
+        "jetson"
+      ],
+      "research_question": "RQ-capacity",
+      "build": {
+        "commands": [
+          [
+            "cmake",
+            "-S",
+            "{source}/examples/solve_time_heatmap",
+            "-B",
+            "{build}",
+            "-DKNOTS=256",
+            "-DPLANT=tiago_right",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DCMAKE_CUDA_ARCHITECTURES={cuda_arch}-real",
+            "-DPython3_EXECUTABLE={python}"
+          ],
+          [
+            "cmake",
+            "--build",
+            "{build}",
+            "--target",
+            "resources_N256",
+            "--parallel",
+            "2"
+          ]
+        ],
+        "artifacts": [
+          "resources_N256"
+        ]
+      },
+      "command": [
+        "{python}",
+        "{runner}/adapters/task_parameter_capacity.py",
+        "--build",
+        "{build}",
+        "--case",
+        "{case}",
+        "--output",
+        "{output}"
+      ],
+      "cases": [
+        {
+          "id": "configured-resource-limit",
+          "parameters": {
+            "N": 256
+          }
+        }
+      ],
+      "timeout_seconds": 60,
+      "scope": "Successor resource-only probe configures supported PCG opt-in and reports effective limits; zero kernel launches, no optimizer solve or motion"
+    },
+    {
+      "id": "capacity-N512",
+      "name": "512-knot native capacity probe",
+      "source_commit": "a17e3e631e52e927bb6b81675b9a8f958d473d3d",
+      "protocol": "task-parameter-capacity-optin-20261014",
+      "backend": "internal_resource_probe",
+      "machines": [
+        "jetson"
+      ],
+      "research_question": "RQ-capacity",
+      "build": {
+        "commands": [
+          [
+            "cmake",
+            "-S",
+            "{source}/examples/solve_time_heatmap",
+            "-B",
+            "{build}",
+            "-DKNOTS=512",
+            "-DPLANT=tiago_right",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DCMAKE_CUDA_ARCHITECTURES={cuda_arch}-real",
+            "-DPython3_EXECUTABLE={python}"
+          ],
+          [
+            "cmake",
+            "--build",
+            "{build}",
+            "--target",
+            "resources_N512",
+            "--parallel",
+            "2"
+          ]
+        ],
+        "artifacts": [
+          "resources_N512"
+        ]
+      },
+      "command": [
+        "{python}",
+        "{runner}/adapters/task_parameter_capacity.py",
+        "--build",
+        "{build}",
+        "--case",
+        "{case}",
+        "--output",
+        "{output}"
+      ],
+      "cases": [
+        {
+          "id": "configured-resource-limit",
+          "parameters": {
+            "N": 512
+          }
+        }
+      ],
+      "timeout_seconds": 60,
+      "scope": "Successor resource-only probe configures supported PCG opt-in and reports effective limits; zero kernel launches, no optimizer solve or motion"
+    }
+  ],
+  "execution_policy": "Repeat N256 after opt-in; Jetson N512 only after sensible N256 capacity/finite/pilot cost",
+  "historical_RTX_N256": "Unchanged-source RTX and Jetson N256 rejections retained; these are separately pinned successor observations"
+}

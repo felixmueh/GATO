@@ -33,7 +33,9 @@ def main():
         parser.add_argument('--'+name, type=Path, required=True)
     parser.add_argument('--collector-pin', required=True)
     parser.add_argument('--backend', choices=('internal', 'gazebo'), required=True)
-    parser.add_argument('--preflight', action='store_true')
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument('--preflight', action='store_true')
+    mode.add_argument('--native-readiness', action='store_true')
     parser.add_argument('--dangerously-disable-safety-stops', action='store_true')
     args = parser.parse_args()
     if args.dangerously_disable_safety_stops and args.backend != 'gazebo':
@@ -45,6 +47,8 @@ def main():
         argv += ['--'+name, str(getattr(args, name))]
     if args.preflight:
         argv.append('--preflight')
+    if args.native_readiness:
+        argv.append('--native-readiness')
     if args.dangerously_disable_safety_stops:
         argv.append('--dangerously-disable-safety-stops')
     return subprocess.run(argv).returncode

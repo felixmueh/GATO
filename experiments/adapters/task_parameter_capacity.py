@@ -18,11 +18,15 @@ def classify(resource, code, N):
     fits = all(k['fits'] for k in kernels)
     known_rejection = code in (0, 2) and not fits and resource.get('pcg_launch_error') in RESOURCE_ERRORS
     error = f'Capacity probe exited {code}' if code and not known_rejection else None
+    policy = resource.get('pcg_shared_memory_policy', {})
+    configuration_error = policy.get('configuration_error', '')
+    if configuration_error and not configuration_error.startswith('PCG shared-memory unsupported:'):
+        error = configuration_error
     return dict(outcome='execution_failed' if error else
                     ('resource_fit' if fits else 'unsupported_resources'),
         evidence_kind='resource_measurement', resource_fit=fits,
         resource_failures=[k['name'] for k in kernels if not k['fits']],
-        probe_returncode=code, execution_error=error,
+        probe_returncode=code, execution_error=error, pcg_shared_memory_policy=policy,
         task_success=None, physical_pass=None, solver_numerical_pass=None,
         optimizer_calls=0, motion_executed=False,
         scope='Configured resource/launch capacity only; no numerical or task qualification')
