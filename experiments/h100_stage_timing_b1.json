@@ -1,0 +1,100 @@
+{
+  "version": 1,
+  "experiments": [
+    {
+      "id": "F05-H100-stageON-N128-B1",
+      "protocol": "F05-H100-stage-N128-B1-20261014",
+      "source_commit": "852b0cbcfe6e56fe5337a3b6e5fe8e777f959b77",
+      "machines": [
+        "h100"
+      ],
+      "research_question": "RQ-timing",
+      "timing_mode": "A",
+      "backend": "internal",
+      "build": {
+        "inputs": {
+          "native/CMakeLists.txt": "07c285afa3d2055c2c8f64c4645bdad01bdeb3391e77f2082aff3c70443df1e2",
+          "native/resource_profiles/CMakeLists.txt": "0fea6251bccbd1ca04166b3d7ce4d6aef43e61ebaa138a2c46d160324b7cc7d2",
+          "native/task_readiness/CMakeLists.txt": "90abec70a6f830071843841791f13b995cf963118659b7001d8ed0085a8da6a6"
+        },
+        "commands": [
+          [
+            "cmake",
+            "-S",
+            "{runner}/native/resource_profiles",
+            "-B",
+            "{build}",
+            "-DGATO_SOURCE_DIR={source}",
+            "-DKNOTS=128",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DGATO_EXPERIMENT_TELEMETRY=ON",
+            "-DGATO_EXPERIMENT_STAGE_TIMING=ON",
+            "-DCMAKE_CUDA_ARCHITECTURES={cuda_arch}-real",
+            "-DPython3_EXECUTABLE={python}"
+          ],
+          [
+            "cmake",
+            "--build",
+            "{build}",
+            "--parallel",
+            "2"
+          ]
+        ],
+        "artifacts": [
+          "modules/bsqpN128_tiago_right*.so",
+          "cuda_access_smoke"
+        ]
+      },
+      "inputs": {
+        "experiments/inputs/f05_n128_f01ab/SHA256SUMS.json": "6bf87dd24634ee5d665cddab9a7d67faee8e6928efba23f511b99a6173f1085f",
+        "experiments/inputs/f05_n128_f01ab/arrays.npz": "a674b748a058538fe7c6b0e93a836a0b82394196028788f09284d29b5dd13ed4",
+        "experiments/inputs/f05_n128_f01ab/bank.json": "9c3a3a06b53079af04ca99a6d4146ff741161d1bf82013283447ab2d5422d7b9"
+      },
+      "repeats": 1,
+      "command": [
+        "{python}",
+        "{runner}/adapters/resource_profiles.py",
+        "--source",
+        "{source}",
+        "--build",
+        "{build}",
+        "--inputs",
+        "{inputs}/experiments/inputs/f05_n128_f01ab",
+        "--case",
+        "{case}",
+        "--output",
+        "{output}"
+      ],
+      "cases": [
+        {
+          "id": "profile-N128-B1-SQP5-PCG100",
+          "parameters": {
+            "study": "F05",
+            "arm": "profile",
+            "N": 128,
+            "B": 1,
+            "SQP": 5,
+            "PCG": 100,
+            "stage_timing": true,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        }
+      ]
+    }
+  ],
+  "preparation": {
+    "native_calls": 2,
+    "workers": 1,
+    "warmups_per_worker": 1,
+    "measured_per_worker": 1,
+    "fresh_solver_per_call": true,
+    "source_unchanged": true,
+    "no_additional_task_runs": true,
+    "inputs": "Candidate0 of the exact retained GTX1070/H100 N128 cold input; state/reference/seed/preset unchanged",
+    "timing_scope": "Stage ON existing stream windows; native chrono and wrapper wall retained. pcg_times_us literalzero is unavailable; use PCG stagewindow.",
+    "failure_policy": "One attempt; preserve failure; no retry",
+    "readiness": "One existing excluded warmup then one measured fresh-owner solve; noBB/BA/task episodes",
+    "build": "Only N128 module, CUDA90-real, unchanged source852b0cb and native recipe"
+  }
+}
