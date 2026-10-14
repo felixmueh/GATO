@@ -66,9 +66,18 @@ CPU validation (no native loads or ROS execution):
 /opt/gato-venv/bin/python3 -m pytest -q experiments/task_parameters/test_parameters.py tests/python/test_tiago_controller_validation.py tests/python/test_tiago_controller_shutdown.py tests/python/test_tiago_controller_modes.py
 ```
 
-Independent review recorded 53 passed, with the existing hppfcl deprecation
-warning. The new focused subset recorded 9 passed. Both public CLI help commands
+Initial independent review recorded 53 passed; the final finite-guard followup
+recorded 54 passed, with the existing hppfcl deprecation warning. The final focused
+subset contains 10 checks. Both public CLI help commands
 and compilation checks pass. The first new reference check incorrectly required
 the old extra endpoint and failed on array length; its overlap comparison was
 corrected without changing reference generation or numerical tolerances. All
 scientific target runs remain held pending the separate authorized execution.
+
+A small worker-local recorder guard preserves each event before rejecting
+nonfinite final solver output, executed state/control or live feedback. The
+existing failure finalization records this as an execution error. It adds no
+internal torque/joint/collision gate and does not inspect intermediate SQP
+diagnostics. The unchanged internal runtime alone did not enforce this policy;
+this guard is part of the new study's collection setup. The followup focused
+subset contains 10 passing checks.

@@ -103,6 +103,9 @@ def resolve_protocol(inputs, case, backend, preflight=False, report_only=False):
         release_status='prepared only; motion/build authorization separate')
     p['canonical_setup_sha256'] = hashlib.sha256(json.dumps(dict(canonical=canonical,
         backend=backend, pcg=120, safety_policy=policy), sort_keys=True).encode()).hexdigest()
+    p['preflight_setup_sha256'] = p['canonical_setup_sha256']
+    p['input_sha256'] = hashlib.sha256(
+        (inputs / ('v01.json' if preflight else 't01.json')).read_bytes()).hexdigest()
     if backend == 'gazebo':
         p.update(controller_timeout_s=8., controller_startup_timeout_s=30.,
             simulation_guard_timeout_s=8., physical_scope='observed q/v and published effort; measured actuator torque unavailable',

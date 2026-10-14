@@ -14,6 +14,7 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / 'tiago_src'))
 sys.path.insert(0, str(Path(__file__).parent))
 from protocol import periodic_reference, resolve_protocol, safety_policy
+from worker import make_finite_recorder
 from gato_tiago import safety_monitor as safety
 from gato_tiago.tiago_controller_process import (
     _validate_trajectory, _require_gazebo_report_only_context, TorqueTrajectory)
@@ -49,6 +50,8 @@ def test_canonical_and_case_cannot_enable_unsafe(inputs):
     p = resolve_protocol(inputs, dict(id='goal-3', parameters=dict(N=128, dt_s=.06,
         sqp_max_iter=1, pcg_max_iter=120)), 'internal', preflight=True)
     assert (p['N'], p['dt_s'], p['solver_params']['max_sqp_iters']) == (32, .03, 5)
+    assert p['preflight_setup_sha256'] == p['canonical_setup_sha256']
+    assert len(p['input_sha256']) == 64
     with pytest.raises(ValueError, match='unsafe policy'):
         resolve_protocol(inputs, dict(id='goal-3', parameters=dict(report_only=True)), 'internal')
 
@@ -112,3 +115,19 @@ def test_async_violation_advances_initial_sequence_and_continues():
     monitor._poll_responses()
     assert monitor.last_checked_seq == 2 and monitor.safety_status == 'ok'
     assert monitor.physical_summary['violating_states'] == 1
+
+
+def test_finite_guard_records_before_error_and_does_not_add_limits():
+    events = []
+    class Parent:
+        def __call__(self, kind, record):
+            events.append((kind, record))
+    recorder = make_finite_recorder(Parent)()
+    # Finite physical violations are retained for reporting, not new internal gates.
+    recorder('step_completed', dict(state_after=np.full(14, 100.), control=np.full(7, 40.)))
+    for kind, record in [('solve_completed', dict(output=np.array([[np.nan]]))),
+                         ('step_completed', dict(state_after=np.full(14, np.nan))),
+                         ('feedback_state', dict(q=np.full(7, np.inf)))]:
+        with pytest.raises(ValueError, match='nonfinite execution'):
+            recorder(kind, record)
+        assert events[-1] == (kind, record)

@@ -13,6 +13,22 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from protocol import resolve_protocol
 
 
+def make_finite_recorder(parent):
+    """Preserve the compact event, then stop invalid execution without limit gates."""
+    class FiniteRecorder(parent):
+        def __call__(self, kind, record):
+            result = super().__call__(kind, record)
+            if kind in ('solve', 'solve_started', 'solve_completed', 'step_started',
+                        'step_completed', 'feedback_state'):
+                for field in ('state', 'state_before', 'state_after', 'control',
+                              'output', 'q', 'qd'):
+                    value = record.get(field)
+                    if value is not None and not np.isfinite(np.asarray(value, dtype=float)).all():
+                        raise ValueError(f'nonfinite execution data: {kind}.{field}; event retained')
+            return result
+    return FiniteRecorder
+
+
 def require_preflight(output, protocol, deployment):
     location = deployment.preflight_path(output)
     metrics = json.loads((location / 'metrics.json').read_text())
@@ -45,6 +61,7 @@ def run(args):
     from adapters import task, deployment
     if args.backend == 'internal':
         task.select_protocol = lambda *unused, **ignored: protocol
+        task.TaskRecorder = make_finite_recorder(task.TaskRecorder)
         status = task.run(source, build, case, output, 'B', args.preflight, args.inputs)
     else:
         sys.path.insert(0, str(source))
@@ -60,10 +77,17 @@ def run(args):
         if not args.preflight:
             require_preflight(output, protocol, deployment)
         worker.resolve_case = lambda unused: protocol
+        original_provenance = worker.provenance
+        def study_provenance():
+            identity = original_provenance()
+            identity['input_sha256'] = protocol['input_sha256']
+            identity['collector_source_commit'] = args.collector_pin
+            return identity
+        worker.provenance = study_provenance
         worker.preflight_guard = lambda *unused, **ignored: None  # Checked above; N varies by design.
         worker.PREFLIGHT_ID = 'canonical-preflight'
         protocol['live_controller']['collision_blacklist_path'] = str(source / 'tiago_configs/comfortable_pose_collision_blacklist.json')
-        worker.RawRecorder = deployment.LiveRecorder
+        worker.RawRecorder = make_finite_recorder(deployment.LiveRecorder)
         original_write = worker.write_json
         def compact_write(path, value):
             if Path(path).name == 'controller_stats.json':
