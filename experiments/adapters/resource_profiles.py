@@ -5,6 +5,7 @@ import json
 import os
 from pathlib import Path
 import signal
+import subprocess
 import sys
 import time
 import traceback
@@ -17,7 +18,7 @@ from adapters.task_recording import project_task_record, NATIVE_DIAGNOSTIC_REPRE
 from adapters import resource_profiles_common as C, resource_profiles_science as science
 
 SOURCE = '4e5301feaea5f2d06530922ba46aa543e1995d47'
-PROTOCOL = 'simple-resource-profiles-v1'
+PROTOCOL = 'simple-resource-profiles-v1-F05-N128-extension-20261014'
 BANK_SHA256 = 'f8a8217982f3fa2b1b4fd2629e8cb45949d372f6d43c6137bbdaa7e52acc7007'
 
 
@@ -34,8 +35,8 @@ def validate_case(case):
     parameters = dict(case['parameters'])
     if parameters.pop('timing_mode', None) != 'A' or parameters.pop('backend', None) != 'internal':
         raise ValueError('F04/F05 require internal mode A')
-    if parameters not in C.cases():
-        raise ValueError('F04/F05 require the exact approved 38-worker protocol')
+    if parameters not in C.cases() + C.stage_extension_cases():
+        raise ValueError('F04/F05 require the historical38-worker or explicit3-worker stage-extension protocol')
     return parameters
 
 
@@ -59,7 +60,7 @@ class Factory:
     def __call__(self, B, SQP, PCG):
         if self.interface is None:
             started = time.perf_counter()
-            self.native, self.source = preload(self.context, 32)
+            self.native, self.source = preload(self.context, self.context.get('N', 32))
             self.interface = importlib.import_module('bsqp.interface')
             if Path(self.interface.__file__).resolve() != self.source / 'python/bsqp/interface.py':
                 raise RuntimeError('Actual public wrapper differs')
@@ -67,13 +68,14 @@ class Factory:
                 scope='native/public-wrapper import before first constructor'))
         params = dict(self.bank['preset'], max_sqp_iters=SQP, max_pcg_iters=PCG)
         started = time.perf_counter()
+        N = self.context.get('N', 32)
         solver = self.interface.BSQP(str(self.source/'gato/dynamics/tiago_right/tiago_right_arm.urdf'),
-                                    B, 32, .03, plant_type='tiago_right', **params)
+                                    B, N, .03, plant_type='tiago_right', **params)
         self.events('native_owner_constructed', dict(constructor_wall_s=time.perf_counter()-started,
-                    B=B, N=32, effective_solver_params=params))
+                    B=B, N=N, effective_solver_params=params))
         if solver.lib is not self.native:
             raise RuntimeError('Resolved native differs')
-        return C.F.Owned(SimpleNamespace(solver=solver, N=32, dt=.03,
+        return C.F.Owned(SimpleNamespace(solver=solver, N=N, dt=.03,
                                        batch_size=B, solver_params=params), self.events)
 
 
@@ -85,8 +87,9 @@ def query(context, case):
 def run_case(case, output, source, module, inputs, machine=None, *, builder=None, resource_query=None, clock=time.perf_counter):
     source, module, inputs, output = Path(source).resolve(), Path(module).resolve(), Path(inputs), Path(output)
     synthetic = builder is not None or resource_query is not None or clock is not time.perf_counter
+    runtime_commit = SOURCE if synthetic else subprocess.check_output(['git','-C',str(source),'rev-parse','HEAD'],text=True).strip()
     result = dict(evidence_kind='synthetic_test' if synthetic else 'measurement',
-        source_commit=SOURCE, machine=machine, timing_mode='A', execution_backend='internal',
+        source_commit=runtime_commit, machine=machine, timing_mode='A', execution_backend='internal',
         task_success=None, physical_pass=None, solver_numerical_pass=None, execution_error=None,
         native_calls=0, completed_calls=0, measured_calls=0, status='started')
     handlers, events = {}, None
@@ -113,7 +116,8 @@ def run_case(case, output, source, module, inputs, machine=None, *, builder=None
             flags = dict(GATO_EXPERIMENT_STAGE_TIMING=parameters['stage_timing'],
                          GATO_EXPERIMENT_RESOURCE_QUERY=True, GATO_EXPERIMENT_TELEMETRY=True)
             info = dict(path=str(module), source_root=str(source), sha256=sha(module), flags=flags)
-            context = dict(source_commit=SOURCE, selected_module=info, bank=dict(path=str(inputs),sha256=BANK_SHA256))
+            bank_sha = sha(inputs/'SHA256SUMS.json') if parameters['N']==128 else BANK_SHA256
+            context = dict(source_commit=runtime_commit, N=parameters['N'], selected_module=info, bank=dict(path=str(inputs),sha256=bank_sha))
             result.update(campaign_id=parameters['study'], case=parameters, cohort_id=PROTOCOL)
             write_json(output/'protocol.json',dict(parameters, timing_mode='A', offline_timing='controller_dt',
                 backend='internal', execution_backend='internal', cohort_id=PROTOCOL,
@@ -121,8 +125,10 @@ def run_case(case, output, source, module, inputs, machine=None, *, builder=None
                 pcg_times_us_unavailable_reason='Native literal-zero placeholder; not measured PCG cost',
                 native_timing_scope='Native host chrono includes kernels/copies/waits/CPU predicate; binding I/O excluded',
                 scope='Stage ON profiles separate from OFF response/sustained; no thermal steady-state/saturation claim'))
-            write_json(output/'provenance.json',dict(machine=machine, source_commit=SOURCE, module=info,
-                bank_manifest_sha256=BANK_SHA256, cohort_id=PROTOCOL, evidence_kind=result['evidence_kind'],
+            write_json(output/'provenance.json',dict(machine=machine, source_commit=runtime_commit, module=info,
+                bank_manifest_sha256=bank_sha, input_sha256={p.name:sha(p) for p in inputs.iterdir() if p.is_file()},
+                input_policy='F01ab first cold reaching input at N128; original F01c candidate0 at N32',
+                cohort_id=PROTOCOL, evidence_kind=result['evidence_kind'],
                 adapter_sha256={name:sha(Path(__file__).with_name(name)) for name in
                     ('resource_profiles.py','resource_profiles_common.py','resource_profiles_science.py')},
                 scientific_source_sha256={name:sha(source/name) for name in
@@ -161,7 +167,9 @@ def main():
     case=json.loads(args.case.read_text())
     parameters=validate_case(case)
     module=f01ab.resolve_module(args.build,parameters['N'],args.module)
-    result=run_case(case,args.output,args.source,module,args.inputs,args.machine)
+    inputs=args.inputs
+    if (inputs/'f01c').is_dir():inputs=inputs/('f05_n128_f01ab' if parameters['N']==128 else 'f01c')
+    result=run_case(case,args.output,args.source,module,inputs,args.machine)
     return 1 if result['execution_error'] else 0
 
 

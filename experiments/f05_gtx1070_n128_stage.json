@@ -1,0 +1,133 @@
+{
+  "version": 1,
+  "experiments": [
+    {
+      "id": "F05-stageON-N128-extension",
+      "protocol": "F05-gtx1070-stage-N128-extension-20261014",
+      "source_commit": "852b0cbcfe6e56fe5337a3b6e5fe8e777f959b77",
+      "machines": [
+        "gtx1070"
+      ],
+      "research_question": "RQ-timing",
+      "timing_mode": "A",
+      "backend": "internal",
+      "build": {
+        "inputs": {
+          "native/CMakeLists.txt": "07c285afa3d2055c2c8f64c4645bdad01bdeb3391e77f2082aff3c70443df1e2",
+          "native/resource_profiles/CMakeLists.txt": "0fea6251bccbd1ca04166b3d7ce4d6aef43e61ebaa138a2c46d160324b7cc7d2",
+          "native/task_readiness/CMakeLists.txt": "90abec70a6f830071843841791f13b995cf963118659b7001d8ed0085a8da6a6"
+        },
+        "commands": [
+          [
+            "cmake",
+            "-S",
+            "{runner}/native/resource_profiles",
+            "-B",
+            "{build}",
+            "-DGATO_SOURCE_DIR={source}",
+            "-DKNOTS=32;128",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DGATO_EXPERIMENT_TELEMETRY=ON",
+            "-DGATO_EXPERIMENT_STAGE_TIMING=ON",
+            "-DCMAKE_CUDA_ARCHITECTURES={cuda_arch}-real",
+            "-DPython3_EXECUTABLE={python}"
+          ],
+          [
+            "cmake",
+            "--build",
+            "{build}",
+            "--parallel",
+            "2"
+          ]
+        ],
+        "artifacts": [
+          "modules/bsqpN32_tiago_right*.so",
+          "modules/bsqpN128_tiago_right*.so",
+          "cuda_access_smoke"
+        ]
+      },
+      "inputs": {
+        "experiments/inputs/f01c/SHA256SUMS.json": "f8a8217982f3fa2b1b4fd2629e8cb45949d372f6d43c6137bbdaa7e52acc7007",
+        "experiments/inputs/f01c/arrays.npz": "eefdc3644f4f884e60353349312999eeca446e5e703a794b9f9e3058791e4d40",
+        "experiments/inputs/f01c/bank.json": "50210ac0701d63bb1e63981748010d430092c404c82015b2a4e549c94ba526a3",
+        "experiments/inputs/f01c/preparation.json": "a79f1450e3a9c2a61e349de439cff5df4abf46285c7e3e6f014566da66f7fada",
+        "experiments/inputs/f01c/seed_diagnostics.json": "2d29f523f2c943123fd759f0889ffd081d97d8d7e7de4171d00da067a1aabf9d",
+        "experiments/inputs/f05_n128_f01ab/SHA256SUMS.json": "6bf87dd24634ee5d665cddab9a7d67faee8e6928efba23f511b99a6173f1085f",
+        "experiments/inputs/f05_n128_f01ab/arrays.npz": "a674b748a058538fe7c6b0e93a836a0b82394196028788f09284d29b5dd13ed4",
+        "experiments/inputs/f05_n128_f01ab/bank.json": "9c3a3a06b53079af04ca99a6d4146ff741161d1bf82013283447ab2d5422d7b9"
+      },
+      "repeats": 1,
+      "command": [
+        "{python}",
+        "{runner}/adapters/resource_profiles.py",
+        "--source",
+        "{source}",
+        "--build",
+        "{build}",
+        "--inputs",
+        "{inputs}/experiments/inputs",
+        "--case",
+        "{case}",
+        "--output",
+        "{output}"
+      ],
+      "cases": [
+        {
+          "id": "profile-N128-B1-SQP5-PCG100",
+          "parameters": {
+            "study": "F05",
+            "arm": "profile",
+            "N": 128,
+            "B": 1,
+            "SQP": 5,
+            "PCG": 100,
+            "stage_timing": true,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "profile-N128-B1-SQP1-PCG100",
+          "parameters": {
+            "study": "F05",
+            "arm": "profile",
+            "N": 128,
+            "B": 1,
+            "SQP": 1,
+            "PCG": 100,
+            "stage_timing": true,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        },
+        {
+          "id": "profile-N32-B1-SQP5-PCG100",
+          "parameters": {
+            "study": "F05",
+            "arm": "profile",
+            "N": 32,
+            "B": 1,
+            "SQP": 5,
+            "PCG": 100,
+            "stage_timing": true,
+            "timing_mode": "A",
+            "backend": "internal"
+          }
+        }
+      ]
+    }
+  ],
+  "preparation": {
+    "native_calls": 6,
+    "workers": 3,
+    "warmups_per_worker": 1,
+    "measured_per_worker": 1,
+    "fresh_solver_per_call": true,
+    "source_unchanged": true,
+    "no_additional_task_runs": true,
+    "inputs": "N32 retained F01c candidate0; N128 retained F01ab first cold reaching input plus unrelated F01abwarmup; not a pure input-matched horizon sweep",
+    "timing_scope": "existing ON stream events include idle gaps; nativechrono andpublicwrapper wall retained; legacy pcg_times_us remains unavailable",
+    "failure_policy": "one attempt; preserve failures; no retries",
+    "readiness": "runtime852b0cb prior profile/task evidence retained; each worker existing oneexcludedwarmup is the relevant executioncheck"
+  }
+}

@@ -77,10 +77,47 @@ def prepare(output,machine='rtx5060'):
     return plan
 
 
+def prepare_stage_extension(output):
+    """Three expressly requested GTX1070 stageON workers, six nativecalls."""
+    source='852b0cbcfe6e56fe5337a3b6e5fe8e777f959b77'
+    inputs={}
+    for family in ('f01c','f05_n128_f01ab'):
+        for path in sorted((ROOT/'experiments/inputs'/family).iterdir()):
+            if path.is_file():inputs[str(path.relative_to(ROOT))]=hashlib.sha256(path.read_bytes()).hexdigest()
+    build=dict(inputs={relative:hashlib.sha256((ROOT/'experiments'/relative).read_bytes()).hexdigest()
+                       for relative in ('native/CMakeLists.txt','native/resource_profiles/CMakeLists.txt','native/task_readiness/CMakeLists.txt')},
+        commands=[['cmake','-S','{runner}/native/resource_profiles','-B','{build}',
+                   '-DGATO_SOURCE_DIR={source}','-DKNOTS=32;128','-DCMAKE_BUILD_TYPE=Release',
+                   '-DGATO_EXPERIMENT_TELEMETRY=ON','-DGATO_EXPERIMENT_STAGE_TIMING=ON',
+                   '-DCMAKE_CUDA_ARCHITECTURES={cuda_arch}-real','-DPython3_EXECUTABLE={python}'],
+                  ['cmake','--build','{build}','--parallel','2']],
+        artifacts=['modules/bsqpN32_tiago_right*.so','modules/bsqpN128_tiago_right*.so','cuda_access_smoke'])
+    experiment=dict(id='F05-stageON-N128-extension',protocol='F05-gtx1070-stage-N128-extension-20261014',
+        source_commit=source,machines=['gtx1070'],research_question='RQ-timing',timing_mode='A',backend='internal',
+        build=build,inputs=inputs,repeats=1,
+        command=['{python}','{runner}/adapters/resource_profiles.py','--source','{source}','--build','{build}',
+                 '--inputs','{inputs}/experiments/inputs','--case','{case}','--output','{output}'],
+        cases=[dict(id=f'profile-N{c["N"]}-B1-SQP{c["SQP"]}-PCG100',parameters=dict(c,timing_mode='A',backend='internal'))
+               for c in C.stage_extension_cases()])
+    plan=dict(version=1,experiments=[experiment],
+        preparation=dict(native_calls=6,workers=3,warmups_per_worker=1,measured_per_worker=1,
+            fresh_solver_per_call=True,source_unchanged=True,no_additional_task_runs=True,
+            inputs='N32 retained F01c candidate0; N128 retained F01ab first cold reaching input plus unrelated F01abwarmup; not a pure input-matched horizon sweep',
+            timing_scope='existing ON stream events include idle gaps; nativechrono andpublicwrapper wall retained; legacy pcg_times_us remains unavailable',
+            failure_policy='one attempt; preserve failures; no retries',
+            readiness='runtime852b0cb prior profile/task evidence retained; each worker existing oneexcludedwarmup is the relevant executioncheck'))
+    output=Path(output);output.parent.mkdir(parents=True,exist_ok=True);output.write_text(json.dumps(plan,indent=2)+'\n');return plan
+
+
 if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--machine',choices=('rtx5060','jetson'),default='rtx5060')
     parser.add_argument('--output',type=Path)
+    parser.add_argument('--gtx1070-stage-extension',action='store_true')
     args=parser.parse_args()
     output=args.output or ROOT/'experiments'/('resource_profiles-jetson-proposed.json' if args.machine=='jetson' else 'resource_profiles.json')
-    prepare(output,args.machine);print(output)
+    if args.gtx1070_stage_extension:
+        output=args.output or ROOT/'experiments/f05_gtx1070_n128_stage.json'
+        prepare_stage_extension(output)
+    else:prepare(output,args.machine)
+    print(output)
