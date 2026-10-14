@@ -1,8 +1,8 @@
-# Two orientation-cost figure runs — preparation only
+# Two orientation-cost figure runs — standalone instructions
 
 The runtime is a clean detached checkout at `/workspace/GATO-orientation-figure-source`, exact revision `b400bdf2bb6eea543b17cefcb0577d5de4d22ce2` (current `felix-devel` when requested). These are new current-revision runs, not a June reproduction. A bounded search found no matched tracking ON/OFF trajectory pair; random orientation reaching and the differently configured D02 tracking are not substitutes.
 
-**Build and both runs are pending.** Main's existing N64 binary has SHA256 `3a97a4682c949eba483ad7be39fc64416032abae0141e6f049af58405f8b8f9f` and is an unchanged older artifact; no matching b400 provenance was found. Do not use it. No source/controller changes, native build or GPU run occurred during this preparation.
+**Execution status:** the matching N64 build and the corrected, explicitly bound pair completed on 2026-10-14. Current export: `/workspace/GATO/thesis_results/orientation-cost-comparison-20261014/orientation-cost-figure-bound-20261014T134643.034253Z/`. The first pair is retained with a source-binding-invalid marker: inherited editable packages selected the main runtime instead of the intended isolated runtime. See the current main handoff/report for results; no weights, timing or solver code changed for the correction. Main's existing N64 binary has SHA256 `3a97a4682c949eba483ad7be39fc64416032abae0141e6f049af58405f8b8f9f` and is an unchanged older artifact; no matching b400 provenance was found. Do not use it. No source/controller changes, native build or GPU run occurred during this preparation.
 
 Both runs use N64, 8 ms knots/feedback, 1 ms internal plant, 16 s and B1. Prediction duration is 0.504 s. The horizontal reference has 0.32 m x span, 0.08 m y amplitude, 24 s period, 0.02 m start-edge clearance and five stored cycles; the run covers the first 16 s. Start: `comfortable_high_clearance`, zero velocity; constant force zero. RPY (0,0,0) means tool +Z up in the torso frame. OFF weights:0/0; ON:0.2/4. Public flags are `--ee-orient-cost` and `--ee-orient-N-cost`; the target reference stays identical in both runs.
 
@@ -24,7 +24,7 @@ cp "$FIGURE_BUILD"/modules/bsqpN64_tiago_right*.so "$FIGURE_SOURCE/python/bsqp/"
 
 Stop if either build command fails; do not install or run a failed build.
 
-Use a fresh pair directory. Each command below invokes the unchanged public CLI once with explicit N/dt/sim_dt/duration/B1/start/RPY/weights and `--no-gif`. The helper refuses a different/modified source or mismatched installed module, records command/start/end/machine/GPU/build/module hashes, and retains stdout/stderr. It does not add a preflight or extra optimizer runs:
+Use a fresh pair directory. Each command below invokes the unchanged public CLI once with explicit N/dt/sim_dt/duration/B1/start/RPY/weights and `--no-gif`. The helper refuses a different/modified source or mismatched installed module. It explicitly selects the pinned Python paths, restricts the BSQP namespace and preloads the exact N64 extension before invoking the unchanged public main in that same process. `loaded_runtime.json` records actual Python paths and native path/SHA before simulation; the receipt embeds it and the bootstrap SHA. Export checks actual loaded versus selected module hashes. This prevents inherited editable packages from silently selecting another checkout. The helper also records command/start/end/machine/GPU/build hashes and retains stdout/stderr. It does not add a preflight or extra optimizer runs:
 
 ```bash
 FIGURE_STAMP="$(date -u +%Y%m%dT%H%M%S.%NZ)"
@@ -41,4 +41,4 @@ These are two independent planned attempts. Preserve failures and partial files,
 
 The export checks exit status, finite actual/joint/reference/control CSVs, effective protocol, duration within0.05 s of16 s and identical paired reference hashes. It preserves physical violations separately and does not require KKT convergence. Raw summaries remain byte-identical; nonfinite derived JSON scalars become null, with the original summary retained. Extra plots/logs stay in `_expr_results/`; no GIF is requested. In-memory trajectory data may be unavailable if the public script fails before CSV export; preserve its logs/receipt rather than inventing samples.
 
-The existing thesis `figure_generators/orientation_tracking/generate.py` reads the paired exports and computes mean/max tool-axis angle. Report whether ON stays closer to vertical, either way. This preparation does not claim that outcome or create final thesis data/figures.
+The existing thesis `figure_generators/orientation_tracking/generate.py` reads the paired exports and computes mean/max tool-axis angle. Report whether ON stays closer to vertical, either way. Final analysis/reporting uses the verified pair; the source-binding-invalid pair and its original results remain historical evidence.

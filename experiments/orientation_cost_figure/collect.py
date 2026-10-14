@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 import hashlib
 import json
 import math
+import os
 from pathlib import Path
 import shutil
 import socket
@@ -54,15 +55,22 @@ def launch(args):
         collector_sha256=sha(__file__), module_path=str(modules[0]), module_sha256=sha(modules[0]),
         build_source_receipt_sha256=sha(build/'source_commit.txt'),
         cmake_cache_sha256=sha(build/'CMakeCache.txt'),
-        machine=socket.gethostname(), command=command, offline_timing='controller_dt', timing_mode='A',
+        machine=socket.gethostname(), public_example_command=command, offline_timing='controller_dt', timing_mode='A',
         orientation_target='tool +Z up in torso_lift_link frame; yaw about tool axis is not a success gate',
         started_utc=datetime.now(timezone.utc).isoformat())
     gpu = subprocess.run(['nvidia-smi', '--query-gpu=name,uuid,driver_version', '--format=csv,noheader'],
                          capture_output=True, text=True, timeout=10) if shutil.which('nvidia-smi') else None
     receipt['gpu'] = gpu.stdout.strip() if gpu else 'nvidia-smi unavailable'
+    bootstrap = Path(__file__).with_name('execute.py')
+    command = [sys.executable, str(bootstrap), '--source', str(source), '--module', str(modules[0]),
+               '--receipt', str(output/'loaded_runtime.json'), '--', *command[2:]]
+    receipt.update(command=command, bootstrap_sha256=sha(bootstrap))
     write(output/'receipt.json', receipt)
+    environment = dict(os.environ, PYTHONPATH=str(source/'python')+os.pathsep+str(source/'tiago_src'))
     with (output/'stdout.log').open('w') as stdout, (output/'stderr.log').open('w') as stderr:
-        code = subprocess.run(command, cwd=source, stdout=stdout, stderr=stderr).returncode
+        code = subprocess.run(command, cwd=source, stdout=stdout, stderr=stderr, env=environment).returncode
+    loaded_path = output/'loaded_runtime.json'
+    if loaded_path.is_file(): receipt['actual_loaded_runtime'] = json.loads(loaded_path.read_text())
     receipt.update(returncode=code, ended_utc=datetime.now(timezone.utc).isoformat())
     write(output/'receipt.json', receipt)
     return code
@@ -81,7 +89,11 @@ def export(args):
         selected = destination/condition
         selected.mkdir()
         shutil.copy2(case/'receipt.json', selected/'receipt.json')
+        if (case/'loaded_runtime.json').is_file():
+            shutil.copy2(case/'loaded_runtime.json', selected/'loaded_runtime.json')
+        loaded = receipt.get('actual_loaded_runtime', {})
         checks = dict(process_exit_zero=receipt.get('returncode') == 0, missing_files=[],
+                      actual_module_matches=loaded.get('native_module_sha256') == receipt.get('module_sha256'),
                       finite_csvs=True, protocol_matches=False, duration_near_16s=False)
         hashes = {}
         for filename in FILES:
@@ -134,7 +146,7 @@ def export(args):
     print(destination)
     return int(any(not r['checks']['process_exit_zero'] or r['checks']['missing_files']
                    or not r['checks']['finite_csvs'] or not r['checks']['protocol_matches']
-                   or not r['checks']['duration_near_16s'] or not r['checks']['paired_reference_matches'] for r in records.values()))
+                   or not r['checks']['actual_module_matches'] or not r['checks']['duration_near_16s'] or not r['checks']['paired_reference_matches'] for r in records.values()))
 
 
 def main():
