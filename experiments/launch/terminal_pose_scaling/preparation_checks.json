@@ -1,0 +1,17 @@
+{
+  "scope": "CPU preparation only; no GPU, builds or task runs",
+  "scientific_episodes": 2,
+  "original_input_sha256": "aec47cfa3819de5adbb8633b637f5bd9bcd327cb3afc5043a856b323af5aac41",
+  "checks": {
+    "only_terminal_pose_weights_changed": true,
+    "goal_start_seed_gates_timing_and_actual_limit_validation_unchanged": true,
+    "effective_canonical_identical": true,
+    "frozen_input_hashes_match": true,
+    "runner_dry_run_N128": "PASS",
+    "runner_dry_run_N256": "PASS"
+  },
+  "collector_resolution": {
+    "N128": "90bdb825d059e22b709e2e53a785d7d034aad1b0",
+    "N256": "f6cb96f1aa0c014ffc221b1b81adb2beebbb9564"
+  }
+}

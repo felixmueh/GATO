@@ -1,0 +1,190 @@
+{
+  "name": "T01-six-fixed-tasks-3ms",
+  "provenance": "Frozen modest 100.636 mm FK endpoint target, working baseline 1d9a981; 3 ms/.03/qd .1 variant previously passed3/3 in fixed-clock16b3371 evidence. This is new B protocol; prior success does not qualify it.",
+  "initial_state": [
+    -0.38999998569488525,
+    -1.7300000190734863,
+    -0.3799999952316284,
+    -2.3499999046325684,
+    0.0,
+    -1.2100000381469727,
+    0.03999999910593033,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "N": 32,
+  "dt_s": 0.03,
+  "sim_dt_s": 0.003,
+  "timeout_s": 8.0,
+  "position_threshold_m": 0.05,
+  "axis_threshold_deg": 30.0,
+  "speed_L1_threshold_rad_s": 1.0,
+  "minimum_initial_distance_m": 0.1,
+  "minimum_executed_displacement_m": 0.05,
+  "campaign_id": "T01",
+  "execution_backend": "internal",
+  "research_question": "RQ-control",
+  "timing_mode": "B",
+  "offline_timing": "solve_time",
+  "nominal_feedback_s": 0.03,
+  "prediction_duration_s": 0.93,
+  "batch_size": 1,
+  "goal_dwell_time_s": 0.0,
+  "final_approach": false,
+  "reset_rho_each_solve": false,
+  "adapt_rho": true,
+  "constant_f_ext": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "pendulum": null,
+  "gravity_m_s2": [
+    0.0,
+    0.0,
+    -9.81
+  ],
+  "track_full_stats": true,
+  "initial_guess": null,
+  "seed_policy": "public constant-current-state, zero-control cold seed; shifted previous plan warm starts; no witness initialization",
+  "repeat_policy": "one full six-task cohort per desktop machine; no selective fallback or automatic execution retry",
+  "collision_scope": "obstacle-free arm-only dynamics; collision clearance unassessed",
+  "physical_validation": {
+    "position_tolerance_rad": 0.0001,
+    "velocity_tolerance_rad_s": 0.001,
+    "effort_tolerance_Nm": 0.001,
+    "scope": "every actual RK4 state and applied control, sampled model limits"
+  },
+  "solver_numerical_pass": null,
+  "known_limitations": [
+    "SB-001: retained P01 goal1 failure; no cause claim",
+    "SB-002: retained static lambda/q/r finiteness failure; no full KKT certificate",
+    "Q02: original frozen h=.004 derivative protocol remains FAILED2/560; saved-input independent CPU same-coarse-step FD reproduces both negatives while native analytic versus finer references is much closer (~4e-4/~3.6e-5 max); native-vs-independent and scalar/batch subchecks pass; bounded method-negative explanation, no full model/KKT certificate, no rerun/tolerance change"
+  ],
+  "urdf": {
+    "path": "gato/dynamics/tiago_right/tiago_right_arm.urdf",
+    "sha256": "8e1fd973a1d1c3fbddd55039e6eb17b355ebb29f46e1bd8c774b7879c2cdc5bb"
+  },
+  "family_hold_policy": "B rough-reaching or physical failure holds dependent family on this machine; only a separately recorded A diagnostic is eligible, then Felix reviews before changes",
+  "release_status": "released after reviewed clock decision",
+  "timing_scope": "BSQP.solve wrapper wall only; raw copies, telemetry access, recorder IO, controller bookkeeping and RK4 excluded",
+  "implemented_clock_convention": "old active plan continues from its activation age during the current measured solve; returned plan activates afterward with control u0; optimizer-reference/feedback and activation clocks are separate",
+  "clock_decision_record": {
+    "speaker": "Felix",
+    "date": "2026-10-10",
+    "exact_text": "Implement old-plan execution during solve",
+    "execution_hold": "Independent corrected clock/source review and required original-mode frozen suite accepted. Desktop only; task-worker review, exact build identity and same-machine preflight/fallback evidence required; no Jetson/Gazebo/physical release."
+  },
+  "approved_clock_convention": "previous active plan executes while the next solve computes; returned plan activates afterward",
+  "startup_convention": "first task solve retained as startup/cold and activated at0; bootstrap wall is unpaid; execute one nominal30ms first interval",
+  "terminal_convention": "nonterminal goals pay full solve wall and check at actualarrival; requested goal deadlines/end/lateness retained descriptively; only final overall task timeout or tracking end clips; late terminal or old-goal outputs retained and discarded; expired active plan holds last valid control",
+  "reaching_solver_params": {
+    "max_sqp_iters": 5,
+    "kkt_tol": 0.001,
+    "max_pcg_iters": 120,
+    "pcg_tol": 0.001,
+    "solve_ratio": 1.0,
+    "mu": 1.0,
+    "q_cost": 4.0,
+    "qd_cost": 0.1,
+    "u_cost": 0.0001,
+    "N_cost": 327.741935483871,
+    "ee_orient_cost": 0.1,
+    "ee_orient_N_cost": 8.193548387096774,
+    "q_lim_cost": 0.01,
+    "vel_lim_cost": 0.1,
+    "ctrl_lim_cost": 0.05,
+    "rho": 0.01
+  },
+  "tracking_solver_params": {
+    "max_sqp_iters": 5,
+    "kkt_tol": 0.001,
+    "max_pcg_iters": 120,
+    "pcg_tol": 0.001,
+    "solve_ratio": 1.0,
+    "mu": 1.0,
+    "q_cost": 4.0,
+    "qd_cost": 0.01,
+    "u_cost": 0.0001,
+    "N_cost": 80.0,
+    "ee_orient_cost": 0.0,
+    "ee_orient_N_cost": 0.0,
+    "q_lim_cost": 0.01,
+    "vel_lim_cost": 0.001,
+    "ctrl_lim_cost": 0.003,
+    "rho": 0.01
+  },
+  "approval_record": {
+    "speaker": "Felix",
+    "date": "2026-10-10",
+    "exact_text": "Yes but try this first. If this does not work also try with 1ms.",
+    "context": "Three FK-derived goals100.636/207.933/317.052mm with8s allowance; public figure-eight geometry at24/18/12s periods; N32/.03s knots/feedback/.003s plant first; proposed one desktop episode perGPU.",
+    "scope": "goals/speeds and3ms-first protocol approved; conditional1ms is a separate preserved cohort if3ms does not work; Jetson repetitions/discussion still pending"
+  },
+  "preflight_protocol_sha256": "20920040853786cf3d96f13ba240f82918a9f0f5020270fbe67715666477cc81",
+  "tasks": [
+    {
+      "id": "goal-3",
+      "kind": "reaching",
+      "goal": [
+        0.5741897462360566,
+        -0.21693072089055046,
+        -0.18550261376089472,
+        0.24398234544442898,
+        0.30407553591651837,
+        -3.03420911161075
+      ],
+      "endpoint_delta_rad": [
+        0.36,
+        1.2000000000000002,
+        0.0,
+        0.44999999999999996,
+        0.0,
+        0.15000000000000002,
+        0.0
+      ],
+      "timeout_s": 8.0,
+      "screening_witness": {
+        "sampled_inverse_dynamics_pass": true,
+        "physical_margins": {
+          "minimum_position_margin_rad": 0.09346095279206112,
+          "minimum_velocity_margin_rad_s": 2.218750079081785,
+          "minimum_effort_margin_Nm": 17.3975767412866
+        },
+        "collision_scope": "unassessed"
+      }
+    }
+  ],
+  "tracking_feasibility_scope": "Public geometry and analytic Cartesian speed bounds only; dynamic feasibility, IK route, collision and between-sample compliance unassessed",
+  "fallback_rule": {
+    "preflight_failure": "hold3ms T01; retain failed B preflight and separate same-configuration A diagnostic, then separately hashed1ms V01 preflight; run all six1ms only if readiness passes",
+    "task_failure": "complete all six3ms tasks after passing preflight; any completed task or physical failure permits all six1ms after new1ms V01 passes",
+    "execution_failure": "hold; no automatic fallback; explicit setup/error review",
+    "canonical_qualification": "1ms never qualifies3ms; both cohorts retained"
+  },
+  "release_machines": [
+    "gtx1070",
+    "rtx5060"
+  ],
+  "reviewed_controller_sha256": {
+    "python/bsqp/offline_mpc.py": "cd689296b079aad7bf0637768c6c5107e725e58b1bda57cf6adc92879fada198",
+    "python/bsqp/mpc_controller.py": "976591094ab6266596c2e89744e0ffbe33e8544c2f1c745623c275dc5edb570e",
+    "tiago_src/gato_tiago/tiago_mpc_controller.py": "e7b7471b88643395d7a51c106a36c9ebb39cfcfda892ac5d1ab6b679b94a73c8"
+  },
+  "reviewed_harness_sha256": {
+    "experiments/campaign/run_t01.py": "28347b6a4fd1bfc9681cceb962eea569962107c6b257f83a5135a818447ac83f",
+    "experiments/campaign/t01_protocol.py": "4585d4aaf1508fde7e56d6320802813120efaf3651b7517048851fa7b2420288",
+    "experiments/campaign/raw.py": "5c8bbcbe02f060bacdde4ab8294965040204ca95b4c00bb3f45ef1c28235ed17",
+    "experiments/campaign/evaluate.py": "871fb16d5f6541d0a0099b521269ff77e5d6bfc99d788a8add5164ff5e1e1377",
+    "experiments/campaign/make_task_plan.py": "ff6ff26c6c9a649ba6cbac8bd5fc7c66f4b9457de7a80f76dff4359dd0fd0c8f",
+    "experiments/campaign/build_isolated.py": "961004880e8d7ff23faa568283652057bd8ea7f2ab9cc0a9d5ec00a32d107907"
+  }
+}

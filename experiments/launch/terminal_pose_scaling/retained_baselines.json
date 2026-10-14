@@ -1,0 +1,378 @@
+[
+  {
+    "role": "unscaled_long_horizon",
+    "row": {
+      "experiment": "A-N128-SQP5",
+      "case": "goal-3",
+      "repeat": "0",
+      "attempt": "rtx5060/A-N128-SQP5/goal-3-r000-95f00defc4e4cb19/attempt-001",
+      "status": "completed",
+      "N": "128",
+      "dt_s": "0.03",
+      "SQP": "5",
+      "PCG": "120",
+      "task_success": "False",
+      "physical_pass": "False",
+      "execution_error": "",
+      "duration_s": "8.0",
+      "tracking_RMS_m": "",
+      "tracking_maximum_m": "",
+      "final_distance_m": "0.6766312823451929",
+      "final_axis_error_deg": "92.46541733143836",
+      "prediction_duration_s": "3.81",
+      "wall_median_ms": "18.435806967318058",
+      "native_median_ms": "18.361",
+      "wall_p95_ms": "18.460494372993708",
+      "update_fraction_above_nominal": "0.0",
+      "position_violation_rad": "292.7949372407409",
+      "velocity_violation_rad_s": "125.45099344991293",
+      "torque_violation_Nm": "0.0",
+      "receipt_wall_seconds": "10.377782583236694"
+    },
+    "source_report": "/workspace/GATO/thesis_results/task-parameters-20261014-rtx5060_internal/REPORT.md",
+    "provenance": {
+      "attempt": "rtx5060/A-N128-SQP5/goal-3-r000-95f00defc4e4cb19/attempt-001",
+      "identity": {
+        "machine": "rtx5060",
+        "experiment": "A-N128-SQP5",
+        "source_commit": "fa6f6bede286c122cc41ac65f42a583da84290e0",
+        "protocol": "task-parameters-20261014",
+        "inputs": {
+          "experiments/inputs/t01/t01.json": "aec47cfa3819de5adbb8633b637f5bd9bcd327cb3afc5043a856b323af5aac41",
+          "experiments/inputs/t01/v01.json": "20920040853786cf3d96f13ba240f82918a9f0f5020270fbe67715666477cc81",
+          "experiments/inputs/task_parameters/canonical_case.json": "f45af2548bb0e759e197b70d648fac27bf701bd265d431c17f5b71f80381c3f1"
+        },
+        "timing_mode": "B",
+        "backend": "internal",
+        "case": {
+          "id": "goal-3",
+          "parameters": {
+            "N": 128,
+            "dt_s": 0.03,
+            "sqp_max_iter": 5,
+            "pcg_max_iter": 120
+          },
+          "repeat": 0
+        },
+        "parameters": {
+          "collector_source_commit": "90bdb825d059e22b709e2e53a785d7d034aad1b0",
+          "pcg_max_iter": 120
+        }
+      },
+      "protocol_sha256": "051b2f85e623b9faf2b95b257768661bb4d3866967d59de8c25865a910d7e24a",
+      "collector_sha256": "72ff2112b3efd1a13d03f0891d4c55f453135a74c06e23f68682711d06cb4878",
+      "collector_protocol_sha256": "361c9530289f6515ed2c2d2cda5c8da1f4c9fe6ecadb4b71a291dbd0b56b0e26",
+      "provenance": {
+        "source_commit": "fa6f6bede286c122cc41ac65f42a583da84290e0",
+        "module_path": "/workspace/GATO-experiment-runner/.experiment-cache/task-parameters-20261014-rtx5060_internal/builds/2f77eb4d2c7f028d67f6ef840d6187ee6f343c61678f4ee6c2b9f185ee7bc906/modules/bsqpN128_tiago_right.cpython-310-x86_64-linux-gnu.so",
+        "module_sha256": "950d444179d0bad0e9f255dd0814efe581a962d6256a91492e14b57b7eb74e9d",
+        "collector_sha256": "4cca897512b4f7888c6612ad4ba80deaee185987f1d2cc0eb78d87e61b5d14c5",
+        "protocol_sha256": "051b2f85e623b9faf2b95b257768661bb4d3866967d59de8c25865a910d7e24a",
+        "machine": "rtx5060"
+      },
+      "build_key": "c706bbc6637943d6c3ae53092ca83e1b97dd36a503a840e882b0c438c5e4673c"
+    },
+    "native_identity_policy": "Prefer retained cache; record actual source/path/hash/compiler/options. Harmless binary-byte changes alone do not invalidate scientific comparison."
+  },
+  {
+    "role": "unscaled_N32_anchor",
+    "row": {
+      "experiment": "A-N32-SQP5",
+      "case": "goal-3",
+      "repeat": "0",
+      "attempt": "rtx5060/A-N32-SQP5/goal-3-r000-e7e5a124bb31760a/attempt-001",
+      "status": "completed",
+      "N": "32",
+      "dt_s": "0.03",
+      "SQP": "5",
+      "PCG": "120",
+      "task_success": "True",
+      "physical_pass": "True",
+      "execution_error": "",
+      "duration_s": "1.4783631942421198",
+      "tracking_RMS_m": "",
+      "tracking_maximum_m": "",
+      "final_distance_m": "0.0499681574560102",
+      "final_axis_error_deg": "7.765305772493919",
+      "prediction_duration_s": "0.9299999999999999",
+      "wall_median_ms": "0.23422949016094208",
+      "native_median_ms": "0.176",
+      "wall_p95_ms": "0.7344830781221391",
+      "update_fraction_above_nominal": "0.0",
+      "position_violation_rad": "0.0",
+      "velocity_violation_rad_s": "0.0",
+      "torque_violation_Nm": "0.0",
+      "receipt_wall_seconds": "6.574315309524536"
+    },
+    "source_report": "/workspace/GATO/thesis_results/task-parameters-20261014-rtx5060_internal/REPORT.md",
+    "provenance": {
+      "attempt": "rtx5060/A-N32-SQP5/goal-3-r000-e7e5a124bb31760a/attempt-001",
+      "identity": {
+        "machine": "rtx5060",
+        "experiment": "A-N32-SQP5",
+        "source_commit": "fa6f6bede286c122cc41ac65f42a583da84290e0",
+        "protocol": "task-parameters-20261014",
+        "inputs": {
+          "experiments/inputs/t01/t01.json": "aec47cfa3819de5adbb8633b637f5bd9bcd327cb3afc5043a856b323af5aac41",
+          "experiments/inputs/t01/v01.json": "20920040853786cf3d96f13ba240f82918a9f0f5020270fbe67715666477cc81",
+          "experiments/inputs/task_parameters/canonical_case.json": "f45af2548bb0e759e197b70d648fac27bf701bd265d431c17f5b71f80381c3f1"
+        },
+        "timing_mode": "B",
+        "backend": "internal",
+        "case": {
+          "id": "goal-3",
+          "parameters": {
+            "N": 32,
+            "dt_s": 0.03,
+            "sqp_max_iter": 5,
+            "pcg_max_iter": 120
+          },
+          "repeat": 0
+        },
+        "parameters": {
+          "collector_source_commit": "90bdb825d059e22b709e2e53a785d7d034aad1b0",
+          "pcg_max_iter": 120
+        }
+      },
+      "protocol_sha256": "bcbedc2004963af304901369eb525fb480368e53105cc3dd59e287b0f5f3222b",
+      "collector_sha256": "72ff2112b3efd1a13d03f0891d4c55f453135a74c06e23f68682711d06cb4878",
+      "collector_protocol_sha256": "361c9530289f6515ed2c2d2cda5c8da1f4c9fe6ecadb4b71a291dbd0b56b0e26",
+      "provenance": {
+        "source_commit": "fa6f6bede286c122cc41ac65f42a583da84290e0",
+        "module_path": "/workspace/GATO-experiment-runner/.experiment-cache/task-parameters-20261014-rtx5060_internal/builds/2f77eb4d2c7f028d67f6ef840d6187ee6f343c61678f4ee6c2b9f185ee7bc906/modules/bsqpN32_tiago_right.cpython-310-x86_64-linux-gnu.so",
+        "module_sha256": "ac9c95fa6fe1dd09a2d44e09a8d95a41ae7cb3f5726684232d773a46cb8f94a0",
+        "collector_sha256": "4cca897512b4f7888c6612ad4ba80deaee185987f1d2cc0eb78d87e61b5d14c5",
+        "protocol_sha256": "bcbedc2004963af304901369eb525fb480368e53105cc3dd59e287b0f5f3222b",
+        "machine": "rtx5060"
+      },
+      "build_key": "c706bbc6637943d6c3ae53092ca83e1b97dd36a503a840e882b0c438c5e4673c"
+    },
+    "native_identity_policy": "Prefer retained cache; record actual source/path/hash/compiler/options. Harmless binary-byte changes alone do not invalidate scientific comparison."
+  },
+  {
+    "role": "unscaled_N32_anchor",
+    "row": {
+      "experiment": "A-N32-SQP5",
+      "case": "goal-3",
+      "repeat": "1",
+      "attempt": "rtx5060/A-N32-SQP5/goal-3-r001-6c17a7f5ecd2491e/attempt-001",
+      "status": "completed",
+      "N": "32",
+      "dt_s": "0.03",
+      "SQP": "5",
+      "PCG": "120",
+      "task_success": "True",
+      "physical_pass": "True",
+      "execution_error": "",
+      "duration_s": "1.47751232303679",
+      "tracking_RMS_m": "",
+      "tracking_maximum_m": "",
+      "final_distance_m": "0.04999841842989994",
+      "final_axis_error_deg": "7.744824702967489",
+      "prediction_duration_s": "0.9299999999999999",
+      "wall_median_ms": "0.2344530075788498",
+      "native_median_ms": "0.176",
+      "wall_p95_ms": "0.7341105490922928",
+      "update_fraction_above_nominal": "0.0",
+      "position_violation_rad": "0.0",
+      "velocity_violation_rad_s": "0.0",
+      "torque_violation_Nm": "0.0",
+      "receipt_wall_seconds": "6.622574806213379"
+    },
+    "source_report": "/workspace/GATO/thesis_results/task-parameters-20261014-rtx5060_internal/REPORT.md",
+    "provenance": {
+      "attempt": "rtx5060/A-N32-SQP5/goal-3-r001-6c17a7f5ecd2491e/attempt-001",
+      "identity": {
+        "machine": "rtx5060",
+        "experiment": "A-N32-SQP5",
+        "source_commit": "fa6f6bede286c122cc41ac65f42a583da84290e0",
+        "protocol": "task-parameters-20261014",
+        "inputs": {
+          "experiments/inputs/t01/t01.json": "aec47cfa3819de5adbb8633b637f5bd9bcd327cb3afc5043a856b323af5aac41",
+          "experiments/inputs/t01/v01.json": "20920040853786cf3d96f13ba240f82918a9f0f5020270fbe67715666477cc81",
+          "experiments/inputs/task_parameters/canonical_case.json": "f45af2548bb0e759e197b70d648fac27bf701bd265d431c17f5b71f80381c3f1"
+        },
+        "timing_mode": "B",
+        "backend": "internal",
+        "case": {
+          "id": "goal-3",
+          "parameters": {
+            "N": 32,
+            "dt_s": 0.03,
+            "sqp_max_iter": 5,
+            "pcg_max_iter": 120
+          },
+          "repeat": 1
+        },
+        "parameters": {
+          "collector_source_commit": "90bdb825d059e22b709e2e53a785d7d034aad1b0",
+          "pcg_max_iter": 120
+        }
+      },
+      "protocol_sha256": "bcbedc2004963af304901369eb525fb480368e53105cc3dd59e287b0f5f3222b",
+      "collector_sha256": "72ff2112b3efd1a13d03f0891d4c55f453135a74c06e23f68682711d06cb4878",
+      "collector_protocol_sha256": "361c9530289f6515ed2c2d2cda5c8da1f4c9fe6ecadb4b71a291dbd0b56b0e26",
+      "provenance": {
+        "source_commit": "fa6f6bede286c122cc41ac65f42a583da84290e0",
+        "module_path": "/workspace/GATO-experiment-runner/.experiment-cache/task-parameters-20261014-rtx5060_internal/builds/2f77eb4d2c7f028d67f6ef840d6187ee6f343c61678f4ee6c2b9f185ee7bc906/modules/bsqpN32_tiago_right.cpython-310-x86_64-linux-gnu.so",
+        "module_sha256": "ac9c95fa6fe1dd09a2d44e09a8d95a41ae7cb3f5726684232d773a46cb8f94a0",
+        "collector_sha256": "4cca897512b4f7888c6612ad4ba80deaee185987f1d2cc0eb78d87e61b5d14c5",
+        "protocol_sha256": "bcbedc2004963af304901369eb525fb480368e53105cc3dd59e287b0f5f3222b",
+        "machine": "rtx5060"
+      },
+      "build_key": "c706bbc6637943d6c3ae53092ca83e1b97dd36a503a840e882b0c438c5e4673c"
+    },
+    "native_identity_policy": "Prefer retained cache; record actual source/path/hash/compiler/options. Harmless binary-byte changes alone do not invalidate scientific comparison."
+  },
+  {
+    "role": "unscaled_N32_anchor",
+    "row": {
+      "experiment": "A-N32-SQP5",
+      "case": "goal-3",
+      "repeat": "2",
+      "attempt": "rtx5060/A-N32-SQP5/goal-3-r002-f141a95bd6ad70fc/attempt-001",
+      "status": "completed",
+      "N": "32",
+      "dt_s": "0.03",
+      "SQP": "5",
+      "PCG": "120",
+      "task_success": "True",
+      "physical_pass": "True",
+      "execution_error": "",
+      "duration_s": "1.477857990860939",
+      "tracking_RMS_m": "",
+      "tracking_maximum_m": "",
+      "final_distance_m": "0.04998967352463247",
+      "final_axis_error_deg": "7.76134859096632",
+      "prediction_duration_s": "0.9299999999999999",
+      "wall_median_ms": "0.2349885180592537",
+      "native_median_ms": "0.176",
+      "wall_p95_ms": "0.7348065264523029",
+      "update_fraction_above_nominal": "0.0",
+      "position_violation_rad": "0.0",
+      "velocity_violation_rad_s": "0.0",
+      "torque_violation_Nm": "0.0",
+      "receipt_wall_seconds": "6.62209939956665"
+    },
+    "source_report": "/workspace/GATO/thesis_results/task-parameters-20261014-rtx5060_internal/REPORT.md",
+    "provenance": {
+      "attempt": "rtx5060/A-N32-SQP5/goal-3-r002-f141a95bd6ad70fc/attempt-001",
+      "identity": {
+        "machine": "rtx5060",
+        "experiment": "A-N32-SQP5",
+        "source_commit": "fa6f6bede286c122cc41ac65f42a583da84290e0",
+        "protocol": "task-parameters-20261014",
+        "inputs": {
+          "experiments/inputs/t01/t01.json": "aec47cfa3819de5adbb8633b637f5bd9bcd327cb3afc5043a856b323af5aac41",
+          "experiments/inputs/t01/v01.json": "20920040853786cf3d96f13ba240f82918a9f0f5020270fbe67715666477cc81",
+          "experiments/inputs/task_parameters/canonical_case.json": "f45af2548bb0e759e197b70d648fac27bf701bd265d431c17f5b71f80381c3f1"
+        },
+        "timing_mode": "B",
+        "backend": "internal",
+        "case": {
+          "id": "goal-3",
+          "parameters": {
+            "N": 32,
+            "dt_s": 0.03,
+            "sqp_max_iter": 5,
+            "pcg_max_iter": 120
+          },
+          "repeat": 2
+        },
+        "parameters": {
+          "collector_source_commit": "90bdb825d059e22b709e2e53a785d7d034aad1b0",
+          "pcg_max_iter": 120
+        }
+      },
+      "protocol_sha256": "bcbedc2004963af304901369eb525fb480368e53105cc3dd59e287b0f5f3222b",
+      "collector_sha256": "72ff2112b3efd1a13d03f0891d4c55f453135a74c06e23f68682711d06cb4878",
+      "collector_protocol_sha256": "361c9530289f6515ed2c2d2cda5c8da1f4c9fe6ecadb4b71a291dbd0b56b0e26",
+      "provenance": {
+        "source_commit": "fa6f6bede286c122cc41ac65f42a583da84290e0",
+        "module_path": "/workspace/GATO-experiment-runner/.experiment-cache/task-parameters-20261014-rtx5060_internal/builds/2f77eb4d2c7f028d67f6ef840d6187ee6f343c61678f4ee6c2b9f185ee7bc906/modules/bsqpN32_tiago_right.cpython-310-x86_64-linux-gnu.so",
+        "module_sha256": "ac9c95fa6fe1dd09a2d44e09a8d95a41ae7cb3f5726684232d773a46cb8f94a0",
+        "collector_sha256": "4cca897512b4f7888c6612ad4ba80deaee185987f1d2cc0eb78d87e61b5d14c5",
+        "protocol_sha256": "bcbedc2004963af304901369eb525fb480368e53105cc3dd59e287b0f5f3222b",
+        "machine": "rtx5060"
+      },
+      "build_key": "c706bbc6637943d6c3ae53092ca83e1b97dd36a503a840e882b0c438c5e4673c"
+    },
+    "native_identity_policy": "Prefer retained cache; record actual source/path/hash/compiler/options. Harmless binary-byte changes alone do not invalidate scientific comparison."
+  },
+  {
+    "role": "unscaled_long_horizon",
+    "row": {
+      "experiment": "A-N256-SQP5",
+      "case": "goal-3",
+      "repeat": "0",
+      "attempt": "rtx5060/A-N256-SQP5/goal-3-r000-ae49bff28b82a682/attempt-001",
+      "status": "completed",
+      "N": "256",
+      "dt_s": "0.03",
+      "SQP": "5",
+      "PCG": "120",
+      "task_success": "False",
+      "physical_pass": "False",
+      "execution_error": "",
+      "duration_s": "8.0",
+      "tracking_RMS_m": "",
+      "tracking_maximum_m": "",
+      "final_distance_m": "0.3742722125595769",
+      "final_axis_error_deg": "107.60674303729716",
+      "prediction_duration_s": "7.6499999999999995",
+      "wall_median_ms": "31.453484669327736",
+      "native_median_ms": "31.369999999999997",
+      "wall_p95_ms": "35.0762908346951",
+      "update_fraction_above_nominal": "0.71875",
+      "position_violation_rad": "162.3047165910795",
+      "velocity_violation_rad_s": "517.1780176630183",
+      "torque_violation_Nm": "28.009479522705078",
+      "receipt_wall_seconds": "10.226621150970459"
+    },
+    "source_report": "/workspace/GATO/thesis_results/task-parameters-large-optin-20261014-rtx5060_internal/REPORT.md",
+    "provenance": {
+      "attempt": "rtx5060/A-N256-SQP5/goal-3-r000-ae49bff28b82a682/attempt-001",
+      "identity": {
+        "machine": "rtx5060",
+        "experiment": "A-N256-SQP5",
+        "source_commit": "a17e3e631e52e927bb6b81675b9a8f958d473d3d",
+        "protocol": "task-parameters-large-optin-20261014",
+        "inputs": {
+          "experiments/inputs/t01/t01.json": "aec47cfa3819de5adbb8633b637f5bd9bcd327cb3afc5043a856b323af5aac41",
+          "experiments/inputs/t01/v01.json": "20920040853786cf3d96f13ba240f82918a9f0f5020270fbe67715666477cc81",
+          "experiments/inputs/task_parameters/canonical_case.json": "f45af2548bb0e759e197b70d648fac27bf701bd265d431c17f5b71f80381c3f1"
+        },
+        "timing_mode": "B",
+        "backend": "internal",
+        "case": {
+          "id": "goal-3",
+          "parameters": {
+            "N": 256,
+            "dt_s": 0.03,
+            "sqp_max_iter": 5,
+            "pcg_max_iter": 120
+          },
+          "repeat": 0
+        },
+        "parameters": {
+          "collector_source_commit": "f6cb96f1aa0c014ffc221b1b81adb2beebbb9564",
+          "pcg_max_iter": 120,
+          "native_shared_memory_policy": "conditional_opt_in_only_above_default_and_device_fit"
+        }
+      },
+      "protocol_sha256": "dffefd367e9dfeea7458ae59e8d3fee053b18cff8689ecd4bb2a673502a032e0",
+      "collector_sha256": "cf6c7a41ddcb839c557521c39ba935368aad52d869f486061785ee1e3459c17a",
+      "collector_protocol_sha256": "e74cae13b440069d291a0caaa6896e40edcd22363766e10f9e5eee99b134f726",
+      "provenance": {
+        "source_commit": "a17e3e631e52e927bb6b81675b9a8f958d473d3d",
+        "module_path": "/workspace/GATO-experiment-runner/.experiment-cache/task-parameters-large-optin-20261014-rtx5060_internal/builds/bb35031a1285ea7aa2fd39d82c669877014db8a2efb6ac7ec3f1966df940c07f/modules/bsqpN256_tiago_right.cpython-310-x86_64-linux-gnu.so",
+        "module_sha256": "ba8d468e3b0844e50c06210d1b78e358b0c9ef617856253d9347adc1325fdaa9",
+        "collector_sha256": "4cca897512b4f7888c6612ad4ba80deaee185987f1d2cc0eb78d87e61b5d14c5",
+        "protocol_sha256": "dffefd367e9dfeea7458ae59e8d3fee053b18cff8689ecd4bb2a673502a032e0",
+        "machine": "rtx5060"
+      },
+      "build_key": "22533ecb257203f65201a9a677eb8ffcd2677a7e1da694c2de425be851fc0fff"
+    },
+    "native_identity_policy": "Prefer retained cache; record actual source/path/hash/compiler/options. Harmless binary-byte changes alone do not invalidate scientific comparison."
+  }
+]
