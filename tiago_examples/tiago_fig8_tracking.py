@@ -541,6 +541,8 @@ def run(args):
             max_abs_torque=args.ros_max_abs_torque,
             clamp_torque=args.ros_clamp_torque,
             disable_collision_safety_for_sim_debug=args.ros_disable_collision_safety,
+            dangerously_disable_safety_stops=args.dangerously_disable_safety_stops,
+            execution_backend=args.ros_backend,
             collision_min_distance_m=args.ros_collision_min_distance,
             collision_check_timeout_sec=args.ros_collision_check_timeout,
             collision_max_monitored_geometry_speed_m_s=args.ros_collision_max_monitored_geometry_speed,
@@ -658,6 +660,9 @@ def run(args):
         "solver_params": solver_params,
         "ros_tiago": bool(args.ros_tiago),
         "ros_clamp_torque": bool(args.ros_clamp_torque),
+        "ros_backend": args.ros_backend if args.ros_tiago else "internal",
+        "dangerously_disable_safety_stops": bool(args.dangerously_disable_safety_stops),
+        "physical_monitor_summary": ros_controller.physical_monitor_summary() if ros_controller is not None else None,
         "timestamp_source": (
             "joint_state_header_stamp_elapsed" if args.ros_tiago else "offline_simulation_time"
         ),
@@ -716,6 +721,9 @@ def parse_args():
     parser.add_argument("--ee-orient-N-cost", type=float, default=4.0)
     parser.add_argument("--no-gif", action="store_true")
     parser.add_argument("--ros-tiago", action="store_true")
+    parser.add_argument("--ros-backend", choices=("gazebo", "robot"), default="robot")
+    parser.add_argument("--dangerously-disable-safety-stops", action="store_true",
+        help="Explicit Gazebo simulation only: retain physical/torque reports but bypass their stops")
     parser.add_argument("--ros-target-hz", type=float, default=125.0)
     parser.add_argument("--ros-reset-duration", type=float, default=2.0)
     parser.add_argument("--ros-stale-timeout", type=float, default=0.1)
@@ -734,6 +742,16 @@ def parse_args():
         help="Seconds to wait for controller startup, including reset and safety setup (default: 30).",
     )
     args = parser.parse_args()
+    from gato_tiago.tiago_controller_process import _require_gazebo_report_only_context
+    try:
+        _require_gazebo_report_only_context(args.dangerously_disable_safety_stops,
+            args.ros_backend if args.ros_tiago else "internal")
+        if args.dangerously_disable_safety_stops and (args.ros_clamp_torque or args.ros_disable_collision_safety):
+            raise ValueError("report-only mode requires monitoring on and clamping off")
+    except ValueError as exc:
+        parser.error(str(exc))
+    if args.dangerously_disable_safety_stops:
+        print("DANGER: Gazebo physical/torque stops bypassed; reporting retained; no clamping", flush=True)
     if not np.isfinite(args.ros_startup_timeout) or args.ros_startup_timeout <= 0:
         parser.error("--ros-startup-timeout must be finite and positive")
     return args

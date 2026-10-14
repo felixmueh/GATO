@@ -71,6 +71,7 @@ class NamedJointState:
 @dataclass(frozen=True)
 class CollisionSafetySettings:
     enabled: bool = True
+    report_only: bool = False
     urdf_path: Path = DEFAULT_COLLISION_URDF_PATH
     blacklist_path: Path | None = DEFAULT_COLLISION_BLACKLIST_PATH
     controlled_joint_names: tuple[str, ...] = ()
@@ -100,6 +101,7 @@ class _SafetyCheckResult:
     fault_kind: str = ""
     elapsed_sec: float = 0.0
     kind: str = "check"
+    physical_reports: tuple[dict, ...] = ()
 
 
 class _SafetyFault(RuntimeError):
@@ -179,6 +181,10 @@ class _SafetyChecker:
     def check(self, state: SafetyCheckState) -> None:
         if int(state.seq) == self._last_checked_seq:
             return
+        if self.settings.report_only:
+            reports = self._check_report_only(state)
+            self._last_checked_seq = int(state.seq)
+            return reports
         joint_state = NamedJointState(
             position=state.joint_positions,
             velocity=state.joint_velocities,
@@ -233,6 +239,38 @@ class _SafetyChecker:
             )
         self._last_checked_seq = int(state.seq)
 
+    def _check_report_only(self, state):
+        """Continue calculating physical outcomes; invalid data still raises."""
+        joint_state = NamedJointState(state.joint_positions, state.joint_velocities,
+                                      float(state.stamp_sec))
+        q, qd = state_to_qv(self.collision_model.model, joint_state)
+        if not np.isfinite(q).all() or not np.isfinite(qd).all():
+            raise _SafetyFault('state_invalid', 'nonfinite joint position or velocity')
+        reports = [dict(kind='joint_limit', joint=v.joint, limit_kind=v.kind,
+                        value=float(v.value)) for v in check_joint_limits(
+            self.collision_model.model, joint_state,
+            position_margin=self.settings.joint_position_margin_rad,
+            velocity_scale=self.settings.joint_velocity_scale,
+            joint_names=self.settings.controlled_joint_names)]
+        violation = compute_collision_margin_violation(self.collision_model, q,
+            margin_m=self.settings.min_distance_m, stop_at_first=True)
+        if violation is not None:
+            reports.append(dict(kind='collision_margin',
+                pair=[violation.geometry_a, violation.geometry_b],
+                approximate_distance_m=float(violation.approximate_distance_m),
+                distance_scope='first violating pair; thresholded lower-bound estimate',
+                margin_m=float(self.settings.min_distance_m)))
+        speeds = compute_collision_body_speeds(self.collision_model, q, qd)
+        if not speeds:
+            raise _SafetyFault('state_invalid', 'no monitored geometry for speed check')
+        fastest = max(speeds, key=lambda report: report.speed_bound_m_s)
+        if not all(np.isfinite(s.speed_bound_m_s) for s in speeds):
+            raise _SafetyFault('state_invalid', 'nonfinite geometry speed')
+        if fastest.speed_bound_m_s > self.settings.max_monitored_geometry_speed_m_s:
+            reports.append(dict(kind='collision_body_speed', geometry=fastest.geometry,
+                                speed_bound_m_s=float(fastest.speed_bound_m_s)))
+        return tuple(reports)
+
 
 class AsyncSafetyMonitor:
     def __init__(
@@ -272,6 +310,9 @@ class AsyncSafetyMonitor:
         self.safety_status = "unchecked"
         self.safety_fault = ""
         self.safety_message = ""
+        self.physical_summary = dict(checked_states=0, violating_states=0,
+            violations_by_kind={}, first_violation=None, last_violation=None,
+            minimum_violating_pair_approximate_distance_m=None)
 
     @property
     def last_checked_seq(self) -> int:
@@ -341,6 +382,25 @@ class AsyncSafetyMonitor:
                 )
                 raise RuntimeError(self.safety_message)
             self._last_checked_seq = result_seq
+            self.physical_summary['checked_states'] += 1
+            if result.physical_reports:
+                summary = self.physical_summary
+                summary['violating_states'] += 1
+                event = dict(seq=result_seq, reports=result.physical_reports)
+                if summary['first_violation'] is None:
+                    summary['first_violation'] = event
+                summary['last_violation'] = event
+                for report in result.physical_reports:
+                    kind = report['kind']
+                    summary['violations_by_kind'][kind] = summary['violations_by_kind'].get(kind, 0) + 1
+                    distance = report.get('approximate_distance_m')
+                    if distance is not None:
+                        old = summary['minimum_violating_pair_approximate_distance_m']
+                        summary['minimum_violating_pair_approximate_distance_m'] = distance if old is None else min(old, distance)
+                self.safety_status = 'violations_report_only'
+                self.safety_fault = ','.join(r['kind'] for r in result.physical_reports)
+                self.safety_message = str(event)
+                continue
             self.safety_status = "ok"
             self.safety_fault = ""
             self.safety_message = ""
@@ -419,7 +479,7 @@ def _safety_worker_main(
             return
         start = time.perf_counter()
         try:
-            monitor.check(state)
+            physical_reports = monitor.check(state)
         except _SafetyFault as exc:
             response_q.put(
                 _SafetyCheckResult(
@@ -457,6 +517,7 @@ def _safety_worker_main(
             _SafetyCheckResult(
                 seq=int(state.seq),
                 ok=True,
+                physical_reports=physical_reports or (),
                 elapsed_sec=time.perf_counter() - start,
             )
         )

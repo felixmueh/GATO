@@ -279,6 +279,7 @@ def _validate_trajectory(
     n_joints: int,
     max_abs_torque: float,
     clamp_torque: bool,
+    report_only: bool = False,
 ) -> np.ndarray:
     # This is an immediate streaming interface, not a future-command scheduler.
     # Otherwise the sampler applies row zero while a future start postpones expiry.
@@ -299,6 +300,10 @@ def _validate_trajectory(
     if traj.dt <= 0.0 or not np.isfinite(traj.dt):
         raise ValueError("trajectory dt must be positive and finite")
     max_abs_observed = float(np.max(np.abs(torques)))
+    if report_only:
+        if clamp_torque:
+            raise ValueError('report-only mode does not permit torque clamping')
+        return torques
     if max_abs_observed > max_abs_torque and not clamp_torque:
         raise ValueError(
             f"trajectory torque exceeds max_abs_torque={max_abs_torque:.3f}"
@@ -313,6 +318,22 @@ def _validate_trajectory(
         )
         torques = np.clip(torques, -max_abs_torque, max_abs_torque)
     return torques
+
+
+REPORT_ONLY_PHYSICAL_STOPS = (
+    'proposed_trajectory_torque_limit', 'joint_position_limit',
+    'joint_velocity_limit', 'collision_margin', 'collision_body_speed',
+)
+
+
+def _require_gazebo_report_only_context(enabled, backend, environment=None):
+    if not enabled:
+        return
+    environment = os.environ if environment is None else environment
+    if (backend != 'gazebo' or environment.get('GATO_ROS_PROFILE') != 'simulation'
+            or environment.get('ROS_DOMAIN_ID') != '1'
+            or environment.get('RMW_IMPLEMENTATION') != 'rmw_cyclonedds_cpp'):
+        raise ValueError('dangerous report-only physical stops require explicit Gazebo backend and simulation ROS environment')
 
 
 def _safety_check_state(state: Any) -> SafetyCheckState:
@@ -390,7 +411,14 @@ class TiagoControllerOrchestrator:
         joint_velocity_scale: float = 1.0,
         history_max_records: int = DEFAULT_HISTORY_MAX_RECORDS,
         start_method: str = "spawn",
+        dangerously_disable_safety_stops: bool = False,
+        execution_backend: str | None = None,
     ) -> None:
+        _require_gazebo_report_only_context(dangerously_disable_safety_stops, execution_backend)
+        if dangerously_disable_safety_stops and (clamp_torque or disable_collision_safety_for_sim_debug):
+            raise ValueError('report-only mode requires monitoring enabled and torque clamping disabled')
+        self.dangerously_disable_safety_stops = bool(dangerously_disable_safety_stops)
+        self.execution_backend = execution_backend
         self.target_hz = float(target_hz)
         if reset_q is None:
             reset_q = TIAGO_RIGHT_START_CONFIGS[TIAGO_RIGHT_DEFAULT_START_CONFIG]
@@ -402,6 +430,7 @@ class TiagoControllerOrchestrator:
         self.history_max_records = int(history_max_records)
         self.collision_safety = CollisionSafetySettings(
             enabled=not bool(disable_collision_safety_for_sim_debug),
+            report_only=self.dangerously_disable_safety_stops,
             blacklist_path=(
                 DEFAULT_COLLISION_BLACKLIST_PATH
                 if collision_blacklist_path is None
@@ -479,6 +508,8 @@ class TiagoControllerOrchestrator:
                 "max_abs_torque": self.max_abs_torque,
                 "clamp_torque": self.clamp_torque,
                 "collision_safety": self.collision_safety,
+                "report_only": self.dangerously_disable_safety_stops,
+                "execution_backend": self.execution_backend,
                 "history_max_records": self.history_max_records,
                 "shared_state": self._state,
                 "trajectory_q": self._trajectory_q,
@@ -581,6 +612,13 @@ class TiagoControllerOrchestrator:
         self._state_history = _load_state_history(self._history_path)
         return list(self._state_history)
 
+    def physical_monitor_summary(self):
+        """Compact child-process results, available after handback/close."""
+        if not self._history_metadata_path.is_file():
+            return {'unavailable': 'controller history metadata unavailable'}
+        return json.loads(self._history_metadata_path.read_text()).get(
+            'physical_monitor_summary', {'unavailable': 'monitor summary not written'})
+
     def state_history_frequency_summary(
         self,
         *,
@@ -674,7 +712,10 @@ def _controller_main(
     history_path: Path,
     history_metadata_path: Path,
     stop_event: mp.Event,
+    report_only: bool = False,
+    execution_backend: str | None = None,
 ) -> None:
+    _require_gazebo_report_only_context(report_only, execution_backend)
     from gato_tiago.ros_tiago import TiagoRightArmClient
 
     period = 1.0 / target_hz
@@ -693,6 +734,10 @@ def _controller_main(
     startup_started = time.monotonic()
     startup_stage: str | None = None
     startup_stage_started: float | None = None
+    torque_summary = dict(accepted_trajectories=0, control_rows=0,
+        violating_trajectories=0, violating_rows=0, violating_values=0,
+        maximum_abs_Nm=None, threshold_Nm=max_abs_torque,
+        scope='all rows of each accepted final trajectory; separate from published effort')
 
     def set_status(
         new_mode: str, error: str | None = None, *, finished_request_id: int | None = None,
@@ -850,7 +895,18 @@ def _controller_main(
                         len(arm.joint_names),
                         max_abs_torque,
                         clamp_torque,
+                        report_only=report_only,
                     )
+                    absolute = np.abs(current_torques)
+                    mask = absolute > max_abs_torque
+                    torque_summary['accepted_trajectories'] += 1
+                    torque_summary['control_rows'] += len(current_torques)
+                    torque_summary['violating_trajectories'] += int(mask.any())
+                    torque_summary['violating_rows'] += int(np.any(mask, axis=1).sum())
+                    torque_summary['violating_values'] += int(mask.sum())
+                    peak = float(absolute.max())
+                    old = torque_summary['maximum_abs_Nm']
+                    torque_summary['maximum_abs_Nm'] = peak if old is None else max(old, peak)
                     current_dt = traj.dt
                     active_trajectory_id = next_trajectory_id
                     next_trajectory_id += 1
@@ -926,6 +982,16 @@ def _controller_main(
                     ),
                     metadata_path=history_metadata_path,
                 )
+                metadata = json.loads(history_metadata_path.read_text())
+                metadata['physical_monitor_summary'] = dict(
+                    report_only=report_only,
+                    disabled_stops=list(REPORT_ONLY_PHYSICAL_STOPS) if report_only else [],
+                    proposed_torque=torque_summary,
+                    physical_monitor=(safety_monitor.physical_summary if safety_monitor is not None
+                                      else {'unavailable': 'monitor disabled'}),
+                    collision_distance_scope='thresholded first violating pair, not global minimum distance',
+                    contact_status='unavailable; collision margin reports are not exact contact tests')
+                history_metadata_path.write_text(json.dumps(metadata, indent=2, allow_nan=False) + '\n')
 
 
 # =======================================================

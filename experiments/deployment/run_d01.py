@@ -9,6 +9,7 @@ import signal
 import subprocess
 import sys
 import traceback
+import numpy as np
 
 if __package__ in (None, ''):
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
@@ -98,14 +99,14 @@ def run_case(case, output):
             raise ValueError('Frozen model bytes changed')
         model = pin.buildModelFromUrdf(str(model_path))
         mpc = MPC_GATO(model, str(model_path), N=protocol['N'], dt=protocol['dt_s'],
-            batch_size=1, constant_f_ext=protocol['constant_f_ext'], track_full_stats=True,
+            batch_size=1, constant_f_ext=np.asarray(protocol['constant_f_ext'], dtype=np.float32), track_full_stats=True,
             plant_type='tiago_right', pendulum_config=None,
             solver_params=protocol['solver_params'], final_approach=False)
-        module = sys.modules.get('bsqp.bsqpN32_tiago_right')
+        module = sys.modules.get(f'bsqp.bsqpN{protocol["N"]}_tiago_right')
         if module is not None and getattr(module, '__file__', None):
             identity['module'] = dict(path=module.__file__, sha256=sha(module.__file__))
         else:
-            raise RuntimeError('Loaded N32 module identity unavailable')
+            raise RuntimeError('Loaded native module identity unavailable')
         write_json(output / 'provenance.json', identity)
         preflight_guard(protocol, case, identity['module']['sha256'])
         mpc.solver = RecordedSolver(mpc.solver, recorder)
@@ -152,6 +153,8 @@ def run_case(case, output):
                 record_cleanup_event(recorder, 'evaluation_failure', errors[-1], errors)
             errors.extend(mpc.solver.recording_errors)
         metrics['execution_error'] = errors or None
+        metrics['physical_monitor_summary'] = (controller.physical_monitor_summary()
+            if controller is not None else {'unavailable': 'controller not constructed'})
         if protocol['case_id'] == PREFLIGHT_ID:
             metrics['family_held'] = bool(errors or not metrics['task_success']
                 or metrics['physical_pass'] is not True or not metrics['handback_confirmed'])
