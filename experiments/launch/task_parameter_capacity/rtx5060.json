@@ -1,0 +1,127 @@
+{
+  "version": 1,
+  "status": "prepared_optional_capacity_checks_not_executed",
+  "name": "Large-horizon configured native capacity",
+  "experiments": [
+    {
+      "id": "capacity-N256",
+      "name": "256-knot native capacity probe",
+      "source_commit": "fa6f6bede286c122cc41ac65f42a583da84290e0",
+      "protocol": "task-parameter-capacity-20261014",
+      "backend": "internal_resource_probe",
+      "machines": [
+        "rtx5060"
+      ],
+      "research_question": "RQ-capacity",
+      "build": {
+        "commands": [
+          [
+            "cmake",
+            "-S",
+            "{source}/examples/solve_time_heatmap",
+            "-B",
+            "{build}",
+            "-DKNOTS=256",
+            "-DPLANT=tiago_right",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DCMAKE_CUDA_ARCHITECTURES={cuda_arch}-real",
+            "-DPython3_EXECUTABLE={python}"
+          ],
+          [
+            "cmake",
+            "--build",
+            "{build}",
+            "--target",
+            "resources_N256",
+            "--parallel",
+            "2"
+          ]
+        ],
+        "artifacts": [
+          "resources_N256"
+        ]
+      },
+      "command": [
+        "{python}",
+        "{runner}/adapters/task_parameter_capacity.py",
+        "--build",
+        "{build}",
+        "--case",
+        "{case}",
+        "--output",
+        "{output}"
+      ],
+      "cases": [
+        {
+          "id": "configured-resource-limit",
+          "parameters": {
+            "N": 256
+          }
+        }
+      ],
+      "timeout_seconds": 60,
+      "scope": "No solver/task/ROS execution. Existing probe queries attributes and attempts only an invalid launch when configuration cannot fit."
+    },
+    {
+      "id": "capacity-N512",
+      "name": "512-knot native capacity probe",
+      "source_commit": "fa6f6bede286c122cc41ac65f42a583da84290e0",
+      "protocol": "task-parameter-capacity-20261014",
+      "backend": "internal_resource_probe",
+      "machines": [
+        "rtx5060"
+      ],
+      "research_question": "RQ-capacity",
+      "build": {
+        "commands": [
+          [
+            "cmake",
+            "-S",
+            "{source}/examples/solve_time_heatmap",
+            "-B",
+            "{build}",
+            "-DKNOTS=512",
+            "-DPLANT=tiago_right",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DCMAKE_CUDA_ARCHITECTURES={cuda_arch}-real",
+            "-DPython3_EXECUTABLE={python}"
+          ],
+          [
+            "cmake",
+            "--build",
+            "{build}",
+            "--target",
+            "resources_N512",
+            "--parallel",
+            "2"
+          ]
+        ],
+        "artifacts": [
+          "resources_N512"
+        ]
+      },
+      "command": [
+        "{python}",
+        "{runner}/adapters/task_parameter_capacity.py",
+        "--build",
+        "{build}",
+        "--case",
+        "{case}",
+        "--output",
+        "{output}"
+      ],
+      "cases": [
+        {
+          "id": "configured-resource-limit",
+          "parameters": {
+            "N": 512
+          }
+        }
+      ],
+      "timeout_seconds": 60,
+      "scope": "No solver/task/ROS execution. Existing probe queries attributes and attempts only an invalid launch when configuration cannot fit."
+    }
+  ],
+  "execution_policy": "Select one N explicitly with --only; ascending Jetson N256 then conditional N512. Keep old task grid unchanged.",
+  "historical_RTX_N256": "Observed prior resource rejection, not a new completed experiment. Reuse its resource evidence where appropriate."
+}
