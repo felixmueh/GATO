@@ -8,3 +8,6 @@ cmake>=3.24,<4
 cmeel-urdfdom==4.0.1
 cmeel-tinyxml2==10.0.0
 cmeel-assimp==6.0.2
+
+# The public wrapper also imports torch. Install its CPU-only wheel separately:
+# uv pip install torch==2.6.0 --index-url https://download.pytorch.org/whl/cpu

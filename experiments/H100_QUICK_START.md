@@ -3,7 +3,8 @@
 Run inside an allocated, uncontended whole H100 GPU, never on the login node.
 The two explicit plans are independent. Neither runs BB or BA.
 Use Git, CMake >=3.24, a C++ compiler, CUDA supporting sm90, Python headers,
-NumPy, SciPy, Pinocchio (`pin`) and pybind11; PyTorch is not required.
+NumPy, SciPy, Pinocchio (`pin`), pybind11 and CPU-only PyTorch. The public
+wrapper imports torch; the numerical solve still uses the native CUDA module.
 Activate the existing suitable Python environment and load the site CUDA module.
 Both recipes compile with two CPU jobs and select `90-real` explicitly.
 
@@ -19,7 +20,8 @@ uv python install 3.10.12
 uv venv --python 3.10.12 .venv-h100
 source .venv-h100/bin/activate
 uv pip install -r experiments/h100_requirements.txt
-python -c "import numpy, pinocchio, scipy, pybind11; print('Dependencies OK')"
+uv pip install torch==2.6.0 --index-url https://download.pytorch.org/whl/cpu
+python -c "import numpy, pinocchio, scipy, pybind11, torch; print('Dependencies OK')"
 ```
 
 ```sh
