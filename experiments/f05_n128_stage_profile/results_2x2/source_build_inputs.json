@@ -1,0 +1,32 @@
+{
+  "runner_commit": "6a7a64c23e490260a0958935118f365e89823f53",
+  "runtime_source_commit": "852b0cbcfe6e56fe5337a3b6e5fe8e777f959b77",
+  "runner_branch": "experiment/f05-n128-b16-stage-profile",
+  "plan_sha256": "c4aab0a97bdad754bf791776eb8703f6973be98aa1cd6012f076bca9dff26059",
+  "build_artifacts": {
+    "/workspace/GATO-f05-n128-stage-profile/.experiment-cache/f05-n128/builds/afdb92c1f0d00a93df0c5b5c23397247e0955d78d9881a3f6910b8820764f1f8/modules/bsqpN32_tiago_right.cpython-310-x86_64-linux-gnu.so": "c7b8299e3363afc99cc21bbde43692cda91c89c871eff5802221a6c5a2b35d7f",
+    "/workspace/GATO-f05-n128-stage-profile/.experiment-cache/f05-n128/builds/afdb92c1f0d00a93df0c5b5c23397247e0955d78d9881a3f6910b8820764f1f8/modules/bsqpN128_tiago_right.cpython-310-x86_64-linux-gnu.so": "1f73b89092d943a98321af3f45c0735c383e77e06eafb5b4da3e243426fe5e00",
+    "/workspace/GATO-f05-n128-stage-profile/.experiment-cache/f05-n128/builds/afdb92c1f0d00a93df0c5b5c23397247e0955d78d9881a3f6910b8820764f1f8/cuda_access_smoke": "3fa9da9c35b65e92d95f5f8aab8500816c3630810ddc03d6a30a01663bd11e84"
+  },
+  "input_sha256": {
+    "experiments/inputs/f01c/SHA256SUMS.json": "f8a8217982f3fa2b1b4fd2629e8cb45949d372f6d43c6137bbdaa7e52acc7007",
+    "experiments/inputs/f01c/arrays.npz": "eefdc3644f4f884e60353349312999eeca446e5e703a794b9f9e3058791e4d40",
+    "experiments/inputs/f01c/bank.json": "50210ac0701d63bb1e63981748010d430092c404c82015b2a4e549c94ba526a3",
+    "experiments/inputs/f01c/preparation.json": "a79f1450e3a9c2a61e349de439cff5df4abf46285c7e3e6f014566da66f7fada",
+    "experiments/inputs/f01c/seed_diagnostics.json": "2d29f523f2c943123fd759f0889ffd081d97d8d7e7de4171d00da067a1aabf9d",
+    "experiments/inputs/f05_n128_f01ab/SHA256SUMS.json": "6bf87dd24634ee5d665cddab9a7d67faee8e6928efba23f511b99a6173f1085f",
+    "experiments/inputs/f05_n128_f01ab/arrays.npz": "a674b748a058538fe7c6b0e93a836a0b82394196028788f09284d29b5dd13ed4",
+    "experiments/inputs/f05_n128_f01ab/bank.json": "9c3a3a06b53079af04ca99a6d4146ff741161d1bf82013283447ab2d5422d7b9"
+  },
+  "new_raw_root": "/workspace/GATO/_expr_results/f05-gtx1070-b16-stage-20261014T182316Z",
+  "retained_B1_raw_root": "/workspace/GATO/_expr_results/f05-gtx1070-n128-stage-20261014",
+  "retained_B1_runner_commit": "65bd05c6b30cb031a8c7c3cf46c23d6e302c768c",
+  "retained_rows": [
+    "N32-B1-SQP5-PCG100",
+    "N128-B1-SQP5-PCG100"
+  ],
+  "retained_supplement": "N128-B1-SQP1-PCG100",
+  "module_reuse": "Exact previousN32/N128stageONartifacthashes; no rebuild",
+  "N32_input_policy": "originalF01c16diversecandidates; B1candidate0",
+  "N128_input_policy": "16identicalcopiesofretainedB1coldinput; bytecheckpassedwarmupandmeasured"
+}
