@@ -42,6 +42,24 @@ def test_n128_extension_bank_and_exact_three_case_plan(runtime,tmp_path):
     assert len(C.cases())==38
 
 
+def test_n128_b16_repeats_exact_b1_input(runtime,tmp_path):
+    source,_=runtime
+    from adapters import f01ab
+    C.E=f01ab.load(source,'experiments/frequency_campaign/episode.py','profile_b16_bank_test')
+    folder=ROOT/'experiments/inputs/f05_n128_f01ab'
+    case=C.stage_b16_cases()[1]
+    meta,arrays=C.bank_f01ab(folder,C.sha(folder/'SHA256SUMS.json'),case)
+    for warmup in (False,True):
+        single=C.request(meta,arrays,1,warmup=warmup)
+        batch=C.request(meta,arrays,16,warmup=warmup)
+        for key in ('state','reference','warm'):
+            np.testing.assert_array_equal(batch[key],np.repeat(single[key],16,axis=0))
+            assert batch[key][0].tobytes()==single[key][0].tobytes()
+    plan=resource_profiles_plan.prepare_b16_extension(tmp_path/'b16.json')
+    assert [adapter.validate_case(c) for c in plan['experiments'][0]['cases']]==C.stage_b16_cases()
+    assert plan['preparation']['native_calls']==4
+
+
 def frozen(name):
     return subprocess.check_output(['git','-C',str(ROOT),'show',adapter.SOURCE+':'+name])
 

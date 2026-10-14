@@ -109,14 +109,32 @@ def prepare_stage_extension(output):
     output=Path(output);output.parent.mkdir(parents=True,exist_ok=True);output.write_text(json.dumps(plan,indent=2)+'\n');return plan
 
 
+def prepare_b16_extension(output):
+    plan=prepare_stage_extension(output)
+    entry=plan['experiments'][0]
+    entry['id']='F05-stageON-B16-extension'
+    entry['protocol']='F05-gtx1070-stage-B16-extension-20261014'
+    entry['cases']=[dict(id=f'profile-N{c["N"]}-B16-SQP5-PCG100',parameters=dict(c,timing_mode='A',backend='internal'))
+                    for c in C.stage_b16_cases()]
+    plan['preparation'].update(native_calls=4,workers=2,
+        inputs='N32 original diverse F01c16candidatepool; N128 repeats exact retained F01ab B1 cold input16times; not a solver-quality or pure input-matched N sweep',
+        retained_B1_raw='/workspace/GATO/_expr_results/f05-gtx1070-n128-stage-20261014',
+        module_reuse='Reuse exact N32/N128 source852b0cb stageON modules from previous3workers; B16 float registered; no rebuild or extraGPU equivalence study')
+    Path(output).write_text(json.dumps(plan,indent=2)+'\n');return plan
+
+
 if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--machine',choices=('rtx5060','jetson'),default='rtx5060')
     parser.add_argument('--output',type=Path)
     parser.add_argument('--gtx1070-stage-extension',action='store_true')
+    parser.add_argument('--gtx1070-b16-extension',action='store_true')
     args=parser.parse_args()
     output=args.output or ROOT/'experiments'/('resource_profiles-jetson-proposed.json' if args.machine=='jetson' else 'resource_profiles.json')
-    if args.gtx1070_stage_extension:
+    if args.gtx1070_b16_extension:
+        output=args.output or ROOT/'experiments/f05_gtx1070_b16_stage.json'
+        prepare_b16_extension(output)
+    elif args.gtx1070_stage_extension:
         output=args.output or ROOT/'experiments/f05_gtx1070_n128_stage.json'
         prepare_stage_extension(output)
     else:prepare(output,args.machine)

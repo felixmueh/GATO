@@ -18,7 +18,7 @@ from adapters.task_recording import project_task_record, NATIVE_DIAGNOSTIC_REPRE
 from adapters import resource_profiles_common as C, resource_profiles_science as science
 
 SOURCE = '4e5301feaea5f2d06530922ba46aa543e1995d47'
-PROTOCOL = 'simple-resource-profiles-v1-F05-N128-extension-20261014'
+PROTOCOL = 'simple-resource-profiles-v1-F05-B16-extension-20261014'
 BANK_SHA256 = 'f8a8217982f3fa2b1b4fd2629e8cb45949d372f6d43c6137bbdaa7e52acc7007'
 
 
@@ -35,8 +35,8 @@ def validate_case(case):
     parameters = dict(case['parameters'])
     if parameters.pop('timing_mode', None) != 'A' or parameters.pop('backend', None) != 'internal':
         raise ValueError('F04/F05 require internal mode A')
-    if parameters not in C.cases() + C.stage_extension_cases():
-        raise ValueError('F04/F05 require the historical38-worker or explicit3-worker stage-extension protocol')
+    if parameters not in C.cases() + C.stage_extension_cases() + C.stage_b16_cases():
+        raise ValueError('F04/F05 require the historical38-worker or explicit stage-extension protocols')
     return parameters
 
 
@@ -127,7 +127,8 @@ def run_case(case, output, source, module, inputs, machine=None, *, builder=None
                 scope='Stage ON profiles separate from OFF response/sustained; no thermal steady-state/saturation claim'))
             write_json(output/'provenance.json',dict(machine=machine, source_commit=runtime_commit, module=info,
                 bank_manifest_sha256=bank_sha, input_sha256={p.name:sha(p) for p in inputs.iterdir() if p.is_file()},
-                input_policy='F01ab first cold reaching input at N128; original F01c candidate0 at N32',
+                input_policy=('N128 identical retained F01ab cold state/reference/seed repeated across B lanes; B1 candidate0 unchanged'
+                              if parameters['N']==128 else 'N32 retained diverse F01c16candidatepool; B1 candidate0'),
                 cohort_id=PROTOCOL, evidence_kind=result['evidence_kind'],
                 adapter_sha256={name:sha(Path(__file__).with_name(name)) for name in
                     ('resource_profiles.py','resource_profiles_common.py','resource_profiles_science.py')},

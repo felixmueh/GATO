@@ -45,6 +45,11 @@ def stage_extension_cases():
             for N,SQP in ((128,5),(128,1),(32,5))]
 
 
+def stage_b16_cases():
+    return [dict(study='F05',arm='profile',N=N,B=16,SQP=5,PCG=100,stage_timing=True)
+            for N in (32,128)]
+
+
 def schedule(B, i):
     if type(i) is not int or i < 0 or B not in (1, 16): raise ValueError('Invalid schedule')
     return (i // 16 % 6, [i % 16]) if B == 1 else (i % 6, list(range(16)))
@@ -113,15 +118,17 @@ def bank_f01ab(path, expected_sha, case):
         target=(path/name).resolve()
         if not target.is_relative_to(path) or sha(target)!=digest:raise ValueError('F01ab input differs')
     bank=json.loads((path/'bank.json').read_text())
-    if bank['schema']!='held-F01-input-bank-v1' or case['N'] not in bank['N'] or case['SQP'] not in bank['SQP'] or case['PCG'] not in bank['PCG'] or case['B']!=1:
+    if bank['schema']!='held-F01-input-bank-v1' or case['N'] not in bank['N'] or case['SQP'] not in bank['SQP'] or case['PCG'] not in bank['PCG'] or case['B'] not in (1,16):
         raise ValueError('F01ab profile dimensions/budgets differ')
     with np.load(path/'arrays.npz',allow_pickle=False) as saved:arrays={k:saved[k].copy() for k in saved.files}
     episode=bank['variants']['full24']['episodes'][0]
     if episode['kind']!='reaching':raise ValueError('Expected first reaching input')
     start=arrays['starts'][episode['start_index']];goal=arrays['goals'][episode['goal_indices'][0]];N=case['N']
     # Exactly the source F01ab cold_seed primitive; no MPC episode/capture.
-    pool=E.cold_seed(start,N)[None,:,:]
-    warmup_pool=E.cold_seed(arrays['warmup_state'],N)
+    # Timing-only B16 extension: identical retained B1 cold inputs in everylane.
+    # Candidate0 remains byte-identical; no new diverse N128 pool is invented.
+    pool=np.repeat(E.cold_seed(start,N)[None,:,:],16,axis=1)
+    warmup_pool=np.repeat(E.cold_seed(arrays['warmup_state'],N),16,axis=0)
     meta=dict(preset=bank['presets']['reaching'],N=N,inputs=[dict(id='F01ab-cold-'+episode['id'],start_index=0)])
     payload=dict(starts=start[None,:],pools=pool,references=np.tile(goal,N)[None,:],
                  warmup_state=arrays['warmup_state'],warmup_pool=warmup_pool,warmup_reference=np.tile(arrays['warmup_goal'],N))
