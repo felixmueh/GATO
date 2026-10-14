@@ -1,4 +1,5 @@
 #include "bsqp/bsqp.cuh"
+#include <iomanip>
 
 #if defined(PLANT_TIAGO_RIGHT)
 constexpr const char* RESOURCE_PLANT = "tiago_right";
@@ -13,21 +14,40 @@ int main() {
     gpuErrchk(cudaGetDevice(&device));
     cudaDeviceProp p;
     gpuErrchk(cudaGetDeviceProperties(&p, device));
+    const auto pcg_setup = gato::experiment::configure_pcg_shared_memory(
+        solvePCGBatchedKernel<float, 1>, getSolvePCGBatchedSMemSize<float>(), false);
     std::cout << "{\"plant\":\"" << RESOURCE_PLANT << "\",\"N\":" << KNOT_POINTS
               << ",\"device\":\"" << p.name << "\",\"compute_capability\":\""
               << p.major << "." << p.minor << "\",\"shared_limit_bytes\":"
               << p.sharedMemPerBlock << ",\"global_memory_bytes\":" << p.totalGlobalMem
-              << ",\"multiprocessors\":" << p.multiProcessorCount << ",\"kernels\":[";
+              << ",\"multiprocessors\":" << p.multiProcessorCount
+              << ",\"pcg_shared_memory_policy\":{\"optin_requested\":" << (pcg_setup.optin_requested ? "true" : "false")
+              << ",\"optin_applied\":" << (pcg_setup.optin_applied ? "true" : "false")
+              << ",\"attributes_queried\":" << (pcg_setup.attributes_queried ? "true" : "false")
+              << ",\"supported\":" << (pcg_setup.supported ? "true" : "false")
+              << ",\"device_optin_limit_bytes\":" << pcg_setup.device_optin_limit_bytes
+              << ",\"effective_limit_bytes\":" << pcg_setup.effective_limit_bytes
+              << ",\"configuration_error\":" << std::quoted(pcg_setup.error)
+              << "},\"kernels\":[";
     bool first = true;
     auto emit = [&](const char* name, auto kernel, size_t dynamic_bytes, int threads) {
         cudaFuncAttributes a;
         gpuErrchk(cudaFuncGetAttributes(&a, kernel));
+        size_t effective_limit = p.sharedMemPerBlock;
+        if (a.maxDynamicSharedSizeBytes > 0)
+            effective_limit = std::min(effective_limit, a.sharedSizeBytes + a.maxDynamicSharedSizeBytes);
+        if (std::string(name) == "pcg" && pcg_setup.optin_requested && pcg_setup.supported)
+            effective_limit = std::min(pcg_setup.device_optin_limit_bytes,
+                a.sharedSizeBytes + a.maxDynamicSharedSizeBytes);
+        const bool setup_ok = std::string(name) != "pcg" || pcg_setup.supported;
         if (!first) std::cout << ",";
         first = false;
         std::cout << "{\"name\":\"" << name << "\",\"dynamic_bytes\":" << dynamic_bytes
                   << ",\"static_bytes\":" << a.sharedSizeBytes
                   << ",\"threads\":" << threads << ",\"max_threads\":" << a.maxThreadsPerBlock
-                  << ",\"fits\":" << ((dynamic_bytes + a.sharedSizeBytes <= p.sharedMemPerBlock
+                  << ",\"configured_max_dynamic_bytes\":" << a.maxDynamicSharedSizeBytes
+                  << ",\"effective_shared_limit_bytes\":" << effective_limit
+                  << ",\"fits\":" << ((setup_ok && dynamic_bytes + a.sharedSizeBytes <= effective_limit
                       && threads <= a.maxThreadsPerBlock) ? "true" : "false") << "}";
     };
     emit("setup_kkt", setupKKTSystemBatchedKernel<float, 1>, getSetupKKTSystemBatchedSMemSize<float>(), KKT_THREADS);
@@ -39,15 +59,6 @@ int main() {
     emit("line_search", lineSearchAndUpdateBatchedKernel<float, 1, NUM_ALPHAS>,
          sizeof(float) * NUM_ALPHAS + sizeof(uint32_t) * NUM_ALPHAS, LINE_SEARCH_THREADS);
     std::cout << "]";
-    cudaFuncAttributes pcg;
-    gpuErrchk(cudaFuncGetAttributes(&pcg, solvePCGBatchedKernel<float, 1>));
-    if (getSolvePCGBatchedSMemSize<float>() + pcg.sharedSizeBytes > p.sharedMemPerBlock) {
-        // The invalid configuration is rejected before pointers are dereferenced.
-        solvePCGBatchedKernel<float, 1><<<1, PCG_THREADS, getSolvePCGBatchedSMemSize<float>()>>>(
-            nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, 1, nullptr);
-        cudaError_t error = cudaGetLastError();
-        std::cout << ",\"pcg_launch_error\":\"" << cudaGetErrorString(error) << "\"";
-        if (error != cudaErrorInvalidConfiguration && error != cudaErrorInvalidValue) return 2;
-    }
-    std::cout << "}\n";
+    // Resource-only: never launch a valid (or invalid) kernel with null operands.
+    std::cout << ",\"pcg_launch_attempted\":false,\"kernel_launches\":0}\n";
 }
