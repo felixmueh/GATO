@@ -22,14 +22,15 @@ def execute(case, context, inputs, events, recorder, builder, query, clock=time.
             result.update(status='completed',query_wall_s=wall,solver_calls=0)
         else:
             source=Path(inputs) if inputs is not None else Path(context['bank']['path'])
-            meta,arrays=C.bank(source,context['bank']['sha256'])
+            meta,arrays=(C.bank_f01ab(source,context['bank']['sha256'],case)
+                         if case['N']==128 else C.bank(source,context['bank']['sha256']))
             factory=builder(context,meta,events)
             B=case['B']; SQP=case['SQP']; PCG=case['PCG']; serial=0; coverage=[]
             def call(request, warmup=False):
                 nonlocal serial
                 owner=None; metadata=dict(episode_id=case['arm'],slot=serial,category='warmup' if warmup else 'measured',
                     input_id=request['input_id'],input_index=request['input_index'],candidate_ids=request['candidate_ids'],
-                    B=B,N=32,caps=dict(SQP=SQP,PCG=PCG),timing_mode='A',fresh_owner=True)
+                    B=B,N=case['N'],caps=dict(SQP=SQP,PCG=PCG),timing_mode='A',fresh_owner=True)
                 recorder('owner_started',dict(metadata,state=request['state'],reference=request['reference'],warm_start=request['warm']))
                 started=clock()
                 try:

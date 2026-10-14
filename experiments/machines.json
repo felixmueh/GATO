@@ -10,5 +10,8 @@
   },
   "jetson": {
     "cuda_arch": "87"
+  },
+  "h100": {
+    "cuda_arch": "90"
   }
 }

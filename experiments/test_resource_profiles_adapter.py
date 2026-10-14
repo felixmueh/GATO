@@ -16,6 +16,50 @@ ROOT=Path(__file__).resolve().parents[1]
 INPUTS=ROOT/'experiments/inputs/f01c'
 
 
+def test_n128_extension_bank_and_exact_three_case_plan(runtime,tmp_path):
+    source,_=runtime
+    from adapters import f01ab
+    C.E=f01ab.load(source,'experiments/frequency_campaign/episode.py','profile_bank_test')
+    folder=ROOT/'experiments/inputs/f05_n128_f01ab'
+    original=json.loads((ROOT/'experiments/inputs/f01ab/bank.json').read_text())
+    assert (folder/'arrays.npz').read_bytes()==(ROOT/'experiments/inputs/f01ab/arrays.npz').read_bytes()
+    with np.load(folder/'arrays.npz',allow_pickle=False) as data:
+        for case in C.stage_extension_cases()[:2]:
+            meta,arrays=C.bank_f01ab(folder,C.sha(folder/'SHA256SUMS.json'),case)
+            assert meta['preset']==original['presets']['reaching']
+            measured=C.request(meta,arrays,1);warmup=C.request(meta,arrays,1,warmup=True)
+            assert measured['warm'].shape==warmup['warm'].shape==(1,128*21-7)
+            assert measured['reference'].shape==warmup['reference'].shape==(1,128*6)
+            np.testing.assert_array_equal(measured['state'][0],data['starts'][0])
+            np.testing.assert_array_equal(measured['reference'][0],np.tile(data['goals'][0],128))
+            np.testing.assert_array_equal(measured['warm'],C.E.cold_seed(data['starts'][0],128))
+            np.testing.assert_array_equal(warmup['warm'],C.E.cold_seed(data['warmup_state'],128))
+    plan=resource_profiles_plan.prepare_stage_extension(tmp_path/'extension.json')
+    entry=plan['experiments'][0]
+    assert entry['source_commit']=='852b0cbcfe6e56fe5337a3b6e5fe8e777f959b77'
+    assert [adapter.validate_case(c) for c in entry['cases']]==C.stage_extension_cases()
+    assert plan['preparation']['native_calls']==6
+    assert len(C.cases())==38
+
+
+def test_n128_b16_repeats_exact_b1_input(runtime,tmp_path):
+    source,_=runtime
+    from adapters import f01ab
+    C.E=f01ab.load(source,'experiments/frequency_campaign/episode.py','profile_b16_bank_test')
+    folder=ROOT/'experiments/inputs/f05_n128_f01ab'
+    case=C.stage_b16_cases()[1]
+    meta,arrays=C.bank_f01ab(folder,C.sha(folder/'SHA256SUMS.json'),case)
+    for warmup in (False,True):
+        single=C.request(meta,arrays,1,warmup=warmup)
+        batch=C.request(meta,arrays,16,warmup=warmup)
+        for key in ('state','reference','warm'):
+            np.testing.assert_array_equal(batch[key],np.repeat(single[key],16,axis=0))
+            assert batch[key][0].tobytes()==single[key][0].tobytes()
+    plan=resource_profiles_plan.prepare_b16_extension(tmp_path/'b16.json')
+    assert [adapter.validate_case(c) for c in plan['experiments'][0]['cases']]==C.stage_b16_cases()
+    assert plan['preparation']['native_calls']==4
+
+
 def frozen(name):
     return subprocess.check_output(['git','-C',str(ROOT),'show',adapter.SOURCE+':'+name])
 
