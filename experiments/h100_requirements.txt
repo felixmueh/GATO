@@ -1,0 +1,10 @@
+# Minimal, desktop-qualified environment for the H100 quick checks.
+numpy==2.2.6
+pin==3.9.0
+scipy==1.15.3
+pybind11==3.0.4
+cmake>=3.24,<4
+# Match binary ABIs required by the Pinocchio 3.9 wheels.
+cmeel-urdfdom==4.0.1
+cmeel-tinyxml2==10.0.0
+cmeel-assimp==6.0.2

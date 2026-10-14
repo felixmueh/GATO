@@ -7,6 +7,21 @@ NumPy, SciPy, Pinocchio (`pin`) and pybind11; PyTorch is not required.
 Activate the existing suitable Python environment and load the site CUDA module.
 Both recipes compile with two CPU jobs and select `90-real` explicitly.
 
+On a bare cluster, create the minimal environment with Python 3.10.12 and install
+`experiments/h100_requirements.txt` using `uv pip install -r` inside the venv.
+Pinocchio 3.9 wheels need the urdfdom 4 / tinyxml2 10 binary libraries; unconstrained
+transitive dependencies can select incompatible newer major releases. Assimp is
+also pinned to the version used by the working desktop environment. This does
+not change experiment parameters.
+
+```sh
+uv python install 3.10.12
+uv venv --python 3.10.12 .venv-h100
+source .venv-h100/bin/activate
+uv pip install -r experiments/h100_requirements.txt
+python -c "import numpy, pinocchio, scipy, pybind11; print('Dependencies OK')"
+```
+
 ```sh
 git fetch origin experiment/h100-stage-runtime experiment/h100-fig8-runtime
 python3 experiments/run.py --machine h100 --plan experiments/h100_stage_timing.json --dry-run
