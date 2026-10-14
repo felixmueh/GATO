@@ -1,0 +1,23 @@
+{
+  "native_source_commit": "b400bdf2bb6eea543b17cefcb0577d5de4d22ce2",
+  "frontend_commit": "7cf5df8b132da3d9679681e8eb4c8a3d8545e418",
+  "frontend_upstream_pin": "fa6f6bede286c122cc41ac65f42a583da84290e0",
+  "frontend_sha256": {
+    "python/bsqp/offline_mpc.py": "cd689296b079aad7bf0637768c6c5107e725e58b1bda57cf6adc92879fada198",
+    "tiago_src/gato_tiago/tiago_mpc_controller.py": "e7b7471b88643395d7a51c106a36c9ebb39cfcfda892ac5d1ab6b679b94a73c8",
+    "experiments/campaign/run_t01.py": "28347b6a4fd1bfc9681cceb962eea569962107c6b257f83a5135a818447ac83f",
+    "experiments/campaign/t01_protocol.py": "4585d4aaf1508fde7e56d6320802813120efaf3651b7517048851fa7b2420288",
+    "experiments/campaign/evaluate.py": "871fb16d5f6541d0a0099b521269ff77e5d6bfc99d788a8add5164ff5e1e1377"
+  },
+  "native_module": "/workspace/GATO-orientation-figure-source/build/final-approach-N32/modules/bsqpN32_tiago_right.cpython-310-x86_64-linux-gnu.so",
+  "native_module_sha256": "0c2cbc7cd217561cdba2ebc82cfa9e9eb12ddb3b442da7d9b4bd2ff0828c1666",
+  "reference_packed_sha256": "13f146f6dddc688f509435cf15d462b2b2094a31c39b19d4e628fbc727273d98",
+  "input_sha256": {
+    "saved_simulated_summary.json": "d42e29dbaf0cba398505d5e47d153dbca964f26b542fcd434e815fb2d1b59f3e",
+    "saved_robot_summary.json": "e53c1408cf9d0b708f8ac3d0f90c0fa721c4c638a36e581fa4b06eecbc8de9a2",
+    "saved_reference.csv": "fd7262be72811a3328dff9956861cb91af37377e8bfffca61ea06ddb7fd78419",
+    "reference.npy": "2d203d05c696c4b02aa3f37d5a2d5fbc9d141407ed9f2ff035d64208e483222e",
+    "t01.json": "34b88891f64f557b7b632ae344b7dc4ea335670c209e37eafebf2c5337b2a032"
+  },
+  "constant_goal_orientation": "zeroRPYignored becauseorientationcosts0/0"
+}

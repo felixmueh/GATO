@@ -1,0 +1,99 @@
+{
+  "version": 1,
+  "experiments": [
+    {
+      "id": "Fig8-H100-September23-8ms-counterpart",
+      "protocol": "saved-sep23-fig8-current-internal-B-v1",
+      "source_commit": "73f83b50c1444d7f2ac2823c2bd296d759d094a2",
+      "native_source_commit": "b400bdf2bb6eea543b17cefcb0577d5de4d22ce2",
+      "machines": [
+        "h100"
+      ],
+      "research_question": "RQ-control",
+      "timing_mode": "B",
+      "backend": "internal",
+      "build": {
+        "inputs": {
+          "native/CMakeLists.txt": "07c285afa3d2055c2c8f64c4645bdad01bdeb3391e77f2082aff3c70443df1e2"
+        },
+        "commands": [
+          [
+            "cmake",
+            "-S",
+            "{runner}/native",
+            "-B",
+            "{build}",
+            "-DGATO_SOURCE_DIR={source}",
+            "-DKNOTS=32",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DGATO_EXPERIMENT_TELEMETRY=OFF",
+            "-DCMAKE_CUDA_ARCHITECTURES={cuda_arch}-real",
+            "-DPython3_EXECUTABLE={python}"
+          ],
+          [
+            "cmake",
+            "--build",
+            "{build}",
+            "--parallel",
+            "2"
+          ]
+        ],
+        "artifacts": [
+          "modules/bsqpN32_tiago_right*.so"
+        ]
+      },
+      "inputs": {
+        "experiments/fig8_sep23_counterpart/inputs/saved_simulated_summary.json": "d42e29dbaf0cba398505d5e47d153dbca964f26b542fcd434e815fb2d1b59f3e",
+        "experiments/fig8_sep23_counterpart/inputs/saved_robot_summary.json": "e53c1408cf9d0b708f8ac3d0f90c0fa721c4c638a36e581fa4b06eecbc8de9a2",
+        "experiments/fig8_sep23_counterpart/inputs/saved_reference.csv": "fd7262be72811a3328dff9956861cb91af37377e8bfffca61ea06ddb7fd78419",
+        "experiments/fig8_sep23_counterpart/inputs/reference.npy": "2d203d05c696c4b02aa3f37d5a2d5fbc9d141407ed9f2ff035d64208e483222e",
+        "experiments/fig8_sep23_counterpart/inputs/t01.json": "34b88891f64f557b7b632ae344b7dc4ea335670c209e37eafebf2c5337b2a032",
+        "experiments/fig8_sep23_counterpart/source_inputs.json": "876c721f2fac348f8f51cd2e4969796b68d67b6f4cbd12a6c20f9dd1c107e3b4"
+      },
+      "repeats": 1,
+      "command": [
+        "{python}",
+        "{runner}/adapters/fig8_sep23.py",
+        "--source",
+        "{source}",
+        "--build",
+        "{build}",
+        "--inputs",
+        "{inputs}/experiments/fig8_sep23_counterpart/inputs",
+        "--case",
+        "{case}",
+        "--output",
+        "{output}"
+      ],
+      "cases": [
+        {
+          "id": "figure8-24s-sep23-8ms",
+          "parameters": {
+            "timing_mode": "B",
+            "offline_timing": "solve_time",
+            "backend": "internal",
+            "saved_weights": true
+          }
+        }
+      ],
+      "qualified_frontend_commit": "7cf5df8b132da3d9679681e8eb4c8a3d8545e418",
+      "runtime_tree_sha": "fdbaf78c93bef876fdf096b70b991a1513c9b90f",
+      "runtime_relationship": "Published runtime tree exactly equals qualified desktop frontend7cf5; native/publicinterface remainb400. source_inputs.json retains desktop reference module identity only, notH100module."
+    }
+  ],
+  "preparation": {
+    "planned_attempts": 1,
+    "retries": 0,
+    "no_extra_gpu_task_episodes": true,
+    "preflight": "Reuse unchanged qualified runtime tree; first authorized task bootstrap is execution check. No extra episode.",
+    "native_build": "FreshN32 sm90 standardnative, telemetryOFF,stageOFF; no cacheddesktopbinary",
+    "planning_wall_minutes": [
+      2,
+      5
+    ],
+    "planning_raw_bytes": 450000000,
+    "planning_basis": "Desktop184s queue wall and395MBraw, notanH100forecast. Faster native may increase feedbackcallcount andPython/recordingoverhead.",
+    "recording": "FullfeedbackCSV time/ref/FK/q/v/appliedu/wall+nativesolve; fullplanttrace retainedraw",
+    "comparison": "Exactsavedsettings andinputs; independentinternalcounterpart, notphysicalreplay. ModeB solvewall changesactualsampling."
+  }
+}
