@@ -120,7 +120,7 @@ def _run(source, build, case, output, mode, preflight, recorder, inputs):
         raise KeyboardInterrupt(f'Signal {signum}')
     previous = {sig: signal.signal(sig, interrupted) for sig in (signal.SIGINT, signal.SIGTERM)}
     try:
-        native, module_path = native_module(source, build)
+        native, module_path = native_module(source, build, protocol.get('N', 32))
         import pinocchio as pin
         production = importlib.import_module('gato_tiago.tiago_mpc_controller')
         if Path(production.__file__).resolve() != source / 'tiago_src/gato_tiago/tiago_mpc_controller.py':
@@ -130,7 +130,7 @@ def _run(source, build, case, output, mode, preflight, recorder, inputs):
             raise ValueError('Frozen URDF changed')
         model = pin.buildModelFromUrdf(str(urdf))
         model.gravity.linear = np.asarray(protocol['gravity_m_s2'])
-        controller = production.MPC_GATO(model, str(urdf), N=32, dt=.03, batch_size=1,
+        controller = production.MPC_GATO(model, str(urdf), N=protocol.get('N', 32), dt=protocol.get('dt_s', .03), batch_size=1,
             constant_f_ext=np.asarray(protocol['constant_f_ext'], dtype=np.float32), track_full_stats=True,
             plant_type='tiago_right', pendulum_config=None, solver_params=protocol['solver_params'], final_approach=False)
         if controller.solver.lib is not native or controller.solver_params != protocol['solver_params']:
@@ -168,7 +168,7 @@ def _run(source, build, case, output, mode, preflight, recorder, inputs):
             'update_s': helpers.distribution(stats.get('update_intervals_s', []))}
         metrics['timing_scope'] = protocol['timing_scope']
         intervals = np.asarray(stats.get('update_intervals_s', []))
-        metrics['update_fraction_above_nominal'] = float(np.mean(intervals > .03)) if intervals.size and np.isfinite(intervals).all() else None
+        metrics['update_fraction_above_nominal'] = float(np.mean(intervals > protocol.get('dt_s', .03))) if intervals.size and np.isfinite(intervals).all() else None
         write_json(output / 'metrics.json', metrics)
         recorder.manifest()
         recorder.close()

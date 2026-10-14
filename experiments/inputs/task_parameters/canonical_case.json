@@ -1,0 +1,9 @@
+{
+  "id": "canonical",
+  "parameters": {
+    "N": 32,
+    "dt_s": 0.03,
+    "sqp_max_iter": 5,
+    "pcg_max_iter": 120
+  }
+}

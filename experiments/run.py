@@ -18,6 +18,46 @@ import time
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
+DANGEROUS_SAFETY_FLAG = "--dangerously-disable-safety-stops"
+
+
+def execution_policy(experiment, selected, opted_in, dry_run=False):
+    """A plan may advertise support; only an explicit execution option enables it."""
+    if "execution_safety_policy" in experiment or any(
+        DANGEROUS_SAFETY_FLAG in argv for argv in
+        (experiment.get("command", []), experiment.get("preflight", {}).get("command", []))
+    ):
+        fail("Safety policy must come from the execution CLI, not the plan")
+    eligible = experiment.get("allow_report_only_safety", False)
+    gazebo = str(experiment.get("backend", "")).lower() == "gazebo"
+    if eligible and (not gazebo or selected != "rtx5060"):
+        fail("Report-only safety support is restricted to RTX5060 Gazebo simulation")
+    if opted_in and not eligible:
+        fail("Explicit report-only safety option requires a supported Gazebo experiment")
+    if not eligible:
+        return experiment
+    if opted_in and not dry_run and (
+        os.environ.get("GATO_ROS_PROFILE") != "simulation"
+        or os.environ.get("ROS_DOMAIN_ID") != "1"
+        or os.environ.get("RMW_IMPLEMENTATION") != "rmw_cyclonedds_cpp"
+    ):
+        fail("Report-only safety requires the existing simulation DDS/profile environment")
+    return dict(experiment, execution_safety_policy=(
+        "report_only_safety_stops" if opted_in else "guarded"))
+
+
+def execution_command(argv, values, experiment):
+    resolved = command(argv, values)
+    if experiment.get("execution_safety_policy") == "report_only_safety_stops":
+        resolved.append(DANGEROUS_SAFETY_FLAG)
+    return resolved
+
+
+def preflight_group(experiment):
+    group = experiment.get("preflight", {}).get("group", experiment["id"])
+    if "execution_safety_policy" in experiment:
+        group += "-" + experiment["execution_safety_policy"]
+    return name(group)
 
 
 def read(path):
@@ -191,6 +231,8 @@ def scientific_identity(experiment, case, selected):
                 "case": {"id": case["id"], "parameters": case.get("parameters", {}), "repeat": case["repeat"]}}
     if experiment.get("parameters"):
         identity["parameters"] = experiment["parameters"]
+    if "execution_safety_policy" in experiment:
+        identity["execution_safety_policy"] = experiment["execution_safety_policy"]
     return identity
 
 
@@ -299,6 +341,10 @@ def run(args):
             continue
         if args.only and eid not in args.only:
             continue
+        experiment = execution_policy(experiment, selected,
+            getattr(args, "dangerously_disable_safety_stops", False), args.dry_run)
+        if "execution_safety_policy" in experiment:
+            print(f"Safety policy: {eid}: {experiment['execution_safety_policy']}", flush=True)
         repeats = experiment.get("repeats", 1)
         if not isinstance(repeats, int) or isinstance(repeats, bool) or repeats < 1:
             fail(f"{eid}: repeats must be a positive integer")
@@ -356,7 +402,7 @@ def run(args):
                 attempt.mkdir(parents=True)
                 receipt = {"experiment": experiment["id"], "machine": selected, "hardware": hardware,
                            "identity": identity, "case": case, "status": "running", "started": time.time(),
-                           **{field: experiment[field] for field in ("research_question", "protocol", "backend", "timing_mode")
+                           **{field: experiment[field] for field in ("research_question", "protocol", "backend", "timing_mode", "execution_safety_policy")
                               if field in experiment}}
                 write(attempt / "case.json", case)
                 write(attempt / "receipt.json", receipt)
@@ -410,10 +456,12 @@ def run(args):
                     preflight = experiment.get("preflight")
                     if preflight:
                         stage = "preflight"
-                        group = name(preflight.get("group", eid))
+                        group = preflight_group(experiment)
                         signature = digest({"source": experiment["source_commit"], "build": shared,
                                             "inputs": experiment.get("inputs", {}), "preflight": preflight,
                                             "parameters": experiment.get("parameters", {}),
+                                            **({"execution_safety_policy": experiment["execution_safety_policy"]}
+                                               if "execution_safety_policy" in experiment else {}),
                                             "timing_mode": identity["timing_mode"], "backend": identity["backend"],
                                             "artifacts": {str(Path(p).relative_to(build)): h for p, h in build_receipt["artifacts"].items()},
                                             "case_parameters": case.get("parameters", {})
@@ -437,10 +485,12 @@ def run(args):
                             pf_receipt = {"kind": "preflight", "group": group, "status": "running",
                                           "started": time.time(), "machine": selected, "source_commit": experiment["source_commit"],
                                           "experiment": eid, "signature": signature,
+                                          **({"execution_safety_policy": experiment["execution_safety_policy"]}
+                                             if "execution_safety_policy" in experiment else {}),
                                           "case": {"id": "preflight", "repeat": 0}}
                             write(pf_output / "receipt.json", pf_receipt)
                             try:
-                                argv = command(preflight["command"], dict(values, output=str(pf_output)))
+                                argv = execution_command(preflight["command"], dict(values, output=str(pf_output)), experiment)
                                 pf_receipt["command"] = argv
                                 execute(argv, source, pf_output, dict(os.environ, GATO_BUILD_DIR=str(build),
                                                                     GATO_SOURCE_DIR=str(source), GATO_MACHINE=selected))
@@ -459,7 +509,7 @@ def run(args):
                         if preflights[group][1]:
                             raise preflights[group][1]
                     stage = "execution"
-                    argv = command(experiment["command"], values)
+                    argv = execution_command(experiment["command"], values, experiment)
                     receipt["command"] = argv
                     write(attempt / "receipt.json", receipt)
                     print(f"Running {eid}/{case['id']}/{case['repeat']}; logs: {attempt}", flush=True)
@@ -521,6 +571,8 @@ def main():
     parser.add_argument("--only", nargs="+", help="Run only these experiment ids")
     parser.add_argument("--dry-run", action="store_true", help="List pending cases without fetching, builds or execution")
     parser.add_argument("--retry-failed", action="store_true", help="Make new attempts for failed/blocked executions")
+    parser.add_argument(DANGEROUS_SAFETY_FLAG, action="store_true",
+                        help="Explicit Gazebo-only opt-in: report safety violations without collision/limit/torque stops; finite/stale/handback checks remain")
     parser.add_argument("--collect-only", action="store_true", help="Regenerate the index after combining machine folders")
     args = parser.parse_args()
     if args.collect_only:
