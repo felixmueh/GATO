@@ -1,0 +1,11 @@
+# Separate environment in the new NB clone; preserve the working H100 ABI pins.
+numpy==2.2.6
+pin==3.9.0
+scipy==1.15.3
+pybind11==3.0.4
+cmake>=3.24,<4
+cmeel-urdfdom==4.0.1
+cmeel-tinyxml2==10.0.0
+cmeel-assimp==6.0.2
+matplotlib==3.10.1
+# Install CPU-only torch==2.6.0 separately from its CPU wheel index.
