@@ -1,0 +1,84 @@
+{
+  "version": 1,
+  "experiments": [
+    {
+      "id": "Fig8-September23-8ms-counterpart",
+      "protocol": "saved-sep23-fig8-current-internal-B-v1",
+      "source_commit": "7cf5df8b132da3d9679681e8eb4c8a3d8545e418",
+      "native_source_commit": "b400bdf2bb6eea543b17cefcb0577d5de4d22ce2",
+      "machines": [
+        "gtx1070"
+      ],
+      "research_question": "RQ-control",
+      "timing_mode": "B",
+      "backend": "internal",
+      "build": {
+        "inputs": {
+          "bb_prepare.py": "d962501cb4ae2ba287430b7e155c677c423f41d60c833cfd9d33189e3ac2026c"
+        },
+        "commands": [
+          [
+            "{python}",
+            "{runner}/bb_prepare.py",
+            "copy-module",
+            "--module",
+            "/workspace/GATO-orientation-figure-source/build/final-approach-N32/modules/bsqpN32_tiago_right.cpython-310-x86_64-linux-gnu.so",
+            "--sha256",
+            "0c2cbc7cd217561cdba2ebc82cfa9e9eb12ddb3b442da7d9b4bd2ff0828c1666",
+            "--build",
+            "{build}"
+          ]
+        ],
+        "artifacts": [
+          "modules/bsqpN32_tiago_right*.so"
+        ]
+      },
+      "inputs": {
+        "experiments/fig8_sep23_counterpart/inputs/saved_simulated_summary.json": "d42e29dbaf0cba398505d5e47d153dbca964f26b542fcd434e815fb2d1b59f3e",
+        "experiments/fig8_sep23_counterpart/inputs/saved_robot_summary.json": "e53c1408cf9d0b708f8ac3d0f90c0fa721c4c638a36e581fa4b06eecbc8de9a2",
+        "experiments/fig8_sep23_counterpart/inputs/saved_reference.csv": "fd7262be72811a3328dff9956861cb91af37377e8bfffca61ea06ddb7fd78419",
+        "experiments/fig8_sep23_counterpart/inputs/reference.npy": "2d203d05c696c4b02aa3f37d5a2d5fbc9d141407ed9f2ff035d64208e483222e",
+        "experiments/fig8_sep23_counterpart/inputs/t01.json": "34b88891f64f557b7b632ae344b7dc4ea335670c209e37eafebf2c5337b2a032",
+        "experiments/fig8_sep23_counterpart/source_inputs.json": "876c721f2fac348f8f51cd2e4969796b68d67b6f4cbd12a6c20f9dd1c107e3b4"
+      },
+      "repeats": 1,
+      "command": [
+        "{python}",
+        "{runner}/adapters/fig8_sep23.py",
+        "--source",
+        "{source}",
+        "--build",
+        "{build}",
+        "--inputs",
+        "{inputs}/experiments/fig8_sep23_counterpart/inputs",
+        "--case",
+        "{case}",
+        "--output",
+        "{output}"
+      ],
+      "cases": [
+        {
+          "id": "figure8-24s-sep23-8ms",
+          "parameters": {
+            "timing_mode": "B",
+            "offline_timing": "solve_time",
+            "backend": "internal",
+            "saved_weights": true
+          }
+        }
+      ]
+    }
+  ],
+  "preparation": {
+    "planned_attempts": 1,
+    "retries": 0,
+    "no_extra_gpu_task_episodes": true,
+    "preflight": "reusecompatibleb400sourcequalification/cachednormalmoduleCPUidentity; first authorizedtaskbootstrap is executioncheck",
+    "planning_wall_minutes": [
+      2,
+      5
+    ],
+    "planning_raw_bytes": 157286400,
+    "jetson": "notrun; hostnameunresolved/noSSHconfig; no remoteexecution"
+  }
+}

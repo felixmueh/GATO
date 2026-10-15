@@ -1,0 +1,100 @@
+{
+  "version": 1,
+  "status": "prepared_not_run_GPU_authorization_pending",
+  "scientific_episodes": 1,
+  "preflight_policy": "Reuse original passed grid canonical at retained source90bdb/settings/report-only policy; no extra motion",
+  "experiments": [
+    {
+      "id": "Gazebo24-N32-grid",
+      "name": "Horizon length and solver budget",
+      "source_commit": "90bdb825d059e22b709e2e53a785d7d034aad1b0",
+      "collector_source_commit": "90bdb825d059e22b709e2e53a785d7d034aad1b0",
+      "protocol": "gazebo24-grid-period-only-v1",
+      "cohort_id": "gazebo-24s-n32-20261015",
+      "research_question": "RQ-control",
+      "timing_mode": "live",
+      "backend": "gazebo",
+      "machines": [
+        "rtx5060"
+      ],
+      "build": {
+        "inputs": {
+          "native/CMakeLists.txt": "07c285afa3d2055c2c8f64c4645bdad01bdeb3391e77f2082aff3c70443df1e2",
+          "native/qualified/CMakeLists.txt": "9bdaae9f2d3991a3c567666bf77d8a253666c3adee9b4e66598c83f647dc41c7",
+          "native/task_readiness/CMakeLists.txt": "90abec70a6f830071843841791f13b995cf963118659b7001d8ed0085a8da6a6"
+        },
+        "commands": [
+          [
+            "cmake",
+            "-S",
+            "{runner}/native/qualified",
+            "-B",
+            "{build}",
+            "-DGATO_SOURCE_DIR={source}",
+            "-DKNOTS=16;32;64;128",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DGATO_EXPERIMENT_TELEMETRY=ON",
+            "-DCMAKE_CUDA_ARCHITECTURES={cuda_arch}-real",
+            "-DPython3_EXECUTABLE={python}"
+          ],
+          [
+            "cmake",
+            "--build",
+            "{build}",
+            "--parallel",
+            "2"
+          ]
+        ],
+        "artifacts": [
+          "modules/bsqpN16_tiago_right*.so",
+          "modules/bsqpN32_tiago_right*.so",
+          "modules/bsqpN64_tiago_right*.so",
+          "modules/bsqpN128_tiago_right*.so",
+          "cuda_access_smoke"
+        ]
+      },
+      "inputs": {
+        "experiments/inputs/t01/t01.json": "aec47cfa3819de5adbb8633b637f5bd9bcd327cb3afc5043a856b323af5aac41",
+        "experiments/inputs/t01/v01.json": "20920040853786cf3d96f13ba240f82918a9f0f5020270fbe67715666477cc81",
+        "experiments/inputs/task_parameters/canonical_case.json": "f45af2548bb0e759e197b70d648fac27bf701bd265d431c17f5b71f80381c3f1"
+      },
+      "parameters": {
+        "collector_source_commit": "90bdb825d059e22b709e2e53a785d7d034aad1b0",
+        "pcg_max_iter": 120
+      },
+      "command": [
+        "{python}",
+        "{runner}/adapters/gazebo24_grid.py",
+        "--source",
+        "{source}",
+        "--build",
+        "{build}",
+        "--inputs",
+        "{inputs}/experiments/inputs/t01",
+        "--case",
+        "{case}",
+        "--output",
+        "{output}",
+        "--collector-pin",
+        "90bdb825d059e22b709e2e53a785d7d034aad1b0",
+        "--preflight-evidence",
+        "/workspace/GATO-experiment-runner/.experiment-results/task-parameters-20261014-rtx5060_gazebo/rtx5060/_preflight/task-parameters-20261014-gazebo-report_only_safety_stops/attempt-001"
+      ],
+      "cases": [
+        {
+          "id": "figure8-24s",
+          "name": "24-second period-only figure-eight",
+          "parameters": {
+            "N": 32,
+            "dt_s": 0.03,
+            "sqp_max_iter": 5,
+            "pcg_max_iter": 120
+          }
+        }
+      ],
+      "repeats": 1,
+      "timeout_seconds": 1800,
+      "allow_report_only_safety": true
+    }
+  ]
+}

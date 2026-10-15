@@ -1,0 +1,146 @@
+{
+  "N": 32,
+  "batch_sizes": [
+    1
+  ],
+  "constant_f_ext": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "controller_state_history": {
+    "change_atol": 0.0,
+    "changed_samples": 1073,
+    "changed_transitions": 1072,
+    "dropped_history_records": 0,
+    "elapsed_stamp_sec": 23.80999999999949,
+    "elapsed_wall_receive_sec": 24.368000000715256,
+    "lower_bound_hz": 45.0230995380102,
+    "running_only": true,
+    "samples": 1073
+  },
+  "dt": 0.008,
+  "model_path": "/workspace/gato/dynamics/tiago_right/tiago_right_arm.urdf",
+  "plant": "tiago_right",
+  "reference_extent_m": [
+    0.31999996304512024,
+    0.15999998152256012,
+    0.0
+  ],
+  "reference_metadata": {
+    "cycles": 5,
+    "left_edge": [
+      0.3453464688311586,
+      -0.22798123490730832,
+      -0.3816577465517488
+    ],
+    "orientation_rpy": null,
+    "orientation_tracking": false,
+    "period_sec": 24.0,
+    "reference_mode": "tiago_horizontal",
+    "start_edge_clearance_m": 0.02,
+    "tiago_start_config": "comfortable_high_clearance",
+    "tiago_start_ee": [
+      0.3253464688311586,
+      -0.22798123490730832,
+      -0.3816577465517488
+    ],
+    "x_span_m": 0.32,
+    "y_amplitude_m": 0.08
+  },
+  "ros_clamp_torque": true,
+  "ros_tiago": true,
+  "sim_dt": 0.001,
+  "sim_time": 24.0,
+  "solver_params": {
+    "N_cost": 80.0,
+    "ctrl_lim_cost": 0.003,
+    "ee_orient_N_cost": 0.0,
+    "ee_orient_cost": 0.0,
+    "kkt_tol": 0.001,
+    "max_pcg_iters": 120,
+    "max_sqp_iters": 5,
+    "mu": 1.0,
+    "pcg_tol": 0.001,
+    "q_cost": 4.0,
+    "q_lim_cost": 0.01,
+    "qd_cost": 0.01,
+    "rho": 0.01,
+    "solve_ratio": 1.0,
+    "u_cost": 0.0001,
+    "vel_lim_cost": 0.001
+  },
+  "summary_by_batch": {
+    "1": {
+      "final_error_m": 0.04908903887279488,
+      "iterations": 18311,
+      "joint_velocity_limit_rad_s": [
+        2.5,
+        2.5,
+        2.5,
+        2.5,
+        2.5,
+        2.5,
+        2.5
+      ],
+      "kkt_converged_fraction": 0.9006608049806127,
+      "linear_solves": 43563,
+      "max_abs_applied_torque_nm": [
+        9.940584182739258,
+        14.651815414428711,
+        8.796563148498535,
+        8.868268966674805,
+        1.5449529886245728,
+        2.298126220703125,
+        0.018656451255083084
+      ],
+      "max_abs_joint_velocity_rad_s": [
+        0.1783464550971985,
+        0.2082594633102417,
+        0.2555372714996338,
+        0.2652009427547455,
+        0.24529029428958893,
+        0.5650061368942261,
+        0.011863158084452152
+      ],
+      "max_abs_planned_torque_nm": [
+        9.940584182739258,
+        14.651815414428711,
+        8.796563148498535,
+        8.868268966674805,
+        1.5449529886245728,
+        2.298126220703125,
+        0.018656451255083084
+      ],
+      "max_applied_torque_violation_nm": 0.0,
+      "max_error_m": 0.0992361173958729,
+      "max_joint_position_violation_rad": 0.0,
+      "max_joint_velocity_violation_rad_s": 0.0,
+      "max_pcg_iters_observed": 29,
+      "max_planned_torque_violation_nm": 0.0,
+      "mean_error_m": 0.05064529335890331,
+      "mean_pcg_iters": 2.2963753644147555,
+      "mean_pcg_time_ms": 0.0,
+      "mean_solve_time_ms": 0.7034709737316366,
+      "mean_sqp_iters": 3.2797225711321065,
+      "p95_error_m": 0.0960679552934924,
+      "p95_pcg_iters": 11.0,
+      "p95_pcg_time_ms": 0.0,
+      "p95_solve_time_ms": 1.303,
+      "pcg_cap_hit_fraction": 0.0,
+      "torque_limit_nm": [
+        43.0,
+        43.0,
+        26.0,
+        26.0,
+        26.0,
+        26.0,
+        26.0
+      ]
+    }
+  },
+  "timestamp_source": "joint_state_header_stamp_elapsed"
+}
