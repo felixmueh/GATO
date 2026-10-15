@@ -180,6 +180,7 @@ class MPC_GATO:
         controller_startup_timeout=TIAGO_DEFAULT_STARTUP_TIMEOUT_SEC,
         record_raw=False,
         record_callback=None,
+        state_period_s=0.,
     ):
         """
         Run MPC controller tracking figure-8 trajectory.
@@ -190,9 +191,15 @@ class MPC_GATO:
         record_raw/record_callback retain every solver input/output and simulated
         substep; callbacks are read-only observers outside the solve timer.
         Default controller_dt and the live ROS control policy are preserved.
+        state_period_s>0 holds exact periodic plant samples for offline mode B;
+        zero retains exact feedback. It does not throttle solves or control.
         """
         self.final_approach.reset(self.solver)
         use_controller = controller is not None
+        if not np.isfinite(state_period_s) or state_period_s < 0:
+            raise ValueError('state_period_s must be finite and nonnegative')
+        if state_period_s > 0 and (use_controller or offline_timing != 'solve_time'):
+            raise ValueError('state_period_s is only supported for offline solve_time tracking')
         if not np.isfinite(sim_dt) or sim_dt <= 0 or not np.isfinite(self.dt) or self.dt <= 0:
             raise ValueError("sim_dt and dt must be finite and positive")
         if not np.isfinite(sim_time) or sim_time <= 0:
@@ -205,7 +212,7 @@ class MPC_GATO:
             from bsqp.offline_mpc import run_mode_b
             return run_mode_b(self, x_start, reference=fig8_traj, sim_time=sim_time,
                 sim_dt=sim_dt, record_raw=record_raw, record_callback=record_callback,
-                clock=time.perf_counter,
+                clock=time.perf_counter, **({'state_period_s': state_period_s} if state_period_s > 0 else {}),
                 integrate=lambda q, dq, u, step_dt: rk4(self.model, self.data, q, dq, u, step_dt, self.actual_f_ext))
 
         sim_stamp_origin_sec = None

@@ -39,12 +39,15 @@ class OfflineRecorder:
                 self.stats['recording_failure'] = dict(event=event, error_type=type(exc).__name__, error=str(exc))
                 raise
 
-    def solve(self, state, reference, warm, time_s, goal_index, shift_s, category, optimizer_origin_s):
+    def solve(self, state, reference, warm, time_s, goal_index, shift_s, category, optimizer_origin_s,
+              sample_metadata=None):
         raw = dict(solve_index=self.solve_count, category=category, time_s=float(time_s),
                    feedback_time_s=float(time_s), optimizer_reference_time_s=float(time_s),
                    previous_optimizer_reference_time_s=float(optimizer_origin_s),
                    goal_index=int(goal_index), warm_start_shift_s=float(shift_s), status='started',
                    activation_status='pending', activation_time_s=None)
+        if sample_metadata is not None:
+            raw.update(sample_metadata)
         if self.raw:
             raw.update(state=state.copy(), reference=reference.copy(), warm_start=warm.copy())
             self.stats['raw_solves'].append(raw)
@@ -125,15 +128,24 @@ def finish_arrays(stats):
 def run_mode_b(owner, x_start, *, integrate, clock, sim_dt, record_raw, record_callback,
                goals=None, reference=None, sim_time=None, goal_timeout=None, goal_threshold=.05,
                goal_axis_threshold=np.inf, check_axis=False, velocity_threshold=1., goal_dwell_time=0.,
-               initial_guess=None, reset_rho_each_solve=False):
+               initial_guess=None, reset_rho_each_solve=False, state_period_s=0.):
     """Elapsed solve execution with active-plan age independent of seed age.
 
     Bootstrap is activated at t=0 and executed for one nominal dt. At every
     feedback point, the seed shifts from the previous optimizer's reference
     origin to the measured state time. The OLD active plan plays during the
     just-measured call. New control u0 starts only when that solve arrives.
+    A positive state_period_s samples the exact plant at k*period and holds
+    observations between samples. Reference origins use those sample stamps;
+    warm shifts retain the September live max(sample delta, sim_dt) floor.
+    Zero leaves the existing exact-feedback path unchanged.
     """
     tracking = reference is not None
+    if not np.isfinite(state_period_s) or state_period_s < 0:
+        raise ValueError('state_period_s must be finite and nonnegative')
+    if state_period_s > 0 and not tracking:
+        raise ValueError('sampled states are only supported for mode B tracking')
+    sampled_states = state_period_s > 0
     for name, value in (('sim_dt', sim_dt), ('dt', owner.dt),
                         ('duration', sim_time if tracking else goal_timeout)):
         if not np.isfinite(value) or value <= 0:
@@ -177,6 +189,18 @@ def run_mode_b(owner, x_start, *, integrate, clock, sim_dt, record_raw, record_c
 
     def robot_state():
         return np.concatenate([q[:owner.nq_robot], dq[:owner.nv_robot]])
+
+    if sampled_states:
+        held_state = x_curr.copy()
+        sample_index, next_sample_index = 0, 1
+        sample_stamp = 0.
+        stats.update(state_period_s=float(state_period_s), state_sample_timestamps_s=[0.],
+                     sample_timestamps_s=[], sample_ages_s=[], sample_indices=[], repeated_samples=[],
+                     sample_deltas_s=[], effective_warm_start_shifts_s=[],
+                     state_sampling_convention='exact plant at k*period; held observations; historical 3aa073e warm shift max(sample delta, sim_dt)')
+        if record_raw:
+            recorder.emit('state_sampled', dict(time_s=0., sample_timestamp_s=0., sample_index=0,
+                                               state=held_state.copy()))
 
     def target():
         return (sample_reference_horizon(reference, time_s, owner.dt, owner.N).astype(np.float32)
@@ -238,8 +262,13 @@ def run_mode_b(owner, x_start, *, integrate, clock, sim_dt, record_raw, record_c
         owner.solver.reset_rho()
     update_final()
     owner.update_force_batch(q[:owner.nq_robot])
+    bootstrap_arguments = {}
+    if sampled_states:
+        bootstrap_arguments['sample_metadata'] = dict(sample_timestamp_s=0., sample_age_s=0.,
+            sample_index=0, repeated_sample=False, sample_delta_s=0., effective_warm_start_shift_s=0.,
+            actual_feedback_state=x_curr.copy())
     output, native, wall, bootstrap = recorder.solve(np.tile(x_curr, (owner.batch_size, 1)),
-        np.tile(target(), (owner.batch_size, 1)), warm, 0., 0, 0., 'startup/cold', 0.)
+        np.tile(target(), (owner.batch_size, 1)), warm, 0., 0, 0., 'startup/cold', 0., **bootstrap_arguments)
     stats.update(startup_wall_solve_time_s=float(wall), startup_native_solve_time_ms=float(native)/1000.,
                  initial_state=x_curr.copy(), initial_planned_control=output[0, owner.nx:owner.nx+owner.nu].copy())
     active_plan, active_index, activation_time = output[0].copy(), 0, 0.
@@ -252,6 +281,7 @@ def run_mode_b(owner, x_start, *, integrate, clock, sim_dt, record_raw, record_c
 
     def execute(requested):
         nonlocal q, dq, time_s, x_curr
+        nonlocal held_state, sample_index, next_sample_index, sample_stamp
         start = time_s
         # A nonterminal goal's nominal timeout never cancels an in-flight
         # native call. Pay all of its measured computation before checking the
@@ -268,6 +298,8 @@ def run_mode_b(owner, x_start, *, integrate, clock, sim_dt, record_raw, record_c
             knot = int(np.floor(age / owner.dt + 1e-10))
             if knot < owner.N-2:
                 step_dt = min(step_dt, activation_time+(knot+1)*owner.dt-time_s)
+            if sampled_states:
+                step_dt = min(step_dt, next_sample_index*state_period_s-time_s)
             control = sample_packed_trajectory_control(active_plan, owner.nx, owner.nu,
                                                        owner.N, age+1e-12, owner.dt)
             if owner.has_pendulum:
@@ -279,6 +311,17 @@ def run_mode_b(owner, x_start, *, integrate, clock, sim_dt, record_raw, record_c
             q, dq = recorder.step(integrate, q, dq, augmented_control, step_dt, time_s,
                                   active_index, goal_during_interval, age)
             time_s += step_dt
+            if sampled_states and time_s >= next_sample_index*state_period_s - 1e-12:
+                sample_index = next_sample_index
+                sample_stamp = sample_index*state_period_s
+                time_s = sample_stamp
+                held_state = robot_state().copy()
+                next_sample_index += 1
+                stats['state_sample_timestamps_s'].append(float(sample_stamp))
+                if record_raw:
+                    recorder.emit('state_sampled', dict(time_s=float(sample_stamp),
+                        sample_timestamp_s=float(sample_stamp), sample_index=int(sample_index),
+                        state=held_state.copy()))
         time_s = end
         x_curr = robot_state()
         recorder.interval(start, actual, float(requested), active_index, goal_during_interval,
@@ -298,21 +341,35 @@ def run_mode_b(owner, x_start, *, integrate, clock, sim_dt, record_raw, record_c
         feedback_state = x_curr.copy()
         goal_reference = target()
         shift_s = feedback_time - optimizer_time
+        solve_arguments = {}
+        if sampled_states:
+            feedback_state = held_state.copy()
+            goal_reference = sample_reference_horizon(reference, sample_stamp, owner.dt, owner.N).astype(np.float32)
+            sample_delta = sample_stamp - optimizer_time
+            # Match the saved September live frontend, including its repeated-
+            # timestamp floor. The reference origin itself remains unchanged.
+            shift_s = max(sample_delta, sim_dt)
+            sample_age = max(0., feedback_time-sample_stamp)
+            sample_metadata = dict(sample_timestamp_s=float(sample_stamp), sample_age_s=float(sample_age),
+                sample_index=int(sample_index), repeated_sample=bool(sample_delta == 0.),
+                sample_delta_s=float(sample_delta), effective_warm_start_shift_s=float(shift_s),
+                optimizer_reference_time_s=float(sample_stamp), actual_feedback_state=x_curr.copy())
+            solve_arguments['sample_metadata'] = sample_metadata
         warm = shift_packed_trajectory_warm_start(warm, feedback_state, owner.nx, owner.nu,
                                                 owner.N, shift_s, owner.dt)
         warm[:, :owner.nx] = feedback_state
-        owner.update_force_batch(q[:owner.nq_robot])
+        owner.update_force_batch(feedback_state[:owner.nq_robot] if sampled_states else q[:owner.nq_robot])
         if tracking or reset_rho_each_solve:
             owner.solver.reset_rho()
         # Preserve selection's measured transition: use observations at feedback
         # start, never silently substitute post-computation plant state.
         output, native, wall, raw = recorder.solve(np.tile(feedback_state, (owner.batch_size, 1)),
             np.tile(goal_reference, (owner.batch_size, 1)), warm, feedback_time, planning_goal, shift_s,
-            'goal_switch' if planning_goal != previous_goal else 'warm', optimizer_time)
+            'goal_switch' if planning_goal != previous_goal else 'warm', optimizer_time, **solve_arguments)
         lane = owner.evaluate_best_trajectory(measured_last, measured_control, feedback_state, selection_elapsed)
         recorder.select(raw, lane)
         warm = np.broadcast_to(output[lane], output.shape).copy()
-        optimizer_time = feedback_time
+        optimizer_time = sample_stamp if sampled_states else feedback_time
         measured_last = feedback_state
         measured_control = sample_packed_trajectory_control(active_plan, owner.nx, owner.nu, owner.N,
                                                            feedback_time-activation_time+1e-12, owner.dt).copy()
@@ -323,6 +380,13 @@ def run_mode_b(owner, x_start, *, integrate, clock, sim_dt, record_raw, record_c
         ref_pose = goal_reference[:6]
         stats['timestamps'].append(float(feedback_time))
         stats['feedback_timestamps_s'].append(float(feedback_time))
+        if sampled_states:
+            stats['sample_timestamps_s'].append(sample_metadata['sample_timestamp_s'])
+            stats['sample_ages_s'].append(sample_metadata['sample_age_s'])
+            stats['sample_indices'].append(sample_metadata['sample_index'])
+            stats['repeated_samples'].append(sample_metadata['repeated_sample'])
+            stats['sample_deltas_s'].append(sample_metadata['sample_delta_s'])
+            stats['effective_warm_start_shifts_s'].append(sample_metadata['effective_warm_start_shift_s'])
         stats['solve_times'].append(float(native)/1000.)
         stats['native_solve_times_ms'].append(float(native)/1000.)
         stats['wall_solve_times_s'].append(float(wall))
