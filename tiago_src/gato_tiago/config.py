@@ -47,12 +47,18 @@ TIAGO_TRACKING_SOLVER_PARAMS = {
     "rho": 0.01,
 }
 
-# Reaching needs stronger velocity-limit regularization than slow tracking.
-# This is a soft penalty, not a guarantee of physical feasibility.
+# Reaching uses the selected J1-derived costs with 10x stronger ordinary torque
+# regularization than OFF_TORQUE (the existing public u_cost=1e-4).
+# Interior cost bounds are separate native build settings; the physical reaching
+# plan uses .20 rad / .80 velocity / .85 effort. These remain soft costs.
 TIAGO_REACHING_SOLVER_PARAMS = {
     **TIAGO_TRACKING_SOLVER_PARAMS,
-    "qd_cost": 0.1,
-    "vel_lim_cost": 0.1,
+    "mu": 10.0,
+    "qd_cost": 0.05,
+    "u_cost": 1e-4,
+    "q_lim_cost": 0.02125,
+    "vel_lim_cost": 1.275,
+    "ctrl_lim_cost": 0.02,
 }
 
 # Optional final approach, measured on the nominal far-goal reaching experiment.
