@@ -128,6 +128,7 @@ def run_instrumented(solver, model, x_start, reference, record, *,
         record.finish_initialization(initialization_status)
     if initialization_status == 'incomplete':
         return 0., 'initialization_incomplete'
+    xu_batch[:, :] = xu_best
 
     update_index = 0
     total_sim_time = accumulated_time = 0.

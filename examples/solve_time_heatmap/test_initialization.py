@@ -33,6 +33,21 @@ class InitializationTest(unittest.TestCase):
     recorder = fixtures.ExperimentTest.recorder
     execute = fixtures.ExperimentTest.execute
 
+    def test_first_measured_seed_broadcasts_batch_zero_after_initialization(self):
+        for mode, flags in [('single', [[True, True]]),
+                            ('native-stop', [[True, False], [True, True]])]:
+            with self.subTest(mode=mode):
+                solver = Solver(self.clock, flags=flags, durations=[1000.])
+                recorder = self.recorder(updates=1)
+                _, status = self.execute(solver, recorder, initialization=mode)
+                self.assertEqual(status, 'completed')
+                warmup = solver.outputs[len(flags)-1]
+                self.assertFalse(np.array_equal(warmup[0], warmup[1]))
+                first_seed = solver.inputs[len(flags)][2]
+                np.testing.assert_array_equal(first_seed[0], first_seed[1])
+                np.testing.assert_array_equal(first_seed[:, 12:18],
+                                              np.tile(warmup[0, 12:18], (2, 1)))
+
     def test_waits_for_every_member_without_advancing_initial_problem(self):
         solver = Solver(self.clock, flags=[[True, False], [True, True]],
                         durations=[2_000_000., 3_000_000., 1_000.])
