@@ -206,51 +206,58 @@ namespace plant {
                 gpuErrchk(cudaFree(d_dynMem_const));
         }
 
+        // Continue -log(distance) quadratically below one percent of the
+        // bound interval. The value, gradient and Hessian share one C2
+        // extension, including outside a limit. This fixed engineering choice
+        // scales with the variable's raw units; it is not a physical margin.
+        template<class T>
+        __host__ __device__ constexpr T jointBarrierRelaxationDistance(T q_min, T q_max)
+        {
+                return static_cast<T>(0.01) * (q_max - q_min);
+        }
+
+        template<class T>
+        __device__ T relaxedLogBarrierValue(T distance, T delta)
+        {
+                if (distance >= delta) { return -log(distance); }
+                const T t = (delta - distance) / delta;
+                return -log(delta) + t + static_cast<T>(0.5) * t * t;
+        }
+
+        template<class T>
+        __device__ T relaxedLogBarrierGradient(T distance, T delta)
+        {
+                if (distance >= delta) { return -static_cast<T>(1) / distance; }
+                const T t = (delta - distance) / delta;
+                return -(static_cast<T>(1) + t) / delta;
+        }
+
+        template<class T>
+        __device__ T relaxedLogBarrierHessian(T distance, T delta)
+        {
+                if (distance >= delta) { return static_cast<T>(1) / (distance * distance); }
+                return static_cast<T>(1) / (delta * delta);
+        }
+
         template<class T>
         __device__ T jointBarrier(T q, T q_min, T q_max)
         {
-                T dist_min = q - q_min;
-                T dist_max = q_max - q;
-                dist_min = (dist_min <= 1e-10) ? 1e-10 : dist_min;
-                dist_max = (dist_max <= 1e-10) ? 1e-10 : dist_max;
-                return -log(dist_min) - log(dist_max);
+                const T delta = jointBarrierRelaxationDistance(q_min, q_max);
+                return relaxedLogBarrierValue(q - q_min, delta) + relaxedLogBarrierValue(q_max - q, delta);
         }
 
         template<class T>
         __device__ T jointBarrierGradient(T q, T q_min, T q_max)
         {
-                T dist_min = q - q_min;
-                T dist_max = q_max - q;
-                const T eps = static_cast<T>(1e-6);
-
-                if (dist_min >= static_cast<T>(0)) {
-                        if (dist_min < eps) dist_min = eps;
-                } else {
-                        if (dist_min > -eps) dist_min = -eps;
-                }
-
-                if (dist_max >= static_cast<T>(0)) {
-                        if (dist_max < eps) dist_max = eps;
-                } else {
-                        if (dist_max > -eps) dist_max = -eps;
-                }
-
-                return (-static_cast<T>(1) / dist_min) + (static_cast<T>(1) / dist_max);
+                const T delta = jointBarrierRelaxationDistance(q_min, q_max);
+                return relaxedLogBarrierGradient(q - q_min, delta) - relaxedLogBarrierGradient(q_max - q, delta);
         }
 
         template<class T>
         __device__ T jointBarrierHessian(T q, T q_min, T q_max)
         {
-                T dist_min = q - q_min;
-                T dist_max = q_max - q;
-                const T eps = static_cast<T>(1e-6);
-
-                T abs_min = dist_min >= static_cast<T>(0) ? dist_min : -dist_min;
-                T abs_max = dist_max >= static_cast<T>(0) ? dist_max : -dist_max;
-                if (abs_min < eps) abs_min = eps;
-                if (abs_max < eps) abs_max = eps;
-
-                return static_cast<T>(1.0) / (abs_min * abs_min) + static_cast<T>(1.0) / (abs_max * abs_max);
+                const T delta = jointBarrierRelaxationDistance(q_min, q_max);
+                return relaxedLogBarrierHessian(q - q_min, delta) + relaxedLogBarrierHessian(q_max - q, delta);
         }
 
         template<typename T>
