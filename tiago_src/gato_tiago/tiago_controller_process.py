@@ -17,7 +17,7 @@ import queue
 import tempfile
 import time
 import sys
-from typing import Any, Sequence
+from typing import Any, Callable, Sequence
 import warnings
 
 import numpy as np
@@ -368,8 +368,69 @@ def _publish_zero_effort_burst(
         time.sleep(max(0.0, float(period_sec)))
 
 
+class _StartupStopped(Exception):
+    """A requested shutdown during setup, handled by the normal handback."""
+
+
+def _wait_for_reset_arrival(
+    arm: Any,
+    *,
+    reset_q: np.ndarray,
+    position_tolerance_rad: float | None,
+    velocity_l1_tolerance_rad_s: float,
+    timeout_sec: float,
+    stale_timeout_sec: float,
+    not_before_monotonic_sec: float,
+    stop_event: Any,
+    on_state: Callable[[Any], None] | None = None,
+) -> Any:
+    """Require a fresh, settled measured reset pose before effort setup.
+
+    The timeout is additional to the commanded position-trajectory duration.
+    Polling stays interruptible; a state received before reset completion cannot
+    pass even if it happens to match the requested pose. A None position
+    tolerance requests only a fresh state, for recording the pre-reset pose.
+    """
+    deadline = time.monotonic() + timeout_sec
+    detail = "no measured joint state"
+    while True:
+        if stop_event.is_set():
+            raise _StartupStopped()
+        now = time.monotonic()
+        if now >= deadline:
+            raise TimeoutError(f"reset arrival not verified within {timeout_sec:.3f}s: {detail}")
+        state = arm.latest_state()
+        if state is not None:
+            q = np.asarray(state.q, dtype=np.float64)
+            qd = np.asarray(state.qd, dtype=np.float64)
+            received = float(state.received_monotonic_sec)
+            if (q.shape != reset_q.shape or qd.shape != reset_q.shape
+                    or not np.all(np.isfinite(q)) or not np.all(np.isfinite(qd))
+                    or not np.isfinite(received)):
+                raise RuntimeError("reset arrival received invalid joint state")
+            if on_state is not None:
+                on_state(state)
+            age = now - received
+            error = float(np.max(np.abs(q - reset_q)))
+            speed = float(np.sum(np.abs(qd)))
+            detail = (f"max joint error={error:.4f}rad (limit {position_tolerance_rad}), "
+                      f"L1 speed={speed:.4f}rad/s (limit {velocity_l1_tolerance_rad_s:.4f}), "
+                      f"state age={age:.3f}s")
+            if (received >= not_before_monotonic_sec and 0.0 <= age <= stale_timeout_sec
+                    and (position_tolerance_rad is None
+                         or (error <= position_tolerance_rad
+                             and speed <= velocity_l1_tolerance_rad_s))):
+                return state
+        arm.spin_once(timeout_sec=min(0.05, deadline - now))
+
+
 class TiagoControllerOrchestrator:
-    """Minimal process wrapper with initialize/send_trajectory/read_state."""
+    """Minimal process wrapper with initialize/send_trajectory/read_state.
+
+    Set ``reset_position_tolerance_rad`` to enable measured reset arrival and
+    reset-path history. The arrival timeout applies after the reset trajectory;
+    initial state acquisition before publishing it has the same time budget.
+    """
 
     def __init__(
         self,
@@ -378,6 +439,9 @@ class TiagoControllerOrchestrator:
         reset_q: Sequence[float] | None = None,
         reset_duration_sec: float = 2.0,
         stale_timeout_sec: float = 0.1,
+        reset_position_tolerance_rad: float | None = None,
+        reset_velocity_l1_tolerance_rad_s: float = 0.1,
+        reset_arrival_timeout_sec: float = 5.0,
         # TODO: read from urdf
         max_abs_torque: float = TIAGO_DEFAULT_MAX_ABS_TORQUE,
         clamp_torque: bool = False,
@@ -397,6 +461,12 @@ class TiagoControllerOrchestrator:
         self.reset_q = np.asarray(reset_q, dtype=np.float64)
         self.reset_duration_sec = float(reset_duration_sec)
         self.stale_timeout_sec = float(stale_timeout_sec)
+        self.reset_position_tolerance_rad = (
+            None if reset_position_tolerance_rad is None
+            else float(reset_position_tolerance_rad)
+        )
+        self.reset_velocity_l1_tolerance_rad_s = float(reset_velocity_l1_tolerance_rad_s)
+        self.reset_arrival_timeout_sec = float(reset_arrival_timeout_sec)
         self.max_abs_torque = float(max_abs_torque)
         self.clamp_torque = bool(clamp_torque)
         self.history_max_records = int(history_max_records)
@@ -418,10 +488,14 @@ class TiagoControllerOrchestrator:
             raise ValueError("target_hz must be positive")
         if self.reset_q.shape != (7,):
             raise ValueError(f"reset_q must have shape (7,), got {self.reset_q.shape}")
-        if self.reset_duration_sec <= 0.0:
-            raise ValueError("reset_duration_sec must be positive")
-        if self.stale_timeout_sec <= 0.0:
-            raise ValueError("stale_timeout_sec must be positive")
+        if not np.all(np.isfinite(self.reset_q)):
+            raise ValueError("reset_q must be finite")
+        for name in ("reset_duration_sec", "stale_timeout_sec",
+                     "reset_velocity_l1_tolerance_rad_s", "reset_arrival_timeout_sec",
+                     "reset_position_tolerance_rad"):
+            value = getattr(self, name)
+            if value is not None and (not np.isfinite(value) or value <= 0.0):
+                raise ValueError(f"{name} must be finite and positive")
         if self.max_abs_torque <= 0.0:
             raise ValueError("max_abs_torque must be positive")
         if self.history_max_records <= 0:
@@ -476,6 +550,9 @@ class TiagoControllerOrchestrator:
                 "reset_q": self.reset_q,
                 "reset_duration_sec": self.reset_duration_sec,
                 "stale_timeout_sec": self.stale_timeout_sec,
+                "reset_position_tolerance_rad": self.reset_position_tolerance_rad,
+                "reset_velocity_l1_tolerance_rad_s": self.reset_velocity_l1_tolerance_rad_s,
+                "reset_arrival_timeout_sec": self.reset_arrival_timeout_sec,
                 "max_abs_torque": self.max_abs_torque,
                 "clamp_torque": self.clamp_torque,
                 "collision_safety": self.collision_safety,
@@ -674,6 +751,9 @@ def _controller_main(
     history_path: Path,
     history_metadata_path: Path,
     stop_event: mp.Event,
+    reset_position_tolerance_rad: float | None = None,
+    reset_velocity_l1_tolerance_rad_s: float = 0.1,
+    reset_arrival_timeout_sec: float = 5.0,
 ) -> None:
     from gato_tiago.ros_tiago import TiagoRightArmClient
 
@@ -770,14 +850,52 @@ def _controller_main(
             set_status("RESETTING")
             setup_stage("switching to position control")
             arm.switch_to_default_control(timeout_sec=5.0)
+            if stop_event.is_set():
+                raise _StartupStopped()
+            if reset_position_tolerance_rad is not None:
+                setup_stage("recording measured state before reset")
+                _wait_for_reset_arrival(
+                    arm, reset_q=reset_q, position_tolerance_rad=None,
+                    velocity_l1_tolerance_rad_s=reset_velocity_l1_tolerance_rad_s,
+                    timeout_sec=reset_arrival_timeout_sec,
+                    stale_timeout_sec=stale_timeout_sec,
+                    not_before_monotonic_sec=time.monotonic() - stale_timeout_sec,
+                    stop_event=stop_event,
+                    on_state=lambda state: write_history_state(state, "RESETTING"),
+                )
+                if stop_event.is_set():
+                    raise _StartupStopped()
             setup_stage("publishing reset trajectory")
             arm.publish_position_trajectory(reset_q, duration_sec=reset_duration_sec)
-            setup_stage(f"waiting for reset duration ({reset_duration_sec:.1f}s; no arrival check)")
+            arrival_mode = (
+                "arrival check follows"
+                if reset_position_tolerance_rad is not None else "no arrival check"
+            )
+            setup_stage(f"waiting for reset duration ({reset_duration_sec:.1f}s; {arrival_mode})")
             reset_deadline = time.monotonic() + reset_duration_sec
             while time.monotonic() < reset_deadline and not stop_event.is_set():
                 arm.spin_once(timeout_sec=0.05)
+                if reset_position_tolerance_rad is not None:
+                    write_history_state(arm.latest_state(), "RESETTING")
+            if stop_event.is_set():
+                raise _StartupStopped()
             setup_stage("reading initial joint state")
-            initial_state = arm.read_state(timeout_sec=8.0)
+            if reset_position_tolerance_rad is None:
+                initial_state = arm.read_state(timeout_sec=8.0)
+            else:
+                setup_stage("verifying measured reset arrival")
+                initial_state = _wait_for_reset_arrival(
+                    arm, reset_q=reset_q,
+                    position_tolerance_rad=reset_position_tolerance_rad,
+                    velocity_l1_tolerance_rad_s=reset_velocity_l1_tolerance_rad_s,
+                    timeout_sec=reset_arrival_timeout_sec,
+                    stale_timeout_sec=stale_timeout_sec,
+                    not_before_monotonic_sec=reset_deadline,
+                    stop_event=stop_event,
+                    on_state=lambda state: write_history_state(state, "RESETTING"),
+                )
+            if stop_event.is_set():
+                raise _StartupStopped()
             _log_startup(startup_started, "initial joint state received",
                          f"age={initial_state.age_sec:.3f}s, "
                          f"max reset error={np.max(np.abs(initial_state.q - reset_q)):.4f}rad")
@@ -791,8 +909,12 @@ def _controller_main(
                 setup_stage("waiting for initial collision safety check")
                 safety_monitor.wait_until_checked(initial_safety_state)
             write_history_state(initial_state, "RESETTING", safety_monitor=safety_monitor)
+            if stop_event.is_set():
+                raise _StartupStopped()
             setup_stage("configuring GATO effort controller")
             arm.configure_runtime_effort_controller(timeout_sec=5.0)
+            if stop_event.is_set():
+                raise _StartupStopped()
             setup_stage("setup complete")
             set_status("READY")
             startup_stage = None
@@ -901,6 +1023,8 @@ def _controller_main(
                 else:
                     next_time = time.perf_counter()
 
+        except _StartupStopped:
+            pass
         except BaseException as exc:
             had_error = True
             set_status("ERROR_RESTORE", str(exc))
