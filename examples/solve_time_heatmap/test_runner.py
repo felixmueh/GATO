@@ -34,7 +34,7 @@ class RunnerTests(unittest.TestCase):
 
     def test_qdldl_scope_rejected_before_runtime_setup(self):
         with patch.object(run, 'match_torch_libraries') as setup:
-            for options in ([], ['--knots', '32', '--batches', '2'],
+            for options in ([], ['--knots', '32', '--batches', '32'],
                             ['--plant', 'indy7', '--knots', '32', '--batches', '1']):
                 with self.subTest(options=options), contextlib.redirect_stderr(io.StringIO()):
                     with self.assertRaises(SystemExit) as error:

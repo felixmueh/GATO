@@ -32,24 +32,36 @@ def summarize(manifest,raw):
     for cell in manifest['cells']['cells']:
         n,b=cell['N'],cell['B']
         selected=[r for r in manifest['results'] if (r['N'],r['batch_size'])==(n,b)]
+        cohort_root=Path(raw)
+        cell_source=manifest['source_commit']
+        cell_module=manifest['modules'].get(str(n),{}).get('sha256')
+        retained=manifest.get('retained_n32_b1') if (n,b)==(32,1) else None
+        if retained:
+            from qdldl_retained import validate_copy
+            cohort_root=validate_copy(raw,retained)
+            selected=[json.loads((cohort_root/f'N32_B1_R{i}'/'results.json').read_text()) for i in (0,1)]
+            cell_source,cell_module=retained['source_commit'],retained['module_sha256']
         probe=manifest['resources'].get(str(n),{})
+        if retained:
+            probe=json.loads((cohort_root/'results.json').read_text())['resources']['32']
         unsupported=bool(probe.get('kernels')) and not all(k['fits'] for k in probe['kernels'])
         complete=(len(selected)==2 and all(r.get('status')=='completed' and r.get('samples')==300 for r in selected))
         status=('SMEM' if unsupported else 'nonfinite' if any(r.get('status')=='unstable_nonfinite' for r in selected)
                 else 'completed' if complete else 'incomplete')
         row=dict.fromkeys(FIELDS)
-        row.update(gpu=manifest['gpu'],gpu_uuid=meta.get('gpu_uuid',resource.get('gpu_uuid',meta.get('uuid'))),
-            sm_count=meta.get('multiprocessors',resource.get('multiprocessors')),N=n,B=b,
+        row.update(gpu=manifest['gpu'],gpu_uuid=(probe.get('gpu_uuid') if retained else meta.get('gpu_uuid',resource.get('gpu_uuid',meta.get('uuid')))),
+            sm_count=(probe.get('multiprocessors') if retained else meta.get('multiprocessors',resource.get('multiprocessors'))),N=n,B=b,
             knot_spacing_s=.03,status=status,repeats=len(selected),samples=sum(r.get('samples',0) for r in selected),
-            shmem_optin_applied=probe.get('pcg_shared_memory_policy',{}).get('optin_applied'),
-            source_commit=manifest['source_commit'],module_sha256=manifest['modules'].get(str(n),{}).get('sha256'))
+            shmem_optin_applied=(None if manifest.get('backend')=='QDLDL' else probe.get('pcg_shared_memory_policy',{}).get('optin_applied')),
+            source_commit=cell_source,module_sha256=cell_module)
         all_samples=[]
         retained_samples=0
         for r in selected:
-            repeat=r['repeat'];samples=observations(Path(raw)/f'N{n}_B{b}_R{repeat}')
+            repeat=r['repeat'];samples=observations(cohort_root/f'N{n}_B{b}_R{repeat}')
             retained_samples+=len(samples)
             good=[s for s in samples if finite(s.get('native_ms')) and s['native_ms']>0]
             repeats.append(dict(N=n,B=b,repeat=repeat,status=r.get('status'),samples=r.get('samples',0),
+                source_commit=cell_source,module_sha256=cell_module,retained_original=bool(retained),
                 retained_timing_samples=len(good),mean_partial_ms=float(np.mean([s['native_ms'] for s in good])) if good else None,
                 error=r.get('error'),pcg_telemetry_complete=r.get('pcg_telemetry_complete')))
             all_samples.extend(good)
@@ -81,7 +93,7 @@ def export(raw,output,final=False):
     csv_write(output/'cells.csv',rows,FIELDS)
     if repeats:csv_write(output/'repeat_status.csv',repeats)
     (output/'provenance.json').write_text(json.dumps(dict(source_commit=m['source_commit'],cells_sha256=m['cells_sha256'],
-        raw=str(raw),gpu_metadata=m.get('gpu_metadata'),resources=m['resources'],modules=m['modules'],
+        raw=str(raw),backend=m.get('backend','PCG'),retained_n32_b1=m.get('retained_n32_b1'),gpu_metadata=m.get('gpu_metadata'),resources=m['resources'],modules=m['modules'],
         aggregation='Only cells with two completed300-update repeats and600retained timings have headline stats. Failed/partial samples stay raw and in repeat_status.csv.',
         sd='Population standard deviation over600individual native timings; no independence assumption.',
         pcg='Sum PCG cap hits / actual lane-SQP slots, including zero iterations; unavailable telemetry stays empty.'),indent=2)+'\n')
@@ -110,20 +122,23 @@ def render(rows,m,raw,output):
             text=f'{r[field]:.3g}' if r[field] is not None else r['status']
             ax.text(j,i,text,ha='center',va='center',fontsize=8,color='black',bbox=dict(facecolor='white',alpha=.7,edgecolor='none'))
         ax.set_xticks(range(len(bs)),bs);ax.set_yticks(range(len(ns)),ns);ax.set_xlabel('Batch B');ax.set_ylabel('Knots N')
-        ax.set_title(m['gpu']+' · fixed300updates ×2repeats');fig.colorbar(image,ax=ax,label=label)
+        ax.set_title(m['gpu']+' · '+m.get('backend','PCG')+' · fixed300updates ×2repeats');fig.colorbar(image,ax=ax,label=label)
         fig.tight_layout();fig.savefig(output/(name+'.png'),dpi=130);fig.savefig(output/(name+'.pdf'));plt.close(fig)
     counts={s:sum(r['status']==s for r in rows) for s in ['completed','SMEM','nonfinite','incomplete']}
-    report=f'''# TIAGo N × B matrix — {m['gpu']}
+    backend=m.get('backend','PCG')
+    linear_budget='PCG120' if backend=='PCG' else 'hybrid CPU QDLDL Schur factorization (GPU remainder; no PCG iteration budget)'
+    report=f'''# TIAGo N × B matrix — {m['gpu']} · {backend}
 
-Cell outcomes: {counts}. A completed cell requires both planned repeats and all
+Cell outcomes: {counts}. New repeat records: {len(m['results'])} of {58 if m.get('retained_n32_b1') else 60} planned; retained original repeats: {2 if m.get('retained_n32_b1') else 0}.
+The combined matrix represents60repeat slots over30cells. A completed cell requires both planned repeats and all
 600 measured updates. No failed/partial samples enter completed headline timing.
 All original repeats, streamed partial timings, failures and resource rejections
 remain in the raw folder and repeat_status.csv. No retries or solver tuning.
 
-Protocol: N16/32/64/128/256/512 × B1/2/4/8/16, SQP1, PCG120, prediction spacing
+Protocol: N16/32/64/128/256/512 × B1/2/4/8/16, SQP1, {linear_budget}, prediction spacing
 30 ms, control interval10 ms, RK4max1 ms. Each of two repeats executes300 measured
 updates after one excluded single-solve initialization. Nominal measured reference
-timestamps0.01…3.00 s are the same; actual states and PCG work may vary. No measured
+timestamps0.01…3.00 s are the same; actual states and linear-solve work may vary. No measured
 wall-budget stop or slow-solve cutoff; hard worker timeout180 s retains partials.
 
 This follows the existing TIAGo tracking tool, not the prior task-parameter workers.
@@ -153,7 +168,11 @@ stays empty. Failed-cell headline timing fields remain empty; partial samples ar
 not dropped from raw. These descriptive comparisons do not establish a causal GPU
 effect, guaranteed stability, collision clearance or exact numerical determinism.
 
-Source commit: {m['source_commit']}.
+Driver/new-cell source commit: {m['source_commit']}.
+Any retained N32/B1 original source/module identities remain in its cells.csv row
+and provenance.json; original recordings are archived unchanged under _retained/.
+QDLDL CPU lane solves are serial; PCG iteration/cap fields are inapplicable to
+QDLDL, and GPU resource probes omit the unused PCG kernel.
 Common cells SHA256: {m['cells_sha256']}.
 Raw: {raw}.
 Exact probe, module hashes, GPU metadata and aggregation labels: provenance.json.

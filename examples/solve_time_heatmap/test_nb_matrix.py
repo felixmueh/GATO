@@ -3,6 +3,9 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+import contextlib
+import io
+from unittest.mock import patch
 from types import SimpleNamespace
 import nb_matrix as driver
 import nb_export
@@ -16,6 +19,52 @@ class MatrixContract(unittest.TestCase):
             a=driver.arguments(t,c,args)
             self.assertEqual((a.updates,a.repeats,a.max_sqp_iters,a.timeout,a.initialization,a.max_solve_ms),(300,2,1,180,'single',0))
             self.assertAlmostEqual(a.horizon_time/(c['N']-1),.03)
+
+    def test_qdldl_preserves_every_frozen_cell_argument(self):
+        t=driver.tool()
+        for cell in driver.spec()['cells']:
+            args=SimpleNamespace(gpu='jetson',cache=Path('/tmp/qdldl-cache'),raw=Path('/tmp/qdldl-raw'),backend='QDLDL')
+            qdldl=driver.arguments(t,cell,args)
+            args.backend='PCG'
+            pcg=driver.arguments(t,cell,args)
+            before,after=vars(pcg).copy(),vars(qdldl).copy()
+            self.assertEqual(before.pop('backend'),'PCG')
+            self.assertEqual(after.pop('backend'),'QDLDL')
+            self.assertEqual(before,after)
+            with patch.object(t,'match_torch_libraries'),patch.object(t,'sweep') as sweep:
+                self.assertEqual(t.main(cell['args']+['--gpu-name','Jetson','--backend','QDLDL']),0)
+                sweep.assert_called_once()
+
+    def test_retained_original_bytes_provenance_and_no_pcg_metrics(self):
+        import qdldl_retained
+        with tempfile.TemporaryDirectory() as d:
+            raw=Path(d);retained=raw/qdldl_retained.RELATIVE_ROOT;retained.mkdir(parents=True)
+            config=dict(plant='tiago_right',linsys_solver='QDLDL',protocol='wall-time',knots=[32],batches=[1],
+                repeats=2,max_sqp_iters=1,updates=300,initialization='single',max_solve_ms=0,timeout=180,
+                seed=17092026,sim_dt=.001,sim_step=.01,save_plans=False,horizon_time=.93)
+            original=dict(config=config,git_head='original18859',module_sha256={'old-module.so':'original1f66'},
+                          resources={'32':dict(kernels=[dict(fits=True)])})
+            (retained/'results.json').write_text(json.dumps(original))
+            for repeat in (0,1):
+                folder=retained/f'N32_B1_R{repeat}';folder.mkdir()
+                (folder/'results.json').write_text(json.dumps(dict(N=32,batch_size=1,repeat=repeat,
+                    status='completed',samples=300,linsys_solver='QDLDL',module='old-module.so',module_sha256='original1f66')))
+                (folder/'samples.npz').write_bytes(b'unmodified-original-bytes')
+                sample=dict(native_ms=2.78,sqp_iters=1,pcg_telemetry_complete=False)
+                (folder/'solves.jsonl').write_text((json.dumps(sample)+'\n')*300)
+            record=qdldl_retained.inspect(retained)
+            manifest=dict(cells=driver.spec(),gpu='jetson',source_commit='new-driver',modules={'32':dict(sha256='new-module')},
+                          resources={},results=[],retained_n32_b1=record,backend='QDLDL')
+            rows,repeats=nb_export.summarize(manifest,raw)
+            row=next(r for r in rows if (r['N'],r['B'])==(32,1))
+            self.assertEqual((row['source_commit'],row['module_sha256']),('original18859','original1f66'))
+            self.assertEqual((row['status'],row['samples']),('completed',600))
+            self.assertAlmostEqual(row['mean_ms'],2.78)
+            self.assertIsNone(row['pcg_cap_hit_share']);self.assertIsNone(row['pcg_iters_mean'])
+            self.assertTrue(all(r['retained_original'] for r in repeats))
+            (retained/'N32_B1_R0'/'solves.jsonl').write_text('changed')
+            with self.assertRaisesRegex(ValueError,'artifact changed'):
+                nb_export.summarize(manifest,raw)
 
     def test_partial_timeout_samples_not_pooled_with_pass(self):
         s=driver.spec();c=s['cells'][0]

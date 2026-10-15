@@ -82,7 +82,7 @@ def parser():
     p.add_argument('--plant', choices=PLANTS, default=DEFAULT_PLANT)
     p.add_argument('--build-dir', type=Path, help='Default: build/solve-time-heatmap-<plant>')
     p.add_argument('--backend', choices=['PCG', 'QDLDL'], default='PCG',
-                   help='QDLDL is hybrid CPU Schur/GPU remainder; bounded to TIAGo N32/B1')
+                   help='QDLDL is hybrid CPU Schur/GPU remainder; bounded to the TIAGo timing-matrix N/B grid')
     p.add_argument('--output', type=Path, default=ROOT / 'test-artifacts/solve-time-heatmap')
     p.add_argument('--protocol', choices=['wall-time', 'reference'], default='wall-time')
     p.add_argument('--max-sqp-iters', type=int, default=1000,
@@ -356,8 +356,8 @@ def main(argv=None):
         p.error('Invalid worker cell')
     if args.backend == 'QDLDL':
         n_values, b_values = ([args.cell[0]], [args.cell[1]]) if args.cell else (args.knots, args.batches)
-        if args.plant != 'tiago_right' or n_values != [32] or b_values != [1]:
-            p.error('QDLDL comparison is bounded to --plant tiago_right --knots 32 --batches 1')
+        if args.plant != 'tiago_right' or any(n not in (16, 32, 64, 128, 256, 512) for n in n_values) or any(b not in (1, 2, 4, 8, 16) for b in b_values):
+            p.error('QDLDL comparison requires TIAGo N16/32/64/128/256/512 and B1/2/4/8/16')
     match_torch_libraries()
     if args.cell:
         from experiment import run_cell

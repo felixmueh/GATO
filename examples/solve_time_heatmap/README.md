@@ -176,4 +176,4 @@ pilots on c3po (RTX 5060, CUDA 12.9). N8–N128 resource probes fit that GPU;
 N256 exceeds PCG shared memory. These checks establish execution, not a
 completed matrix benchmark.
 
-Optional, isolated hybrid CPU-Schur backend: see [QDLDL.md](QDLDL.md). PCG remains the default; the QDLDL comparison is bounded to TIAGo N32/B1 and has no GPU/Jetson measurements yet.
+Optional, isolated hybrid CPU-Schur backend: see [QDLDL.md](QDLDL.md). PCG remains the default; the optional QDLDL matrix uses the same TIAGo N16–512/B1–16 cells and can retain the completed Jetson N32/B1 cohort without rerunning it.

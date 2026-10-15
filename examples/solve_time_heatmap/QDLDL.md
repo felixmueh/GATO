@@ -32,7 +32,7 @@ acceptance and do not certify full nonlinear convergence.
 
 The tool's `--backend PCG` default retains its original build-directory default.
 `--backend QDLDL` selects a distinct default directory ending `-qdldl`, and is
-bounded to TIAGo N32/B1. Both the resource probe and loaded extension must match
+bounded to the same TIAGo N16/32/64/128/256/512 × B1/2/4/8/16 grid as the timing matrix. Both the resource probe and loaded extension must match
 the requested backend. CMake refuses switching backends inside one build root.
 The extension names are unchanged, so workers remain separate processes and
 build/module roots must remain separate. Resource probes omit the unused PCG
@@ -84,30 +84,74 @@ counting, backend identity/scope, inapplicable PCG fields and partial-data
 retention after a mocked direct rejection. This does not test CUDA transfers,
 actual current Schur systems, Jetson portability or scientific task behavior.
 
-## Later Jetson steps, pending target build/runtime validation
+## Full matched Jetson matrix preparation
 
-Review the local commit and publish/provision its exact source before use.
-Build the isolated N32 backend using `-DCMAKE_CUDA_ARCHITECTURES=87` with Jetson's
-Python/compiler environment. Estimate duration/storage before execution as
-required by the Jetson workflow. Check backend/module identity and a bounded
-bridge/runtime preflight when GPU access is explicitly available. Preserve
-all negatives; stop for setup failures rather than changing solver math.
+The optional existing driver now takes `--backend QDLDL`; PCG remains its default.
+`nb_cells.json` is byte-identical, SHA256
+`1dd1c88734f48dc59074a6bc2d1adfa542170060bc0c4fd817ef7b11665f1446`.
+All30cells retain300 measured updates, two repeats, SQP1, .03s knot spacing,
+.01s control interval/.001s maximum integration step, single excluded startup,
+no measured cutoff, worker timeout180s and seed17092026 (+repeat index).
+The matrix does not charge solve wall time to plant advancement: native solve
+latency is measured while reference/state updates advance by fixed10ms.
 
-The proposed smallest scientific invocation, **not executed or authorized by
-this implementation note**, is a fresh output cohort using the same frozen
-reference segment and budgets:
+The host block/CSC format is not tied to PCG shared memory. At N512 with14states,
+Schur dimension is7168 and upper CSC storage153916 entries, within int32 indexing.
+CPU format dimensions were inspected and the N512 extension (all registered batch
+templates, including B16) plus resource executable compiled/linked for explicit
+sm87 on x86_64; neither was executed. All55CPU tool tests pass, and a saved-only
+copy/export of the actual returned N32/B1 archive preserves its600samples,
+source/module/GPU identities and hashes. Logs: `build/qdldl-matrix-validation/`.
+This is not an ARM64 build or a new target runtime qualification.
+Batch lanes use the same host math serially; no solver/native/binding changes are
+needed for this extension. GPU assembly/recovery/etc still have their own resource
+requirements, so probes may mark an unsupported cell without launching it.
+Unused PCG resources must not reject a QDLDL cell. Direct CPU work is serial across
+lanes; this is a hybrid full-batch comparison, not CPU parallel throughput.
+
+`--reuse-n32-b1 ORIGINAL_RUN_ROOT` validates the existing completed matching
+cohort and copies its entire folder unchanged to `RAW/_retained/n32-b1/`.
+Original manifest, receipts, streams and samples retain recorded hashes and their
+own source/module identities. The driver skips both N32/B1 workers. The combined
+view covers60repeat slots:58 newly planned slots and2retained repeats; new-results
+records do not pretend to include the old measurements. `cells.csv` and repeat
+rows preserve the retained source18859b414eab3fff87bd58fd0c4abc70327634b3 and
+module1f66c7b1382f9c01ec577955c44e3743ef46016cce504061456fa0f5833d35c3.
+Export regeneration reads the archive-local retained files, not an external path.
+The original cohort itself remains untouched. Each new repeat gets one attempt;
+resume preserves failed/interrupted records, with no automatic retry.
+
+Completed N32/B1 evidence has600 measured samples, mean2.780268ms. Its inspected
+raw folder occupies3,173,975bytes including source snapshots. Preparation itself
+runs no GPU/native benchmarks. New horizons/batches require target build/runtime
+validation; do not label them scientifically qualified from CPU/build checks.
+
+### Ready command strategy (not executed here)
+
+Root will publish the reviewed source and write machine commands. On Jetson,
+use a fresh raw/export root and a separate QDLDL build cache:
 
 ```sh
-python3 examples/solve_time_heatmap/run.py --backend QDLDL --plant tiago_right \
-  --gpu-name 'Jetson hybrid CPU QDLDL / GPU remainder' \
-  --build-dir build/solve-time-heatmap-tiago_right-qdldl \
-  --output test-artifacts/jetson-qdldl-n32-b1-NEW \
-  --knots 32 --batches 1 --updates 300 --repeats 2 --max-sqp-iters 1 \
-  --horizon-time 0.93 --initialization single --max-solve-ms 0 --timeout 180
+python3 examples/solve_time_heatmap/nb_matrix.py --only nb-matrix --gpu jetson \
+  --backend QDLDL --raw .experiment-results/jetson-qdldl-nb-NEW \
+  --cache .experiment-cache/jetson-qdldl-nb-NEW \
+  --export thesis-results/jetson-qdldl-nb-NEW \
+  --reuse-n32-b1 /workspace/GATO-jetson-qdldl/.experiment-results/jetson-qdldl-n32-b1-20261015 \
+  --dry-run
 ```
 
-For comparison preserve existing PCG results; any newly needed PCG cohort uses
-its own build/output and the same arguments except backend/labels/paths.
-Closed-loop states may diverge: this compares backend behavior and measured full solve
-time over a matched reference segment, not identical per-step linear inputs.
-No state-rate frontend changes or full N×B sweep are included.
+After source review and target-readiness decisions, the same invocation without
+`--dry-run` builds per-horizon shared modules for sm87, probes resources without
+kernel launches, and schedules sequential workers. Failed independent cells keep
+their data while others continue; a shared build/probe failure holds dependent
+measurement. `--resume` reuses the same source/config/modules and retained hashes.
+No edits to existing PCG or N32 result directories are needed.
+
+Unmeasured planning estimates:58workers ×180s gives174minutes of worker-timeout
+ceiling plus build/probe/export time. Actual runtime growth with N and B is unknown;
+the N32/B1 mean alone must not be extrapolated as a measured prediction. Larger
+serial batches may hit the unchanged timeout and retain partial observations.
+Existing per-repeat streams are~228KB, suggesting~14MB of new measured JSON streams;
+allow~100–300MB raw including compressed samples/snapshots, conservatively1GB,
+excluding source/build caches and backup/archive overhead. Reassess target free
+space/build time before execution; no silent timeout or budget changes.
