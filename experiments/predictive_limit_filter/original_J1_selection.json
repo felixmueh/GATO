@@ -1,0 +1,190 @@
+{
+  "task_ids": [
+    7366,
+    679,
+    502,
+    6566,
+    3903,
+    977,
+    3925,
+    6536,
+    26,
+    8990,
+    2795,
+    8306,
+    7843,
+    4155,
+    7607,
+    3461,
+    2263,
+    3126,
+    801,
+    9637
+  ],
+  "labels": {
+    "7366": {
+      "task_success": false,
+      "physical_pass": false,
+      "outcome": "execution_failed",
+      "original_execution_error": true,
+      "original_class": "execution_error",
+      "failure_phase": "plant"
+    },
+    "679": {
+      "task_success": false,
+      "physical_pass": false,
+      "outcome": "execution_failed",
+      "original_execution_error": true,
+      "original_class": "execution_error",
+      "failure_phase": "plant"
+    },
+    "502": {
+      "task_success": false,
+      "physical_pass": false,
+      "outcome": "timeout",
+      "original_execution_error": false,
+      "original_class": "finite_physical_violation",
+      "failure_phase": null
+    },
+    "6566": {
+      "task_success": true,
+      "physical_pass": false,
+      "outcome": "reached",
+      "original_execution_error": false,
+      "original_class": "finite_physical_violation",
+      "failure_phase": null
+    },
+    "3903": {
+      "task_success": false,
+      "physical_pass": false,
+      "outcome": "timeout",
+      "original_execution_error": false,
+      "original_class": "finite_physical_violation",
+      "failure_phase": null
+    },
+    "977": {
+      "task_success": false,
+      "physical_pass": false,
+      "outcome": "timeout",
+      "original_execution_error": false,
+      "original_class": "finite_physical_violation",
+      "failure_phase": null
+    },
+    "3925": {
+      "task_success": true,
+      "physical_pass": false,
+      "outcome": "reached",
+      "original_execution_error": false,
+      "original_class": "finite_physical_violation",
+      "failure_phase": null
+    },
+    "6536": {
+      "task_success": false,
+      "physical_pass": false,
+      "outcome": "execution_failed",
+      "original_execution_error": true,
+      "original_class": "execution_error",
+      "failure_phase": "plant"
+    },
+    "26": {
+      "task_success": false,
+      "physical_pass": false,
+      "outcome": "timeout",
+      "original_execution_error": false,
+      "original_class": "finite_physical_violation",
+      "failure_phase": null
+    },
+    "8990": {
+      "task_success": false,
+      "physical_pass": false,
+      "outcome": "timeout",
+      "original_execution_error": false,
+      "original_class": "finite_physical_violation",
+      "failure_phase": null
+    },
+    "2795": {
+      "task_success": true,
+      "physical_pass": false,
+      "outcome": "reached",
+      "original_execution_error": false,
+      "original_class": "finite_physical_violation",
+      "failure_phase": null
+    },
+    "8306": {
+      "task_success": false,
+      "physical_pass": false,
+      "outcome": "timeout",
+      "original_execution_error": false,
+      "original_class": "finite_physical_violation",
+      "failure_phase": null
+    },
+    "7843": {
+      "task_success": false,
+      "physical_pass": false,
+      "outcome": "timeout",
+      "original_execution_error": false,
+      "original_class": "finite_physical_violation",
+      "failure_phase": null
+    },
+    "4155": {
+      "task_success": false,
+      "physical_pass": false,
+      "outcome": "execution_failed",
+      "original_execution_error": true,
+      "original_class": "execution_error",
+      "failure_phase": "plant"
+    },
+    "7607": {
+      "task_success": false,
+      "physical_pass": false,
+      "outcome": "timeout",
+      "original_execution_error": false,
+      "original_class": "finite_physical_violation",
+      "failure_phase": null
+    },
+    "3461": {
+      "task_success": false,
+      "physical_pass": false,
+      "outcome": "timeout",
+      "original_execution_error": false,
+      "original_class": "finite_physical_violation",
+      "failure_phase": null
+    },
+    "2263": {
+      "task_success": false,
+      "physical_pass": false,
+      "outcome": "timeout",
+      "original_execution_error": false,
+      "original_class": "finite_physical_violation",
+      "failure_phase": null
+    },
+    "3126": {
+      "task_success": false,
+      "physical_pass": false,
+      "outcome": "timeout",
+      "original_execution_error": false,
+      "original_class": "finite_physical_violation",
+      "failure_phase": null
+    },
+    "801": {
+      "task_success": true,
+      "physical_pass": false,
+      "outcome": "reached",
+      "original_execution_error": false,
+      "original_class": "finite_physical_violation",
+      "failure_phase": null
+    },
+    "9637": {
+      "task_success": false,
+      "physical_pass": false,
+      "outcome": "timeout",
+      "original_execution_error": false,
+      "original_class": "finite_physical_violation",
+      "failure_phase": null
+    }
+  },
+  "original_summary_sha256": "862e081045e4945b226b6e9598ccdef6d538e5c4d2f5ed1ba6e5263e80c9cba9",
+  "original_frontend": "72533b237a55732aaa11b7747f204eee0ff16725",
+  "original_arm": "J1",
+  "rule": "All20 original J1 non-physical-pass outcomes in frozen100 order;16finiteunsafe+4executionerrors; no exclusion"
+}
