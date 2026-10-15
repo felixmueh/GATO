@@ -16,7 +16,7 @@ import time
 import traceback
 
 HERE = Path(__file__).resolve().parent
-BASE = "f0cafcde47a675d0deb17724005c3416a327e7db"
+BASE = "85ef2ea5cf5b96726be6f4b5441f4a7c0ca041b4"
 MODEL = "gato/dynamics/tiago_right/tiago_right_arm.urdf"
 HISTORICAL_WORKER = "84bad9ad3d88b1b50d01f4d7aa3721bbc31ea210"
 FIXED = dict(timing_mode="A", offline_timing="controller_dt", N=32,
@@ -59,7 +59,7 @@ def prepare(args):
     """Stdlib-only validation: this function never loads a native extension."""
     protocol = json.loads(args.protocol.read_text())
     if protocol.get("source_base") != BASE:
-        raise ValueError("This study is pinned to the reviewed quadratic-continuation numerical source")
+        raise ValueError("This study is pinned to the reviewed interior-cost-bound numerical source")
     for key, value in FIXED.items():
         if protocol.get(key) != value:
             raise ValueError("Fixed initial study setting differs: " + key)
@@ -96,13 +96,16 @@ def prepare(args):
     files = [MODEL, "python/bsqp/interface.py", "python/bsqp/mpc_controller.py", "python/bsqp/common.py",
              "python/bsqp/config.py", "tiago_src/gato_tiago/config.py", "gato/bsqp/bsqp.cuh",
              "tiago_src/gato_tiago/tiago_mpc_controller.py",
-             "gato/dynamics/tiago_right/tiago_right_plant.cuh", "gato/dynamics/tiago_right/tiago_right_limits.cuh"]
+             "gato/dynamics/tiago_right/tiago_right_plant.cuh", "gato/dynamics/tiago_right/tiago_right_limits.cuh",
+             "gato/dynamics/tiago_right/tiago_right_cost_limits.cuh"]
     source_hashes = {}
     for name in files:
         expected = subprocess.check_output(["git", "-C", str(args.source), "show", BASE + ":" + name])
         source_hashes[name] = sha(args.source / name)
         if source_hashes[name] != hashlib.sha256(expected).hexdigest():
             raise ValueError("Selected baseline source bytes differ: " + name)
+    if sha(args.module) != protocol.get("native_module_sha256"):
+        raise ValueError("Margin protocol native-module hash mismatch")
     old_helpers = {}
     for name in ("tiago_reaching_batch_pilot.py", "validate_reaching_mpc.py"):
         content = subprocess.check_output(["git", "-C", str(args.source), "show",

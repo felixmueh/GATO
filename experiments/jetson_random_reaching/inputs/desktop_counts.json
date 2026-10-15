@@ -1,0 +1,19 @@
+{
+  "assigned": 100,
+  "complete": true,
+  "recorded": 100,
+  "unrecorded": 0,
+  "rough_arrivals": 55,
+  "physical_passes": 98,
+  "raw_sampled_physical_passes": 98,
+  "both_passes": 55,
+  "timeouts": 45,
+  "execution_failures": 0,
+  "physical_timeouts": 43,
+  "arrivals_with_physical_failure": 0,
+  "joint_failed_checks": 0,
+  "velocity_failed_checks": 2,
+  "effort_failed_checks": 0,
+  "initially_inside_position_speed_gate": 0,
+  "initial_gate_known_cases": 100
+}

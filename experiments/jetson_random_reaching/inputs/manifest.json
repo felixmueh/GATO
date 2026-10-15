@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "purpose": "Portable exact fresh100 inputs and unchanged desktop/canonical context; no results relabeling or module reuse across architectures",
+  "ordered_task_ids_sha256": "438d9ac51ec264ffcd2bb0dfa40b9caaccfc579990cc3b1b502cd40e48a6a96e",
+  "files": {
+    "pool.npz": {
+      "sha256": "e3cf5bbd3385eed74a8ccfb6fa341787b0d1b1c5f8514d08437c8640916e98b3",
+      "bytes": 85667,
+      "original_path": "/workspace/GATO-experiment-runner-simple/experiments/inputs/batching/pool.npz"
+    },
+    "pairs.npz": {
+      "sha256": "a5fbf2b7897a0e104b98a86d792690e12c29e1b755108548a45aa058eeb26aa7",
+      "bytes": 120566,
+      "original_path": "/workspace/GATO-experiment-runner-simple/experiments/inputs/batching/pairs.npz"
+    },
+    "assignment.json": {
+      "sha256": "21595e8ab84a65ad8ed18ec8c33622a279209af96f871b84fed9a99e9cd9e015",
+      "bytes": 17002,
+      "original_path": "/workspace/GATO/_expr_results/random-reaching-off-torque-validation-100-20261015/preparation/assignment.json"
+    },
+    "desktop_protocol.json": {
+      "sha256": "802794a409e4cd9b13c83dad331bae47e838dd8c967ee344b03c7e491b8b28c5",
+      "bytes": 9327,
+      "original_path": "/workspace/GATO/_expr_results/random-reaching-off-torque-validation-100-20261015/preparation/validation_protocol.json"
+    },
+    "desktop_cases.csv": {
+      "sha256": "b208d547aa5c839518c67519fb79d99af8939902f6e5fecd0fe0466694564b9b",
+      "bytes": 77736,
+      "original_path": "/workspace/GATO/thesis_results/random-reaching-off-torque-validation-100-20261015/cases.csv"
+    },
+    "desktop_counts.json": {
+      "sha256": "086482203d5fe37826bcb30699943c76f2de2f22ba6e3943d9090ecb02519220",
+      "bytes": 466,
+      "original_path": "/workspace/GATO/thesis_results/random-reaching-off-torque-validation-100-20261015/counts.json"
+    },
+    "research_baseline_freeze.json": {
+      "sha256": "fe672a0b1b7336dc0f41256e484679cf35f45d93d703bb4b06bf15c5a615bcd1",
+      "bytes": 8105,
+      "original_path": "/workspace/GATO/_expr_results/random-reaching-orientation-20261015/OFF_TORQUE/research_baseline_freeze.json"
+    },
+    "canonical_metrics.json": {
+      "sha256": "eac82b0493aff918277c753b80625815c98e5e52ddc21a01041f14e78b2d77eb",
+      "bytes": 2495,
+      "original_path": "/workspace/GATO/_expr_results/random-reaching-orientation-20261015/OFF_TORQUE/preflight/preflight/metrics.json"
+    },
+    "canonical_provenance.json": {
+      "sha256": "b11e8b0880bfffadd2543b6c32f69f19532a5f2593ea3b6b4e01141db380f185",
+      "bytes": 9823,
+      "original_path": "/workspace/GATO/_expr_results/random-reaching-orientation-20261015/OFF_TORQUE/preflight/provenance.json"
+    },
+    "canonical_inputs.npz": {
+      "sha256": "38b49b4064056e61ff0052dea99ec30c9f1b918a037e5a90a89274021efe53e7",
+      "bytes": 1479,
+      "original_path": "/workspace/GATO/_expr_results/random-reaching-orientation-20261015/OFF_TORQUE/preflight/preflight/inputs.npz"
+    },
+    "canonical_geometry.json": {
+      "sha256": "5bc199b3f4a2ccb256ed1a9dbd18a027533ac41c73bc2ae8958f55a4765587f6",
+      "bytes": 2847,
+      "original_path": "/workspace/GATO-experiment-runner-simple/experiments/inputs/batching/ba_preflight.json"
+    },
+    "OFF_TORQUE-orientation.json": {
+      "sha256": "511b99b2a0ed817f0bb881a84ca978e0de5d74d5e046321451db6231fe2c6b8f",
+      "bytes": 6101,
+      "original_path": "/workspace/GATO-frozen-reaching-validation/experiments/random_reaching_baseline/protocols/OFF_TORQUE-orientation.json"
+    },
+    "desktop_native_build_receipt.json": {
+      "sha256": "9a8a4b3820e5660d3fc2904eccf4aec543e2753fc3c931dc14dee7995f494b62",
+      "bytes": 1915,
+      "original_path": "/workspace/GATO/_expr_results/random-reaching-margins-20261015/build_receipt_q020.json"
+    },
+    "tiago_right_arm.urdf": {
+      "sha256": "8e1fd973a1d1c3fbddd55039e6eb17b355ebb29f46e1bd8c774b7879c2cdc5bb",
+      "bytes": 10910,
+      "original_path": "/workspace/GATO-frozen-reaching-validation/gato/dynamics/tiago_right/tiago_right_arm.urdf"
+    },
+    "native_source_sha256.json": {
+      "sha256": "b78b0f3353c7943f82a4e98aa455b0a82346a8d1bd7cd2cf0ed1e379f9d0ad3d",
+      "bytes": 1451
+    }
+  }
+}

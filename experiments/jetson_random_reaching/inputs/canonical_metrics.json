@@ -1,0 +1,76 @@
+{
+  "pair_id": -1,
+  "outcome": "timeout",
+  "complete": true,
+  "task_success": false,
+  "physical_pass": true,
+  "execution_error": null,
+  "failure_phase": null,
+  "shared_setup_failure": false,
+  "interrupted": false,
+  "simulated_seconds": 8.0,
+  "reached_seconds": null,
+  "arrival_policy": "position_and_speed_only",
+  "arrival_orientation_gate": false,
+  "orientation_required_for_arrival": false,
+  "tool_axis_tolerance_role": "30degrees used only for descriptive first_pose_touch_seconds",
+  "first_position_touch_seconds": null,
+  "first_pose_touch_seconds": null,
+  "touch_sampling": "first dense3ms observation; rough arrival checked at30ms feedback boundary",
+  "initial": {
+    "position_error_m": 0.10063625937168882,
+    "tool_axis_error_deg": 12.532944880343653,
+    "orientation_error_deg": 12.537370632493529,
+    "velocity_l1_rad_s": 0.0
+  },
+  "final": {
+    "position_error_m": 0.05574044823554862,
+    "tool_axis_error_deg": 27.160317167413538,
+    "orientation_error_deg": 28.615161408254778,
+    "velocity_l1_rad_s": 0.06041937061426396
+  },
+  "physical": {
+    "finite": true,
+    "physical_pass": true,
+    "joint": {
+      "pass_check": true,
+      "maximum_excess": 0.0,
+      "first_violation": null
+    },
+    "velocity": {
+      "pass_check": true,
+      "maximum_excess": 0.0,
+      "first_violation": null
+    },
+    "effort": {
+      "pass_check": true,
+      "maximum_excess": 0.0,
+      "first_violation": null
+    },
+    "maximum_velocity_ratio": 0.3115826509069527,
+    "maximum_effort_ratio": 0.36032856427706206
+  },
+  "last_second": {
+    "observation_seconds": 0.9979999999998457,
+    "position_error_min_m": 0.054815321341272615,
+    "position_error_max_m": 0.05574044823554862,
+    "net_position_error_reduction_m": -0.0009251268942760058,
+    "joint_total_variation_L1_rad": 0.1574686247884859,
+    "maximum_joint_speed_rad_s": 0.1132584080701579,
+    "maximum_speed_L1_rad_s": 0.3060859691003209,
+    "limitation": "Observation ends at rough arrival or timeout; no post-arrival settling inference"
+  },
+  "executed_endpoint_displacement_m": 0.14138696303875603,
+  "feedback_solves": 267,
+  "actual_sqp_sum": 1214,
+  "actual_pcg_iteration_sum": 10540,
+  "zero_pcg_exit_solves": 267,
+  "solve_wall_s": 0.475273136398755,
+  "native_solve_us": 448487.0,
+  "episode_wall_s": 1.3611905579455197,
+  "timing_mode": "A",
+  "offline_timing": "controller_dt",
+  "canonical_geometry_check": true,
+  "canonical_motion_check": true,
+  "preflight_pass": false
+}

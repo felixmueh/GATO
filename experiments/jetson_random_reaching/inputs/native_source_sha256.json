@@ -1,0 +1,18 @@
+{
+  "original_native_source": "85ef2ea5cf5b96726be6f4b5441f4a7c0ca041b4",
+  "original_runtime_source": "e1bc38b",
+  "native_files": {
+    "gato/dynamics/tiago_right/tiago_right_arm.urdf": "8e1fd973a1d1c3fbddd55039e6eb17b355ebb29f46e1bd8c774b7879c2cdc5bb",
+    "python/bsqp/interface.py": "7caa7781a98126646f3f50e7569b34db1f01339331a2341e4e37ebebba3a3770",
+    "python/bsqp/mpc_controller.py": "ccbfcf81368685568225bad59b8de5da5678f061c40c8288be67254a59539ab4",
+    "python/bsqp/common.py": "ca5a9fb41377a760c24ba9df881f93ede59301ee8c09463f9f644854e9848dcf",
+    "python/bsqp/config.py": "8ed690ed1472d9a650af7510d7fe93bda6375124d6c7e0b2f7a2b7cb435c9699",
+    "tiago_src/gato_tiago/config.py": "c2287d1522f4f07a09e922af76ecddb215e5801f9b8b297e74cc5a4c849fc316",
+    "gato/bsqp/bsqp.cuh": "2752e9146c8cf06d2168a142ff2265f29224384f27f75b6dc3ec395f6ef40141",
+    "tiago_src/gato_tiago/tiago_mpc_controller.py": "656bbaf7030017eeafbe85f367f24b1b8d8ce26acb2a0de77c759084ba2e4fea",
+    "gato/dynamics/tiago_right/tiago_right_plant.cuh": "9dd91de48dac76375914bdd1ad7a83075a5fa0ecd21cf6291cb6014b60eef46f",
+    "gato/dynamics/tiago_right/tiago_right_limits.cuh": "c23c92abb35e0b9163fb21a6d2eb899da6de9e52d5bed00ad490e90c08a13232",
+    "gato/dynamics/tiago_right/tiago_right_cost_limits.cuh": "388244d7201b113caacb263591cd0fe07f41d4d6a82ae4d0e0ce4482eecdd1e7"
+  },
+  "desktop_module_sha256": "d9bee23f90a1d7816b32db23749bd651db2a7537f94c3dfec15f1a448bb34cc8"
+}

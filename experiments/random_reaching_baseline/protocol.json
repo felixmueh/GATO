@@ -1,6 +1,6 @@
 {
-  "id": "random-reaching-continuation-A-b1-sqp1000-public-pose-v1",
-  "source_base": "f0cafcde47a675d0deb17724005c3416a327e7db",
+  "id": "random-reaching-margins-M0-margin-only-A-b1-sqp1000-v1",
+  "source_base": "85ef2ea5cf5b96726be6f4b5441f4a7c0ca041b4",
   "timing_mode": "A",
   "offline_timing": "controller_dt",
   "N": 32,
@@ -51,7 +51,7 @@
     "pairs.npz": "a5fbf2b7897a0e104b98a86d792690e12c29e1b755108548a45aa058eeb26aa7"
   },
   "initialization": "Public pose-reaching: cold repeated actual rest state and zero controls; then bsqp.common shift of previous output reanchored at actual state. Reset dual and rho once per episode; retain adaptive rho and duals across feedback solves. First t0 solve supplies first executed prefix and is recorded.",
-  "comparison": "Successor to random-reaching-baseline-20261015: identical tasks, parameters, initialization, stopping and modeA clock. Only reviewed limit helper changes. No physical veto, clipping, or KKT acceptance gate.",
+  "comparison": "Successor margin study: unchanged frozen tasks, modeA unpaid solves, stopping, seed/rho policy and physical validation. Interior cost bounds are distinct from actual physical bounds.",
   "task_ids": [
     3626,
     7733,
@@ -162,6 +162,32 @@
     "reviewed_candidate": "17100c0a9500e23f72f6c4d950717f09ce9551cb",
     "relaxation_fraction_of_limit_interval": 0.01,
     "production_base": "b400bdf2bb6eea543b17cefcb0577d5de4d22ce2",
-    "core_change": "Only the reviewed TIAGo limit-helper replacement; no other solver or controller changes."
-  }
+    "core_change": "Reviewed C2 quadratic continuation plus explicit interior cost bounds at all value/gradient/Hessian callsites; raw limits, dynamics and controller unchanged.",
+    "cost_bounds": {
+      "joint_margin_rad": 0.02,
+      "velocity_fraction_of_physical_limit": 0.9,
+      "effort_fraction_of_physical_limit": 0.9,
+      "velocity_upper_rad_s": [
+        2.25,
+        2.25,
+        2.25,
+        2.25,
+        2.25,
+        2.25,
+        2.25
+      ],
+      "effort_upper_Nm": [
+        38.7,
+        38.7,
+        23.4,
+        23.4,
+        23.4,
+        23.4,
+        23.4
+      ],
+      "initial_states": "Unchanged, including those outside interior cost bounds; no clipping or filtering.",
+      "continuation_width": "1% of interior cost interval"
+    }
+  },
+  "native_module_sha256": "c7dfad734cf5b25ca4a4eb7984f6ca7201da09a970a3b94caea1f79c8929c6b7"
 }
