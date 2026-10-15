@@ -97,6 +97,7 @@ class BSQP:
                 f"Batch size {batch_size} not supported in module {module_name}"
             )
         self.lib = base
+        self.linsys_solver = getattr(self.lib, "LINSYS_SOLVER", "PCG")
         self.solver_class = getattr(base, class_name)
         self.plant_type = plant_type
 
@@ -228,7 +229,12 @@ class BSQP:
         self.stats["min_merit"] = min_merit
         self.stats["step_size"] = step_size
 
-        telemetry = _decode_experiment_telemetry(result, self.batch_size)
+        if self.linsys_solver == "QDLDL":
+            # Internal native slots count successful direct solves, not PCG work.
+            self.stats["direct_solve_work"] = self.stats.pop("pcg_iters")
+            self.stats.pop("pcg_times_us", None)
+        telemetry = (None if self.linsys_solver == "QDLDL" else
+                     _decode_experiment_telemetry(result, self.batch_size))
         if telemetry is not None:
             self.stats["experiment_telemetry"] = telemetry
         else:

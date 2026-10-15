@@ -23,16 +23,27 @@ int main() {
         if (i == 4 || i == 6 || i == 8 || i == 10) uuid << '-';
         uuid << std::setw(2) << static_cast<unsigned int>(static_cast<unsigned char>(p.uuid.bytes[i]));
     }
+#if !defined(GATO_LINSYS_QDLDL)
     const auto pcg_setup = gato::experiment::configure_pcg_shared_memory(
         solvePCGBatchedKernel<float, 1>, getSolvePCGBatchedSMemSize<float>(), false);
-    std::cout << "{\"plant\":\"" << RESOURCE_PLANT << "\",\"N\":" << KNOT_POINTS
+#else
+    // PCG is not used by this backend; do not configure or reject its SMEM.
+    const gato::experiment::PCGSharedMemorySetup pcg_setup{};
+#endif
+#if defined(GATO_LINSYS_QDLDL)
+    constexpr const char* backend = "QDLDL";
+#else
+    constexpr const char* backend = "PCG";
+#endif
+    std::cout << "{\"linsys_solver\":\"" << backend << "\",\"plant\":\"" << RESOURCE_PLANT << "\",\"N\":" << KNOT_POINTS
               << ",\"device\":\"" << p.name << "\",\"compute_capability\":\""
               << p.major << "." << p.minor << "\",\"shared_limit_bytes\":"
               << p.sharedMemPerBlock << ",\"global_memory_bytes\":" << p.totalGlobalMem
               << ",\"multiprocessors\":" << p.multiProcessorCount
               << ",\"gpu_uuid\":" << std::quoted(uuid.str())
               << ",\"cuda_driver_version\":" << driver_version
-              << ",\"pcg_shared_memory_policy\":{\"optin_requested\":" << (pcg_setup.optin_requested ? "true" : "false")
+              << ",\"pcg_shared_memory_policy\":{\"applicable\":" << (std::string(backend) == "PCG" ? "true" : "false")
+              << ",\"optin_requested\":" << (pcg_setup.optin_requested ? "true" : "false")
               << ",\"optin_applied\":" << (pcg_setup.optin_applied ? "true" : "false")
               << ",\"attributes_queried\":" << (pcg_setup.attributes_queried ? "true" : "false")
               << ",\"supported\":" << (pcg_setup.supported ? "true" : "false")
@@ -63,7 +74,9 @@ int main() {
     };
     emit("setup_kkt", setupKKTSystemBatchedKernel<float, 1>, getSetupKKTSystemBatchedSMemSize<float>(), KKT_THREADS);
     emit("merit", computeMeritBatchedKernel<float, 1>, getComputeMeritBatchedSMemSize<float>(), grid::SUGGESTED_THREADS);
+#if !defined(GATO_LINSYS_QDLDL)
     emit("pcg", solvePCGBatchedKernel<float, 1>, getSolvePCGBatchedSMemSize<float>(), PCG_THREADS);
+#endif
     emit("schur1", formSchurSystemBatchedKernel1<float, 1>, getFormSchurSystemBatched1SMemSize<float>(), SCHUR_THREADS);
     emit("schur2", formSchurSystemBatchedKernel2<float, 1>, getFormSchurSystemBatched2SMemSize<float>(), SCHUR_THREADS);
     emit("dz", computeDzBatchedKernel<float, 1>, getComputeDzBatchedSMemSize<float>(), DZ_THREADS);

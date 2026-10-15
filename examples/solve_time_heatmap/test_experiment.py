@@ -187,6 +187,25 @@ class ExperimentTest(unittest.TestCase):
                                 wall_time=recorder.wall_time, max_solve_ms=recorder.max_solve_ms,
                                 protocol=recorder.protocol, **kwargs)
 
+    def test_direct_work_is_not_reported_as_pcg_work(self):
+        solver = Solver(self.clock, durations=(1000., 1000.))
+        native_stats = solver.get_stats
+        solver.get_stats = lambda: native_stats() | dict(
+            direct_solve_work=np.ones((1, 2), dtype=int),
+            pcg_iters=np.ones((1, 2), dtype=int))
+        recorder = self.recorder(cutoff=0., updates=3)
+        recorder.meta.update(linsys_solver='QDLDL', solver_params=dict(max_pcg_iters=120))
+        end, status = self.execute(solver, recorder)
+        result = recorder.save(status, end)
+        self.assertEqual(result['samples'], 3)
+        self.assertEqual(result['direct_linear_solves'], 6)  # measured lanes; no warm-up
+        self.assertEqual(result['pcg_lane_sqp_slots'], 0)
+        self.assertFalse(result['pcg_telemetry_complete'])
+        for key in ('max_pcg_iters', 'avg_pcg_iters', 'pcg_cap_count', 'pcg_cap_share'):
+            self.assertIsNone(result[key])
+        self.assertTrue(all(row['pcg_iters_batch'] == [] for row in recorder.rows))
+        self.assertTrue(all(row['max_pcg_iters'] is None for row in recorder.rows))
+
     def test_fixed_300_updates_match_reference_offsets_across_wall_speeds(self):
         for duration in (1000., 700_000.):
             with self.subTest(duration=duration):

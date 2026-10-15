@@ -266,14 +266,15 @@ class Recorder:
         if len(iterations_batch) != self.batch_size or len(flags_batch) != self.batch_size:
             raise RuntimeError('Native statistics do not cover every batch member')
         cap_batch = (iterations_batch >= self.max_sqp_iters) & ~flags_batch
-        pcg = np.asarray(stats.get('pcg_iters', []))
+        direct = self.meta.get('linsys_solver', 'PCG') == 'QDLDL'
+        pcg = np.asarray([] if direct else stats.get('pcg_iters', []))
         if pcg.size and self.batch_size == 1 and pcg.ndim == 1:
             pcg = pcg.reshape(-1, 1)
         if pcg.size and (pcg.ndim != 2 or pcg.shape[1] != self.batch_size
                          or not np.isfinite(pcg).all() or np.any(pcg < 0)
                          or np.any(pcg != np.floor(pcg))):
             raise RuntimeError('PCG statistics must cover actual SQP rows and every lane')
-        pcg_cap = self.meta.get('solver_params', {}).get('max_pcg_iters')
+        pcg_cap = None if direct else self.meta.get('solver_params', {}).get('max_pcg_iters')
         pcg_slots = int(pcg.size)
         pcg_cap_count = int(np.sum(pcg >= pcg_cap)) if pcg_slots and pcg_cap is not None else None
         row = dict(index=-1 if warmup else len(self.rows), warmup=warmup,
@@ -283,8 +284,9 @@ class Recorder:
             slow_solve=bool(not warmup and self.max_solve_ms > 0 and native_us / 1000. > self.max_solve_ms),
             sqp_iters=int(iterations_batch[0]), native_converged=bool(flags_batch[0]),
             sqp_iters_batch=iterations_batch.tolist(), native_converged_batch=flags_batch.tolist(),
+            direct_linear_solves=(int(np.asarray(stats.get('direct_solve_work', [])).size) if direct else 0),
             pcg_iters_batch=pcg.astype(int).tolist(), pcg_lane_sqp_slots=pcg_slots,
-            pcg_iters_sum=int(pcg.sum()), max_pcg_iters=pcg_cap,
+            pcg_iters_sum=None if direct else int(pcg.sum()), max_pcg_iters=pcg_cap,
             avg_pcg_iters=float(pcg.mean()) if pcg_slots else None,
             pcg_cap_count=pcg_cap_count,
             pcg_cap_share=pcg_cap_count/pcg_slots if pcg_cap_count is not None else None,
@@ -325,7 +327,7 @@ class Recorder:
         tracking = np.asarray([row['tracking_error_m'] for row in rows])
         iterations = np.asarray([row['sqp_iters'] for row in rows])
         pcg_slots = sum(row['pcg_lane_sqp_slots'] for row in rows)
-        pcg_sum = sum(row['pcg_iters_sum'] for row in rows)
+        pcg_sum = sum(row['pcg_iters_sum'] or 0 for row in rows)
         pcg_complete = bool(rows) and all(row['pcg_telemetry_complete'] for row in rows)
         pcg_caps = sum(row['pcg_cap_count'] or 0 for row in rows)
         def mean(values):
@@ -353,13 +355,14 @@ class Recorder:
             solver_frequency_hz=1000. / mean(times) if len(times) and mean(times) > 0 else None,
             p95_native_ms=float(np.percentile(times, 95)) if len(times) else None,
             avg_sqp_iters=mean(iterations), max_sqp_iters_observed=int(iterations.max()) if len(iterations) else None,
-            max_pcg_iters=self.meta.get('solver_params', {}).get('max_pcg_iters'),
+            max_pcg_iters=(None if self.meta.get('linsys_solver') == 'QDLDL' else self.meta.get('solver_params', {}).get('max_pcg_iters')),
+            direct_linear_solves=sum(row.get('direct_linear_solves', 0) for row in rows),
             pcg_telemetry_complete=pcg_complete, pcg_lane_sqp_slots=pcg_slots,
-            pcg_iters_sum=pcg_sum,
+            pcg_iters_sum=None if self.meta.get('linsys_solver') == 'QDLDL' else pcg_sum,
             avg_pcg_iters=pcg_sum/pcg_slots if pcg_slots and pcg_complete else None,
             pcg_cap_count=pcg_caps if pcg_complete else None,
             pcg_cap_share=pcg_caps/pcg_slots if pcg_slots and pcg_complete else None,
-            pcg_denominator='All lanes of every actual native PCG/SQP row in measured returns, including zero iterations; initialization excluded',
+            pcg_denominator=('Not applicable: direct Schur solves have no PCG iterations' if self.meta.get('linsys_solver') == 'QDLDL' else 'All lanes of every actual native PCG/SQP row in measured returns, including zero iterations; initialization excluded'),
             tracking_mean_m=mean(tracking), tracking_rms_m=float(np.sqrt(np.mean(tracking**2))) if len(tracking) else None,
             tracking_max_m=float(tracking.max()) if len(tracking) else None,
             error=error, failure_state=self.failure_state)
@@ -410,6 +413,9 @@ def run_cell(args):
     params = solver_parameters(n, args.horizon_time, args.plant) | {'max_sqp_iters': args.max_sqp_iters}
     urdf, start, reference = plant_inputs(args.plant, args.protocol)
     meta = dict(**plant_metadata(args.plant), N=n, batch_size=batch, repeat=repeat, gpu_name=args.gpu_name,
+        linsys_solver=args.backend, pcg_iteration_budget_applicable=args.backend == 'PCG',
+        direct_acceptance=('Full Schur residual <= max(1e-6, pcg_tol * RHS norm); no dual iterate warm start' if args.backend == 'QDLDL' else None),
+        backend_description=('Hybrid CPU QDLDL Schur solve; GPU assembly and remaining SQP' if args.backend == 'QDLDL' else 'GPU PCG'),
         protocol=args.protocol, sim_step_s=CONTROL_DT, sim_time_s=args.sim_time,
         horizon_time=args.horizon_time, prediction_dt_s=prediction_dt,
         prediction_duration_s=prediction_dt * (n - 1),
@@ -417,7 +423,7 @@ def run_cell(args):
         measured_update_budget=args.updates,
         max_solve_ms=args.max_solve_ms, max_sqp_iters=args.max_sqp_iters,
         solver_params=params, reference_commit=REFERENCE_COMMIT if args.plant == "indy7" else None,
-        native_criterion='Returned residual kkt_converged flags are separate from zero-PCG heuristic exit; no full nonlinear certificate',
+        native_criterion=('QDLDL full Schur residual acceptance is separate from outer kkt_converged flags; no zero-PCG shortcut or full nonlinear certificate' if args.backend == 'QDLDL' else 'Returned residual kkt_converged flags are separate from zero-PCG heuristic exit; no full nonlinear certificate'),
         timing='Full-batch synchronized native host time; initialization excluded from all measured aggregates',
         frequency='1000 / mean native milliseconds; solve-only frequency, not end-to-end control frequency',
         tracking=(plant_metadata(args.plant)['tracking_frame'] +
@@ -439,6 +445,8 @@ def run_cell(args):
     status, end_time, error = 'running', None, None
     try:
         solver = BSQP(str(urdf), batch, n, prediction_dt, plant_type=args.plant, **params)
+        from run import validate_backend_identity
+        validate_backend_identity(solver.linsys_solver, args.backend)
         module = Path(solver.lib.__file__).resolve()
         if module.parent != (args.build_dir / 'modules').resolve():
             raise RuntimeError(f'Unexpected solver module: {module}')

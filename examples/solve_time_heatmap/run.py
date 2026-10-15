@@ -81,6 +81,8 @@ def parser():
     p.add_argument('--gpu-name', help='Required plot label for new runs; saved for plot-only')
     p.add_argument('--plant', choices=PLANTS, default=DEFAULT_PLANT)
     p.add_argument('--build-dir', type=Path, help='Default: build/solve-time-heatmap-<plant>')
+    p.add_argument('--backend', choices=['PCG', 'QDLDL'], default='PCG',
+                   help='QDLDL is hybrid CPU Schur/GPU remainder; bounded to TIAGo N32/B1')
     p.add_argument('--output', type=Path, default=ROOT / 'test-artifacts/solve-time-heatmap')
     p.add_argument('--protocol', choices=['wall-time', 'reference'], default='wall-time')
     p.add_argument('--max-sqp-iters', type=int, default=1000,
@@ -113,7 +115,7 @@ def parser():
 
 
 def configuration(args):
-    return dict(**plant_metadata(args.plant), gpu_name=args.gpu_name, protocol=args.protocol, knots=args.knots,
+    return dict(**plant_metadata(args.plant), linsys_solver=args.backend, gpu_name=args.gpu_name, protocol=args.protocol, knots=args.knots,
                 batches=args.batches, repeats=args.repeats, max_sqp_iters=args.max_sqp_iters,
                 wall_time=args.wall_time, updates=args.updates, sim_time=args.sim_time, max_solve_ms=args.max_solve_ms,
                 seed=args.seed, save_plans=args.save_plans, timeout=args.timeout,
@@ -138,7 +140,7 @@ def source_paths():
     paths = list((ROOT / 'gato').rglob('*.cuh')) + list((ROOT / 'gato').rglob('*.h'))
     paths += list((ROOT / 'python').rglob('*.py')) + [ROOT / 'python/bindings.cu']
     paths += list(HERE.glob('*.py'))
-    paths += [HERE / 'resources.cu', HERE / 'CMakeLists.txt', HERE / 'requirements.txt',
+    paths += [ROOT / 'cmake/qdldl.cmake', HERE / 'resources.cu', HERE / 'CMakeLists.txt', HERE / 'requirements.txt',
               ROOT / 'examples/indy7_description/indy7.urdf',
               ROOT / 'gato/dynamics/tiago_right/tiago_right_arm.urdf',
               ROOT / 'tiago_src/gato_tiago/config.py',
@@ -191,6 +193,7 @@ def prepare_manifest(args):
                                check=True, capture_output=True, text=True)
         resource = manifest['resources'][str(n)] = json.loads(probe.stdout)
         validate_resource_plant(resource, args.plant)
+        validate_backend_identity(resource.get('linsys_solver', 'PCG'), args.backend)
         if all(k['fits'] for k in resource['kernels']):
             modules = list((args.build_dir / 'modules').glob(f'bsqpN{n}_{args.plant}*.so'))
             if len(modules) != 1:
@@ -212,8 +215,8 @@ def prepare_manifest(args):
 
 def cell_command(args, n, batch, repeat):
     command = [sys.executable, str(HERE / 'run.py'), '--cell', str(n), str(batch), str(repeat),
-               '--plant', args.plant, '--gpu-name', args.gpu_name, '--build-dir',
-               str(args.build_dir or ROOT / f'build/solve-time-heatmap-{args.plant}'),
+               '--plant', args.plant, '--backend', args.backend, '--gpu-name', args.gpu_name, '--build-dir',
+               str(args.build_dir or default_build_dir(args)),
                '--output', str(args.output), '--protocol', args.protocol,
                '--max-sqp-iters', str(args.max_sqp_iters), '--wall-time', str(args.wall_time),
                '--sim-time', str(args.sim_time), '--max-solve-ms', str(args.max_solve_ms),
@@ -288,11 +291,21 @@ def sweep(args):
     plot(args.output)
 
 
+def default_build_dir(args):
+    suffix = '' if args.backend == 'PCG' else '-qdldl'
+    return ROOT / f'build/solve-time-heatmap-{args.plant}{suffix}'
+
+
+def validate_backend_identity(actual, expected):
+    if actual != expected:
+        raise ValueError(f'Backend identity {actual!r} does not match requested {expected}; use matching separate builds')
+
+
 def main(argv=None):
     p = parser()
     args = p.parse_args(argv)
     args.output = args.output.resolve()
-    args.build_dir = (args.build_dir or ROOT / f'build/solve-time-heatmap-{args.plant}').resolve()
+    args.build_dir = (args.build_dir or default_build_dir(args)).resolve()
     if args.gpu_name is not None:
         args.gpu_name = args.gpu_name.strip()
         if not args.gpu_name:
@@ -341,6 +354,10 @@ def main(argv=None):
         p.error('Seed plus repeat index must fit an unsigned 32-bit integer')
     if args.cell and (args.cell[0] not in KNOTS or args.cell[1] not in BATCHES or args.cell[2] < 0):
         p.error('Invalid worker cell')
+    if args.backend == 'QDLDL':
+        n_values, b_values = ([args.cell[0]], [args.cell[1]]) if args.cell else (args.knots, args.batches)
+        if args.plant != 'tiago_right' or n_values != [32] or b_values != [1]:
+            p.error('QDLDL comparison is bounded to --plant tiago_right --knots 32 --batches 1')
     match_torch_libraries()
     if args.cell:
         from experiment import run_cell

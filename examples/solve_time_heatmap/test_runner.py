@@ -6,6 +6,10 @@ from pathlib import Path
 import tempfile
 import unittest
 import subprocess
+import sys
+import types
+
+import numpy as np
 from unittest.mock import patch
 
 import run
@@ -14,6 +18,69 @@ import run
 class RunnerTests(unittest.TestCase):
     def args(self, output):
         return run.parser().parse_args(['--gpu-name', 'Test GPU', '--output', str(output)])
+
+    def test_backend_identity_and_separate_default_builds(self):
+        args = self.args(Path('/unused'))
+        self.assertEqual(args.backend, 'PCG')
+        self.assertEqual(run.default_build_dir(args).name, 'solve-time-heatmap-tiago_right')
+        run.validate_backend_identity('PCG', args.backend)
+        args.backend = 'QDLDL'
+        self.assertEqual(run.default_build_dir(args).name, 'solve-time-heatmap-tiago_right-qdldl')
+        self.assertEqual(run.configuration(args)['linsys_solver'], 'QDLDL')
+        command = run.cell_command(args, 32, 1, 0)
+        self.assertEqual(command[command.index('--backend')+1], 'QDLDL')
+        with self.assertRaisesRegex(ValueError, 'Backend identity'):
+            run.validate_backend_identity('PCG', args.backend)
+
+    def test_qdldl_scope_rejected_before_runtime_setup(self):
+        with patch.object(run, 'match_torch_libraries') as setup:
+            for options in ([], ['--knots', '32', '--batches', '2'],
+                            ['--plant', 'indy7', '--knots', '32', '--batches', '1']):
+                with self.subTest(options=options), contextlib.redirect_stderr(io.StringIO()):
+                    with self.assertRaises(SystemExit) as error:
+                        run.main(['--gpu-name', 'Test GPU', '--backend', 'QDLDL', *options])
+                    self.assertEqual(error.exception.code, 2)
+            setup.assert_not_called()
+
+    def test_worker_retains_partial_measurement_on_direct_rejection(self):
+        import experiment
+        with tempfile.TemporaryDirectory() as folder:
+            args = self.args(Path(folder) / 'raw')
+            args.backend, args.cell = 'QDLDL', [32, 1, 0]
+            args.build_dir = Path(folder) / 'build'
+            modules = args.build_dir / 'modules'
+            modules.mkdir(parents=True)
+            module = modules / 'mock.so'
+            module.write_bytes(b'CPU-test-double')
+            solver = types.SimpleNamespace(N=32, batch_size=1, linsys_solver='QDLDL',
+                lib=types.SimpleNamespace(__file__=str(module)),
+                get_stats=lambda: dict(sqp_iters=[1], kkt_converged=[False],
+                    direct_solve_work=np.ones((1, 1), dtype=int)))
+            package = types.ModuleType('bsqp')
+            package.__path__ = []
+            interface = types.ModuleType('bsqp.interface')
+            interface.BSQP = lambda *a, **kw: solver
+            def reject_after_sample(solver, model, start, reference, recorder, **kwargs):
+                values = (solver, np.zeros(20), start, reference, 1000., .01,
+                          1, np.zeros(3), .02)
+                recorder(*values, True, finite_batch=[True])
+                recorder.begin_measurement()
+                recorder(*values, False, finite_batch=[True])
+                raise RuntimeError('QDLDL full Schur residual rejected')
+            with patch.dict(sys.modules, {'bsqp': package, 'bsqp.interface': interface}), \
+                 patch.object(experiment, 'plant_inputs', return_value=(Path('unused'), np.zeros(14), np.zeros(192))), \
+                 patch('pinocchio.buildModelFromUrdf', return_value=object()), \
+                 patch.object(experiment, 'run_instrumented', side_effect=reject_after_sample), \
+                 contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(experiment.run_cell(args), 1)
+            output = args.output / 'N32_B1_R0'
+            receipt = json.loads((output / 'results.json').read_text())
+            self.assertEqual(receipt['status'], 'error')
+            self.assertEqual(receipt['samples'], 1)
+            self.assertEqual(receipt['linsys_solver'], 'QDLDL')
+            self.assertIn('RuntimeError: QDLDL full Schur residual rejected', receipt['error'])
+            self.assertEqual(len((output / 'solves.jsonl').read_text().splitlines()), 1)
+            self.assertEqual(len(np.load(output / 'samples.npz')['timestamps']), 1)
 
     def test_new_run_refuses_unrelated_existing_cell_data(self):
         with tempfile.TemporaryDirectory() as folder:

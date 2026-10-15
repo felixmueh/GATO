@@ -283,6 +283,14 @@ class PyBSQP {
 
 PYBIND11_MODULE(MODULE_NAME(KNOT_POINTS, PLANT_SUFFIX), m)
 {
+#if defined(GATO_LINSYS_QDLDL)
+        m.attr("LINSYS_SOLVER") = "QDLDL";
+        m.attr("LINSYS_DESCRIPTION") = "Hybrid CPU QDLDL Schur solve; GPU assembly and remaining SQP";
+#else
+        m.attr("LINSYS_SOLVER") = "PCG";
+        m.attr("LINSYS_DESCRIPTION") = "GPU PCG";
+#endif
+
         m.attr("KNOT_POINTS") = KNOT_POINTS;  // to check num knots for current module
 
 

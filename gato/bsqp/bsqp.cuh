@@ -13,6 +13,9 @@
 #include "kernels/setup_kkt.cuh"
 #include "kernels/schur_linsys.cuh"
 #include "kernels/pcg.cuh"
+#if defined(GATO_LINSYS_QDLDL)
+#include "kernels/qdldl_linsys.cuh"
+#endif
 #include "pcg_launch_resources.cuh"
 #include "kernels/merit.cuh"
 #include "kernels/line_search.cuh"
@@ -29,8 +32,10 @@ class BSQP {
               q_cost_(1.0), qd_cost_(1e-3), u_cost_(1e-6), N_cost_(50.0), ee_orient_cost_(0.0), ee_orient_N_cost_(0.0), q_lim_cost_(1e-3), vel_lim_cost_(0.0), ctrl_lim_cost_(0.0),
               rho_(1e-3), adapt_rho_(true)
         {
+#if !defined(GATO_LINSYS_QDLDL)
                 gato::experiment::configure_pcg_shared_memory(
                     solvePCGBatchedKernel<T, BatchSize>, getSolvePCGBatchedSMemSize<T>());
+#endif
                 gpuErrchk(cudaStreamCreate(&stream_));
                 allocateMemory();
                 for (uint32_t i = 0; i < BatchSize; i++) {
@@ -50,8 +55,10 @@ class BSQP {
             : dt_(dt), max_sqp_iters_(max_sqp_iters), kkt_tol_(kkt_tol), max_pcg_iters_(max_pcg_iters), pcg_tol_(pcg_tol), solve_ratio_(solve_ratio), mu_(mu), q_cost_(q_cost), qd_cost_(qd_cost),
               u_cost_(u_cost), N_cost_(N_cost), ee_orient_cost_(ee_orient_cost), ee_orient_N_cost_(ee_orient_N_cost), q_lim_cost_(q_lim_cost), vel_lim_cost_(vel_lim_cost), ctrl_lim_cost_(ctrl_lim_cost), rho_(rho), adapt_rho_(true)
         {
+#if !defined(GATO_LINSYS_QDLDL)
                 gato::experiment::configure_pcg_shared_memory(
                     solvePCGBatchedKernel<T, BatchSize>, getSolvePCGBatchedSMemSize<T>());
+#endif
                 gpuErrchk(cudaStreamCreate(&stream_));
                 allocateMemory();
                 for (uint32_t i = 0; i < BatchSize; i++) {
@@ -155,7 +162,11 @@ class BSQP {
                         formSchurSystemBatched<T, BatchSize>(schur_system_batch_, kkt_system_batch_, d_rho_penalty_batch_, stream_);
 
                         // gpuErrchk(cudaEventRecord(pcg_start_event_));
+#if defined(GATO_LINSYS_QDLDL)
+                        gato::qdldl_linsys::solveQDLDLBatched<T, BatchSize>(d_lambda_batch_, schur_system_batch_, d_pcg_tol_batch_, d_pcg_iterations_, stream_);
+#else
                         solvePCGBatched<T, BatchSize>(d_lambda_batch_, schur_system_batch_, d_pcg_tol_batch_, max_pcg_iters_, d_kkt_converged_batch_, d_pcg_iterations_, stream_);
+#endif
                         // gpuErrchk(cudaEventRecord(pcg_stop_event_));
                         // gpuErrchk(cudaEventSynchronize(pcg_stop_event_));
 

@@ -175,3 +175,5 @@ Port validation: 34 CPU tests; N8/N64 CUDA smoke tests and short offline
 pilots on c3po (RTX 5060, CUDA 12.9). N8–N128 resource probes fit that GPU;
 N256 exceeds PCG shared memory. These checks establish execution, not a
 completed matrix benchmark.
+
+Optional, isolated hybrid CPU-Schur backend: see [QDLDL.md](QDLDL.md). PCG remains the default; the QDLDL comparison is bounded to TIAGo N32/B1 and has no GPU/Jetson measurements yet.
