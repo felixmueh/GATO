@@ -2,7 +2,7 @@ PLANTS := indy7 iiwa14
 KNOTS := 8 16 32 64 128
 PYTHON_EXTENSION_TARGETS := $(foreach plant,$(PLANTS),$(foreach knot,$(KNOTS),build-$(plant)-n$(knot)))
 
-.PHONY: help build build-fresh build-bsqp $(PYTHON_EXTENSION_TARGETS) test test-fast test-python test-tracking test-performance test-cuda clean-build
+.PHONY: help build build-fresh build-bsqp $(PYTHON_EXTENSION_TARGETS) test test-fast test-python test-tracking test-performance test-tiago-tasks test-cuda clean-build
 
 help:
 	@printf '%s\n' 'GATO build targets:'
@@ -19,6 +19,7 @@ help:
 	@printf '  %-22s %s\n' 'test-fast' 'Run fast Python behavior tests'
 	@printf '  %-22s %s\n' 'test-python' 'Run fast Python behavior tests'
 	@printf '  %-22s %s\n' 'test-tracking' 'Build and run short tracking smoke test'
+	@printf '  %-22s %s\n' 'test-tiago-tasks' 'Build and run TIAGo reaching/tracking regressions'
 	@printf '  %-22s %s\n' 'test-performance' 'Build and write tracking performance artifacts'
 	@printf '  %-22s %s\n' 'clean-build' 'Remove build directory'
 
@@ -52,6 +53,9 @@ test-python:
 
 test-tracking:
 	./tools/build.sh --target check-tracking
+
+test-tiago-tasks:
+	./tools/build.sh --target check-tiago-tasks
 
 test-performance:
 	./tools/build.sh --target check-performance
