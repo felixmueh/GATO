@@ -1,3 +1,31 @@
+Reaching cost defaults
+=====================
+
+TIAGO_REACHING_SOLVER_PARAMS in tiago_src/gato_tiago/config.py uses:
+
+  position running/terminal: 4 / 80
+  joint velocity / ordinary torque regularization: 0.05 / 0.0001
+  joint / velocity / torque limit penalties: 0.02125 / 1.275 / 0.02
+  mu / initial rho: 10 / 0.01
+  orientation running/terminal: 0 / 0
+  SQP / PCG caps: 5 / 120
+
+These are the J1-derived reaching costs with ordinary torque regularization
+increased 10x from OFF_TORQUE's 0.00001 to the existing public value 0.0001.
+Tracking keeps its separate defaults. Final approach remains opt-in. Pose-goal
+and rectangle-grid modes retain the explicit overrides described in the script;
+CLI --vel-lim-cost and --ctrl-lim-cost also override these base values.
+
+Interior cost intervals are compile-time settings, separate from these Python
+weights. The physical reaching plan calls for TIAGO_COST_JOINT_MARGIN_RAD=0.20,
+TIAGO_COST_VELOCITY_LIMIT_FRACTION=0.80 and
+TIAGO_COST_CONTROL_LIMIT_FRACTION=0.85 in a separately identified reaching
+module. Ordinary builds still default to 0/1/1; changing Python costs does not
+enable the compiled margins. Keep tracking's module/settings explicit.
+
+These defaults do not establish physical task or collision qualification.
+Check the selected comfortable-start reaches and reset paths before robot use.
+
 Optional final-approach MPC parameters
 =====================================
 
