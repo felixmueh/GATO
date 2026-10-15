@@ -175,16 +175,76 @@ class ExperimentTest(unittest.TestCase):
         self.stack.close()
         self.temp.cleanup()
 
-    def recorder(self, *, wall_time=.003, cutoff=1000., protocol='wall-time'):
+    def recorder(self, *, wall_time=.003, cutoff=1000., protocol='wall-time', updates=None):
         recorder = Recorder(self.output, batch_size=2, max_sqp_iters=3,
-            max_solve_ms=cutoff, wall_time=wall_time, protocol=protocol, meta={})
+            max_solve_ms=cutoff, wall_time=wall_time, protocol=protocol, meta={}, updates=updates)
         self.recorders.append(recorder)
         return recorder
 
     def execute(self, solver, recorder, **kwargs):
+        kwargs.setdefault('updates', recorder.updates)
         return run_instrumented(solver, Model(), self.start, self.reference, recorder,
                                 wall_time=recorder.wall_time, max_solve_ms=recorder.max_solve_ms,
                                 protocol=recorder.protocol, **kwargs)
+
+    def test_fixed_300_updates_match_reference_offsets_across_wall_speeds(self):
+        for duration in (1000., 700_000.):
+            with self.subTest(duration=duration):
+                solver = Solver(self.clock, durations=(2_000_000., duration))
+                recorder = self.recorder(wall_time=.0001, cutoff=0., updates=300)
+                end, status = self.execute(solver, recorder)
+                result = recorder.save(status, end)
+                self.assertEqual(status, 'completed')
+                self.assertEqual(len(solver.inputs), 301)  # One excluded warm-up.
+                self.assertEqual(result['samples'], 300)
+                self.assertEqual(result['measured_updates'], 300)
+                self.assertEqual(result['measured_update_budget'], 300)
+                self.assertIsNone(result['wall_time_budget_s'])
+                self.assertIsNone(result['budget_overrun_s'])
+                self.assertAlmostEqual(end, 3.)
+                self.assertEqual([r['reference_offset'] for r in recorder.rows], list(range(1, 301)))
+                self.assertAlmostEqual(result['avg_native_ms'], duration/1000.)
+
+    def test_fixed_updates_reject_invalid_counts_and_historical_reference(self):
+        for value in (0, -1, 1.5, True):
+            with self.subTest(value=value), self.assertRaisesRegex(ValueError, 'positive integer'):
+                self.execute(Solver(self.clock), self.recorder(), updates=value)
+        with self.assertRaisesRegex(ValueError, 'wall-time protocol'):
+            self.execute(Solver(self.clock), self.recorder(protocol='reference'), updates=300)
+
+    def test_pcg_aggregates_use_actual_lane_sqp_slots_excluding_initialization(self):
+        class PcgSolver(Solver):
+            def get_stats(self):
+                stats = super().get_stats()
+                stats['pcg_iters'] = np.array(([[120, 120]], [[0, 120], [10, 20]],
+                                                [[60, 120]])[min(len(self.inputs)-1, 2)])
+                return stats
+        solver = PcgSolver(self.clock)
+        recorder = self.recorder(updates=2)
+        recorder.meta['solver_params'] = dict(max_pcg_iters=120)
+        end, status = self.execute(solver, recorder)
+        result = recorder.save(status, end)
+        self.assertEqual(result['samples'], 2)
+        self.assertEqual(recorder.warmup['pcg_cap_count'], 2)
+        self.assertEqual(result['pcg_lane_sqp_slots'], 6)
+        self.assertEqual(result['pcg_iters_sum'], 330)
+        self.assertEqual(result['avg_pcg_iters'], 55.)
+        self.assertEqual(result['pcg_cap_count'], 2)
+        self.assertAlmostEqual(result['pcg_cap_share'], 1/3)
+        self.assertTrue(result['pcg_telemetry_complete'])
+        with np.load(self.output/'samples.npz', allow_pickle=False) as samples:
+            np.testing.assert_array_equal(samples['pcg_iters_batch'], [[0,120],[10,20],[60,120]])
+            np.testing.assert_array_equal(samples['pcg_update_indices'], [0,0,1])
+
+    def test_missing_pcg_telemetry_is_unavailable_not_zero_cap_share(self):
+        solver = Solver(self.clock)
+        recorder = self.recorder(updates=1)
+        recorder.meta['solver_params'] = dict(max_pcg_iters=120)
+        end, status = self.execute(solver, recorder)
+        result = recorder.save(status, end)
+        self.assertFalse(result['pcg_telemetry_complete'])
+        self.assertIsNone(result['avg_pcg_iters'])
+        self.assertIsNone(result['pcg_cap_share'])
 
     def test_warmup_excluded_from_budget_cutoff_arrays_and_aggregates(self):
         solver = Solver(self.clock)
@@ -240,7 +300,7 @@ class ExperimentTest(unittest.TestCase):
 
     def test_nonfinite_secondary_batch_member_retained(self):
         solver = Solver(self.clock, nonfinite_call=1)
-        recorder = self.recorder()
+        recorder = self.recorder(updates=300)
         with self.assertRaisesRegex(NumericInstability, 'Nonfinite plan'):
             self.execute(solver, recorder)
         self.assertEqual(len(recorder.rows), 1)
@@ -249,6 +309,8 @@ class ExperimentTest(unittest.TestCase):
         self.assertIsNotNone(recorder.measurement_finished)
         result = recorder.save('unstable_nonfinite')
         self.assertEqual(result['samples'], 1)
+        self.assertEqual(result['measured_update_budget'], 300)
+        self.assertEqual(result['measured_updates'], 1)
         self.assertEqual(json.loads((self.output / 'results.json').read_text())['status'], 'unstable_nonfinite')
 
     def test_nonfinite_warmup_has_no_measured_samples(self):

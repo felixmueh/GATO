@@ -1,5 +1,6 @@
 #include "bsqp/bsqp.cuh"
 #include <iomanip>
+#include <sstream>
 
 #if defined(PLANT_TIAGO_RIGHT)
 constexpr const char* RESOURCE_PLANT = "tiago_right";
@@ -14,6 +15,14 @@ int main() {
     gpuErrchk(cudaGetDevice(&device));
     cudaDeviceProp p;
     gpuErrchk(cudaGetDeviceProperties(&p, device));
+    int driver_version;
+    gpuErrchk(cudaDriverGetVersion(&driver_version));
+    std::ostringstream uuid;
+    uuid << "GPU-" << std::hex << std::setfill('0');
+    for (int i = 0; i < 16; ++i) {
+        if (i == 4 || i == 6 || i == 8 || i == 10) uuid << '-';
+        uuid << std::setw(2) << static_cast<unsigned int>(static_cast<unsigned char>(p.uuid.bytes[i]));
+    }
     const auto pcg_setup = gato::experiment::configure_pcg_shared_memory(
         solvePCGBatchedKernel<float, 1>, getSolvePCGBatchedSMemSize<float>(), false);
     std::cout << "{\"plant\":\"" << RESOURCE_PLANT << "\",\"N\":" << KNOT_POINTS
@@ -21,6 +30,8 @@ int main() {
               << p.major << "." << p.minor << "\",\"shared_limit_bytes\":"
               << p.sharedMemPerBlock << ",\"global_memory_bytes\":" << p.totalGlobalMem
               << ",\"multiprocessors\":" << p.multiProcessorCount
+              << ",\"gpu_uuid\":" << std::quoted(uuid.str())
+              << ",\"cuda_driver_version\":" << driver_version
               << ",\"pcg_shared_memory_policy\":{\"optin_requested\":" << (pcg_setup.optin_requested ? "true" : "false")
               << ",\"optin_applied\":" << (pcg_setup.optin_applied ? "true" : "false")
               << ",\"attributes_queried\":" << (pcg_setup.attributes_queried ? "true" : "false")

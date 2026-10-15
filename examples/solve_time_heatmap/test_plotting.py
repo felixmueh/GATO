@@ -8,6 +8,13 @@ from plotting import aggregate, horizon_label, initialization_label, normalize, 
 
 
 class PlottingTests(unittest.TestCase):
+    def test_fixed_update_report_does_not_describe_wall_budget_as_active(self):
+        config, results = normalize(self.manifest(updates=300))
+        text = report(config, results, aggregate(config, results))
+        self.assertIn('300 measured updates', text)
+        self.assertIn('3 s', text)
+        self.assertNotIn('10 s measured wall-time budget', text)
+
     def manifest(self, **config):
         return {'config': dict(gpu_name='Test GPU', knots=[8], batches=[1], repeats=3,
                                protocol='wall-time', max_sqp_iters=1000, wall_time=10,

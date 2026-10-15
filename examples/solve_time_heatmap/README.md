@@ -19,7 +19,7 @@ The TIAGo development container provides `/opt/gato-venv`; dependencies are in
 
 ```sh
 cmake -S examples/solve_time_heatmap -B build/solve-time-heatmap-tiago_right \
-  -DPLANT=tiago_right -DKNOTS='8;16;32;64;128;256' \
+  -DPLANT=tiago_right -DKNOTS='8;16;32;64;128;256;512' \
   -DCMAKE_CUDA_ARCHITECTURES=native \
   -DPython3_EXECUTABLE="$(command -v python)"
 cmake --build build/solve-time-heatmap-tiago_right --parallel 2
@@ -59,9 +59,22 @@ cap**, with up to five excluded initialization calls. This differs from the
 live controller's five-SQP default. `INIT CAP` means initialization never
 reported native stopping; that cell has no measured samples.
 
-Defaults: knots 8/16/32/64/128/256; batches 1/2/4/8/16/32/64/128/256/512;
+Defaults: knots 8/16/32/64/128/256/512; batches 1/2/4/8/16/32/64/128/256/512;
 10-second measured wall budget per cell; one repeat; 1000 ms slow-solve cutoff.
 `--repeats 3` repeats each cell. `--save-plans` also retains batch-0 plans.
+
+For matched reference coverage across cells, `--updates 300` replaces the wall
+budget with exactly 300 measured updates (3 s at the existing 10 ms update step)
+per completed repeat. It is valid only with `--protocol wall-time`; omitting it
+preserves the existing wall budget, and historical reference mode is unchanged.
+Initialization is excluded: `--max-sqp-iters 1 --initialization single` performs
+one excluded initial solve followed by 300 measured native returns. Reference
+offsets match, while optimized state/control histories can differ. The existing
+slow-solve cutoff and worker timeout still apply and retain shorter partial
+outcomes; `--max-solve-ms 0` disables only the slow-solve cutoff. A worker timeout
+includes startup and initialization, so it is separate from the update count.
+`--repeats 2 --timeout 180` requests two fixed attempts with a 180 s worker bound.
+Nonfinite and timeout outcomes remain failures, not automatically retried cells.
 
 `--horizon-time T` sets prediction spacing to `T/(N-1)`. TIAGo running position,
 velocity, control and limit weights scale by `prediction_dt/.008`; terminal
@@ -86,12 +99,22 @@ initialization records, worker logs, and source/module hashes.
 - Timing is synchronized native host time for a **whole batch**, excluding
   initialization, Python integration, recording, and binding transfers.
   Frequency is `1000 / mean_native_ms`.
-- Faster cells cover more simulated time and figure-eight phases within the
-  wall budget. Tracking means are per update, include motion startup, and are
+- In wall-budget mode, faster cells cover more simulated time and figure-eight
+  phases. Tracking means are per update, include motion startup, and are
   not phase-matched. Use this pilot to shortlist N, then compare closed-loop
   tracking over matched trajectories in the real controller.
-- Native stopping currently means zero inner PCG iterations, not a nonlinear
-  KKT certificate. Per-member flags, SQP counts and cap hits are retained.
+- The solver can exit on zero inner PCG work as a heuristic, separately from
+  its returned residual `kkt_converged` flags. Those flags, SQP counts and cap
+  hits remain descriptive, not a full nonlinear certificate. The optional
+  `native-stop` initializer waits for every returned flag; the fixed-update
+  matrix instead requests `single` initialization explicitly.
+- PCG counts are retained separately from SQP caps. `pcg_lane_sqp_slots` counts
+  every batch lane in each actual native PCG/SQP row of measured returns,
+  including zero-iteration rows. `avg_pcg_iters` is the summed iteration count
+  divided by those slots; `pcg_cap_share` is the share reaching the configured
+  PCG cap (120 for the TIAGo preset). Initialization contributes no slots to
+  these aggregates. Missing telemetry remains unavailable. NPZ PCG rows are
+  linked to measured updates by `pcg_update_indices`, without pickle arrays.
 - Slow solves, incomplete initialization, nonfinite trajectories and resource
   limits remain explicit outcomes. Partial samples do not become completed
   heatmap values. An asterisk marks incomplete repeats; a dagger marks SQP caps.
@@ -102,6 +125,9 @@ initialization records, worker logs, and source/module hashes.
 Run without competing GPU workloads or `CUDA_LAUNCH_BLOCKING`. The runner
 checks module locations and refuses dirty solver/Python sources. It puts the
 active Python environment's Torch libraries first in `LD_LIBRARY_PATH`.
+`nvidia-smi` telemetry is best-effort so unavailable Jetson NVML does not stop
+measurements or finalization. Zero-launch CUDA resource probes retain the
+selected GPU UUID, SM count, device name and CUDA driver version independently.
 
 Use a fresh output directory. `--resume` requires the same configuration,
 sources, modules and build path. Older Indy7 manifests remain plot-readable

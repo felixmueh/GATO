@@ -101,6 +101,10 @@ def aggregate(config, results):
             ms = sum(r['avg_native_ms'] for r in good) / len(good) if good else None
             tracking = [r['tracking_mean_m'] for r in good if r.get('tracking_mean_m') is not None]
             initialized = [r for r in group if r.get('initialization_status') is not None]
+            pcg_complete = bool(good) and all(r.get('pcg_telemetry_complete') for r in good)
+            pcg_slots = sum(r.get('pcg_lane_sqp_slots') or 0 for r in good)
+            pcg_iters = sum(r.get('pcg_iters_sum') or 0 for r in good)
+            pcg_caps = sum(r.get('pcg_cap_count') or 0 for r in good)
             rows.append(dict(
                 N=n, batch_size=b, status=status,
                 horizon_time_s=prediction_dt(config, n) * (n - 1),
@@ -111,6 +115,11 @@ def aggregate(config, results):
                 mean_native_ms=ms, solver_frequency_hz=1000 / ms if ms is not None else None,
                 samples=sum(r['samples'] for r in good), all_retained_samples=sum(r['samples'] for r in group),
                 any_cap_count=sum(r.get('any_cap_count') or 0 for r in good),
+                pcg_telemetry_complete=pcg_complete,
+                pcg_lane_sqp_slots=pcg_slots, pcg_iters_sum=pcg_iters,
+                avg_pcg_iters=pcg_iters/pcg_slots if pcg_slots and pcg_complete else None,
+                pcg_cap_count=pcg_caps if pcg_complete else None,
+                pcg_cap_share=pcg_caps/pcg_slots if pcg_slots and pcg_complete else None,
                 tracking_mean_m=sum(tracking) / len(tracking) if tracking else None,
                 initialization_outcomes=outcome_counts([
                     {'status': r['initialization_status']} for r in initialized]),
@@ -184,7 +193,9 @@ def draw(config, rows, output, *, frequency=False):
         ax.set_title(f'GATO / {config.get("plant_label", "Indy7")} — {config["gpu_name"]}\n{mode}\n{horizon_label(config)}', fontsize=16, pad=16)
         units = 'Solver frequency (Hz): 1000 / mean solve time (ms)' if frequency else 'Mean synchronized native solve time (ms)'
         fig.colorbar(im, ax=ax, fraction=.046, pad=.03).set_label(units, fontsize=13)
-        if config['protocol'] == 'wall-time':
+        if config.get('updates') is not None:
+            clock = f'{config["updates"]} measured updates / repeat · {config["updates"] * config["sim_step"]:g} s offline simulation'
+        elif config['protocol'] == 'wall-time':
             clock = f'{config["wall_time"]:g} s measured wall budget / repeat · {1000*config["sim_step"]:g} ms fixed simulation step'
         else:
             clock = f'{config["sim_time"]:g} s capped offline simulation / repeat'
@@ -228,7 +239,13 @@ def report(config, results, rows):
              '`1000 / mean_native_ms`; it is neither batch-member throughput nor end-to-end control frequency. '
              'Each grid cell equally weights its completed repeat means, then takes the reciprocal for frequency. '
              'An asterisk marks cells with missing or unsuccessful repeats. Partial repeat means remain in the CSV.', '']
-    if config['protocol'] == 'wall-time':
+    if config.get('updates') is not None:
+        lines += [f'Each repeat targets **{config["updates"]} measured updates**, excluding initialization. '
+                  f'Simulation advances **{1000*config["sim_step"]:g} ms per update**, covering '
+                  f'**{config["updates"]*config["sim_step"]:g} s** when complete. The wall-time budget does not stop this mode. '
+                  'Cutoffs, nonfinite outcomes and worker timeouts still retain shorter partial results. '
+                  'Completed repeats cover the same reference offsets; state trajectories may differ.', '']
+    elif config['protocol'] == 'wall-time':
         lines += [f'Each repeat has a **{config["wall_time"]:g} s measured wall-time budget**, starting after initialization. '
                   f'Simulation advances **{1000*config["sim_step"]:g} ms per update**. Simulation and recording count toward '
                   'the wall budget; setup, initialization, and final output do not. Faster cells cover more simulated time. '
@@ -316,6 +333,9 @@ def plot(output):
                      'measured_wall_elapsed_s', 'budget_overrun_s', 'slow_solve_count',
                      'horizon_time_s', 'prediction_dt_s', 'initialization_status',
                      'initialization_call_count', 'initialization_total_native_ms', 'initialization_wall_time_s']
+    repeat_fields += ['measured_update_budget', 'measured_updates', 'wall_time_budget_s',
+                      'max_pcg_iters', 'pcg_telemetry_complete', 'pcg_lane_sqp_slots',
+                      'pcg_iters_sum', 'avg_pcg_iters', 'pcg_cap_count', 'pcg_cap_share']
     for filename, data, fields in [('summary.csv', rows, list(rows[0])),
                                    ('repeat_summary.csv', results, repeat_fields)]:
         with (output / filename).open('w', newline='') as stream:

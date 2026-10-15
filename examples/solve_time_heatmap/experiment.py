@@ -46,11 +46,12 @@ class NumericInstability(RuntimeError):
 def run_instrumented(solver, model, x_start, reference, record, *,
                      protocol='wall-time', wall_time=10., sim_time=10.,
                      max_solve_ms=1000., initialization='single', max_init_solves=DEFAULT_INIT_SOLVES,
-                     horizon_time=None, plant="indy7"):
+                     horizon_time=None, plant="indy7", updates=None):
     """Execute MPC with an excluded initialization phase and shared measurement path.
 
     Wall-time mode advances simulation by 10 ms per update, repeats one reference
-    cycle, and checks a soft wall budget between complete updates. Reference mode
+    cycle, and checks a soft wall budget between complete updates. An explicit
+    updates count replaces that wall stop, excluding initialization. Reference mode
     preserves the historical capped clock and finite reference stopping rule.
     Zero disables the measured-solve cutoff. A slow sample is always retained.
     Initialization either performs one historical solve, or repeats the unchanged
@@ -62,6 +63,9 @@ def run_instrumented(solver, model, x_start, reference, record, *,
 
     if protocol not in ('wall-time', 'reference'):
         raise ValueError(f'Unknown protocol: {protocol}')
+    if updates is not None and (isinstance(updates, bool) or not isinstance(updates, int)
+                                or updates <= 0 or protocol != 'wall-time'):
+        raise ValueError('Updates require a positive integer and wall-time protocol')
     if initialization not in ('single', 'native-stop'):
         raise ValueError(f'Unknown initialization: {initialization}')
     if not isinstance(max_init_solves, int) or max_init_solves < 1:
@@ -130,7 +134,8 @@ def run_instrumented(solver, model, x_start, reference, record, *,
     previous_solve_seconds = dt
     record.begin_measurement()
     try:
-        while (record.measured_elapsed() < wall_time if protocol == 'wall-time'
+        while ((update_index < updates if updates is not None else record.measured_elapsed() < wall_time)
+               if protocol == 'wall-time'
                else total_sim_time < sim_time):
             if horizon_time is not None:
                 q, dq = advance_plan(model, data, q, dq, xu_best, n, prediction_dt, dt, sim_dt)
@@ -195,10 +200,11 @@ class Recorder:
     """Record initialization separately from measured per-update outcomes."""
 
     def __init__(self, output, *, batch_size, max_sqp_iters, max_solve_ms,
-                 wall_time, protocol, meta, save_plans=False):
+                 wall_time, protocol, meta, save_plans=False, updates=None):
         self.output, self.batch_size = output, batch_size
         self.max_sqp_iters, self.max_solve_ms = max_sqp_iters, max_solve_ms
         self.wall_time, self.protocol, self.meta = wall_time, protocol, meta
+        self.updates = updates
         self.save_plans = save_plans
         self.rows, self.plans, self.states, self.ee = [], [], [], []
         self.warmup = self.failure_state = None
@@ -259,6 +265,16 @@ class Recorder:
         if len(iterations_batch) != self.batch_size or len(flags_batch) != self.batch_size:
             raise RuntimeError('Native statistics do not cover every batch member')
         cap_batch = (iterations_batch >= self.max_sqp_iters) & ~flags_batch
+        pcg = np.asarray(stats.get('pcg_iters', []))
+        if pcg.size and self.batch_size == 1 and pcg.ndim == 1:
+            pcg = pcg.reshape(-1, 1)
+        if pcg.size and (pcg.ndim != 2 or pcg.shape[1] != self.batch_size
+                         or not np.isfinite(pcg).all() or np.any(pcg < 0)
+                         or np.any(pcg != np.floor(pcg))):
+            raise RuntimeError('PCG statistics must cover actual SQP rows and every lane')
+        pcg_cap = self.meta.get('solver_params', {}).get('max_pcg_iters')
+        pcg_slots = int(pcg.size)
+        pcg_cap_count = int(np.sum(pcg >= pcg_cap)) if pcg_slots and pcg_cap is not None else None
         row = dict(index=-1 if warmup else len(self.rows), warmup=warmup,
             timestamp_s=timestamp, reference_offset=reference_offset,
             native_ms=native_us / 1000.,
@@ -266,6 +282,12 @@ class Recorder:
             slow_solve=bool(not warmup and self.max_solve_ms > 0 and native_us / 1000. > self.max_solve_ms),
             sqp_iters=int(iterations_batch[0]), native_converged=bool(flags_batch[0]),
             sqp_iters_batch=iterations_batch.tolist(), native_converged_batch=flags_batch.tolist(),
+            pcg_iters_batch=pcg.astype(int).tolist(), pcg_lane_sqp_slots=pcg_slots,
+            pcg_iters_sum=int(pcg.sum()), max_pcg_iters=pcg_cap,
+            avg_pcg_iters=float(pcg.mean()) if pcg_slots else None,
+            pcg_cap_count=pcg_cap_count,
+            pcg_cap_share=pcg_cap_count/pcg_slots if pcg_cap_count is not None else None,
+            pcg_telemetry_complete=bool(pcg_slots and pcg_cap is not None),
             iteration_cap_hit_batch=cap_batch.tolist(), all_native_stop=bool(flags_batch.all()),
             any_cap=bool(cap_batch.any()), finite_plan_batch=np.asarray(finite_batch, dtype=bool).tolist(),
             iteration_cap_hit=bool(cap_batch[0]), tracking_error_m=tracking,
@@ -301,6 +323,10 @@ class Recorder:
         times = np.asarray([row['native_ms'] for row in rows])
         tracking = np.asarray([row['tracking_error_m'] for row in rows])
         iterations = np.asarray([row['sqp_iters'] for row in rows])
+        pcg_slots = sum(row['pcg_lane_sqp_slots'] for row in rows)
+        pcg_sum = sum(row['pcg_iters_sum'] for row in rows)
+        pcg_complete = bool(rows) and all(row['pcg_telemetry_complete'] for row in rows)
+        pcg_caps = sum(row['pcg_cap_count'] or 0 for row in rows)
         def mean(values):
             return float(np.mean(values)) if len(values) else None
         result = self.meta | dict(status=status, samples=len(rows),
@@ -310,8 +336,10 @@ class Recorder:
             wall_time_s=time.monotonic() - self.started, warmup=self.warmup,
             initialization=self.initialization_summary(),
             measured_wall_elapsed_s=self.measured_elapsed(),
-            wall_time_budget_s=self.wall_time if self.protocol == 'wall-time' else None,
-            budget_overrun_s=max(0., self.measured_elapsed() - self.wall_time) if self.protocol == 'wall-time' else None,
+            measured_update_budget=self.updates,
+            measured_updates=len(rows),
+            wall_time_budget_s=self.wall_time if self.protocol == 'wall-time' and self.updates is None else None,
+            budget_overrun_s=max(0., self.measured_elapsed() - self.wall_time) if self.protocol == 'wall-time' and self.updates is None else None,
             slow_solve_count=sum(row['slow_solve'] for row in rows),
             cutoff_exceeded=any(row['slow_solve'] for row in rows),
             native_converged_count=sum(row['native_converged'] for row in rows),
@@ -324,6 +352,13 @@ class Recorder:
             solver_frequency_hz=1000. / mean(times) if len(times) and mean(times) > 0 else None,
             p95_native_ms=float(np.percentile(times, 95)) if len(times) else None,
             avg_sqp_iters=mean(iterations), max_sqp_iters_observed=int(iterations.max()) if len(iterations) else None,
+            max_pcg_iters=self.meta.get('solver_params', {}).get('max_pcg_iters'),
+            pcg_telemetry_complete=pcg_complete, pcg_lane_sqp_slots=pcg_slots,
+            pcg_iters_sum=pcg_sum,
+            avg_pcg_iters=pcg_sum/pcg_slots if pcg_slots and pcg_complete else None,
+            pcg_cap_count=pcg_caps if pcg_complete else None,
+            pcg_cap_share=pcg_caps/pcg_slots if pcg_slots and pcg_complete else None,
+            pcg_denominator='All lanes of every actual native PCG/SQP row in measured returns, including zero iterations; initialization excluded',
             tracking_mean_m=mean(tracking), tracking_rms_m=float(np.sqrt(np.mean(tracking**2))) if len(tracking) else None,
             tracking_max_m=float(tracking.max()) if len(tracking) else None,
             error=error, failure_state=self.failure_state)
@@ -339,6 +374,13 @@ class Recorder:
             reference_offsets=[row['reference_offset'] for row in rows],
             measured_wall_elapsed_s=[row['measured_wall_elapsed_s'] for row in rows],
             slow_solve=[row['slow_solve'] for row in rows])
+        # Concatenate actual SQP rows rather than creating ragged/object arrays.
+        pcg_arrays = [np.asarray(row['pcg_iters_batch'], dtype=np.int32).reshape(-1, self.batch_size)
+                      for row in rows]
+        arrays['pcg_iters_batch'] = np.concatenate(pcg_arrays, axis=0) if pcg_arrays else np.empty((0, self.batch_size), dtype=np.int32)
+        arrays['pcg_update_indices'] = np.concatenate([
+            np.full(len(array), row['index'], dtype=np.int64) for row, array in zip(rows, pcg_arrays)
+        ]) if pcg_arrays else np.empty(0, dtype=np.int64)
         if self.save_plans:
             arrays['plans'] = np.asarray(self.plans)
         temporary = self.output / 'samples.tmp.npz'
@@ -371,9 +413,10 @@ def run_cell(args):
         horizon_time=args.horizon_time, prediction_dt_s=prediction_dt,
         prediction_duration_s=prediction_dt * (n - 1),
         initialization_mode=args.initialization, max_init_solves=args.max_init_solves,
+        measured_update_budget=args.updates,
         max_solve_ms=args.max_solve_ms, max_sqp_iters=args.max_sqp_iters,
         solver_params=params, reference_commit=REFERENCE_COMMIT if args.plant == "indy7" else None,
-        native_criterion='Native kkt_converged flag: zero PCG iterations; not a nonlinear KKT tolerance check',
+        native_criterion='Returned residual kkt_converged flags are separate from zero-PCG heuristic exit; no full nonlinear certificate',
         timing='Full-batch synchronized native host time; initialization excluded from all measured aggregates',
         frequency='1000 / mean native milliseconds; solve-only frequency, not end-to-end control frequency',
         tracking=(plant_metadata(args.plant)['tracking_frame'] +
@@ -382,11 +425,13 @@ def run_cell(args):
         cost_rule=cost_rule(args.horizon_time, args.plant),
         batch_policy='Batch 0 controls simulation; its unshifted plan is broadcast after every measured solve',
         cutoff_semantics='Stop after first measured native solve strictly above cutoff; zero disables; initialization excluded; slow sample retained',
-        budget_semantics=('Soft wall budget starts after initialization and recording; checked between complete updates; final output excluded'
+        budget_semantics=('Fixed measured native-return count; initialization excluded; wall budget inactive; cutoff/errors can stop early'
+                          if args.updates is not None else
+                          'Soft wall budget starts after initialization and recording; checked between complete updates; final output excluded'
                           if args.protocol == 'wall-time' else 'Finite simulation-time budget with historical capped clock'))
     recorder = Recorder(output, batch_size=batch, max_sqp_iters=args.max_sqp_iters,
         max_solve_ms=args.max_solve_ms, wall_time=args.wall_time, protocol=args.protocol,
-        meta=meta, save_plans=getattr(args, 'save_plans', False))
+        meta=meta, save_plans=getattr(args, 'save_plans', False), updates=args.updates)
     def interrupt(signum, frame):
         raise KeyboardInterrupt(f'Signal {signum}')
     previous_handler = signal.signal(signal.SIGTERM, interrupt)
@@ -402,7 +447,7 @@ def run_cell(args):
             start, reference, recorder, protocol=args.protocol, wall_time=args.wall_time,
             sim_time=args.sim_time, max_solve_ms=args.max_solve_ms,
             horizon_time=args.horizon_time, initialization=args.initialization,
-            max_init_solves=args.max_init_solves, plant=args.plant)
+            max_init_solves=args.max_init_solves, plant=args.plant, updates=args.updates)
     except NumericInstability as exc:
         status, error = 'unstable_nonfinite', str(exc)
     except KeyboardInterrupt as exc:

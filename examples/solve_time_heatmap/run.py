@@ -4,6 +4,7 @@ The default uses fixed 10 ms simulation updates and a wall-time budget per cell.
 Use --protocol reference to reproduce the original capped simulation clock.
 """
 import argparse
+import csv
 import hashlib
 import importlib.util
 import json
@@ -23,7 +24,7 @@ from settings import (CONTROL_DT, DEFAULT_INIT_SOLVES, INTEGRATION_DT,
 
 ROOT = Path(__file__).resolve().parents[2]
 HERE = Path(__file__).resolve().parent
-KNOTS = (8, 16, 32, 64, 128, 256)
+KNOTS = (8, 16, 32, 64, 128, 256, 512)
 BATCHES = (1, 2, 4, 8, 16, 32, 64, 128, 256, 512)
 
 
@@ -39,11 +40,27 @@ def digest(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
-def gpu_snapshot():
-    return subprocess.check_output([
-        'nvidia-smi', '--query-gpu=name,uuid,driver_version,temperature.gpu,'
-        'utilization.gpu,memory.used,clocks.sm,clocks.mem,power.draw',
-        '--format=csv'], text=True).strip()
+def gpu_snapshot(resource=None):
+    """Optional telemetry; CUDA probe identity also works without Jetson NVML."""
+    snapshot = dict(device=None, gpu_uuid=None, multiprocessors=None,
+                    nvidia_smi=None, telemetry_error=None)
+    try:
+        snapshot['nvidia_smi'] = subprocess.check_output([
+            'nvidia-smi', '--query-gpu=name,uuid,driver_version,temperature.gpu,'
+            'utilization.gpu,memory.used,clocks.sm,clocks.mem,power.draw',
+            '--format=csv'], text=True, stderr=subprocess.PIPE).strip()
+        lines = list(csv.reader(snapshot['nvidia_smi'].splitlines()))
+        if len(lines) > 1 and len(lines[1]) >= 2:
+            snapshot.update(device=lines[1][0].strip(), gpu_uuid=lines[1][1].strip())
+    except (OSError, subprocess.CalledProcessError) as error:
+        snapshot['telemetry_error'] = str(error)
+    if resource is not None:
+        # The CUDA probe identifies the selected CUDA device, which can differ
+        # from the first physical GPU in a multi-GPU nvidia-smi listing.
+        for key in ('device', 'gpu_uuid', 'multiprocessors', 'cuda_driver_version'):
+            if key in resource:
+                snapshot[key] = resource[key]
+    return snapshot
 
 
 def match_torch_libraries():
@@ -76,6 +93,8 @@ def parser():
                    help=f'Maximum excluded initial solves in native-stop mode (default: {DEFAULT_INIT_SOLVES}); incomplete cells are not measured')
     p.add_argument('--wall-time', type=float, default=10.,
                    help='Measured wall-time budget per cell, excluding initialization (wall-time protocol)')
+    p.add_argument('--updates', type=int,
+                   help='Positive measured-update count per repeat; overrides the wall budget in wall-time protocol only; initialization excluded')
     p.add_argument('--sim-time', type=float, default=10.,
                    help='Simulated duration per cell (reference protocol)')
     p.add_argument('--max-solve-ms', type=float, default=1000.,
@@ -96,7 +115,7 @@ def parser():
 def configuration(args):
     return dict(**plant_metadata(args.plant), gpu_name=args.gpu_name, protocol=args.protocol, knots=args.knots,
                 batches=args.batches, repeats=args.repeats, max_sqp_iters=args.max_sqp_iters,
-                wall_time=args.wall_time, sim_time=args.sim_time, max_solve_ms=args.max_solve_ms,
+                wall_time=args.wall_time, updates=args.updates, sim_time=args.sim_time, max_solve_ms=args.max_solve_ms,
                 seed=args.seed, save_plans=args.save_plans, timeout=args.timeout,
                 horizon_time=args.horizon_time, initialization=args.initialization,
                 max_init_solves=args.max_init_solves,
@@ -108,7 +127,9 @@ def configuration(args):
                 timing='Full-batch synchronized native host solve time; initialization and Python work excluded',
                 frequency='1000 / mean native milliseconds; not batch throughput or end-to-end control rate',
                 stopping='Unchanged native stopping rule up to the selected SQP cap',
-                clock=('Fixed 10 ms updates, wall budget after initialization; active solves finish'
+                clock=(f'Fixed 10 ms updates, {args.updates} measured updates after initialization; no wall-budget stop'
+                       if args.updates is not None else
+                       'Fixed 10 ms updates, wall budget after initialization; active solves finish'
                        if args.protocol == 'wall-time' else
                        'Original min(previous native solve time, 10 ms), fixed simulated duration'))
 
@@ -175,6 +196,9 @@ def prepare_manifest(args):
             if len(modules) != 1:
                 raise ValueError(f'Build exactly one bsqpN{n}_{args.plant} module in {args.build_dir / "modules"}')
             manifest['module_sha256'][str(modules[0].resolve())] = digest(modules[0])
+    manifest['gpu_before'].update({key: value for key, value in
+        next(iter(manifest['resources'].values())).items()
+        if key in ('device', 'gpu_uuid', 'multiprocessors', 'cuda_driver_version')})
     args.output.mkdir(parents=True, exist_ok=True)
     for path in source_paths():
         destination = args.output / 'source_snapshot' / path.relative_to(ROOT)
@@ -197,6 +221,8 @@ def cell_command(args, n, batch, repeat):
                '--seed', str(args.seed)]
     if args.horizon_time is not None:
         command += ['--horizon-time', str(args.horizon_time)]
+    if args.updates is not None:
+        command += ['--updates', str(args.updates)]
     if args.save_plans:
         command.append('--save-plans')
     return command
@@ -255,7 +281,8 @@ def sweep(args):
         manifest.pop('active_cell', None)
         save_json(args.output / 'results.json', manifest)
         print(f'  {row["status"]}: {row.get("avg_native_ms", "—")} ms, {row.get("samples", 0)} samples', flush=True)
-    manifest.update(status='completed', finished_at=time.time(), gpu_after=gpu_snapshot())
+    manifest.update(status='completed', finished_at=time.time(),
+                    gpu_after=gpu_snapshot(next(iter(manifest['resources'].values()))))
     save_json(args.output / 'results.json', manifest)
     from plotting import plot
     plot(args.output)
@@ -299,6 +326,8 @@ def main(argv=None):
         p.error('Durations, SQP cap and repeats must be positive; cutoff must be nonnegative')
     if args.timeout is not None and args.timeout <= 0:
         p.error('--timeout must be positive')
+    if args.updates is not None and (args.updates <= 0 or args.protocol != 'wall-time'):
+        p.error('--updates requires a positive integer and --protocol wall-time')
     if args.horizon_time is not None and (args.protocol != 'wall-time' or args.horizon_time < CONTROL_DT):
         p.error('--horizon-time requires --protocol wall-time and a duration of at least 0.01 seconds')
     if args.max_init_solves <= 0:
