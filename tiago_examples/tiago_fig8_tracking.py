@@ -29,6 +29,7 @@ from gato_tiago.config import (
     TIAGO_TRACKING_SOLVER_PARAMS,
 )
 from gato_tiago.references import TIAGO_HORIZONTAL_FIG8_PARAMS, tiago_horizontal_figure8
+from gato_tiago.live_example import add_live_arguments, confirm_live_motion, finish_live_recording
 from gato_tiago.tiago_mpc_controller import MPC_GATO
 
 
@@ -129,6 +130,7 @@ def plant_config(
     tiago_start_config=TIAGO_RIGHT_DEFAULT_START_CONFIG,
     track_start_orientation=False,
     orientation_rpy=None,
+    figure8_period=None,
 ):
     if plant == "indy7":
         model_path = REPO_ROOT / "examples" / "indy7_description" / "indy7.urdf"
@@ -155,7 +157,7 @@ def plant_config(
         model = load_model(model_path)
         start_q = TIAGO_RIGHT_START_CONFIGS[tiago_start_config].astype(np.float32)
         start_ee, start_rpy = ee_pose_rpy(model, start_q.astype(np.float64), plant)
-        reference, metadata = tiago_horizontal_figure8(dt, start_ee)
+        reference, metadata = tiago_horizontal_figure8(dt, start_ee, period=figure8_period)
         orientation_target = None
         if orientation_rpy is not None:
             orientation_target = np.asarray(orientation_rpy, dtype=np.float64)
@@ -523,6 +525,7 @@ def run(args):
         tiago_start_config=args.tiago_start_config,
         track_start_orientation=args.track_start_orientation,
         orientation_rpy=args.ee_orientation_rpy,
+        figure8_period=args.figure8_period,
     )
     output_dir = args.output_root / args.plant
     if args.output_label:
@@ -538,6 +541,10 @@ def run(args):
             reset_q=cfg["start_q"],
             reset_duration_sec=args.ros_reset_duration,
             stale_timeout_sec=args.ros_stale_timeout,
+            reset_position_tolerance_rad=args.ros_reset_position_tolerance,
+            reset_velocity_l1_tolerance_rad_s=args.ros_reset_speed_l1,
+            reset_arrival_timeout_sec=args.ros_reset_arrival_timeout,
+            record_command_events=args.ros_record_commands,
             max_abs_torque=args.ros_max_abs_torque,
             clamp_torque=args.ros_clamp_torque,
             disable_collision_safety_for_sim_debug=args.ros_disable_collision_safety,
@@ -587,7 +594,12 @@ def run(args):
     results = {}
     summaries = {}
     controller_state_summary = None
+    stats, task_error, mpc = {}, None, None
     try:
+        if ros_controller is not None:
+            if args.ros_confirm_before_motion:
+                print("Effective solver parameters:", json.dumps(solver_params, sort_keys=True))
+            confirm_live_motion(args)
         for batch_size in cfg["batch_sizes"]:
             mpc = MPC_GATO(
                 model=model,
@@ -610,27 +622,34 @@ def run(args):
                 controller_timeout=args.ros_controller_timeout,
                 controller_startup_timeout=args.ros_startup_timeout,
             )
+            results[batch_size] = {"stats": stats}
+            if ros_controller is None:
+                timestamps = np.asarray(stats["timestamps"], dtype=np.float64)
+                ref_points, ref_indices = reference_at_timestamps(reference, timestamps, args.dt)
+                save_csvs(output_dir, batch_size, stats, ref_points, ref_indices)
+                summaries[str(batch_size)] = summarize(stats, model, solver_params)
+                results[batch_size].update(reference_points=ref_points, reference_indices=ref_indices)
+    except BaseException as exc:
+        task_error = exc
+        stats = getattr(mpc, "last_task_stats", stats)
+        raise
+    finally:
+        if ros_controller is not None:
+            finish_live_recording(
+                ros_controller, output_dir, stats, task_error, args.ros_controller_timeout,
+                context={"args": vars(args), "solver_params": solver_params,
+                         "start_q": cfg["start_q"], "reference_metadata": cfg["reference_metadata"]},
+            )
+
+    if ros_controller is not None:
+        controller_state_summary = json.loads((output_dir / "history_summary.json").read_text())
+        for batch_size, result in results.items():
+            stats = result["stats"]
             timestamps = np.asarray(stats["timestamps"], dtype=np.float64)
             ref_points, ref_indices = reference_at_timestamps(reference, timestamps, args.dt)
             save_csvs(output_dir, batch_size, stats, ref_points, ref_indices)
             summaries[str(batch_size)] = summarize(stats, model, solver_params)
-            results[batch_size] = {
-                "stats": stats,
-                "reference_points": ref_points,
-                "reference_indices": ref_indices,
-            }
-    finally:
-        if ros_controller is not None:
-            try:
-                ros_controller.close(timeout_sec=args.ros_controller_timeout)
-            finally:
-                # Preserve failure evidence even when restoration fails.
-                controller_state_summary = ros_controller.write_state_history_csv(
-                    output_dir / "controller_state_history.csv"
-                )
-                ros_controller.write_full_state_history_jsonl(
-                    output_dir / "full_joint_state_history.jsonl"
-                )
+            result.update(reference_points=ref_points, reference_indices=ref_indices)
 
     orientation_tracking_enabled = (
         float(solver_params.get("ee_orient_cost", 0.0)) > 0.0
@@ -679,13 +698,15 @@ def run(args):
         )
 
 
-def parse_args():
+def parse_args(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--plant", choices=("indy7", "iiwa14", "tiago_right"), required=True)
     parser.add_argument("--N", type=int, default=64)
     parser.add_argument("--dt", type=float, default=0.008)
     parser.add_argument("--sim-dt", type=float, default=0.001)
     parser.add_argument("--sim-time", type=float, default=16.0)
+    parser.add_argument("--figure8-period", type=float, default=None,
+                        help="TIAGo horizontal figure-eight period [s]; default 24.")
     parser.add_argument("--batch-sizes", nargs="+", type=int, default=None)
     parser.add_argument(
         "--tiago-start-config",
@@ -733,9 +754,12 @@ def parse_args():
         "--ros-startup-timeout", type=float, default=TIAGO_DEFAULT_STARTUP_TIMEOUT_SEC,
         help="Seconds to wait for controller startup, including reset and safety setup (default: 30).",
     )
-    args = parser.parse_args()
+    add_live_arguments(parser)
+    args = parser.parse_args(argv)
     if not np.isfinite(args.ros_startup_timeout) or args.ros_startup_timeout <= 0:
         parser.error("--ros-startup-timeout must be finite and positive")
+    if args.figure8_period is not None and (not np.isfinite(args.figure8_period) or args.figure8_period <= 0):
+        parser.error("--figure8-period must be finite and positive")
     return args
 
 

@@ -184,6 +184,7 @@ class MPC_GATO:
         
         Returns only essential statistics for visualization and analysis.
         """
+        self.last_task_stats = {}
         self.final_approach.reset(self.solver)
         use_controller = controller is not None
         if offline_timing not in {"controller_dt", "solve_time"}:
@@ -208,6 +209,7 @@ class MPC_GATO:
         # Initialize essential statistics
         stats = {
             'timestamps': [],
+            'solve_calls': [],       # Native/wall timings at each returned solve boundary
             'solve_times': [],        # GPU solve time in ms
             'goal_distances': [],     # Tracking error in meters
             'ee_actual': [],          # Actual end-effector positions
@@ -216,6 +218,8 @@ class MPC_GATO:
             'applied_controls': [],   # First control applied over the last interval
             'planned_controls': [],   # First control planned for the next interval
         }
+        self.last_task_stats = stats  # Preserve appended observations if the task raises.
+        stats['source_time_origin_sec'] = sim_stamp_origin_sec
         if use_controller:
             stats['state_age_sec'] = []
             stats['controller_command_rate_hz'] = []
@@ -251,7 +255,10 @@ class MPC_GATO:
         
         # Warm up solve
         self.update_force_batch(q)
-        XU_batch, _ = self.solver.solve(x_curr_batch, ee_g_batch, XU_batch)
+        bootstrap_wall_started = time.time()
+        XU_batch, bootstrap_native_us = self.solver.solve(x_curr_batch, ee_g_batch, XU_batch)
+        stats['solve_calls'].append({"phase": "bootstrap", "native_ms": bootstrap_native_us / 1000.0,
+                                     "wall_ms": (time.time() - bootstrap_wall_started) * 1000.0})
         XU_best = XU_batch[0, :]
         self._last_best_trajectory_id = 0
         if use_controller:
@@ -341,6 +348,8 @@ class MPC_GATO:
                 XU_batch,
             )
             last_solver_wall_time = time.time() - start
+            stats['solve_calls'].append({"phase": "control", "native_ms": gpu_solve_time / 1000.0,
+                                         "wall_ms": last_solver_wall_time * 1000.0})
             
             # Select best trajectory
             best_id = self.evaluate_best_trajectory(x_last, u_last, x_curr, timestep)
@@ -549,6 +558,7 @@ class MPC_GATO:
                 - time_to_all_reached: total time if all succeeded, else None
                 - standard tracking stats (solve_times, timestamps, etc.)
         """
+        self.last_task_stats = {}
         use_controller = controller is not None
         goals = np.asarray(goals, dtype=np.float32)
         goals = np.atleast_2d(goals)
@@ -594,6 +604,7 @@ class MPC_GATO:
         # Initialize statistics
         stats = {
             'timestamps': [],
+            'solve_calls': [],       # Native/wall timings at each returned solve boundary
             'solve_times': [],
             'goal_distances': [],
             'ee_actual': [],
@@ -610,6 +621,8 @@ class MPC_GATO:
             'planned_goal_indices': [],
             'final_approach_switches': [],
         }
+        self.last_task_stats = stats
+        stats['source_time_origin_sec'] = sim_stamp_origin_sec
         if use_controller:
             stats['state_age_sec'] = []
             stats['controller_command_rate_hz'] = []
@@ -672,7 +685,10 @@ class MPC_GATO:
         
         # Warm up solve
         self.update_force_batch(q[:self.nq_robot] if self.has_pendulum else q)
-        XU_batch, _ = self.solver.solve(x_curr_batch, ee_g_batch, XU_batch)
+        bootstrap_wall_started = time.time()
+        XU_batch, bootstrap_native_us = self.solver.solve(x_curr_batch, ee_g_batch, XU_batch)
+        stats['solve_calls'].append({"phase": "bootstrap", "native_ms": bootstrap_native_us / 1000.0,
+                                     "wall_ms": (time.time() - bootstrap_wall_started) * 1000.0})
         XU_best = XU_batch[0, :]
         self._last_best_trajectory_id = 0
         stats['initial_state'] = x_curr.copy()
@@ -831,6 +847,8 @@ class MPC_GATO:
             start = time.time()
             XU_batch_new, gpu_solve_time = self.solver.solve(x_curr_batch, ee_g_batch, XU_batch)
             wall_solve_time = time.time() - start
+            stats['solve_calls'].append({"phase": "control", "native_ms": gpu_solve_time / 1000.0,
+                                         "wall_ms": wall_solve_time * 1000.0})
             
             # Select best trajectory
             selection_dt = timestep if use_controller else max(sim_dt, round(timestep / sim_dt) * sim_dt)

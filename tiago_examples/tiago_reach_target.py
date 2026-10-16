@@ -1383,7 +1383,7 @@ def reaching_boundary_states(stats):
     }
 
 
-def run_experiment(args):
+def run_experiment(args, *, goals=None, solver_params=None):
     from gato_tiago.config import (
         TIAGO_RIGHT_START_CONFIGS,
         TIAGO_REACHING_SOLVER_PARAMS,
@@ -1395,7 +1395,12 @@ def run_experiment(args):
     start_data = model.createData()
     start_ee = tool_position(model, start_data, start_q.astype(np.float64))
     target_offset = np.asarray(args.target_offset, dtype=np.float64)
-    if args.goals_file is not None:
+    if goals is not None:
+        goals = np.asarray(goals, dtype=np.float64)
+        if goals.ndim != 2 or goals.shape[1] not in (3, 6) or not len(goals) or not np.isfinite(goals).all():
+            raise ValueError("goals must be a nonempty finite array of XYZ or XYZ/RPY rows")
+        goal_selection = {"mode": "explicit"}
+    elif args.goals_file is not None:
         goals = read_goals_csv(args.goals_file)
         goal_selection = {"mode": "goals_file", "goals_file": json_path(args.goals_file)}
         if args.position_only_goals and goals.shape[1] >= 6:
@@ -1443,7 +1448,7 @@ def run_experiment(args):
         tool_axis_tolerance_deg=args.tool_axis_tolerance_deg,
     )
 
-    solver_params = dict(TIAGO_REACHING_SOLVER_PARAMS)
+    solver_params = dict(TIAGO_REACHING_SOLVER_PARAMS if solver_params is None else solver_params)
     if goal_selection.get("mode") == "rectangle_grid":
         solver_params.update(RECTANGLE_GRID_REGULARIZATION_OVERRIDES)
     if goals_are_pose_targets:
@@ -1470,6 +1475,7 @@ def run_experiment(args):
 
     expr_dir = expr_dir_from_args(args)
 
+    from gato_tiago.live_example import confirm_live_motion, finish_live_recording
     ros_controller = None
     if args.ros_tiago:
         from gato_tiago.tiago_controller_process import TiagoControllerOrchestrator
@@ -1478,6 +1484,10 @@ def run_experiment(args):
             target_hz=args.ros_target_hz,
             reset_q=start_q,
             reset_duration_sec=args.ros_reset_duration,
+            reset_position_tolerance_rad=args.ros_reset_position_tolerance,
+            reset_velocity_l1_tolerance_rad_s=args.ros_reset_speed_l1,
+            reset_arrival_timeout_sec=args.ros_reset_arrival_timeout,
+            record_command_events=args.ros_record_commands,
             stale_timeout_sec=args.ros_stale_timeout,
             max_abs_torque=args.ros_max_abs_torque,
             clamp_torque=args.ros_clamp_torque,
@@ -1491,7 +1501,12 @@ def run_experiment(args):
         )
 
     controller_state_summary = None
+    stats, task_error = {}, None
     try:
+        if ros_controller is not None:
+            print(json.dumps({"goals": goals.tolist(), "solver_params": solver_params,
+                              "start_q_rad": start_q.tolist()}, indent=2))
+            confirm_live_motion(args)
         _, stats = controller.run_mpc_goals(
             x_start=x_start,
             goals=[goal.astype(np.float32) for goal in goals],
@@ -1505,18 +1520,18 @@ def run_experiment(args):
             controller_timeout=args.ros_controller_timeout,
             controller_startup_timeout=args.ros_startup_timeout,
         )
+    except BaseException as exc:
+        task_error = exc
+        stats = getattr(controller, "last_task_stats", stats)
+        raise
     finally:
         if ros_controller is not None:
-            try:
-                ros_controller.close(timeout_sec=args.ros_controller_timeout)
-            finally:
-                # Preserve failure evidence even when restoration fails.
-                controller_state_summary = ros_controller.write_state_history_csv(
-                    expr_dir / "data" / "controller_state_history.csv"
-                )
-                ros_controller.write_full_state_history_jsonl(
-                    expr_dir / "data" / "full_joint_state_history.jsonl"
-                )
+            recording = finish_live_recording(
+                ros_controller, expr_dir / "data", stats, task_error,
+                args.ros_controller_timeout,
+                context={"args": vars(args), "solver_params": solver_params,
+                         "start_q": start_q, "goals": goals})
+            controller_state_summary = recording.get("controller_state_history")
 
     timestamps = np.asarray(stats.get("timestamps", []), dtype=np.float64)
     ee_actual = np.asarray(stats.get("ee_actual", []), dtype=np.float64)
@@ -1607,6 +1622,7 @@ def run_experiment(args):
             f"final_velocity_l1={summary['final_joint_velocity_l1_rad_s']:.6f}rad/s "
             f"mean_solve={summary['mean_solve_time_ms']:.3f}ms"
         )
+    return stats
 
 
 def run_single_goal_trial(model, start_q, goal, args, solver_params):
@@ -1887,6 +1903,8 @@ def create_plots(args):
 
 
 def add_run_args(parser):
+    from gato_tiago.live_example import add_live_arguments
+    add_live_arguments(parser)
     from gato_tiago.config import (
         TIAGO_DEFAULT_MAX_ABS_TORQUE,
         TIAGO_DEFAULT_STARTUP_TIMEOUT_SEC,
@@ -1983,7 +2001,7 @@ def add_sample_goal_args(parser):
     parser.add_argument("--expr-dir", type=Path, default=None)
 
 
-def parse_args():
+def parse_args(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     subparsers = parser.add_subparsers(dest="command")
 
@@ -1999,10 +2017,10 @@ def parse_args():
     plot_parser.add_argument("--playback-speed", type=float, default=1.0)
     plot_parser.add_argument("--no-gif", action="store_true")
 
-    args = parser.parse_args()
-    if args.command is None:
-        add_run_args(parser)
-        args = parser.parse_args(["run", *sys.argv[1:]])
+    argv = list(sys.argv[1:] if argv is None else argv)
+    if not argv or argv[0] not in {"run", "sample-goals", "plot", "-h", "--help"}:
+        argv.insert(0, "run")
+    args = parser.parse_args(argv)
     if args.command == "run" and (
         not np.isfinite(args.ros_startup_timeout) or args.ros_startup_timeout <= 0
     ):

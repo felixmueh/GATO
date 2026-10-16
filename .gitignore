@@ -64,3 +64,4 @@ example_artifacts/
 # Local experiment runner settings and immutable source worktrees.
 /experiments/local.json
 /.worktrees/
+/_expr_results/

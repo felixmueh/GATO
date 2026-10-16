@@ -111,6 +111,10 @@ def test_live_warm_start_uses_observation_elapsed_time(task, batch_size):
     mpc, feedback, stats = run_live_boundary(task, batch_size)
     solver = mpc.solver
     assert len(solver.inputs) == 6  # Warm-up plus five observations.
+    assert len(stats['solve_calls']) == len(solver.inputs)
+    assert [row['phase'] for row in stats['solve_calls']] == ['bootstrap'] + ['control'] * 5
+    assert all(row['native_ms'] == pytest.approx(.1) and row['wall_ms'] >= 0
+               for row in stats['solve_calls'])
     np.testing.assert_allclose(stats['timestamps'], [0, 0, .001, .001, .011],
                                atol=1e-12)
     # Repeated observations must preserve every future state/control knot.

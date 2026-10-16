@@ -11,10 +11,17 @@ TIAGO_HORIZONTAL_FIG8_PARAMS = {
 }
 
 
-def tiago_horizontal_figure8(dt, start_ee, *, cycles=None):
+def tiago_horizontal_figure8(dt, start_ee, *, cycles=None, period=None):
     params = TIAGO_HORIZONTAL_FIG8_PARAMS
     cycles = params["cycles"] if cycles is None else cycles
-    steps_per_cycle = int(params["period"] / dt)
+    period = params["period"] if period is None else float(period)
+    if not np.isfinite(period) or period <= 0:
+        raise ValueError("figure-eight period must be finite and positive")
+    if not np.isfinite(dt) or dt <= 0:
+        raise ValueError("figure-eight dt must be finite and positive")
+    steps_per_cycle = int(period / dt)
+    if steps_per_cycle < 1:
+        raise ValueError("figure-eight period must be at least dt")
     phase = np.linspace(0.0, 2.0 * np.pi, steps_per_cycle, endpoint=False)
     left_edge = np.asarray(start_ee, dtype=np.float64).copy()
     left_edge[0] += params["edge_clearance"]
@@ -29,7 +36,7 @@ def tiago_horizontal_figure8(dt, start_ee, *, cycles=None):
         "start_edge_clearance_m": float(params["edge_clearance"]),
         "x_span_m": float(params["x_span"]),
         "y_amplitude_m": float(params["y_amplitude"]),
-        "period_sec": float(params["period"]),
+        "period_sec": float(period),
         "cycles": int(cycles),
         "left_edge": left_edge.tolist(),
     }
