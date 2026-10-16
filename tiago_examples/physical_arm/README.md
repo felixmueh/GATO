@@ -5,6 +5,9 @@ and the explicit `example.run(...)` or `example.run_experiment(...)` call:
 
 - `figure8_24s.py`: one 24 s figure-eight using `tiago_fig8_tracking.py`.
 - `figure8_12s.py`: one 12 s figure-eight using the same example.
+- `figure8_12s_dt10ms.py`: one 12 s figure-eight with .01 s prediction knots.
+- `figure8_24s_orientation.py`: one 24 s figure-eight holding the start orientation.
+- `figure8_8s.py`: one 8 s figure-eight with ordinary .03 s prediction knots.
 - `reach_goals.py`: three calls to `tiago_reach_target.py`, one goal per call.
 - `square_forward.py`: one sequential call for four forward-facing pose goals,
   with one comfortable reset and the selected final-approach settings.
@@ -13,10 +16,10 @@ and the explicit `example.run(...)` or `example.run_experiment(...)` call:
 
 The examples import their ordinary costs from `tiago_src/gato_tiago/config.py`.
 Reaching uses the agreed defaults, including `u_cost=.0001`, `qd_cost=.05` and
-`mu=10`. Tracking retains its own defaults. Both use N32, .03 s prediction knots,
-SQP5/PCG120, B1 and orientation off. The square uses its explicit pose/final-approach
-settings described below. The live loop uses observed time; .03 s is
-not a scheduled feedback interval. No solver changes.
+`mu=10`. Tracking retains its own defaults. Both use N32, SQP5/PCG120 and B1, with
+.03 s prediction knots and orientation off except the variants described below.
+The square uses its explicit pose/final-approach settings described below.
+The live loop uses observed time; .03 s is not a scheduled feedback interval. No solver changes.
 There is no dispatcher, runner queue or preflight cache.
 
 ## Prepare and inspect on RTX5060
@@ -64,6 +67,47 @@ they remain candidates awaiting current-setting simulation/collision review.
 Each gets eight seconds, <=5 cm position arrival, speed L1<=1 rad/s, zero dwell.
 An ordinary timeout is recorded; the next goal still requires confirmation.
 Errors stop the sequence. Repeat a tracking run with another manual invocation.
+
+## Additional figure-eight variants
+
+These standalone launchers keep the same horizontal geometry (x span .32 m,
+y amplitude .08 m, start edge .02 m), tracking profile and ordinary tracking
+costs. All default to Gazebo with physical review false, request `MOVE`, retain
+the runtime/reset/handback guards and accept the same optional
+`--ros-sea-absolute`. Inspect their top-level constants before manual use:
+
+```bash
+python3 tiago_examples/physical_arm/figure8_12s_dt10ms.py --preview
+python3 tiago_examples/physical_arm/figure8_24s_orientation.py --preview
+python3 tiago_examples/physical_arm/figure8_8s.py --preview
+```
+
+`figure8_12s_dt10ms.py` sets both period and duration to 12 s and prediction
+spacing to .01 s. N32 therefore predicts .31 s; it does not prescribe a 100 Hz
+live update interval. `figure8_8s.py` sets period and duration to 8 s while keeping
+.03 s prediction knots and a .93 s horizon. The existing reference generator
+samples each cycle at `int(period / dt)` points; 8/.03 gives 266 points, so its
+sampled cycle spans 7.98 s. This existing discretization is retained.
+
+`figure8_24s_orientation.py` keeps the 24 s period/duration and .03 s knots.
+It uses the existing `--track-start-orientation` option: constant tool RPY from
+forward kinematics at nominal `comfortable_high_clearance`, expressed in
+`torso_lift_link`. This holds the start orientation throughout the figure-eight;
+it does not follow the path tangent or capture a measured orientation at launch.
+Its explicit orientation costs .2 (stage) and 4.0 (terminal) are the existing
+tracking example's optional-orientation CLI defaults. Other tracking weights
+remain unchanged. The orientation target and effective solver weights are saved
+by the existing example in the run's ordinary configuration/summary.
+
+Run a selected variant manually by omitting `--preview`, after reviewing the
+tracking preflight and the actual reset/task/workspace path. Each writes a fresh
+`_expr_results/physical-arm/<backend>/<UTC>-<launcher-name>/tiago_right/` leaf;
+use the existing offline collision replay on that leaf. These additions change
+no native build source/profile. In an existing Jetson checkout, fetch their
+reviewed commit and restore only the three new `.py` files to preserve local
+physical backend edits and the existing tracking native module/build paths.
+Set the new launcher's backend/review/topic constants only after the same
+physical review required by the existing launchers.
 
 ## Forward-square final experiment
 
