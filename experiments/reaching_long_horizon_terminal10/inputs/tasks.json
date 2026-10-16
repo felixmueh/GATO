@@ -1,0 +1,2402 @@
+[
+  {
+    "pair_id": 8048,
+    "source_study": "random-reaching-flat-boundary-tuning-20261016",
+    "source_arm": "FLAT_FEEDBACK10MS",
+    "role": "trapped",
+    "target_xyz": [
+      -0.31828066045040776,
+      -0.3618163966031096,
+      -0.5448592787641401
+    ],
+    "target_rotation": [
+      [
+        0.2945680118435556,
+        0.9205497552462872,
+        0.25654986750052666
+      ],
+      [
+        -0.8032732058132551,
+        0.38394203099378416,
+        -0.4553467619944889
+      ],
+      [
+        -0.5176696274855543,
+        -0.07194904413799716,
+        0.852549993740307
+      ]
+    ],
+    "goal_reference_single": [
+      -0.3182806670665741,
+      -0.36181640625,
+      -0.5448592901229858,
+      -0.08419325947761536,
+      0.544124960899353,
+      -1.219313621520996
+    ],
+    "goal_reference_representation": "Original saved6-vector EEF reference; retile at chosenN, do not reinterpret coordinates",
+    "source_base_dir": "/workspace/GATO/_expr_results/random-reaching-flat-boundary-tuning-20261016/frozen100/FLAT_FEEDBACK10MS/pilot/case_08048/pair_08048",
+    "source_base_inputs_sha256": "4bc0e18deac716b7471bc597625d18048fb17c752130d0a3016eb96335d7a356",
+    "initialization": "Fresh session; repeated actual full14-state hold, zero controls; reset dual and rho once then retain",
+    "restart_time_s": 0.0,
+    "saved_goal_witness_used": false,
+    "case_id": "08048_original",
+    "start_type": "original",
+    "initial_state": [
+      -2.4127169864407954,
+      0.4220242196150594,
+      1.6676302331493855,
+      -1.3289246248271867,
+      1.5729679672362376,
+      -1.7336097554883005,
+      -1.3191021743896973,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "source_base_time_s": 0.0,
+    "trigger_detection": null
+  },
+  {
+    "pair_id": 8048,
+    "source_study": "random-reaching-flat-boundary-tuning-20261016",
+    "source_arm": "FLAT_FEEDBACK10MS",
+    "role": "trapped",
+    "target_xyz": [
+      -0.31828066045040776,
+      -0.3618163966031096,
+      -0.5448592787641401
+    ],
+    "target_rotation": [
+      [
+        0.2945680118435556,
+        0.9205497552462872,
+        0.25654986750052666
+      ],
+      [
+        -0.8032732058132551,
+        0.38394203099378416,
+        -0.4553467619944889
+      ],
+      [
+        -0.5176696274855543,
+        -0.07194904413799716,
+        0.852549993740307
+      ]
+    ],
+    "goal_reference_single": [
+      -0.3182806670665741,
+      -0.36181640625,
+      -0.5448592901229858,
+      -0.08419325947761536,
+      0.544124960899353,
+      -1.219313621520996
+    ],
+    "goal_reference_representation": "Original saved6-vector EEF reference; retile at chosenN, do not reinterpret coordinates",
+    "source_base_dir": "/workspace/GATO/_expr_results/random-reaching-flat-boundary-tuning-20261016/frozen100/FLAT_FEEDBACK10MS/pilot/case_08048/pair_08048",
+    "source_base_inputs_sha256": "4bc0e18deac716b7471bc597625d18048fb17c752130d0a3016eb96335d7a356",
+    "initialization": "Fresh session; repeated actual full14-state hold, zero controls; reset dual and rho once then retain",
+    "restart_time_s": 0.0,
+    "saved_goal_witness_used": false,
+    "case_id": "08048_trap",
+    "start_type": "trap",
+    "initial_state": [
+      -3.6568548885919814,
+      0.9582915198830639,
+      -0.1508834493726799,
+      -1.4550935339719813,
+      1.4254404093503723,
+      0.21783215569559627,
+      -1.1541156521363274,
+      0.0015857193726477481,
+      -0.0006193903651695729,
+      0.007050519009117802,
+      0.0004498587911404924,
+      -0.025396249722611706,
+      0.040307596528779306,
+      0.01669546923925343
+    ],
+    "source_base_time_s": 21.000000000000885,
+    "trigger_detection": {
+      "source_base_time_s": 21.000000000000885,
+      "source_feedback_index": 2100,
+      "source_dense_sample_index": 8400,
+      "position_error_m": 0.11798890447689908,
+      "error_one_second_ago_m": 0.11898296353956074,
+      "progress_last_second_m": 0.0009940590626616591,
+      "nearest_penalty_bound_distance_rad": -0.02382750608674966,
+      "nearest_penalty_bound_joint": "arm_right_2_joint",
+      "penalty_bound_distances_rad": [
+        0.8555340917927081,
+        -0.02382750608674966,
+        2.2671104286188144,
+        0.7883674188200798,
+        2.03975101983772,
+        1.9027877478494721,
+        1.2638782258551668
+      ],
+      "state": [
+        -3.6568548885919814,
+        0.9582915198830639,
+        -0.1508834493726799,
+        -1.4550935339719813,
+        1.4254404093503723,
+        0.21783215569559627,
+        -1.1541156521363274,
+        0.0015857193726477481,
+        -0.0006193903651695729,
+        0.007050519009117802,
+        0.0004498587911404924,
+        -0.025396249722611706,
+        0.040307596528779306,
+        0.01669546923925343
+      ],
+      "speed_L1_rad_s": 0.09210480302872005,
+      "maximum_joint_speed_rad_s": 0.040307596528779306
+    }
+  },
+  {
+    "pair_id": 679,
+    "source_study": "random-reaching-flat-boundary-tuning-20261016",
+    "source_arm": "FLAT_FEEDBACK10MS",
+    "role": "trapped",
+    "target_xyz": [
+      -0.23195936201394265,
+      -0.7885092021190795,
+      -0.38772460180122564
+    ],
+    "target_rotation": [
+      [
+        -0.6374034782341886,
+        0.6463500530849521,
+        0.4194620540788396
+      ],
+      [
+        0.13562100338087335,
+        0.6299911045890221,
+        -0.764668654765364
+      ],
+      [
+        -0.7585009883822987,
+        -0.4305145955897265,
+        -0.4892171640563032
+      ]
+    ],
+    "goal_reference_single": [
+      -0.23195935785770416,
+      -0.78850919008255,
+      -0.3877246081829071,
+      -2.419933795928955,
+      0.8610097765922546,
+      2.931947946548462
+    ],
+    "goal_reference_representation": "Original saved6-vector EEF reference; retile at chosenN, do not reinterpret coordinates",
+    "source_base_dir": "/workspace/GATO/_expr_results/random-reaching-flat-boundary-tuning-20261016/frozen100/FLAT_FEEDBACK10MS/pilot/case_00679/pair_00679",
+    "source_base_inputs_sha256": "fc927623aae233c1403fd220b264a6707c2b6210d57b84b847d0f5710c921542",
+    "initialization": "Fresh session; repeated actual full14-state hold, zero controls; reset dual and rho once then retain",
+    "restart_time_s": 0.0,
+    "saved_goal_witness_used": false,
+    "case_id": "00679_original",
+    "start_type": "original",
+    "initial_state": [
+      -4.197419253345578,
+      -0.68312415408353,
+      -1.492895758699255,
+      -0.5037978334296029,
+      3.4798879545810273,
+      1.4039768230795957,
+      0.13112205386479303,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "source_base_time_s": 0.0,
+    "trigger_detection": null
+  },
+  {
+    "pair_id": 679,
+    "source_study": "random-reaching-flat-boundary-tuning-20261016",
+    "source_arm": "FLAT_FEEDBACK10MS",
+    "role": "trapped",
+    "target_xyz": [
+      -0.23195936201394265,
+      -0.7885092021190795,
+      -0.38772460180122564
+    ],
+    "target_rotation": [
+      [
+        -0.6374034782341886,
+        0.6463500530849521,
+        0.4194620540788396
+      ],
+      [
+        0.13562100338087335,
+        0.6299911045890221,
+        -0.764668654765364
+      ],
+      [
+        -0.7585009883822987,
+        -0.4305145955897265,
+        -0.4892171640563032
+      ]
+    ],
+    "goal_reference_single": [
+      -0.23195935785770416,
+      -0.78850919008255,
+      -0.3877246081829071,
+      -2.419933795928955,
+      0.8610097765922546,
+      2.931947946548462
+    ],
+    "goal_reference_representation": "Original saved6-vector EEF reference; retile at chosenN, do not reinterpret coordinates",
+    "source_base_dir": "/workspace/GATO/_expr_results/random-reaching-flat-boundary-tuning-20261016/frozen100/FLAT_FEEDBACK10MS/pilot/case_00679/pair_00679",
+    "source_base_inputs_sha256": "fc927623aae233c1403fd220b264a6707c2b6210d57b84b847d0f5710c921542",
+    "initialization": "Fresh session; repeated actual full14-state hold, zero controls; reset dual and rho once then retain",
+    "restart_time_s": 0.0,
+    "saved_goal_witness_used": false,
+    "case_id": "00679_trap",
+    "start_type": "trap",
+    "initial_state": [
+      -4.16885606914827,
+      0.9563773927964805,
+      -0.20927914144379067,
+      -1.1478160560522523,
+      3.2643638467951828,
+      0.9199265493936489,
+      0.23475790971326818,
+      -0.06129481404056248,
+      -0.02947669114441347,
+      0.09937408094784941,
+      0.039102269615310804,
+      0.6212120136657516,
+      0.43376637245604427,
+      -0.3507714934844604
+    ],
+    "source_base_time_s": 11.710000000000194,
+    "trigger_detection": {
+      "source_base_time_s": 11.710000000000194,
+      "source_feedback_index": 1171,
+      "source_dense_sample_index": 4684,
+      "position_error_m": 0.13086605031574886,
+      "error_one_second_ago_m": 0.131768780001666,
+      "progress_last_second_m": 0.0009027296859171474,
+      "nearest_penalty_bound_distance_rad": -0.02191337900016621,
+      "nearest_penalty_bound_joint": "arm_right_2_joint",
+      "penalty_bound_distances_rad": [
+        0.3435329112364194,
+        -0.02191337900016621,
+        2.2087147365477033,
+        1.0956448967398087,
+        0.20082758239290932,
+        1.8820397640365978,
+        2.183235968278226
+      ],
+      "state": [
+        -4.16885606914827,
+        0.9563773927964805,
+        -0.20927914144379067,
+        -1.1478160560522523,
+        3.2643638467951828,
+        0.9199265493936489,
+        0.23475790971326818,
+        -0.06129481404056248,
+        -0.02947669114441347,
+        0.09937408094784941,
+        0.039102269615310804,
+        0.6212120136657516,
+        0.43376637245604427,
+        -0.3507714934844604
+      ],
+      "speed_L1_rad_s": 1.6349977353543925,
+      "maximum_joint_speed_rad_s": 0.6212120136657516
+    }
+  },
+  {
+    "pair_id": 8783,
+    "source_study": "random-reaching-flat-boundary-tuning-20261016",
+    "source_arm": "FLAT_FEEDBACK10MS",
+    "role": "trapped",
+    "target_xyz": [
+      0.3033435107170469,
+      -0.9305718800969817,
+      0.07690950434878552
+    ],
+    "target_rotation": [
+      [
+        0.49584845985382486,
+        -0.8665601529115389,
+        0.05663749858990811
+      ],
+      [
+        0.09421849445878827,
+        -0.011152042858470143,
+        -0.9954890794187565
+      ],
+      [
+        0.8632827926945557,
+        0.4989480266781451,
+        0.07611626968970583
+      ]
+    ],
+    "goal_reference_single": [
+      0.3033435046672821,
+      -0.9305718541145325,
+      0.07690950483083725,
+      1.419409990310669,
+      -1.0417381525039673,
+      0.1877761334180832
+    ],
+    "goal_reference_representation": "Original saved6-vector EEF reference; retile at chosenN, do not reinterpret coordinates",
+    "source_base_dir": "/workspace/GATO/_expr_results/random-reaching-flat-boundary-tuning-20261016/frozen100/FLAT_FEEDBACK10MS/pilot/case_08783/pair_08783",
+    "source_base_inputs_sha256": "54d24fc3f1b3d4493f6f6e478daf7e5de0a494b7c749b59e35b7abb1cb805662",
+    "initialization": "Fresh session; repeated actual full14-state hold, zero controls; reset dual and rho once then retain",
+    "restart_time_s": 0.0,
+    "saved_goal_witness_used": false,
+    "case_id": "08783_original",
+    "start_type": "original",
+    "initial_state": [
+      -4.240740078069043,
+      0.49180766873565585,
+      2.4004976963772324,
+      0.6754274847950614,
+      0.5299928757882049,
+      -0.0015672448443342368,
+      -2.024075368887268,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "source_base_time_s": 0.0,
+    "trigger_detection": null
+  },
+  {
+    "pair_id": 8783,
+    "source_study": "random-reaching-flat-boundary-tuning-20261016",
+    "source_arm": "FLAT_FEEDBACK10MS",
+    "role": "trapped",
+    "target_xyz": [
+      0.3033435107170469,
+      -0.9305718800969817,
+      0.07690950434878552
+    ],
+    "target_rotation": [
+      [
+        0.49584845985382486,
+        -0.8665601529115389,
+        0.05663749858990811
+      ],
+      [
+        0.09421849445878827,
+        -0.011152042858470143,
+        -0.9954890794187565
+      ],
+      [
+        0.8632827926945557,
+        0.4989480266781451,
+        0.07611626968970583
+      ]
+    ],
+    "goal_reference_single": [
+      0.3033435046672821,
+      -0.9305718541145325,
+      0.07690950483083725,
+      1.419409990310669,
+      -1.0417381525039673,
+      0.1877761334180832
+    ],
+    "goal_reference_representation": "Original saved6-vector EEF reference; retile at chosenN, do not reinterpret coordinates",
+    "source_base_dir": "/workspace/GATO/_expr_results/random-reaching-flat-boundary-tuning-20261016/frozen100/FLAT_FEEDBACK10MS/pilot/case_08783/pair_08783",
+    "source_base_inputs_sha256": "54d24fc3f1b3d4493f6f6e478daf7e5de0a494b7c749b59e35b7abb1cb805662",
+    "initialization": "Fresh session; repeated actual full14-state hold, zero controls; reset dual and rho once then retain",
+    "restart_time_s": 0.0,
+    "saved_goal_witness_used": false,
+    "case_id": "08783_trap",
+    "start_type": "trap",
+    "initial_state": [
+      -4.557695231808212,
+      0.9565911291565614,
+      2.0082856985034145,
+      0.9567583885940383,
+      1.1341083081700982,
+      0.7429574414061144,
+      -2.2801265730674993,
+      0.00022167135681539982,
+      -0.000339083760724657,
+      -0.011990696935164517,
+      0.001198664342419203,
+      0.025276121904477748,
+      0.03126759201293094,
+      -0.023228712676229543
+    ],
+    "source_base_time_s": 7.390000000000232,
+    "trigger_detection": {
+      "source_base_time_s": 7.390000000000232,
+      "source_feedback_index": 739,
+      "source_dense_sample_index": 2956,
+      "position_error_m": 0.16564139781860887,
+      "error_one_second_ago_m": 0.16663930781404696,
+      "progress_last_second_m": 0.0009979099954380843,
+      "nearest_penalty_bound_distance_rad": -0.04530625142352207,
+      "nearest_penalty_bound_joint": "arm_right_1_joint",
+      "penalty_bound_distances_rad": [
+        -0.04530625142352207,
+        -0.02212711536024714,
+        0.4097081794880797,
+        -0.022294374797724004,
+        2.331083121017994,
+        2.0590088720241324,
+        0.1378673049239949
+      ],
+      "state": [
+        -4.557695231808212,
+        0.9565911291565614,
+        2.0082856985034145,
+        0.9567583885940383,
+        1.1341083081700982,
+        0.7429574414061144,
+        -2.2801265730674993,
+        0.00022167135681539982,
+        -0.000339083760724657,
+        -0.011990696935164517,
+        0.001198664342419203,
+        0.025276121904477748,
+        0.03126759201293094,
+        -0.023228712676229543
+      ],
+      "speed_L1_rad_s": 0.09352254298876202,
+      "maximum_joint_speed_rad_s": 0.03126759201293094
+    }
+  },
+  {
+    "pair_id": 7065,
+    "source_study": "random-reaching-flat-boundary-tuning-20261016",
+    "source_arm": "FLAT_FEEDBACK10MS",
+    "role": "trapped",
+    "target_xyz": [
+      0.427856679951554,
+      -0.24474697665424341,
+      0.15031607249178738
+    ],
+    "target_rotation": [
+      [
+        -0.5734794674956438,
+        0.5601718740958916,
+        -0.5977698318189135
+      ],
+      [
+        -0.7028196489006436,
+        -0.7113266808791572,
+        0.007674254922784737
+      ],
+      [
+        -0.420910728635053,
+        0.42452541094890894,
+        0.8016310460421117
+      ]
+    ],
+    "goal_reference_single": [
+      0.4278566837310791,
+      -0.24474698305130005,
+      0.15031607449054718,
+      0.4870283305644989,
+      0.43444907665252686,
+      -2.2551991939544678
+    ],
+    "goal_reference_representation": "Original saved6-vector EEF reference; retile at chosenN, do not reinterpret coordinates",
+    "source_base_dir": "/workspace/GATO/_expr_results/random-reaching-flat-boundary-tuning-20261016/frozen100/FLAT_FEEDBACK10MS/pilot/case_07065/pair_07065",
+    "source_base_inputs_sha256": "730890c5aea92fd9c2d3f6628bbe2ff946580a32224afb0f807b77b2bdbba200",
+    "initialization": "Fresh session; repeated actual full14-state hold, zero controls; reset dual and rho once then retain",
+    "restart_time_s": 0.0,
+    "saved_goal_witness_used": false,
+    "case_id": "07065_original",
+    "start_type": "original",
+    "initial_state": [
+      -2.9554294890584156,
+      -1.5415928904872933,
+      1.8146153941771312,
+      0.8492525629460985,
+      -1.0231553438617944,
+      -1.0740832568595216,
+      0.10617557646762243,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "source_base_time_s": 0.0,
+    "trigger_detection": null
+  },
+  {
+    "pair_id": 7065,
+    "source_study": "random-reaching-flat-boundary-tuning-20261016",
+    "source_arm": "FLAT_FEEDBACK10MS",
+    "role": "trapped",
+    "target_xyz": [
+      0.427856679951554,
+      -0.24474697665424341,
+      0.15031607249178738
+    ],
+    "target_rotation": [
+      [
+        -0.5734794674956438,
+        0.5601718740958916,
+        -0.5977698318189135
+      ],
+      [
+        -0.7028196489006436,
+        -0.7113266808791572,
+        0.007674254922784737
+      ],
+      [
+        -0.420910728635053,
+        0.42452541094890894,
+        0.8016310460421117
+      ]
+    ],
+    "goal_reference_single": [
+      0.4278566837310791,
+      -0.24474698305130005,
+      0.15031607449054718,
+      0.4870283305644989,
+      0.43444907665252686,
+      -2.2551991939544678
+    ],
+    "goal_reference_representation": "Original saved6-vector EEF reference; retile at chosenN, do not reinterpret coordinates",
+    "source_base_dir": "/workspace/GATO/_expr_results/random-reaching-flat-boundary-tuning-20261016/frozen100/FLAT_FEEDBACK10MS/pilot/case_07065/pair_07065",
+    "source_base_inputs_sha256": "730890c5aea92fd9c2d3f6628bbe2ff946580a32224afb0f807b77b2bdbba200",
+    "initialization": "Fresh session; repeated actual full14-state hold, zero controls; reset dual and rho once then retain",
+    "restart_time_s": 0.0,
+    "saved_goal_witness_used": false,
+    "case_id": "07065_trap",
+    "start_type": "trap",
+    "initial_state": [
+      -3.559454136724474,
+      -1.7919626499698167,
+      1.7852432725242455,
+      0.9514811377383553,
+      -1.2422068681532632,
+      -1.7025047594304836,
+      0.09906606048436299,
+      -0.0032294789779991457,
+      0.008460786981473905,
+      -0.03470138713363743,
+      -0.020256903194203955,
+      -0.0010702861273913507,
+      -0.017273634643364785,
+      -0.019580679727330585
+    ],
+    "source_base_time_s": 7.1700000000002175,
+    "trigger_detection": {
+      "source_base_time_s": 7.1700000000002175,
+      "source_feedback_index": 717,
+      "source_dense_sample_index": 2868,
+      "position_error_m": 0.16076920639997855,
+      "error_one_second_ago_m": 0.1617635442598891,
+      "progress_last_second_m": 0.0009943378599105435,
+      "nearest_penalty_bound_distance_rad": -0.017549167276607713,
+      "nearest_penalty_bound_joint": "arm_right_6_joint",
+      "penalty_bound_distances_rad": [
+        0.9529348436602154,
+        0.45149830282224435,
+        0.6327506054672487,
+        -0.017017123942041024,
+        0.1285894586416334,
+        -0.017549167276607713,
+        2.3189278175071313
+      ],
+      "state": [
+        -3.559454136724474,
+        -1.7919626499698167,
+        1.7852432725242455,
+        0.9514811377383553,
+        -1.2422068681532632,
+        -1.7025047594304836,
+        0.09906606048436299,
+        -0.0032294789779991457,
+        0.008460786981473905,
+        -0.03470138713363743,
+        -0.020256903194203955,
+        -0.0010702861273913507,
+        -0.017273634643364785,
+        -0.019580679727330585
+      ],
+      "speed_L1_rad_s": 0.10457315678540116,
+      "maximum_joint_speed_rad_s": 0.03470138713363743
+    }
+  },
+  {
+    "pair_id": 8327,
+    "source_study": "random-reaching-flat-boundary-tuning-20261016",
+    "source_arm": "FLAT_FEEDBACK10MS",
+    "role": "trapped",
+    "target_xyz": [
+      0.1566211471083233,
+      -0.36347242802556473,
+      0.48869494632533417
+    ],
+    "target_rotation": [
+      [
+        0.38661246349753087,
+        0.7764812907592684,
+        -0.4976018570797269
+      ],
+      [
+        0.5932237591591345,
+        0.20373897466478083,
+        0.7788298927054936
+      ],
+      [
+        0.706127732522578,
+        -0.5962945876857898,
+        -0.38185912331533717
+      ]
+    ],
+    "goal_reference_single": [
+      0.15662114322185516,
+      -0.36347243189811707,
+      0.4886949360370636,
+      -2.140383720397949,
+      -0.7840145230293274,
+      0.993216872215271
+    ],
+    "goal_reference_representation": "Original saved6-vector EEF reference; retile at chosenN, do not reinterpret coordinates",
+    "source_base_dir": "/workspace/GATO/_expr_results/random-reaching-flat-boundary-tuning-20261016/frozen100/FLAT_FEEDBACK10MS/pilot/case_08327/pair_08327",
+    "source_base_inputs_sha256": "64bdebfddc3797477055db84bb80e42813ee51c1a86e5a6db8c68c4cb3528167",
+    "initialization": "Fresh session; repeated actual full14-state hold, zero controls; reset dual and rho once then retain",
+    "restart_time_s": 0.0,
+    "saved_goal_witness_used": false,
+    "case_id": "08327_original",
+    "start_type": "original",
+    "initial_state": [
+      -3.6807737501695943,
+      0.6720844261863652,
+      -1.3073169151802673,
+      -1.0302492196384503,
+      1.1960442014046682,
+      -0.583774236535332,
+      0.735473474609535,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "source_base_time_s": 0.0,
+    "trigger_detection": null
+  },
+  {
+    "pair_id": 8327,
+    "source_study": "random-reaching-flat-boundary-tuning-20261016",
+    "source_arm": "FLAT_FEEDBACK10MS",
+    "role": "trapped",
+    "target_xyz": [
+      0.1566211471083233,
+      -0.36347242802556473,
+      0.48869494632533417
+    ],
+    "target_rotation": [
+      [
+        0.38661246349753087,
+        0.7764812907592684,
+        -0.4976018570797269
+      ],
+      [
+        0.5932237591591345,
+        0.20373897466478083,
+        0.7788298927054936
+      ],
+      [
+        0.706127732522578,
+        -0.5962945876857898,
+        -0.38185912331533717
+      ]
+    ],
+    "goal_reference_single": [
+      0.15662114322185516,
+      -0.36347243189811707,
+      0.4886949360370636,
+      -2.140383720397949,
+      -0.7840145230293274,
+      0.993216872215271
+    ],
+    "goal_reference_representation": "Original saved6-vector EEF reference; retile at chosenN, do not reinterpret coordinates",
+    "source_base_dir": "/workspace/GATO/_expr_results/random-reaching-flat-boundary-tuning-20261016/frozen100/FLAT_FEEDBACK10MS/pilot/case_08327/pair_08327",
+    "source_base_inputs_sha256": "64bdebfddc3797477055db84bb80e42813ee51c1a86e5a6db8c68c4cb3528167",
+    "initialization": "Fresh session; repeated actual full14-state hold, zero controls; reset dual and rho once then retain",
+    "restart_time_s": 0.0,
+    "saved_goal_witness_used": false,
+    "case_id": "08327_trap",
+    "start_type": "trap",
+    "initial_state": [
+      -4.561171204393479,
+      0.961936679063553,
+      -1.1078168800733812,
+      -2.1846744123584223,
+      1.0741375719433097,
+      0.6439087373337762,
+      0.6798919028669113,
+      0.0005057697306536987,
+      0.0006936359553669422,
+      0.009337478267253603,
+      -0.0045117500748582725,
+      0.008409992347239973,
+      0.03719933668666375,
+      -0.0029382956999929126
+    ],
+    "source_base_time_s": 8.920000000000254,
+    "trigger_detection": {
+      "source_base_time_s": 8.920000000000254,
+      "source_feedback_index": 892,
+      "source_dense_sample_index": 3568,
+      "position_error_m": 0.35354647891901003,
+      "error_one_second_ago_m": 0.35454069369704033,
+      "progress_last_second_m": 0.0009942147780303001,
+      "nearest_penalty_bound_distance_rad": -0.0487822240087894,
+      "nearest_penalty_bound_joint": "arm_right_1_joint",
+      "penalty_bound_distances_rad": [
+        -0.0487822240087894,
+        -0.027472665267238683,
+        1.310176997918113,
+        0.058786540433638734,
+        2.391053857244782,
+        2.1580575760964704,
+        1.738101975124583
+      ],
+      "state": [
+        -4.561171204393479,
+        0.961936679063553,
+        -1.1078168800733812,
+        -2.1846744123584223,
+        1.0741375719433097,
+        0.6439087373337762,
+        0.6798919028669113,
+        0.0005057697306536987,
+        0.0006936359553669422,
+        0.009337478267253603,
+        -0.0045117500748582725,
+        0.008409992347239973,
+        0.03719933668666375,
+        -0.0029382956999929126
+      ],
+      "speed_L1_rad_s": 0.06359625876202915,
+      "maximum_joint_speed_rad_s": 0.03719933668666375
+    }
+  },
+  {
+    "pair_id": 5876,
+    "source_study": "random-reaching-flat-boundary-tuning-20261016",
+    "source_arm": "FLAT_FEEDBACK10MS",
+    "role": "trapped",
+    "target_xyz": [
+      -0.35520083378399225,
+      -0.08193837052345081,
+      -0.669994221893897
+    ],
+    "target_rotation": [
+      [
+        -0.6809717180664974,
+        -0.4307997523705861,
+        -0.5921900814358562
+      ],
+      [
+        -0.6954112882906326,
+        0.1269613255660057,
+        0.7073075440913149
+      ],
+      [
+        -0.2295226771182489,
+        0.8934721009455007,
+        -0.38604008278999663
+      ]
+    ],
+    "goal_reference_single": [
+      -0.3552008271217346,
+      -0.08193837106227875,
+      -0.6699942350387573,
+      1.9786378145217896,
+      0.2315872460603714,
+      -2.3457038402557373
+    ],
+    "goal_reference_representation": "Original saved6-vector EEF reference; retile at chosenN, do not reinterpret coordinates",
+    "source_base_dir": "/workspace/GATO/_expr_results/random-reaching-flat-boundary-tuning-20261016/frozen100/FLAT_FEEDBACK10MS/pilot/case_05876/pair_05876",
+    "source_base_inputs_sha256": "f8e5b0ee9806e851385fe364ac4ebca79e5064eaa778f1c2570ab5da57a2ea6a",
+    "initialization": "Fresh session; repeated actual full14-state hold, zero controls; reset dual and rho once then retain",
+    "restart_time_s": 0.0,
+    "saved_goal_witness_used": false,
+    "case_id": "05876_original",
+    "start_type": "original",
+    "initial_state": [
+      -3.3653816760708875,
+      -1.0846420086412372,
+      1.3032814721371748,
+      -1.0568873205808498,
+      -1.038718868183837,
+      0.7225412233919175,
+      0.5634925058097675,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "source_base_time_s": 0.0,
+    "trigger_detection": null
+  },
+  {
+    "pair_id": 5876,
+    "source_study": "random-reaching-flat-boundary-tuning-20261016",
+    "source_arm": "FLAT_FEEDBACK10MS",
+    "role": "trapped",
+    "target_xyz": [
+      -0.35520083378399225,
+      -0.08193837052345081,
+      -0.669994221893897
+    ],
+    "target_rotation": [
+      [
+        -0.6809717180664974,
+        -0.4307997523705861,
+        -0.5921900814358562
+      ],
+      [
+        -0.6954112882906326,
+        0.1269613255660057,
+        0.7073075440913149
+      ],
+      [
+        -0.2295226771182489,
+        0.8934721009455007,
+        -0.38604008278999663
+      ]
+    ],
+    "goal_reference_single": [
+      -0.3552008271217346,
+      -0.08193837106227875,
+      -0.6699942350387573,
+      1.9786378145217896,
+      0.2315872460603714,
+      -2.3457038402557373
+    ],
+    "goal_reference_representation": "Original saved6-vector EEF reference; retile at chosenN, do not reinterpret coordinates",
+    "source_base_dir": "/workspace/GATO/_expr_results/random-reaching-flat-boundary-tuning-20261016/frozen100/FLAT_FEEDBACK10MS/pilot/case_05876/pair_05876",
+    "source_base_inputs_sha256": "f8e5b0ee9806e851385fe364ac4ebca79e5064eaa778f1c2570ab5da57a2ea6a",
+    "initialization": "Fresh session; repeated actual full14-state hold, zero controls; reset dual and rho once then retain",
+    "restart_time_s": 0.0,
+    "saved_goal_witness_used": false,
+    "case_id": "05876_trap",
+    "start_type": "trap",
+    "initial_state": [
+      -3.3389932228049997,
+      0.9654481073235012,
+      0.10835345712589757,
+      -1.4236374577010897,
+      -0.9538379577682762,
+      0.7707090874549494,
+      0.5527735884779688,
+      0.02009880407976272,
+      0.0012968266798125208,
+      -0.02154736900155762,
+      -0.0006995603133895674,
+      0.04916093495835231,
+      0.016423006932951942,
+      -0.05992316619572912
+    ],
+    "source_base_time_s": 10.120000000000228,
+    "trigger_detection": {
+      "source_base_time_s": 10.120000000000228,
+      "source_feedback_index": 1012,
+      "source_dense_sample_index": 4048,
+      "position_error_m": 0.20269160476693696,
+      "error_one_second_ago_m": 0.20368671609254094,
+      "progress_last_second_m": 0.0009951113256039812,
+      "nearest_penalty_bound_distance_rad": -0.030984093527186896,
+      "nearest_penalty_bound_joint": "arm_right_2_joint",
+      "penalty_bound_distances_rad": [
+        1.1733957575796898,
+        -0.030984093527186896,
+        2.3096404208655965,
+        0.8198234950909713,
+        0.4169583690266204,
+        2.0312572259752972,
+        1.8652202895135255
+      ],
+      "state": [
+        -3.3389932228049997,
+        0.9654481073235012,
+        0.10835345712589757,
+        -1.4236374577010897,
+        -0.9538379577682762,
+        0.7707090874549494,
+        0.5527735884779688,
+        0.02009880407976272,
+        0.0012968266798125208,
+        -0.02154736900155762,
+        -0.0006995603133895674,
+        0.04916093495835231,
+        0.016423006932951942,
+        -0.05992316619572912
+      ],
+      "speed_L1_rad_s": 0.1691496681615558,
+      "maximum_joint_speed_rad_s": 0.05992316619572912
+    }
+  },
+  {
+    "pair_id": 6536,
+    "source_study": "random-reaching-flat-boundary-tuning-20261016",
+    "source_arm": "FLAT_FEEDBACK10MS",
+    "role": "trapped",
+    "target_xyz": [
+      -0.41160184908023645,
+      -0.5468302130561102,
+      -0.40033880728981497
+    ],
+    "target_rotation": [
+      [
+        -0.1878407033406499,
+        -0.7519338248747498,
+        -0.6319109060442947
+      ],
+      [
+        0.8516481838464619,
+        -0.44519005975519643,
+        0.2765884698359448
+      ],
+      [
+        -0.48929668006181515,
+        -0.48621120277549695,
+        0.7240078902719862
+      ]
+    ],
+    "goal_reference_single": [
+      -0.41160184144973755,
+      -0.5468302369117737,
+      -0.4003387987613678,
+      -0.5913792848587036,
+      0.5112830996513367,
+      1.7878820896148682
+    ],
+    "goal_reference_representation": "Original saved6-vector EEF reference; retile at chosenN, do not reinterpret coordinates",
+    "source_base_dir": "/workspace/GATO/_expr_results/random-reaching-flat-boundary-tuning-20261016/frozen100/FLAT_FEEDBACK10MS/pilot/case_06536/pair_06536",
+    "source_base_inputs_sha256": "981f76c612c0256f6c1b90c68220496b7acaf8053f33ef7887a2d02e94119509",
+    "initialization": "Fresh session; repeated actual full14-state hold, zero controls; reset dual and rho once then retain",
+    "restart_time_s": 0.0,
+    "saved_goal_witness_used": false,
+    "case_id": "06536_original",
+    "start_type": "original",
+    "initial_state": [
+      -3.761583498276652,
+      -0.19729314817713384,
+      -1.1024068135375051,
+      -0.7178749796282544,
+      3.2753019117637496,
+      -0.10087989222307425,
+      -0.7914821987387879,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "source_base_time_s": 0.0,
+    "trigger_detection": null
+  },
+  {
+    "pair_id": 6536,
+    "source_study": "random-reaching-flat-boundary-tuning-20261016",
+    "source_arm": "FLAT_FEEDBACK10MS",
+    "role": "trapped",
+    "target_xyz": [
+      -0.41160184908023645,
+      -0.5468302130561102,
+      -0.40033880728981497
+    ],
+    "target_rotation": [
+      [
+        -0.1878407033406499,
+        -0.7519338248747498,
+        -0.6319109060442947
+      ],
+      [
+        0.8516481838464619,
+        -0.44519005975519643,
+        0.2765884698359448
+      ],
+      [
+        -0.48929668006181515,
+        -0.48621120277549695,
+        0.7240078902719862
+      ]
+    ],
+    "goal_reference_single": [
+      -0.41160184144973755,
+      -0.5468302369117737,
+      -0.4003387987613678,
+      -0.5913792848587036,
+      0.5112830996513367,
+      1.7878820896148682
+    ],
+    "goal_reference_representation": "Original saved6-vector EEF reference; retile at chosenN, do not reinterpret coordinates",
+    "source_base_dir": "/workspace/GATO/_expr_results/random-reaching-flat-boundary-tuning-20261016/frozen100/FLAT_FEEDBACK10MS/pilot/case_06536/pair_06536",
+    "source_base_inputs_sha256": "981f76c612c0256f6c1b90c68220496b7acaf8053f33ef7887a2d02e94119509",
+    "initialization": "Fresh session; repeated actual full14-state hold, zero controls; reset dual and rho once then retain",
+    "restart_time_s": 0.0,
+    "saved_goal_witness_used": false,
+    "case_id": "06536_trap",
+    "start_type": "trap",
+    "initial_state": [
+      -3.933013492585482,
+      0.9644412958717099,
+      -0.09933440360502482,
+      -1.574148530012317,
+      3.352406765973016,
+      0.5258208499500772,
+      -0.9035714986851211,
+      -0.03891775005677841,
+      -0.009527520748260406,
+      0.057528775129922154,
+      0.004029592598351261,
+      0.0989629495124627,
+      0.06582300079144861,
+      -0.016653145453458484
+    ],
+    "source_base_time_s": 8.380000000000265,
+    "trigger_detection": {
+      "source_base_time_s": 8.380000000000265,
+      "source_feedback_index": 838,
+      "source_dense_sample_index": 3352,
+      "position_error_m": 0.2061013497106049,
+      "error_one_second_ago_m": 0.20707998432373634,
+      "progress_last_second_m": 0.0009786346131314405,
+      "nearest_penalty_bound_distance_rad": -0.029977282075395628,
+      "nearest_penalty_bound_joint": "arm_right_2_joint",
+      "penalty_bound_distances_rad": [
+        0.5793754877992074,
+        -0.029977282075395628,
+        2.3186594743864695,
+        0.669312422779744,
+        0.11278466321507619,
+        2.210776442103953,
+        1.5144223793063731
+      ],
+      "state": [
+        -3.933013492585482,
+        0.9644412958717099,
+        -0.09933440360502482,
+        -1.574148530012317,
+        3.352406765973016,
+        0.5258208499500772,
+        -0.9035714986851211,
+        -0.03891775005677841,
+        -0.009527520748260406,
+        0.057528775129922154,
+        0.004029592598351261,
+        0.0989629495124627,
+        0.06582300079144861,
+        -0.016653145453458484
+      ],
+      "speed_L1_rad_s": 0.291442734290682,
+      "maximum_joint_speed_rad_s": 0.0989629495124627
+    }
+  },
+  {
+    "pair_id": 7355,
+    "source_study": "random-reaching-flat-boundary-tuning-20261016",
+    "source_arm": "FLAT_FEEDBACK10MS",
+    "role": "trapped",
+    "target_xyz": [
+      -0.12249649919702056,
+      -0.5938419183729597,
+      -0.5327677119467076
+    ],
+    "target_rotation": [
+      [
+        -0.7508180977502096,
+        0.34365681742610554,
+        -0.5640675278079027
+      ],
+      [
+        0.4799525999006373,
+        -0.30284822807046397,
+        -0.8233641069437023
+      ],
+      [
+        -0.45378153988387004,
+        -0.8889223490221981,
+        0.062444947509649164
+      ]
+    ],
+    "goal_reference_single": [
+      -0.12249650061130524,
+      -0.5938419103622437,
+      -0.5327677130699158,
+      -1.5006636381149292,
+      0.4710043966770172,
+      2.572819232940674
+    ],
+    "goal_reference_representation": "Original saved6-vector EEF reference; retile at chosenN, do not reinterpret coordinates",
+    "source_base_dir": "/workspace/GATO/_expr_results/random-reaching-flat-boundary-tuning-20261016/frozen100/FLAT_FEEDBACK10MS/pilot/case_07355/pair_07355",
+    "source_base_inputs_sha256": "e9664f49e92a59930b7cceb973965289c8e4460f7f7a5f77b7ec6580abcc7199",
+    "initialization": "Fresh session; repeated actual full14-state hold, zero controls; reset dual and rho once then retain",
+    "restart_time_s": 0.0,
+    "saved_goal_witness_used": false,
+    "case_id": "07355_original",
+    "start_type": "original",
+    "initial_state": [
+      -3.773079732285874,
+      0.49589765999675395,
+      2.196372390390962,
+      0.3330107864754881,
+      -0.2897258680709336,
+      1.5402131799137835,
+      1.0747361375242752,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "source_base_time_s": 0.0,
+    "trigger_detection": null
+  },
+  {
+    "pair_id": 7355,
+    "source_study": "random-reaching-flat-boundary-tuning-20261016",
+    "source_arm": "FLAT_FEEDBACK10MS",
+    "role": "trapped",
+    "target_xyz": [
+      -0.12249649919702056,
+      -0.5938419183729597,
+      -0.5327677119467076
+    ],
+    "target_rotation": [
+      [
+        -0.7508180977502096,
+        0.34365681742610554,
+        -0.5640675278079027
+      ],
+      [
+        0.4799525999006373,
+        -0.30284822807046397,
+        -0.8233641069437023
+      ],
+      [
+        -0.45378153988387004,
+        -0.8889223490221981,
+        0.062444947509649164
+      ]
+    ],
+    "goal_reference_single": [
+      -0.12249650061130524,
+      -0.5938419103622437,
+      -0.5327677130699158,
+      -1.5006636381149292,
+      0.4710043966770172,
+      2.572819232940674
+    ],
+    "goal_reference_representation": "Original saved6-vector EEF reference; retile at chosenN, do not reinterpret coordinates",
+    "source_base_dir": "/workspace/GATO/_expr_results/random-reaching-flat-boundary-tuning-20261016/frozen100/FLAT_FEEDBACK10MS/pilot/case_07355/pair_07355",
+    "source_base_inputs_sha256": "e9664f49e92a59930b7cceb973965289c8e4460f7f7a5f77b7ec6580abcc7199",
+    "initialization": "Fresh session; repeated actual full14-state hold, zero controls; reset dual and rho once then retain",
+    "restart_time_s": 0.0,
+    "saved_goal_witness_used": false,
+    "case_id": "07355_trap",
+    "start_type": "trap",
+    "initial_state": [
+      -3.5851671200975486,
+      0.9569442462010475,
+      2.4403117954617626,
+      0.9474824211857814,
+      -0.19111271985181924,
+      1.616600442306672,
+      1.0776480081866362,
+      0.008770271796948979,
+      -0.0005884959158378627,
+      -0.00505233900601109,
+      0.00637816981788692,
+      0.00275264865919857,
+      -0.005071280799776714,
+      0.025041922213013646
+    ],
+    "source_base_time_s": 4.3400000000000265,
+    "trigger_detection": {
+      "source_base_time_s": 4.3400000000000265,
+      "source_feedback_index": 434,
+      "source_dense_sample_index": 1736,
+      "position_error_m": 0.07227955065497876,
+      "error_one_second_ago_m": 0.07327569528046601,
+      "progress_last_second_m": 0.0009961446254872497,
+      "nearest_penalty_bound_distance_rad": -0.02248023240473318,
+      "nearest_penalty_bound_joint": "arm_right_2_joint",
+      "penalty_bound_distances_rad": [
+        0.9272218602871409,
+        -0.02248023240473318,
+        -0.022317917470268345,
+        -0.013018407389467135,
+        1.1796836069430774,
+        1.1853658711235748,
+        1.340345869804858
+      ],
+      "state": [
+        -3.5851671200975486,
+        0.9569442462010475,
+        2.4403117954617626,
+        0.9474824211857814,
+        -0.19111271985181924,
+        1.616600442306672,
+        1.0776480081866362,
+        0.008770271796948979,
+        -0.0005884959158378627,
+        -0.00505233900601109,
+        0.00637816981788692,
+        0.00275264865919857,
+        -0.005071280799776714,
+        0.025041922213013646
+      ],
+      "speed_L1_rad_s": 0.05365512820867378,
+      "maximum_joint_speed_rad_s": 0.025041922213013646
+    }
+  },
+  {
+    "pair_id": 6906,
+    "source_study": "random-reaching-flat-boundary-tuning-20261016",
+    "source_arm": "FLAT_FEEDBACK10MS",
+    "role": "trapped",
+    "target_xyz": [
+      0.021378234548086086,
+      0.2223489192946607,
+      -0.676848708616655
+    ],
+    "target_rotation": [
+      [
+        -0.6622229529080016,
+        -0.6726124043809178,
+        -0.3302322124123112
+      ],
+      [
+        -0.4465963515737251,
+        0.00041017172621324316,
+        0.894735452812838
+      ],
+      [
+        -0.601674712284676,
+        0.7399948548686525,
+        -0.30065787095147983
+      ]
+    ],
+    "goal_reference_single": [
+      0.021378234028816223,
+      0.2223489135503769,
+      -0.6768487095832825,
+      1.9567195177078247,
+      0.6455961465835571,
+      -2.548262357711792
+    ],
+    "goal_reference_representation": "Original saved6-vector EEF reference; retile at chosenN, do not reinterpret coordinates",
+    "source_base_dir": "/workspace/GATO/_expr_results/random-reaching-flat-boundary-tuning-20261016/frozen100/FLAT_FEEDBACK10MS/pilot/case_06906/pair_06906",
+    "source_base_inputs_sha256": "b80d94a6b8f80ac4c79d70e13fb2acfbe7204a008079976c3f6f93f3ddbf5747",
+    "initialization": "Fresh session; repeated actual full14-state hold, zero controls; reset dual and rho once then retain",
+    "restart_time_s": 0.0,
+    "saved_goal_witness_used": false,
+    "case_id": "06906_original",
+    "start_type": "original",
+    "initial_state": [
+      -4.152027712490445,
+      -1.3743525109552355,
+      0.7143239814205629,
+      0.6641438336305994,
+      -0.9138006970659226,
+      1.0216514691189933,
+      0.9877670480717411,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "source_base_time_s": 0.0,
+    "trigger_detection": null
+  },
+  {
+    "pair_id": 6906,
+    "source_study": "random-reaching-flat-boundary-tuning-20261016",
+    "source_arm": "FLAT_FEEDBACK10MS",
+    "role": "trapped",
+    "target_xyz": [
+      0.021378234548086086,
+      0.2223489192946607,
+      -0.676848708616655
+    ],
+    "target_rotation": [
+      [
+        -0.6622229529080016,
+        -0.6726124043809178,
+        -0.3302322124123112
+      ],
+      [
+        -0.4465963515737251,
+        0.00041017172621324316,
+        0.894735452812838
+      ],
+      [
+        -0.601674712284676,
+        0.7399948548686525,
+        -0.30065787095147983
+      ]
+    ],
+    "goal_reference_single": [
+      0.021378234028816223,
+      0.2223489135503769,
+      -0.6768487095832825,
+      1.9567195177078247,
+      0.6455961465835571,
+      -2.548262357711792
+    ],
+    "goal_reference_representation": "Original saved6-vector EEF reference; retile at chosenN, do not reinterpret coordinates",
+    "source_base_dir": "/workspace/GATO/_expr_results/random-reaching-flat-boundary-tuning-20261016/frozen100/FLAT_FEEDBACK10MS/pilot/case_06906/pair_06906",
+    "source_base_inputs_sha256": "b80d94a6b8f80ac4c79d70e13fb2acfbe7204a008079976c3f6f93f3ddbf5747",
+    "initialization": "Fresh session; repeated actual full14-state hold, zero controls; reset dual and rho once then retain",
+    "restart_time_s": 0.0,
+    "saved_goal_witness_used": false,
+    "case_id": "06906_trap",
+    "start_type": "trap",
+    "initial_state": [
+      -4.597010192020345,
+      -1.847250720492066,
+      -1.4530121550456945,
+      0.9760643960333887,
+      -0.3254867329318172,
+      1.8685531610392092,
+      0.994125388958808,
+      -0.0002733430023692374,
+      -0.007893704456376738,
+      -0.014207966290266322,
+      -0.0011672014233495215,
+      0.04467324093312103,
+      0.011369503042302567,
+      -9.322850089501323e-05
+    ],
+    "source_base_time_s": 9.810000000000235,
+    "trigger_detection": {
+      "source_base_time_s": 9.810000000000235,
+      "source_feedback_index": 981,
+      "source_dense_sample_index": 3924,
+      "position_error_m": 0.35240368317393356,
+      "error_one_second_ago_m": 0.3534013068306137,
+      "progress_last_second_m": 0.0009976236566801577,
+      "nearest_penalty_bound_distance_rad": -0.08462121163565595,
+      "nearest_penalty_bound_joint": "arm_right_1_joint",
+      "penalty_bound_distances_rad": [
+        -0.08462121163565595,
+        0.39621023229999497,
+        0.9649817229457998,
+        -0.04160038223707441,
+        1.0453095938630794,
+        0.9334131523910376,
+        1.4238684890326863
+      ],
+      "state": [
+        -4.597010192020345,
+        -1.847250720492066,
+        -1.4530121550456945,
+        0.9760643960333887,
+        -0.3254867329318172,
+        1.8685531610392092,
+        0.994125388958808,
+        -0.0002733430023692374,
+        -0.007893704456376738,
+        -0.014207966290266322,
+        -0.0011672014233495215,
+        0.04467324093312103,
+        0.011369503042302567,
+        -9.322850089501323e-05
+      ],
+      "speed_L1_rad_s": 0.07967818764868043,
+      "maximum_joint_speed_rad_s": 0.04467324093312103
+    }
+  },
+  {
+    "pair_id": 7607,
+    "source_study": "random-reaching-flat-boundary-tuning-20261016",
+    "source_arm": "FLAT_FEEDBACK10MS",
+    "role": "trapped",
+    "target_xyz": [
+      -0.3596419780926797,
+      -0.4657932787217963,
+      -0.15625289554007596
+    ],
+    "target_rotation": [
+      [
+        -0.09698796994530644,
+        0.2094431578692268,
+        -0.972998919479182
+      ],
+      [
+        -0.42498142201431915,
+        -0.8927208187971023,
+        -0.14980097005333534
+      ],
+      [
+        -0.8999911803059947,
+        0.39897757243734794,
+        0.17559263100547692
+      ]
+    ],
+    "goal_reference_single": [
+      -0.359641969203949,
+      -0.46579328179359436,
+      -0.1562528908252716,
+      1.1562001705169678,
+      1.1197493076324463,
+      -1.795170545578003
+    ],
+    "goal_reference_representation": "Original saved6-vector EEF reference; retile at chosenN, do not reinterpret coordinates",
+    "source_base_dir": "/workspace/GATO/_expr_results/random-reaching-flat-boundary-tuning-20261016/frozen100/FLAT_FEEDBACK10MS/pilot/case_07607/pair_07607",
+    "source_base_inputs_sha256": "91e6c7dbf07aa47e18ce23a0de80d440e7be5365ab0d16298d91b3d1c29bb6bd",
+    "initialization": "Fresh session; repeated actual full14-state hold, zero controls; reset dual and rho once then retain",
+    "restart_time_s": 0.0,
+    "saved_goal_witness_used": false,
+    "case_id": "07607_original",
+    "start_type": "original",
+    "initial_state": [
+      -4.577340785861248,
+      -0.653823845750066,
+      -0.6965995045710296,
+      -1.5039370142706998,
+      3.4474549494113553,
+      2.562280609041361,
+      -1.8742733170310861,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "source_base_time_s": 0.0,
+    "trigger_detection": null
+  },
+  {
+    "pair_id": 7607,
+    "source_study": "random-reaching-flat-boundary-tuning-20261016",
+    "source_arm": "FLAT_FEEDBACK10MS",
+    "role": "trapped",
+    "target_xyz": [
+      -0.3596419780926797,
+      -0.4657932787217963,
+      -0.15625289554007596
+    ],
+    "target_rotation": [
+      [
+        -0.09698796994530644,
+        0.2094431578692268,
+        -0.972998919479182
+      ],
+      [
+        -0.42498142201431915,
+        -0.8927208187971023,
+        -0.14980097005333534
+      ],
+      [
+        -0.8999911803059947,
+        0.39897757243734794,
+        0.17559263100547692
+      ]
+    ],
+    "goal_reference_single": [
+      -0.359641969203949,
+      -0.46579328179359436,
+      -0.1562528908252716,
+      1.1562001705169678,
+      1.1197493076324463,
+      -1.795170545578003
+    ],
+    "goal_reference_representation": "Original saved6-vector EEF reference; retile at chosenN, do not reinterpret coordinates",
+    "source_base_dir": "/workspace/GATO/_expr_results/random-reaching-flat-boundary-tuning-20261016/frozen100/FLAT_FEEDBACK10MS/pilot/case_07607/pair_07607",
+    "source_base_inputs_sha256": "91e6c7dbf07aa47e18ce23a0de80d440e7be5365ab0d16298d91b3d1c29bb6bd",
+    "initialization": "Fresh session; repeated actual full14-state hold, zero controls; reset dual and rho once then retain",
+    "restart_time_s": 0.0,
+    "saved_goal_witness_used": false,
+    "case_id": "07607_trap",
+    "start_type": "trap",
+    "initial_state": [
+      -4.236543536017333,
+      0.9657345015935165,
+      -0.037687616646814796,
+      -1.8108301053611897,
+      3.267737139929332,
+      1.024454592664888,
+      -1.793726403815188,
+      -0.009375859283367188,
+      -0.0038196815090970775,
+      0.014611283826706473,
+      -0.01565199853351189,
+      -0.05938176517148995,
+      -0.07257510919067654,
+      0.0535579784576198
+    ],
+    "source_base_time_s": 12.510000000000177,
+    "trigger_detection": {
+      "source_base_time_s": 12.510000000000177,
+      "source_feedback_index": 1251,
+      "source_dense_sample_index": 5004,
+      "position_error_m": 0.18947030988693836,
+      "error_one_second_ago_m": 0.19043772805065742,
+      "progress_last_second_m": 0.0009674181637190638,
+      "nearest_penalty_bound_distance_rad": -0.03127048779720221,
+      "nearest_penalty_bound_joint": "arm_right_2_joint",
+      "penalty_bound_distances_rad": [
+        0.2758454443673566,
+        -0.03127048779720221,
+        2.3803062613446793,
+        0.4326308474308713,
+        0.19745428925876007,
+        1.7775117207653588,
+        0.6242674741763061
+      ],
+      "state": [
+        -4.236543536017333,
+        0.9657345015935165,
+        -0.037687616646814796,
+        -1.8108301053611897,
+        3.267737139929332,
+        1.024454592664888,
+        -1.793726403815188,
+        -0.009375859283367188,
+        -0.0038196815090970775,
+        0.014611283826706473,
+        -0.01565199853351189,
+        -0.05938176517148995,
+        -0.07257510919067654,
+        0.0535579784576198
+      ],
+      "speed_L1_rad_s": 0.22897367597246893,
+      "maximum_joint_speed_rad_s": 0.07257510919067654
+    }
+  },
+  {
+    "pair_id": 3461,
+    "source_study": "random-reaching-flat-boundary-tuning-20261016",
+    "source_arm": "FLAT_FEEDBACK10MS",
+    "role": "trapped",
+    "target_xyz": [
+      0.3019612346502457,
+      -0.40236667598511494,
+      0.42792732237445674
+    ],
+    "target_rotation": [
+      [
+        0.8160538127635101,
+        0.3917994797612947,
+        0.42491098165724017
+      ],
+      [
+        -0.5720056065949183,
+        0.44207824621396613,
+        0.6909243158612711
+      ],
+      [
+        0.0828598859407868,
+        -0.8068828861013002,
+        0.5848711374471453
+      ]
+    ],
+    "goal_reference_single": [
+      0.3019612431526184,
+      -0.40236666798591614,
+      0.42792731523513794,
+      -0.9435847997665405,
+      -0.08295499533414841,
+      -0.6113572716712952
+    ],
+    "goal_reference_representation": "Original saved6-vector EEF reference; retile at chosenN, do not reinterpret coordinates",
+    "source_base_dir": "/workspace/GATO/_expr_results/random-reaching-flat-boundary-tuning-20261016/frozen100/FLAT_FEEDBACK10MS/pilot/case_03461/pair_03461",
+    "source_base_inputs_sha256": "ab531be5b74c89e4afb899545b78a21c631c3ad01e306e9a499abcacc135144c",
+    "initialization": "Fresh session; repeated actual full14-state hold, zero controls; reset dual and rho once then retain",
+    "restart_time_s": 0.0,
+    "saved_goal_witness_used": false,
+    "case_id": "03461_original",
+    "start_type": "original",
+    "initial_state": [
+      0.17409560808582025,
+      -0.5931091453873347,
+      -0.40990541651101964,
+      0.4000285718568075,
+      -1.009712600114004,
+      1.2514027140081576,
+      -1.2857104441288976,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "source_base_time_s": 0.0,
+    "trigger_detection": null
+  },
+  {
+    "pair_id": 3461,
+    "source_study": "random-reaching-flat-boundary-tuning-20261016",
+    "source_arm": "FLAT_FEEDBACK10MS",
+    "role": "trapped",
+    "target_xyz": [
+      0.3019612346502457,
+      -0.40236667598511494,
+      0.42792732237445674
+    ],
+    "target_rotation": [
+      [
+        0.8160538127635101,
+        0.3917994797612947,
+        0.42491098165724017
+      ],
+      [
+        -0.5720056065949183,
+        0.44207824621396613,
+        0.6909243158612711
+      ],
+      [
+        0.0828598859407868,
+        -0.8068828861013002,
+        0.5848711374471453
+      ]
+    ],
+    "goal_reference_single": [
+      0.3019612431526184,
+      -0.40236666798591614,
+      0.42792731523513794,
+      -0.9435847997665405,
+      -0.08295499533414841,
+      -0.6113572716712952
+    ],
+    "goal_reference_representation": "Original saved6-vector EEF reference; retile at chosenN, do not reinterpret coordinates",
+    "source_base_dir": "/workspace/GATO/_expr_results/random-reaching-flat-boundary-tuning-20261016/frozen100/FLAT_FEEDBACK10MS/pilot/case_03461/pair_03461",
+    "source_base_inputs_sha256": "ab531be5b74c89e4afb899545b78a21c631c3ad01e306e9a499abcacc135144c",
+    "initialization": "Fresh session; repeated actual full14-state hold, zero controls; reset dual and rho once then retain",
+    "restart_time_s": 0.0,
+    "saved_goal_witness_used": false,
+    "case_id": "03461_trap",
+    "start_type": "trap",
+    "initial_state": [
+      -0.04320803636855564,
+      0.9749226214806742,
+      -2.4122552854211365,
+      0.9821282193252671,
+      -0.8832946386618218,
+      1.8848464027128726,
+      -1.2888361057164268,
+      0.00032633361273085287,
+      0.001855005601742706,
+      -0.031474626775153,
+      -0.05817746155076216,
+      -0.05347257378611889,
+      -0.040330764833057545,
+      -0.013384089069864998
+    ],
+    "source_base_time_s": 5.850000000000128,
+    "trigger_detection": {
+      "source_base_time_s": 5.850000000000128,
+      "source_feedback_index": 585,
+      "source_dense_sample_index": 2340,
+      "position_error_m": 0.18705378254769733,
+      "error_one_second_ago_m": 0.18789092519926828,
+      "progress_last_second_m": 0.000837142651570949,
+      "nearest_penalty_bound_distance_rad": -0.047664205528952786,
+      "nearest_penalty_bound_joint": "arm_right_4_joint",
+      "penalty_bound_distances_rad": [
+        0.36680681196685444,
+        -0.04045860768435994,
+        0.005738592570357692,
+        -0.047664205528952786,
+        0.4875016881330748,
+        0.9171199107173742,
+        1.1291577722750674
+      ],
+      "state": [
+        -0.04320803636855564,
+        0.9749226214806742,
+        -2.4122552854211365,
+        0.9821282193252671,
+        -0.8832946386618218,
+        1.8848464027128726,
+        -1.2888361057164268,
+        0.00032633361273085287,
+        0.001855005601742706,
+        -0.031474626775153,
+        -0.05817746155076216,
+        -0.05347257378611889,
+        -0.040330764833057545,
+        -0.013384089069864998
+      ],
+      "speed_L1_rad_s": 0.19902085522943014,
+      "maximum_joint_speed_rad_s": 0.05817746155076216
+    }
+  },
+  {
+    "pair_id": 4105,
+    "source_study": "random-reaching-flat-boundary-tuning-20261016",
+    "source_arm": "FLAT_FEEDBACK10MS",
+    "role": "trapped",
+    "target_xyz": [
+      0.4810327957467639,
+      -0.05637603997843106,
+      -0.25301511050118347
+    ],
+    "target_rotation": [
+      [
+        0.15007389109145375,
+        0.30853233881238207,
+        -0.9393006031721868
+      ],
+      [
+        -0.822463182901445,
+        0.5661945427736482,
+        0.05457153566618362
+      ],
+      [
+        0.5486639590717584,
+        0.7643504010859827,
+        0.33872750755644704
+      ]
+    ],
+    "goal_reference_single": [
+      0.4810327887535095,
+      -0.05637603998184204,
+      -0.25301510095596313,
+      1.1536473035812378,
+      -0.5807653665542603,
+      -1.3903130292892456
+    ],
+    "goal_reference_representation": "Original saved6-vector EEF reference; retile at chosenN, do not reinterpret coordinates",
+    "source_base_dir": "/workspace/GATO/_expr_results/random-reaching-flat-boundary-tuning-20261016/frozen100/FLAT_FEEDBACK10MS/pilot/case_04105/pair_04105",
+    "source_base_inputs_sha256": "ed69731c13a139e41cc1b49a8099e604c2e9fbbec0035e9b408c49a36fce4742",
+    "initialization": "Fresh session; repeated actual full14-state hold, zero controls; reset dual and rho once then retain",
+    "restart_time_s": 0.0,
+    "saved_goal_witness_used": false,
+    "case_id": "04105_original",
+    "start_type": "original",
+    "initial_state": [
+      -4.265418436835884,
+      -0.8708738524161201,
+      -2.130629381952593,
+      -1.437450239228221,
+      -1.1620309049732347,
+      0.8334889707848303,
+      -0.4828261553891111,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "source_base_time_s": 0.0,
+    "trigger_detection": null
+  },
+  {
+    "pair_id": 4105,
+    "source_study": "random-reaching-flat-boundary-tuning-20261016",
+    "source_arm": "FLAT_FEEDBACK10MS",
+    "role": "trapped",
+    "target_xyz": [
+      0.4810327957467639,
+      -0.05637603997843106,
+      -0.25301511050118347
+    ],
+    "target_rotation": [
+      [
+        0.15007389109145375,
+        0.30853233881238207,
+        -0.9393006031721868
+      ],
+      [
+        -0.822463182901445,
+        0.5661945427736482,
+        0.05457153566618362
+      ],
+      [
+        0.5486639590717584,
+        0.7643504010859827,
+        0.33872750755644704
+      ]
+    ],
+    "goal_reference_single": [
+      0.4810327887535095,
+      -0.05637603998184204,
+      -0.25301510095596313,
+      1.1536473035812378,
+      -0.5807653665542603,
+      -1.3903130292892456
+    ],
+    "goal_reference_representation": "Original saved6-vector EEF reference; retile at chosenN, do not reinterpret coordinates",
+    "source_base_dir": "/workspace/GATO/_expr_results/random-reaching-flat-boundary-tuning-20261016/frozen100/FLAT_FEEDBACK10MS/pilot/case_04105/pair_04105",
+    "source_base_inputs_sha256": "ed69731c13a139e41cc1b49a8099e604c2e9fbbec0035e9b408c49a36fce4742",
+    "initialization": "Fresh session; repeated actual full14-state hold, zero controls; reset dual and rho once then retain",
+    "restart_time_s": 0.0,
+    "saved_goal_witness_used": false,
+    "case_id": "04105_trap",
+    "start_type": "trap",
+    "initial_state": [
+      -4.5509178394301255,
+      0.3415391307734457,
+      -2.443123943862896,
+      -2.2585223610367122,
+      -1.2287234111093985,
+      -0.8112039996836526,
+      -0.21449117284980154,
+      -0.007107931869779362,
+      -0.0089711272880861,
+      0.044354111512833264,
+      -0.024029735180258607,
+      0.009228876895550082,
+      -0.05645939464818856,
+      -0.006073345487921539
+    ],
+    "source_base_time_s": 18.22000000000045,
+    "trigger_detection": {
+      "source_base_time_s": 18.22000000000045,
+      "source_feedback_index": 1822,
+      "source_dense_sample_index": 7288,
+      "position_error_m": 0.12264713483841565,
+      "error_one_second_ago_m": 0.12363115510258746,
+      "progress_last_second_m": 0.0009840202641718115,
+      "nearest_penalty_bound_distance_rad": -0.038528859045436015,
+      "nearest_penalty_bound_joint": "arm_right_1_joint",
+      "penalty_bound_distances_rad": [
+        -0.038528859045436015,
+        0.5929248830228686,
+        -0.025130065871401985,
+        -0.015061408244651187,
+        0.14207291568549807,
+        0.8737515924702233,
+        2.203502705141693
+      ],
+      "state": [
+        -4.5509178394301255,
+        0.3415391307734457,
+        -2.443123943862896,
+        -2.2585223610367122,
+        -1.2287234111093985,
+        -0.8112039996836526,
+        -0.21449117284980154,
+        -0.007107931869779362,
+        -0.0089711272880861,
+        0.044354111512833264,
+        -0.024029735180258607,
+        0.009228876895550082,
+        -0.05645939464818856,
+        -0.006073345487921539
+      ],
+      "speed_L1_rad_s": 0.1562245228826175,
+      "maximum_joint_speed_rad_s": 0.05645939464818856
+    }
+  },
+  {
+    "pair_id": 9624,
+    "source_study": "random-reaching-flat-boundary-tuning-20261016",
+    "source_arm": "FLAT_FEEDBACK10MS",
+    "role": "trapped",
+    "target_xyz": [
+      0.5573819824279654,
+      0.1378851289480789,
+      0.34898513827775274
+    ],
+    "target_rotation": [
+      [
+        -0.5500470844599139,
+        -0.7456931963718084,
+        0.37601843274226165
+      ],
+      [
+        0.7773846514371157,
+        -0.29265551837538095,
+        0.5567996509287994
+      ],
+      [
+        -0.30515784208691776,
+        0.5985769828929566,
+        0.7406647601740092
+      ]
+    ],
+    "goal_reference_single": [
+      0.5573819875717163,
+      0.13788512349128723,
+      0.34898513555526733,
+      0.6796978712081909,
+      0.3101041615009308,
+      2.1865787506103516
+    ],
+    "goal_reference_representation": "Original saved6-vector EEF reference; retile at chosenN, do not reinterpret coordinates",
+    "source_base_dir": "/workspace/GATO/_expr_results/random-reaching-flat-boundary-tuning-20261016/frozen100/FLAT_FEEDBACK10MS/pilot/case_09624/pair_09624",
+    "source_base_inputs_sha256": "350c42b4be5cd53a4ec2c656b95a8025a8f8d0bd578ad036afb25c3ac835717f",
+    "initialization": "Fresh session; repeated actual full14-state hold, zero controls; reset dual and rho once then retain",
+    "restart_time_s": 0.0,
+    "saved_goal_witness_used": false,
+    "case_id": "09624_original",
+    "start_type": "original",
+    "initial_state": [
+      -1.262845553514886,
+      0.46152429224607383,
+      2.404807530816012,
+      -1.1439351476197472,
+      -0.6930180906349512,
+      2.7678777186640735,
+      -1.9562299923436406,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "source_base_time_s": 0.0,
+    "trigger_detection": null
+  },
+  {
+    "pair_id": 9624,
+    "source_study": "random-reaching-flat-boundary-tuning-20261016",
+    "source_arm": "FLAT_FEEDBACK10MS",
+    "role": "trapped",
+    "target_xyz": [
+      0.5573819824279654,
+      0.1378851289480789,
+      0.34898513827775274
+    ],
+    "target_rotation": [
+      [
+        -0.5500470844599139,
+        -0.7456931963718084,
+        0.37601843274226165
+      ],
+      [
+        0.7773846514371157,
+        -0.29265551837538095,
+        0.5567996509287994
+      ],
+      [
+        -0.30515784208691776,
+        0.5985769828929566,
+        0.7406647601740092
+      ]
+    ],
+    "goal_reference_single": [
+      0.5573819875717163,
+      0.13788512349128723,
+      0.34898513555526733,
+      0.6796978712081909,
+      0.3101041615009308,
+      2.1865787506103516
+    ],
+    "goal_reference_representation": "Original saved6-vector EEF reference; retile at chosenN, do not reinterpret coordinates",
+    "source_base_dir": "/workspace/GATO/_expr_results/random-reaching-flat-boundary-tuning-20261016/frozen100/FLAT_FEEDBACK10MS/pilot/case_09624/pair_09624",
+    "source_base_inputs_sha256": "350c42b4be5cd53a4ec2c656b95a8025a8f8d0bd578ad036afb25c3ac835717f",
+    "initialization": "Fresh session; repeated actual full14-state hold, zero controls; reset dual and rho once then retain",
+    "restart_time_s": 0.0,
+    "saved_goal_witness_used": false,
+    "case_id": "09624_trap",
+    "start_type": "trap",
+    "initial_state": [
+      -0.7551111572699923,
+      0.9522130905292955,
+      0.11736680104918233,
+      -1.348255055791671,
+      -0.08958593858614983,
+      1.4161901305652924,
+      -1.9371466172434377,
+      0.001963633737747775,
+      -0.0018697694235525295,
+      0.004972894829653559,
+      0.016923276050689433,
+      0.00813767278507263,
+      -0.002239948606756023,
+      0.0015846747034208325
+    ],
+    "source_base_time_s": 18.02000000000042,
+    "trigger_detection": {
+      "source_base_time_s": 18.02000000000042,
+      "source_feedback_index": 1802,
+      "source_dense_sample_index": 7208,
+      "position_error_m": 0.07757032918094912,
+      "error_one_second_ago_m": 0.07856383697796968,
+      "progress_last_second_m": 0.0009935077970205514,
+      "nearest_penalty_bound_distance_rad": -0.017749076732981206,
+      "nearest_penalty_bound_joint": "arm_right_2_joint",
+      "penalty_bound_distances_rad": [
+        1.0787099328682912,
+        -0.017749076732981206,
+        2.300627076942312,
+        0.89520589700039,
+        1.2812103882087467,
+        1.3857761828649544,
+        0.4808472607480565
+      ],
+      "state": [
+        -0.7551111572699923,
+        0.9522130905292955,
+        0.11736680104918233,
+        -1.348255055791671,
+        -0.08958593858614983,
+        1.4161901305652924,
+        -1.9371466172434377,
+        0.001963633737747775,
+        -0.0018697694235525295,
+        0.004972894829653559,
+        0.016923276050689433,
+        0.00813767278507263,
+        -0.002239948606756023,
+        0.0015846747034208325
+      ],
+      "speed_L1_rad_s": 0.037691870136892784,
+      "maximum_joint_speed_rad_s": 0.016923276050689433
+    }
+  },
+  {
+    "pair_id": 577,
+    "source_study": "random-reaching-flat-boundary-tuning-20261016",
+    "source_arm": "FLAT_FEEDBACK10MS",
+    "role": "trapped",
+    "target_xyz": [
+      0.06879269241011043,
+      -0.6146287416132125,
+      -0.4400306269940491
+    ],
+    "target_rotation": [
+      [
+        -0.373350647149982,
+        0.8835094487432943,
+        -0.28287868115856957
+      ],
+      [
+        0.07794426406931125,
+        -0.2739748466526037,
+        -0.9585731454095597
+      ],
+      [
+        -0.9244100745726347,
+        -0.3799326748030553,
+        0.03342419251998704
+      ]
+    ],
+    "goal_reference_single": [
+      0.06879269331693649,
+      -0.6146287322044373,
+      -0.44003063440322876,
+      -1.4830482006072998,
+      1.1794859170913696,
+      2.935779094696045
+    ],
+    "goal_reference_representation": "Original saved6-vector EEF reference; retile at chosenN, do not reinterpret coordinates",
+    "source_base_dir": "/workspace/GATO/_expr_results/random-reaching-flat-boundary-tuning-20261016/frozen100/FLAT_FEEDBACK10MS/pilot/case_00577/pair_00577",
+    "source_base_inputs_sha256": "9fd3b9b90ac394d3f782d0e479376087585fd3d1326dca43a7ae53e9194b9a8c",
+    "initialization": "Fresh session; repeated actual full14-state hold, zero controls; reset dual and rho once then retain",
+    "restart_time_s": 0.0,
+    "saved_goal_witness_used": false,
+    "case_id": "00577_original",
+    "start_type": "original",
+    "initial_state": [
+      -4.510483207507372,
+      -2.2556969022497584,
+      1.8461949841552525,
+      -0.8871785541809807,
+      1.716170687845588,
+      2.8589253372052825,
+      -1.0516851405394696,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "source_base_time_s": 0.0,
+    "trigger_detection": null
+  },
+  {
+    "pair_id": 577,
+    "source_study": "random-reaching-flat-boundary-tuning-20261016",
+    "source_arm": "FLAT_FEEDBACK10MS",
+    "role": "trapped",
+    "target_xyz": [
+      0.06879269241011043,
+      -0.6146287416132125,
+      -0.4400306269940491
+    ],
+    "target_rotation": [
+      [
+        -0.373350647149982,
+        0.8835094487432943,
+        -0.28287868115856957
+      ],
+      [
+        0.07794426406931125,
+        -0.2739748466526037,
+        -0.9585731454095597
+      ],
+      [
+        -0.9244100745726347,
+        -0.3799326748030553,
+        0.03342419251998704
+      ]
+    ],
+    "goal_reference_single": [
+      0.06879269331693649,
+      -0.6146287322044373,
+      -0.44003063440322876,
+      -1.4830482006072998,
+      1.1794859170913696,
+      2.935779094696045
+    ],
+    "goal_reference_representation": "Original saved6-vector EEF reference; retile at chosenN, do not reinterpret coordinates",
+    "source_base_dir": "/workspace/GATO/_expr_results/random-reaching-flat-boundary-tuning-20261016/frozen100/FLAT_FEEDBACK10MS/pilot/case_00577/pair_00577",
+    "source_base_inputs_sha256": "9fd3b9b90ac394d3f782d0e479376087585fd3d1326dca43a7ae53e9194b9a8c",
+    "initialization": "Fresh session; repeated actual full14-state hold, zero controls; reset dual and rho once then retain",
+    "restart_time_s": 0.0,
+    "saved_goal_witness_used": false,
+    "case_id": "00577_trap",
+    "start_type": "trap",
+    "initial_state": [
+      -4.558831882252528,
+      -2.283324076802849,
+      2.4362251076945602,
+      -2.2843428187888275,
+      3.0316049672008387,
+      1.6279432353947525,
+      -1.1009442867684422,
+      -0.014547074024848575,
+      0.021382845301022996,
+      0.004299459413803409,
+      -0.007761590234139789,
+      0.03526420147995039,
+      -0.026411903107165194,
+      0.01096403090095091
+    ],
+    "source_base_time_s": 7.80000000000026,
+    "trigger_detection": {
+      "source_base_time_s": 7.80000000000026,
+      "source_feedback_index": 780,
+      "source_dense_sample_index": 3120,
+      "position_error_m": 0.4666421168132616,
+      "error_one_second_ago_m": 0.4676121948588081,
+      "progress_last_second_m": 0.0009700780455464963,
+      "nearest_penalty_bound_distance_rad": -0.04644290186783806,
+      "nearest_penalty_bound_joint": "arm_right_1_joint",
+      "penalty_bound_distances_rad": [
+        -0.04644290186783806,
+        -0.03986312401078784,
+        -0.01823122970306601,
+        -0.040881865996766464,
+        0.43358646198725337,
+        1.1740230780354943,
+        1.317049591223052
+      ],
+      "state": [
+        -4.558831882252528,
+        -2.283324076802849,
+        2.4362251076945602,
+        -2.2843428187888275,
+        3.0316049672008387,
+        1.6279432353947525,
+        -1.1009442867684422,
+        -0.014547074024848575,
+        0.021382845301022996,
+        0.004299459413803409,
+        -0.007761590234139789,
+        0.03526420147995039,
+        -0.026411903107165194,
+        0.01096403090095091
+      ],
+      "speed_L1_rad_s": 0.12063110446188126,
+      "maximum_joint_speed_rad_s": 0.03526420147995039
+    }
+  },
+  {
+    "pair_id": 9637,
+    "source_study": "random-reaching-flat-boundary-tuning-20261016",
+    "source_arm": "FLAT_FEEDBACK10MS",
+    "role": "trapped",
+    "target_xyz": [
+      0.639686260373042,
+      0.2814763233967247,
+      -0.4440636429798852
+    ],
+    "target_rotation": [
+      [
+        0.9767901767617821,
+        0.21173877866125979,
+        0.032367270393503116
+      ],
+      [
+        0.20834651634602508,
+        -0.9041146222899535,
+        -0.3730529170077243
+      ],
+      [
+        -0.049726046576856864,
+        0.3711380327755891,
+        -0.9272453186289502
+      ]
+    ],
+    "goal_reference_single": [
+      0.6396862864494324,
+      0.28147631883621216,
+      -0.44406363368034363,
+      2.7608633041381836,
+      0.0497465617954731,
+      0.2101479321718216
+    ],
+    "goal_reference_representation": "Original saved6-vector EEF reference; retile at chosenN, do not reinterpret coordinates",
+    "source_base_dir": "/workspace/GATO/_expr_results/random-reaching-flat-boundary-tuning-20261016/frozen100/FLAT_FEEDBACK10MS/pilot/case_09637/pair_09637",
+    "source_base_inputs_sha256": "926548e68959691470fc7800746fd8de7c5792b01084b6a7df287e78477cd984",
+    "initialization": "Fresh session; repeated actual full14-state hold, zero controls; reset dual and rho once then retain",
+    "restart_time_s": 0.0,
+    "saved_goal_witness_used": false,
+    "case_id": "09637_original",
+    "start_type": "original",
+    "initial_state": [
+      0.1274144384268574,
+      -1.2872843204090672,
+      -0.8431936172245107,
+      0.022847577683801745,
+      3.3930975318336465,
+      0.5294096002068027,
+      -0.23614306059664614,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "source_base_time_s": 0.0,
+    "trigger_detection": null
+  },
+  {
+    "pair_id": 9637,
+    "source_study": "random-reaching-flat-boundary-tuning-20261016",
+    "source_arm": "FLAT_FEEDBACK10MS",
+    "role": "trapped",
+    "target_xyz": [
+      0.639686260373042,
+      0.2814763233967247,
+      -0.4440636429798852
+    ],
+    "target_rotation": [
+      [
+        0.9767901767617821,
+        0.21173877866125979,
+        0.032367270393503116
+      ],
+      [
+        0.20834651634602508,
+        -0.9041146222899535,
+        -0.3730529170077243
+      ],
+      [
+        -0.049726046576856864,
+        0.3711380327755891,
+        -0.9272453186289502
+      ]
+    ],
+    "goal_reference_single": [
+      0.6396862864494324,
+      0.28147631883621216,
+      -0.44406363368034363,
+      2.7608633041381836,
+      0.0497465617954731,
+      0.2101479321718216
+    ],
+    "goal_reference_representation": "Original saved6-vector EEF reference; retile at chosenN, do not reinterpret coordinates",
+    "source_base_dir": "/workspace/GATO/_expr_results/random-reaching-flat-boundary-tuning-20261016/frozen100/FLAT_FEEDBACK10MS/pilot/case_09637/pair_09637",
+    "source_base_inputs_sha256": "926548e68959691470fc7800746fd8de7c5792b01084b6a7df287e78477cd984",
+    "initialization": "Fresh session; repeated actual full14-state hold, zero controls; reset dual and rho once then retain",
+    "restart_time_s": 0.0,
+    "saved_goal_witness_used": false,
+    "case_id": "09637_trap",
+    "start_type": "trap",
+    "initial_state": [
+      0.3491620996850201,
+      -1.027439876999371,
+      -1.4061052331635977,
+      -1.3943849572080778,
+      3.387154965555594,
+      0.8589568710525624,
+      -0.23776102940661767,
+      -0.040714315434830624,
+      -0.21241486043568958,
+      0.429927990279717,
+      -0.13861669583512923,
+      -0.6864979393650259,
+      -0.3828550085560959,
+      0.3784593579410046
+    ],
+    "source_base_time_s": 5.1700000000000825,
+    "trigger_detection": {
+      "source_base_time_s": 5.1700000000000825,
+      "source_feedback_index": 517,
+      "source_dense_sample_index": 2068,
+      "position_error_m": 0.08143677242426571,
+      "error_one_second_ago_m": 0.0824248529241097,
+      "progress_last_second_m": 0.000988080499843988,
+      "nearest_penalty_bound_distance_rad": -0.025563324086721295,
+      "nearest_penalty_bound_joint": "arm_right_1_joint",
+      "penalty_bound_distances_rad": [
+        -0.025563324086721295,
+        1.2160210757926901,
+        1.0118886448278965,
+        0.8490759955839833,
+        0.07803646363249817,
+        1.9430094423776845,
+        2.1802328485848768
+      ],
+      "state": [
+        0.3491620996850201,
+        -1.027439876999371,
+        -1.4061052331635977,
+        -1.3943849572080778,
+        3.387154965555594,
+        0.8589568710525624,
+        -0.23776102940661767,
+        -0.040714315434830624,
+        -0.21241486043568958,
+        0.429927990279717,
+        -0.13861669583512923,
+        -0.6864979393650259,
+        -0.3828550085560959,
+        0.3784593579410046
+      ],
+      "speed_L1_rad_s": 2.269486167847493,
+      "maximum_joint_speed_rad_s": 0.6864979393650259
+    }
+  }
+]

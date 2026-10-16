@@ -1,0 +1,16 @@
+{
+  "cohort": "reaching-long-horizon-terminal10-20261016",
+  "files": {
+    "canonical.json": "3110d344f61f9982263c7fcab12bbd30cea74aafc2223d5e0fea2971a2ae9e70",
+    "protocol.json": "92b3434caafbd1aeb74cd15a7dca617d46ed32bc2e6de22353bd7f447a3db0f5",
+    "tasks.json": "e705d298231c3731d302e14ef0c442f3fc0d7f442544b864e43cf0c7864bef91",
+    "tasks.npz": "57b855d0a490cd19091a1c43955585639a363437795e500cbffb8c3f591f8bab"
+  },
+  "scientific_cases": 30,
+  "start_types": [
+    "original",
+    "trap"
+  ],
+  "new_canonicals": 1,
+  "source": "Saved raw base flat10ms state/goal data only; no goalwitness"
+}
