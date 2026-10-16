@@ -7,6 +7,8 @@ and the explicit `example.run(...)` or `example.run_experiment(...)` call:
 - `figure8_12s.py`: one 12 s figure-eight using the same example.
 - `figure8_12s_dt10ms.py`: one 12 s figure-eight with .01 s prediction knots.
 - `figure8_24s_orientation.py`: one 24 s figure-eight holding the start orientation.
+- `figure8_12s_orientation.py` / `figure8_8s_orientation.py`: the same orientation
+  tracking with 12 s / 8 s period and duration, keeping .03 s prediction knots.
 - `figure8_8s.py`: one 8 s figure-eight with ordinary .03 s prediction knots.
 - `reach_goals.py`: three calls to `tiago_reach_target.py`, one goal per call.
 - `square_forward.py`: one sequential call for four forward-facing pose goals,
@@ -79,6 +81,8 @@ the runtime/reset/handback guards and accept the same optional
 ```bash
 python3 tiago_examples/physical_arm/figure8_12s_dt10ms.py --preview
 python3 tiago_examples/physical_arm/figure8_24s_orientation.py --preview
+python3 tiago_examples/physical_arm/figure8_12s_orientation.py --preview
+python3 tiago_examples/physical_arm/figure8_8s_orientation.py --preview
 python3 tiago_examples/physical_arm/figure8_8s.py --preview
 ```
 
@@ -98,13 +102,17 @@ Its explicit orientation costs .2 (stage) and 4.0 (terminal) are the existing
 tracking example's optional-orientation CLI defaults. Other tracking weights
 remain unchanged. The orientation target and effective solver weights are saved
 by the existing example in the run's ordinary configuration/summary.
+`figure8_12s_orientation.py` and `figure8_8s_orientation.py` use exactly the same
+orientation reference and .2/4.0 weights, with period and duration both 12 s or
+8 s respectively. Both keep .03 s knots and a .93 s horizon; the 8 s variant
+retains the same 266-point/7.98 s sampled cycle described above.
 
 Run a selected variant manually by omitting `--preview`, after reviewing the
 tracking preflight and the actual reset/task/workspace path. Each writes a fresh
 `_expr_results/physical-arm/<backend>/<UTC>-<launcher-name>/tiago_right/` leaf;
 use the existing offline collision replay on that leaf. These additions change
 no native build source/profile. In an existing Jetson checkout, fetch their
-reviewed commit and restore only the three new `.py` files to preserve local
+reviewed commit and restore only the requested new `.py` files to preserve local
 physical backend edits and the existing tracking native module/build paths.
 Set the new launcher's backend/review/topic constants only after the same
 physical review required by the existing launchers.
