@@ -1,0 +1,12 @@
+{
+  "source_commit": "210d0deecf67b69c7ca8ca42c225b0af6110dd19",
+  "source_branch": "experiment/simple-runner",
+  "files_sha256": {
+    "run.py": "70fec340fe2d0fbd78301a7617783eb94728d4f6a2423dccb335177b083e5123",
+    "collect.py": "6f094593d57ff94b8eef21fe3684e5e14817c51a29da9dc393e9a774fa940ed4",
+    "machines.json": "9d362d2cdd4f1f1fab726887c0901cb7873450de1a88becbdbfa81cd043e8f4e",
+    "native/CMakeLists.txt": "07c285afa3d2055c2c8f64c4645bdad01bdeb3391e77f2082aff3c70443df1e2"
+  },
+  "copied_without_modification": true,
+  "central_checkout_modified": false
+}

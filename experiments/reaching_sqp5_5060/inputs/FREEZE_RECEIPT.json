@@ -1,0 +1,27 @@
+{
+  "random_count": 100,
+  "cone_count": 100,
+  "arms": [
+    "NORMAL",
+    "FLAT",
+    "TERMINAL10",
+    "TERMINAL10_FLAT"
+  ],
+  "scientific_episodes": 800,
+  "diagnostic_canonicals": 4,
+  "files": {
+    "FLAT.json": "d1694fcf092188ce744d378a3a0030b2f95d00878846aa131dc9e16720aab390",
+    "NORMAL.json": "5576b24a3a28ca199d2ba8ea3febf08ac4ddcee46cb32afa2d5f82cebd33a3d0",
+    "SAMPLER_CPU_RECEIPT.json": "b43785c96c723f6af1ca6019a0aa91e68a28e24cbbddcc8567d0c12cc502235f",
+    "TERMINAL10.json": "35d6ecb7880455a892c97438621cc17c6855b79d446a9c918b21fcf91c4df9f0",
+    "TERMINAL10_FLAT.json": "f38861699a28998e49a13be417e6c25c2cb17d66fa022b2060b1dcfbf0758311",
+    "canonical.json": "3110d344f61f9982263c7fcab12bbd30cea74aafc2223d5e0fea2971a2ae9e70",
+    "cone_targets.json": "dcda342c7ea8dfc86c4b7523f37ce54d2e0bea34b9b807618844ee23dbb11072",
+    "cone_targets.npz": "ac2ea04bba314d9ecfd9ffaea635c6aeb0bc1988cdfc714c9e5909c79df6d545",
+    "resource_estimate.json": "5b90f3aa1df2e48682f29c7429d95925deb7b74662cf9b72443146c1a9053fa3",
+    "tasks.json": "ab8e6605c7e3f0ca6591eb73034b52626898ee3e14d08e801f559458ce105170"
+  },
+  "native_solver_calls": 0,
+  "controller_calls": 0,
+  "GPU_calls": 0
+}

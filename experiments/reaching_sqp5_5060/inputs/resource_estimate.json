@@ -1,0 +1,32 @@
+{
+  "episodes": 800,
+  "diagnostic_canonicals": 4,
+  "maximum_feedback_solves": 804000,
+  "planning_wall_minutes": [
+    30,
+    120
+  ],
+  "compilation_additional": true,
+  "source": "Retained GTX1070 cone100/conditional13,terminal100 and flat10ms100 metrics; not fresh RTX5060 measurements.",
+  "retained_native_ms_per_reported_SQP": [
+    0.32,
+    0.35
+  ],
+  "retained_CPU_and_recording_overhead_ms_per_feedback": [
+    1.6,
+    4.4
+  ],
+  "uncertainty": "NewSQP5 trajectories/arrival times, CPU and targetGPU unknown; no deadline or silent pruning.",
+  "raw_allowance_GB": [
+    2,
+    5
+  ],
+  "separate_backup_allowance_GB": [
+    2,
+    5
+  ],
+  "build_cache_additional": true,
+  "maximum_dense_execution_uncompressed_GB": 1.75,
+  "recording": "Dense raw state/control/time+observations, initial seed/goal, typed native work and per-feedback work/timing. Routine full solver horizons omitted.",
+  "approximate_files_per_episode": 10
+}

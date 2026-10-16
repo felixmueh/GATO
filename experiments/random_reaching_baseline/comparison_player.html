@@ -1,0 +1,46 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>Recorded TIAGo MPC comparison</title>
+<style>body{font:15px system-ui;margin:20px;background:#fafbfc;color:#182430}h1{font-size:23px;margin:0 0 9px}.note{max-width:1100px;color:#4b5968;line-height:1.5}canvas{width:100%;height:65vh;min-height:400px;background:white;border:1px solid #d7dfe6;border-radius:8px;cursor:grab;margin:15px 0}button{border:1px solid #bccad6;background:white;padding:8px 14px;border-radius:5px;margin-right:10px}input[type=range]{width:min(65vw,900px);vertical-align:middle}#clock{margin:0 10px;font-variant-numeric:tabular-nums}small{display:block;margin-top:13px;color:#637485}</style>
+<h1>Recorded TIAGo MPC episodes</h1>
+<div class="note">Same initial state and goal. Solid trails follow the recorded hand motion; dotted trails follow the elbow. The pale robot is fixed display context. Drag to rotate all views together; scroll to zoom. Physical and task labels come from the recorded episode, not this display. Goal axes are visual context; recorded arrival policies remain unchanged.</div>
+<canvas id="canvas"></canvas><div><button id="play">Pause</button><button id="reset">Reset view</button><input id="slider" type="range" min="0" step="1"><span id="clock"></span></div>
+<small>Joint poses are sampled from recorded executed states, with linear interpolation for display only. No torques are replayed. After an episode ends, its last pose remains visible and is explicitly marked ENDED; this is not unrecorded post-arrival motion. These are complete recorded MPC episodes, not one N32 prediction window. Images do not establish local minima, batching benefit or collision clearance.</small>
+<script>
+const D=__PAYLOAD__;
+const canvas=document.getElementById('canvas'),ctx=canvas.getContext('2d'),slider=document.getElementById('slider'),clock=document.getElementById('clock');
+let frame=0,playing=true,yaw=-55*Math.PI/180,pitch=18*Math.PI/180,zoom=1,last=performance.now(),drag=null;
+slider.max=D.times.length-1;
+const subtract=(a,b)=>a.map((v,i)=>v-b[i]);
+function camera(p){const [x,y,z]=subtract(p,D.center),cy=Math.cos(yaw),sy=Math.sin(yaw),cp=Math.cos(pitch),sp=Math.sin(pitch);return [-sy*x+cy*y,cp*z-sp*(cy*x+sy*y),cp*(cy*x+sy*y)+sp*z];}
+function transform(p,m){return m.map(r=>r[0]*p[0]+r[1]*p[1]+r[2]*p[2]+r[3]);}
+function color(hex,b,a){const h=hex.replace('#','');return `rgba(${[0,2,4].map(i=>Math.round(parseInt(h.slice(i,i+2),16)*b)).join(',')},${a})`;}
+function render(){
+ const ratio=devicePixelRatio||1,w=canvas.clientWidth,h=canvas.clientHeight;canvas.width=w*ratio;canvas.height=h*ratio;ctx.setTransform(ratio,0,0,ratio,0,0);ctx.clearRect(0,0,w,h);
+ const count=D.labels.length,pw=w/(count+1),scale=Math.min(pw*.85,h*.8)/D.size*zoom;
+ for(let panel=0;panel<count+1;panel++){
+  ctx.save();ctx.beginPath();ctx.rect(panel*pw,0,pw,h);ctx.clip();const xc=(panel+.5)*pw,yc=h*.53;
+  const project=p=>{const c=camera(p);return [xc+c[0]*scale,yc-c[1]*scale,c[2]];};
+  let polygons=[];
+  function add(tris,hex,alpha,matrix=null){for(const tri of tris){const world=matrix?tri.map(p=>transform(p,matrix)):tri,screen=world.map(project);const u=subtract(world[1],world[0]),v=subtract(world[2],world[0]);const n=[u[1]*v[2]-u[2]*v[1],u[2]*v[0]-u[0]*v[2],u[0]*v[1]-u[1]*v[0]],length=Math.hypot(...n);const shade=.45+.55*Math.abs((n[0]*.4-n[1]*.4+n[2]*.82)/(length||1));polygons.push({screen,fill:color(hex,shade,alpha),depth:screen.reduce((s,p)=>s+p[2],0)/3});}}
+  add(D.static,'#d7dfe3',.13);
+  const candidates=panel<count?[panel]:Array.from({length:count},(_,i)=>i);
+  for(const c of candidates)D.meshes.forEach((mesh,j)=>add(mesh,D.colors[c],panel<count?.97:.57,D.transforms[c][frame][j]));
+  polygons.sort((a,b)=>a.depth-b.depth);
+  for(const p of polygons){ctx.beginPath();p.screen.forEach((s,i)=>i?ctx.lineTo(s[0],s[1]):ctx.moveTo(s[0],s[1]));ctx.closePath();ctx.fillStyle=p.fill;ctx.fill();}
+  function trail(points,col,dash){ctx.beginPath();points.slice(0,frame+1).forEach((p,i)=>{const s=project(p);i?ctx.lineTo(s[0],s[1]):ctx.moveTo(s[0],s[1]);});ctx.strokeStyle=col;ctx.lineWidth=dash?2:3;ctx.setLineDash(dash?[3,4]:[]);ctx.stroke();ctx.setLineDash([]);}
+  for(const c of candidates){trail(D.tools[c],D.colors[c],false);trail(D.elbows[c],D.colors[c],true);const elbow=project(D.elbows[c][frame]);ctx.beginPath();ctx.arc(elbow[0],elbow[1],5,0,2*Math.PI);ctx.fillStyle=D.colors[c];ctx.fill();}
+  const goal=project(D.goal);ctx.fillStyle='#152334';ctx.font='bold 21px system-ui';ctx.fillText('★',goal[0]-9,goal[1]+7);
+  ['#c53333','#2d983f','#3459c4'].forEach((col,j)=>{const endpoint=D.goal.map((v,i)=>v+.075*D.goalRotation[i][j]),end=project(endpoint);ctx.beginPath();ctx.moveTo(goal[0],goal[1]);ctx.lineTo(end[0],end[1]);ctx.strokeStyle=col;ctx.lineWidth=2;ctx.stroke();});
+  ctx.fillStyle='#182430';ctx.font='bold 16px system-ui';ctx.textAlign='center';ctx.fillText(panel<count?D.labels[panel]:'Recorded-path overlay',xc,28);if(panel<count){const e=D.episodes[panel],ended=D.times[frame]>e.duration_s+1e-9;ctx.font='12px system-ui';ctx.fillText(`${e.outcome}; task ${e.task_success?'PASS':'FAIL'}; physical ${e.physical_pass?'PASS':'FAIL'}${e.execution_error?'; ERROR':''}`,xc,48);ctx.fillStyle=ended?'#9a370d':'#425464';ctx.fillText(ended?`ENDED at ${e.duration_s.toFixed(2)} s — last recorded pose`:`Recorded t=${Math.min(D.times[frame],e.duration_s).toFixed(2)} s`,xc,67);}ctx.textAlign='left';ctx.restore();
+  if(panel){ctx.beginPath();ctx.moveTo(panel*pw,45);ctx.lineTo(panel*pw,h-15);ctx.strokeStyle='#e2e7ec';ctx.lineWidth=1;ctx.stroke();}
+ }
+ slider.value=frame;clock.textContent=`${D.times[frame].toFixed(2)} / ${D.times.at(-1).toFixed(2)} s`;
+}
+function tick(now){if(playing&&now-last>=1000*(D.times[1]-D.times[0])){frame=(frame+1)%D.times.length;last=now;render();}requestAnimationFrame(tick);}
+document.getElementById('play').onclick=()=>{playing=!playing;document.getElementById('play').textContent=playing?'Pause':'Play';};
+document.getElementById('reset').onclick=()=>{yaw=-55*Math.PI/180;pitch=18*Math.PI/180;zoom=1;render();};
+slider.oninput=()=>{frame=+slider.value;playing=false;document.getElementById('play').textContent='Play';render();};
+canvas.onpointerdown=e=>{drag=[e.clientX,e.clientY];canvas.setPointerCapture(e.pointerId);};
+canvas.onpointerup=()=>drag=null;canvas.onpointermove=e=>{if(!drag)return;yaw+=(e.clientX-drag[0])*.006;pitch=Math.max(-1.3,Math.min(1.3,pitch+(e.clientY-drag[1])*.006));drag=[e.clientX,e.clientY];render();};
+canvas.onwheel=e=>{e.preventDefault();zoom=Math.max(.5,Math.min(3,zoom*Math.exp(-e.deltaY*.001)));render();};
+window.onresize=render;render();requestAnimationFrame(tick);
+</script></html>

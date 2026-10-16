@@ -1,6 +1,14 @@
 {
-  "local": {"cuda_arch": null},
-  "gtx1070": {"cuda_arch": "61-real"},
-  "rtx5060": {"cuda_arch": "120-real"},
-  "jetson": {"cuda_arch": "87-real"}
+  "local": {
+    "cuda_arch": null
+  },
+  "gtx1070": {
+    "cuda_arch": "61"
+  },
+  "rtx5060": {
+    "cuda_arch": "120"
+  },
+  "jetson": {
+    "cuda_arch": "87"
+  }
 }

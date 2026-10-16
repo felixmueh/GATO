@@ -81,4 +81,5 @@ markers = [
     "cuda: requires a CUDA-capable runtime environment",
     "tracking: runs a short end-to-end MPC tracking scenario",
     "performance: collects timing metrics and optional artifacts",
+    "task_regression: opt-in TIAGo closed-loop reaching and tracking quality checks",
 ]

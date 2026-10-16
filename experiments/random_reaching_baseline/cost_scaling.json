@@ -1,0 +1,373 @@
+{
+  "schema": "reviewed-c2-cost-scales-v1",
+  "rows": 409,
+  "numerical_source_base": "85ef2ea5cf5b96726be6f4b5441f4a7c0ca041b4",
+  "script_sha256": "4c05afc063789beb8ae41104498974d145c00d6ef22e453a0a94d19eb5288b7a",
+  "helper_sha256": "effd36439784b4bd17931833a5e5d6e7085b55f0d7473b30a8f9baf06a693979",
+  "source_sha256": {
+    "tiago_right_plant.cuh": "9dd91de48dac76375914bdd1ad7a83075a5fa0ecd21cf6291cb6014b60eef46f",
+    "tiago_right_arm.urdf": "8e1fd973a1d1c3fbddd55039e6eb17b355ebb29f46e1bd8c774b7879c2cdc5bb",
+    "tiago_right_cost_limits.cuh": "388244d7201b113caacb263591cd0fe07f41d4d6a82ae4d0e0ce4482eecdd1e7"
+  },
+  "csv_sha256": "f5a0c01b66fe1919f5e50bcfdfa91af0fd727499daa6bea794bd3ecc696ba63b",
+  "relative_cost_reference": "same-bound interval center; removes arbitrary log constant",
+  "derivative_units": "cost per variable_unit and cost per variable_unit squared; never compare categories directly",
+  "stage_scope": "one scalar at one running knot; native objective sums knots without dt scaling",
+  "increment_scope": "finite increase x -> x+increment, including outside raw physical bounds as descriptive arithmetic",
+  "gravity_points": {
+    "source": "Independent CPU physical-scale calculation, same12 frozen initial postures; rounded representative inputs",
+    "absolute_median_Nm": [
+      5.473,
+      10.461,
+      2.174,
+      6.072,
+      0.542,
+      0.667,
+      0.00104
+    ],
+    "absolute_max_Nm": [
+      11.395,
+      22.954,
+      8.385,
+      9.799,
+      1.4,
+      1.419,
+      0.00308
+    ]
+  },
+  "balanced_wide_candidate": {
+    "status": "M4 combined retuning; measured task outcomes are retained separately, not a margin-only effect",
+    "joint_margin_rad": 0.1,
+    "velocity_fraction": 0.8,
+    "effort_fraction": 0.85,
+    "q_lim_cost": 0.01,
+    "vel_lim_cost": 0.2,
+    "ctrl_lim_cost": 0.01,
+    "qd_cost": 0.05,
+    "u_cost": 0.0001,
+    "mu": 10,
+    "zero_speed_total_curvature": 0.15000000000000002,
+    "M0_zero_speed_total_curvature": 0.13950617283950617,
+    "physical_speed_limit_gradient": 72.45555555555556,
+    "M0_physical_speed_limit_gradient": 16.769070825211177
+  },
+  "firmer_wide_candidate": {
+    "status": "M5 checkpoint before later joint-only follow-up; task outcomes retained separately",
+    "joint_margin_rad": 0.1,
+    "velocity_fraction": 0.8,
+    "effort_fraction": 0.85,
+    "q_lim_cost": 0.015,
+    "vel_lim_cost": 0.6,
+    "ctrl_lim_cost": 0.02,
+    "qd_cost": 0.05,
+    "u_cost": 0.0001,
+    "mu": 10,
+    "zero_speed_total_curvature": 0.35,
+    "M1_zero_speed_total_curvature": 0.4950617283950617,
+    "physical_speed_limit_gradient": 217.36666666666665,
+    "added_scalar_rows": {
+      "velocity": 4,
+      "joint": 14,
+      "effort": 28
+    }
+  },
+  "joint_margin_followup": {
+    "status": "Later explicit user priority supersedes the M5 stopping point before validation; no 100-task validation or horizon runs launched",
+    "fixed_other_M5_parameters": {
+      "vel_lim_cost": 0.6,
+      "ctrl_lim_cost": 0.02,
+      "qd_cost": 0.05,
+      "u_cost": 0.0001,
+      "mu": 10,
+      "velocity_fraction": 0.8,
+      "effort_fraction": 0.85
+    },
+    "selected_first": {
+      "label": "M6",
+      "joint_margin_rad": 0.15,
+      "q_lim_cost": 0.01
+    },
+    "conditional_physical_failure": {
+      "label": "M7",
+      "joint_margin_rad": 0.2,
+      "q_lim_cost": 0.005,
+      "status": "Selected and executed after M6 physical failure; outcome remains recorded separately"
+    },
+    "alternative_canonical_progress_failure": {
+      "joint_margin_rad": 0.15,
+      "q_lim_cost": 0.005,
+      "status": "Unexecuted preparation; alternative second branch, not another queued case"
+    },
+    "one_factor_followup": {
+      "label": "M8",
+      "joint_margin_rad": 0.2,
+      "q_lim_cost": 0.01,
+      "comparison": "M7/M8 changes only weight; M6/M8 changes only joint margin; selected after M7 physical failure"
+    },
+    "added_scalar_rows": 56,
+    "velocity_curve": "M6/M7/M8 unchanged from M5; no duplicate curve"
+  },
+  "selected_M14_accounting": {
+    "status": "Selected development candidate; full twelve-task pilot pending at accounting snapshot, not a final freeze or qualification",
+    "protocol_path": "/workspace/GATO-random-reaching-margins/experiments/random_reaching_baseline/protocols/M14-joint-speed-mid02125.json",
+    "protocol_sha256": "786f98c8c4762af29342befe7ed169fdce8e9389a4799d61820849720f4ab7fb",
+    "protocol_id": "random-reaching-margins-M14-joint-speed-mid02125-A-b1-sqp1000-v1",
+    "source_base": "85ef2ea5cf5b96726be6f4b5441f4a7c0ca041b4",
+    "native_module_sha256": "d9bee23f90a1d7816b32db23749bd651db2a7537f94c3dfec15f1a448bb34cc8",
+    "joint_margin_rad": 0.2,
+    "solver_params": {
+      "max_sqp_iters": 1000,
+      "kkt_tol": 0.001,
+      "max_pcg_iters": 120,
+      "pcg_tol": 0.001,
+      "solve_ratio": 1.0,
+      "mu": 10.0,
+      "q_cost": 4.0,
+      "qd_cost": 0.05,
+      "u_cost": 0.0001,
+      "N_cost": 80.0,
+      "ee_orient_cost": 0.1,
+      "ee_orient_N_cost": 2.0,
+      "q_lim_cost": 0.02125,
+      "vel_lim_cost": 1.275,
+      "ctrl_lim_cost": 0.02,
+      "rho": 0.01
+    },
+    "canonical_fixture": "/workspace/GATO-experiment-runner-simple/experiments/inputs/batching/ba_preflight.json",
+    "canonical_fixture_sha256": "5bc199b3f4a2ccb256ed1a9dbd18a027533ac41c73bc2ae8958f55a4765587f6",
+    "task2342_start_pool_index": 897,
+    "task2342_actual_start_q4_rad": 1.0028412172525591,
+    "frozen_input_sha256": {
+      "pool.npz": "e3cf5bbd3385eed74a8ccfb6fa341787b0d1b1c5f8514d08437c8640916e98b3",
+      "pairs.npz": "a5fbf2b7897a0e104b98a86d792690e12c29e1b755108548a45aa058eeb26aa7"
+    },
+    "added_scalar_rows": 7,
+    "J1_physical_upper_gradient": 2.69187425387374,
+    "canonical_J4_gradient": -3.572594130579891,
+    "task2342_start_J4_gradient": 2.76954696434707,
+    "zero_speed_total_curvature": 0.6875,
+    "physical_speed_limit_gradient": 461.90416666666664,
+    "physical_speed_total_gradient": 462.02916666666664,
+    "J1_C2_transition_physical_clearance_rad": 0.2483598775598299,
+    "sampled_J1_braking_plus_feedback_travel_rad": 0.192,
+    "physical_scale_limitation": "Sampled frozen-posture braking plus one 30ms prefix at 2rad/s is motivation, not a coupled-dynamics guarantee",
+    "velocity_figure": "Original M0/M1/M4/M5 checkpoint figure retained; M14 represented numerically only"
+  },
+  "merit_defect_examples": [
+    {
+      "component": "one joint q [rad]",
+      "absolute_defect": 0.001,
+      "merit_at_mu1": 0.001,
+      "merit_at_mu10": 0.01,
+      "merit_at_mu100": 0.1
+    },
+    {
+      "component": "one joint velocity [rad/s]",
+      "absolute_defect": 0.01,
+      "merit_at_mu1": 0.01,
+      "merit_at_mu10": 0.1,
+      "merit_at_mu100": 1.0
+    },
+    {
+      "component": "one joint velocity [rad/s]",
+      "absolute_defect": 0.1,
+      "merit_at_mu1": 0.1,
+      "merit_at_mu10": 1.0,
+      "merit_at_mu100": 10.0
+    }
+  ],
+  "limitations": [
+    "CPU scalar arithmetic, not native numerical qualification or a physical guarantee",
+    "mu mixes unnormalized position and velocity defects and sums them across knots",
+    "joint position cost weight q_cost acts on Cartesian meters; there is no matching ordinary joint q quadratic",
+    "Representative gravity points are rounded; use the separate physical-scale records for their full provenance"
+  ],
+  "canonical_accounting": {
+    "fixture": "/workspace/GATO-experiment-runner-simple/experiments/inputs/batching/ba_preflight.json",
+    "fixture_sha256": "5bc199b3f4a2ccb256ed1a9dbd18a027533ac41c73bc2ae8958f55a4765587f6",
+    "pinocchio_version": "3.9.0",
+    "q": [
+      -0.38999998569488525,
+      -1.7300000190734863,
+      -0.3799999952316284,
+      -2.3499999046325684,
+      0.0,
+      -1.2100000381469727,
+      0.03999999910593033
+    ],
+    "raw_minimum_clearance_rad": 0.09346104815949285,
+    "running_pose_cost": 0.022625597182885343,
+    "running_pose_gradient_cost_per_rad": [
+      -0.034900232419310395,
+      -0.09818349682409744,
+      -0.0016955216050607014,
+      0.01419907644586993,
+      0.0025264150303044852,
+      -0.01729680916551235,
+      9.272293349793514e-05
+    ],
+    "terminal_pose_gradient_cost_per_rad": [
+      -0.6980046483862079,
+      -1.9636699364819488,
+      -0.03391043210121403,
+      0.2839815289173986,
+      0.050528300606089704,
+      -0.345936183310247,
+      0.001854458669958703
+    ],
+    "finite_difference_step_rad": 1e-06,
+    "q_limit_comparisons": [
+      {
+        "joint_margin_rad": 0.02,
+        "q_lim_cost": 0.01,
+        "q_limit_gradient_cost_per_rad": [
+          0.00886641479309882,
+          -0.010904822212981245,
+          -0.0011506134407631942,
+          -0.13324011353740553,
+          -0.0037049598801997203,
+          -0.012882696288280617,
+          0.00011855413145982263
+        ],
+        "norm_ratio_to_running_pose_gradient": 1.2629118358621805,
+        "gradient_cosine_with_running_pose": -0.0637479171718338
+      },
+      {
+        "joint_margin_rad": 0.02,
+        "q_lim_cost": 0.1,
+        "q_limit_gradient_cost_per_rad": [
+          0.0886641479309882,
+          -0.10904822212981245,
+          -0.011506134407631942,
+          -1.3324011353740555,
+          -0.0370495988019972,
+          -0.12882696288280618,
+          0.0011855413145982264
+        ],
+        "norm_ratio_to_running_pose_gradient": 12.629118358621806,
+        "gradient_cosine_with_running_pose": -0.06374791717183381
+      },
+      {
+        "joint_margin_rad": 0.1,
+        "q_lim_cost": 0.01,
+        "q_limit_gradient_cost_per_rad": [
+          0.009922743320554967,
+          -0.012683618796000773,
+          -0.0012266189380852012,
+          -0.6464318470015152,
+          -0.003994139446825656,
+          -0.014960722238796477,
+          0.00012620897726143277
+        ],
+        "norm_ratio_to_running_pose_gradient": 6.066512377344698,
+        "gradient_cosine_with_running_pose": -0.11642121725100842
+      },
+      {
+        "joint_margin_rad": 0.1,
+        "q_lim_cost": 0.015,
+        "q_limit_gradient_cost_per_rad": [
+          0.014884114980832449,
+          -0.01902542819400116,
+          -0.0018399284071278015,
+          -0.9696477705022728,
+          -0.005991209170238484,
+          -0.022441083358194714,
+          0.00018931346589214914
+        ],
+        "norm_ratio_to_running_pose_gradient": 9.099768566017046,
+        "gradient_cosine_with_running_pose": -0.11642121725100844
+      },
+      {
+        "joint_margin_rad": 0.1,
+        "q_lim_cost": 0.02,
+        "q_limit_gradient_cost_per_rad": [
+          0.019845486641109935,
+          -0.025367237592001546,
+          -0.0024532378761704023,
+          -1.2928636940030305,
+          -0.007988278893651312,
+          -0.029921444477592953,
+          0.00025241795452286554
+        ],
+        "norm_ratio_to_running_pose_gradient": 12.133024754689396,
+        "gradient_cosine_with_running_pose": -0.11642121725100842
+      },
+      {
+        "joint_margin_rad": 0.15,
+        "q_lim_cost": 0.01,
+        "q_limit_gradient_cost_per_rad": [
+          0.01069917449222965,
+          -0.014063490817605589,
+          -0.0012780425532439932,
+          -1.1333417689466434,
+          -0.004193511200507578,
+          -0.016587369886429924,
+          0.00013137596463211055
+        ],
+        "norm_ratio_to_running_pose_gradient": 10.632117638142075,
+        "gradient_cosine_with_running_pose": -0.12250272522122163
+      },
+      {
+        "joint_margin_rad": 0.15,
+        "q_lim_cost": 0.005,
+        "q_limit_gradient_cost_per_rad": [
+          0.005349587246114825,
+          -0.007031745408802794,
+          -0.0006390212766219966,
+          -0.5666708844733217,
+          -0.002096755600253789,
+          -0.008293684943214962,
+          6.568798231605528e-05
+        ],
+        "norm_ratio_to_running_pose_gradient": 5.316058819071038,
+        "gradient_cosine_with_running_pose": -0.12250272522122163
+      },
+      {
+        "joint_margin_rad": 0.2,
+        "q_lim_cost": 0.005,
+        "q_limit_gradient_cost_per_rad": [
+          0.0057938496844634965,
+          -0.007861289177179286,
+          -0.0006663984156792704,
+          -0.8406103836658566,
+          -0.0022045931538141367,
+          -0.009281029165637734,
+          6.843345275393875e-05
+        ],
+        "norm_ratio_to_running_pose_gradient": 7.88512348097386,
+        "gradient_cosine_with_running_pose": -0.12505919497704956
+      },
+      {
+        "joint_margin_rad": 0.2,
+        "q_lim_cost": 0.01,
+        "q_limit_gradient_cost_per_rad": [
+          0.011587699368926993,
+          -0.01572257835435857,
+          -0.0013327968313585408,
+          -1.6812207673317132,
+          -0.004409186307628273,
+          -0.018562058331275468,
+          0.0001368669055078775
+        ],
+        "norm_ratio_to_running_pose_gradient": 15.77024696194772,
+        "gradient_cosine_with_running_pose": -0.12505919497704956
+      },
+      {
+        "joint_margin_rad": 0.2,
+        "q_lim_cost": 0.02125,
+        "q_limit_gradient_cost_per_rad": [
+          0.024623861158969862,
+          -0.033410479003011966,
+          -0.0028321932666368994,
+          -3.572594130579891,
+          -0.009369520903710082,
+          -0.039444373953960374,
+          0.0002908421742042397
+        ],
+        "norm_ratio_to_running_pose_gradient": 33.51177479413891,
+        "gradient_cosine_with_running_pose": -0.12505919497704962
+      }
+    ],
+    "limitation": "Local scalar objective accounting at canonical start; excludes dynamics, feasible directions and later trajectory behavior; not a causal explanation for a timeout"
+  }
+}

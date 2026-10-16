@@ -5,6 +5,8 @@
 
 #include "tiago_right_grid.cuh"
 #include "tiago_right_limits.cuh"
+#include "tiago_right_cost_limits.cuh"
+#include "tiago_right_barrier.cuh"
 
 using namespace sqp;
 
@@ -206,52 +208,40 @@ namespace plant {
                 gpuErrchk(cudaFree(d_dynMem_const));
         }
 
-        template<class T>
-        __device__ T jointBarrier(T q, T q_min, T q_max)
-        {
-                T dist_min = q - q_min;
-                T dist_max = q_max - q;
-                dist_min = (dist_min <= 1e-10) ? 1e-10 : dist_min;
-                dist_max = (dist_max <= 1e-10) ? 1e-10 : dist_max;
-                return -log(dist_min) - log(dist_max);
-        }
+#if defined(TIAGO_EXPERIMENT_JOINT_COST_MODES)
+        // Private experiment state is module/context-global, not solver-local.
+        // Set once before a fresh B1 session; never mix simultaneous sessions.
+        struct TiagoExperimentJointCost {
+                int mode;
+                double reference[7];
+        };
+        __device__ __constant__ TiagoExperimentJointCost tiago_experiment_joint_cost = {};
 
         template<class T>
-        __device__ T jointBarrierGradient(T q, T q_min, T q_max)
+        __device__ T tiagoJointPositionBarrier(T q, T lower, T upper, int joint)
         {
-                T dist_min = q - q_min;
-                T dist_max = q_max - q;
-                const T eps = static_cast<T>(1e-6);
-
-                if (dist_min >= static_cast<T>(0)) {
-                        if (dist_min < eps) dist_min = eps;
-                } else {
-                        if (dist_min > -eps) dist_min = -eps;
-                }
-
-                if (dist_max >= static_cast<T>(0)) {
-                        if (dist_max < eps) dist_max = eps;
-                } else {
-                        if (dist_max > -eps) dist_max = -eps;
-                }
-
-                return (-static_cast<T>(1) / dist_min) + (static_cast<T>(1) / dist_max);
+                return tiagoJointShapeValue(q, lower, upper, static_cast<T>(TIAGO_COST_JOINT_MARGIN_RAD),
+                    tiago_experiment_joint_cost.mode, static_cast<T>(tiago_experiment_joint_cost.reference[joint]));
         }
-
         template<class T>
-        __device__ T jointBarrierHessian(T q, T q_min, T q_max)
+        __device__ T tiagoJointPositionBarrierGradient(T q, T lower, T upper, int joint)
         {
-                T dist_min = q - q_min;
-                T dist_max = q_max - q;
-                const T eps = static_cast<T>(1e-6);
-
-                T abs_min = dist_min >= static_cast<T>(0) ? dist_min : -dist_min;
-                T abs_max = dist_max >= static_cast<T>(0) ? dist_max : -dist_max;
-                if (abs_min < eps) abs_min = eps;
-                if (abs_max < eps) abs_max = eps;
-
-                return static_cast<T>(1.0) / (abs_min * abs_min) + static_cast<T>(1.0) / (abs_max * abs_max);
+                return tiagoJointShapeGradient(q, lower, upper, static_cast<T>(TIAGO_COST_JOINT_MARGIN_RAD),
+                    tiago_experiment_joint_cost.mode, static_cast<T>(tiago_experiment_joint_cost.reference[joint]));
         }
+        template<class T>
+        __device__ T tiagoJointPositionBarrierHessian(T q, T lower, T upper, int joint)
+        {
+                return tiagoJointShapeHessian(q, lower, upper, static_cast<T>(TIAGO_COST_JOINT_MARGIN_RAD),
+                    tiago_experiment_joint_cost.mode, static_cast<T>(tiago_experiment_joint_cost.reference[joint]));
+        }
+#else
+        // With the experimental build flag absent, these macros preserve the
+        // original call expression, including for velocity and effort costs.
+#define tiagoJointPositionBarrier(q,l,u,i) jointBarrier(q,l,u)
+#define tiagoJointPositionBarrierGradient(q,l,u,i) jointBarrierGradient(q,l,u)
+#define tiagoJointPositionBarrierHessian(q,l,u,i) jointBarrierHessian(q,l,u)
+#endif
 
         template<typename T>
         __device__ void forwardDynamics(T* s_qdd, T* s_q, T* s_qd, T* s_u, T* s_XITemp, void* d_dynMem_const)
@@ -398,12 +388,15 @@ namespace plant {
                         if (i < state_size / 2) {
                                 err = s_xu[i + state_size / 2];
                                 s_cost_vec[i] = static_cast<T>(0.5) * qd_cost * err * err;
-                                s_cost_vec[i] += q_lim_cost * jointBarrier(s_xu[i], JOINT_LIMITS<T>()[i][0], JOINT_LIMITS<T>()[i][1]);
-                                s_cost_vec[i] += vel_lim_cost * jointBarrier(s_xu[i + state_size / 2], VEL_LIMITS<T>()[i][0], VEL_LIMITS<T>()[i][1]);
+                                const auto q_bounds = tiagoJointCostBounds(JOINT_LIMITS<T>()[i][0], JOINT_LIMITS<T>()[i][1]);
+                                const auto v_bounds = tiagoVelocityCostBounds(VEL_LIMITS<T>()[i][0], VEL_LIMITS<T>()[i][1]);
+                                s_cost_vec[i] += q_lim_cost * tiagoJointPositionBarrier(s_xu[i], q_bounds.lower, q_bounds.upper, i);
+                                s_cost_vec[i] += vel_lim_cost * jointBarrier(s_xu[i + state_size / 2], v_bounds.lower, v_bounds.upper);
                         } else {
                                 err = s_xu[i + state_size / 2];
                                 s_cost_vec[i] = static_cast<T>(0.5) * u_cost * err * err;
-                                s_cost_vec[i] += ctrl_lim_cost * jointBarrier(s_xu[i + state_size / 2], CTRL_LIMITS<T>()[i - state_size / 2][0], CTRL_LIMITS<T>()[i - state_size / 2][1]);
+                                const auto u_bounds = tiagoControlCostBounds(CTRL_LIMITS<T>()[i - state_size / 2][0], CTRL_LIMITS<T>()[i - state_size / 2][1]);
+                                s_cost_vec[i] += ctrl_lim_cost * jointBarrier(s_xu[i + state_size / 2], u_bounds.lower, u_bounds.upper);
                         }
                 }
                 if (track_orientation) {
@@ -520,14 +513,17 @@ namespace plant {
                                             + pillar_workspace_gradient[1] * s_eePos_grad[6 * i + 1] * tiagoJointSign<T>(i);
                                         s_qk[i] += ee_orient_cost * pillar_residual * pillar_jacobian;
 #endif
-                                        s_qk[i] += q_lim_cost * jointBarrierGradient(s_xu[i], JOINT_LIMITS<T>()[i][0], JOINT_LIMITS<T>()[i][1]);
+                                        const auto q_bounds = tiagoJointCostBounds(JOINT_LIMITS<T>()[i][0], JOINT_LIMITS<T>()[i][1]);
+                                        s_qk[i] += q_lim_cost * tiagoJointPositionBarrierGradient(s_xu[i], q_bounds.lower, q_bounds.upper, i);
                                 } else {
                                         s_qk[i] = qd_cost * s_xu[i];
-                                        s_qk[i] += vel_lim_cost * jointBarrierGradient(s_xu[i], VEL_LIMITS<T>()[i - grid::NUM_JOINTS][0], VEL_LIMITS<T>()[i - grid::NUM_JOINTS][1]);
+                                        const auto v_bounds = tiagoVelocityCostBounds(VEL_LIMITS<T>()[i - grid::NUM_JOINTS][0], VEL_LIMITS<T>()[i - grid::NUM_JOINTS][1]);
+                                        s_qk[i] += vel_lim_cost * jointBarrierGradient(s_xu[i], v_bounds.lower, v_bounds.upper);
                                 }
                         } else {
                                 s_rk[i - state_size] = u_cost * s_xu[i];
-                                s_rk[i - state_size] += ctrl_lim_cost * jointBarrierGradient(s_xu[i], CTRL_LIMITS<T>()[i - state_size][0], CTRL_LIMITS<T>()[i - state_size][1]);
+                                const auto u_bounds = tiagoControlCostBounds(CTRL_LIMITS<T>()[i - state_size][0], CTRL_LIMITS<T>()[i - state_size][1]);
+                                s_rk[i - state_size] += ctrl_lim_cost * jointBarrierGradient(s_xu[i], u_bounds.lower, u_bounds.upper);
                         }
                 }
                 __syncthreads();
@@ -567,12 +563,14 @@ namespace plant {
                                                 s_Qk[i * state_size + j] += ee_orient_cost * pillar_jacobian_i * pillar_jacobian_j;
 #endif
                                                 if (i == j) {
-                                                        s_Qk[i * state_size + j] += q_lim_cost * jointBarrierHessian<T>(s_xu[i], JOINT_LIMITS<T>()[i][0], JOINT_LIMITS<T>()[i][1]);
+                                                        const auto q_bounds = tiagoJointCostBounds(JOINT_LIMITS<T>()[i][0], JOINT_LIMITS<T>()[i][1]);
+                                                        s_Qk[i * state_size + j] += q_lim_cost * tiagoJointPositionBarrierHessian(s_xu[i], q_bounds.lower, q_bounds.upper, i);
                                                 }
                                         } else {
                                                 s_Qk[i * state_size + j] = (i == j) ? qd_cost : static_cast<T>(0);
                                                 if (i == j) {
-                                                        s_Qk[i * state_size + j] += vel_lim_cost * jointBarrierHessian<T>(s_xu[i], VEL_LIMITS<T>()[i - grid::NUM_JOINTS][0], VEL_LIMITS<T>()[i - grid::NUM_JOINTS][1]);
+                                                        const auto v_bounds = tiagoVelocityCostBounds(VEL_LIMITS<T>()[i - grid::NUM_JOINTS][0], VEL_LIMITS<T>()[i - grid::NUM_JOINTS][1]);
+                                                        s_Qk[i * state_size + j] += vel_lim_cost * jointBarrierHessian<T>(s_xu[i], v_bounds.lower, v_bounds.upper);
                                                 }
                                         }
                                 }
@@ -581,7 +579,8 @@ namespace plant {
                                 for (int j = 0; j < control_size; j++) {
                                         s_Rk[offset * control_size + j] = (offset == static_cast<uint32_t>(j)) ? u_cost : static_cast<T>(0);
                                         if (offset == static_cast<uint32_t>(j)) {
-                                                s_Rk[offset * control_size + j] += ctrl_lim_cost * jointBarrierHessian<T>(s_xu[i], CTRL_LIMITS<T>()[offset][0], CTRL_LIMITS<T>()[offset][1]);
+                                                const auto u_bounds = tiagoControlCostBounds(CTRL_LIMITS<T>()[offset][0], CTRL_LIMITS<T>()[offset][1]);
+                                                s_Rk[offset * control_size + j] += ctrl_lim_cost * jointBarrierHessian<T>(s_xu[i], u_bounds.lower, u_bounds.upper);
                                         }
                                 }
                         }

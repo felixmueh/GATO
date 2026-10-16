@@ -1,0 +1,23 @@
+{
+  "description": "Fixed display context only; seven right-arm joints come exclusively from each saved MPC episode. Unlisted joints use Pinocchio neutral. Not a simulated full-body trajectory.",
+  "source": "/workspace/GATO/example_artifacts/simulated_tiago_copy_from_c3po/20260923_135241_bxSLi6/reach/x_2_4cm/data/full_joint_state_history.jsonl",
+  "source_sample": 0,
+  "positions_by_name": {
+    "arm_left_1_joint": 0.35999951298100274,
+    "arm_left_2_joint": -1.8299990567808377,
+    "arm_left_3_joint": 0.46999974328231175,
+    "arm_left_4_joint": -2.3499972389364183,
+    "arm_left_5_joint": -1.4869983111509555e-07,
+    "arm_left_6_joint": -1.200002874932272,
+    "arm_left_7_joint": -4.450186441573578e-08,
+    "gripper_left_finger_joint": 0.15000004100667752,
+    "gripper_right_finger_joint": 0.15000004868763828,
+    "head_1_joint": 1.6398411757378994e-06,
+    "head_2_joint": -5.81496643725643e-07,
+    "torso_lift_joint": 0.09999094555902081,
+    "wheel_front_left_joint": -0.23710874664106996,
+    "wheel_front_right_joint": -0.23737249995014054,
+    "wheel_rear_left_joint": -0.23764312639258378,
+    "wheel_rear_right_joint": -0.23833592883415022
+  }
+}

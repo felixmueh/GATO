@@ -1,0 +1,39 @@
+{
+  "scope": "One joint at one knot: reviewed C2 limit cost relative to center plus ordinary qd quadratic",
+  "helper_sha256": "effd36439784b4bd17931833a5e5d6e7085b55f0d7473b30a8f9baf06a693979",
+  "csv_sha256": "ead1367f82ed743954aa3dc6babf88c6fc9a23c0511f42cf18244fb101e515ce",
+  "script_sha256": "692b396857e74e097dd96eee59d7e6ee57b50b344abaecad13f9ec38332b1df1",
+  "curves": [
+    {
+      "configuration": "M0",
+      "cost_bound_rad_s": 2.25,
+      "vel_lim_cost": 0.1,
+      "qd_cost": 0.1
+    },
+    {
+      "configuration": "M1",
+      "cost_bound_rad_s": 2.25,
+      "vel_lim_cost": 1.0,
+      "qd_cost": 0.1
+    },
+    {
+      "configuration": "M4",
+      "cost_bound_rad_s": 2.0,
+      "vel_lim_cost": 0.2,
+      "qd_cost": 0.05
+    },
+    {
+      "configuration": "M5",
+      "cost_bound_rad_s": 2.0,
+      "vel_lim_cost": 0.6,
+      "qd_cost": 0.05
+    }
+  ],
+  "speed_grid_rad_s": {
+    "start": 0.0,
+    "stop": 2.7,
+    "step": 0.01
+  },
+  "physical_limit_rad_s": 2.5,
+  "plotting_only": "No objective ranking across methods; each curve uses that method's scalar weights. Other objective terms and dynamics excluded."
+}

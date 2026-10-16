@@ -1,6 +1,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/numpy.h>
 #include <pybind11/stl.h>
+#include <cmath>
 #include "bsqp/bsqp.cuh"
 #include "types.cuh"
 #include "utils/cuda.cuh"
@@ -266,6 +267,35 @@ class PyBSQP {
 PYBIND11_MODULE(MODULE_NAME(KNOT_POINTS, PLANT_SUFFIX), m)
 {
         m.attr("KNOT_POINTS") = KNOT_POINTS;  // to check num knots for current module
+
+#if defined(PLANT_TIAGO_RIGHT) && defined(TIAGO_EXPERIMENT_JOINT_COST_MODES)
+        // A private research API: module/context-global and B1-only by protocol.
+        // This host copy launches no kernel and is outside the measured loop.
+        m.def("set_tiago_joint_cost_mode", [](int mode, const std::vector<double>& reference) {
+                if (mode < 0 || mode > 2) { throw py::value_error("joint cost mode must be 0, 1 or 2"); }
+                if (reference.size() != 7) { throw py::value_error("joint reference must contain seven values"); }
+                if (mode == 1 && TIAGO_COST_JOINT_MARGIN_RAD <= 0) {
+                        throw py::value_error("flat joint cost requires a positive compiled joint margin");
+                }
+                gato::plant::TiagoExperimentJointCost config{};
+                config.mode = mode;
+                for (int j = 0; j < 7; ++j) {
+                        if (!std::isfinite(reference[j])) { throw py::value_error("joint reference must be finite"); }
+                        config.reference[j] = reference[j];  // no clipping to soft bounds
+                }
+                gpuErrchk(cudaMemcpyToSymbol(gato::plant::tiago_experiment_joint_cost, &config, sizeof(config)));
+        }, py::arg("mode"), py::arg("q_reference"));
+        m.def("get_tiago_joint_cost_mode", []() {
+                gato::plant::TiagoExperimentJointCost config{};
+                gpuErrchk(cudaMemcpyFromSymbol(&config, gato::plant::tiago_experiment_joint_cost, sizeof(config)));
+                py::dict result;
+                result["mode"] = config.mode;
+                result["q_reference"] = std::vector<double>(config.reference, config.reference+7);
+                result["joint_margin_rad"] = TIAGO_COST_JOINT_MARGIN_RAD;
+                result["scope"] = "module_context_global_single_fresh_B1_session";
+                return result;
+        });
+#endif
 
 
 #ifdef USE_DOUBLES

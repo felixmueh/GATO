@@ -1,0 +1,522 @@
+{
+  "study": "TIAGo task regression qualification",
+  "date_UTC": "2026-10-09",
+  "qualified_passing_suite": false,
+  "isolated_solver_candidate": "17100c0a9500e23f72f6c4d950717f09ce9551cb",
+  "main_reaching_default_commit": "17477cb47b41641eee7000dbc6f8dc991b727b23",
+  "qualification_source_note": "Native candidate17100c0 with then-uncommitted qd_cost0.1 source/default and task suite. Recorded config hash includes a comment change removed when cherry-picking main17477cb; effective solver weights remain those in frozen cases. Source_commit_recorded alone does not identify the uncommitted protocol; use receipt hashes.",
+  "hardware": {
+    "device": "NVIDIA GeForce GTX 1070",
+    "python": "3.10.12 (main, Mar  3 2026, 11:56:32) [GCC 11.4.0]",
+    "numpy": "2.2.6",
+    "pinocchio": "3.9.0",
+    "torch": "2.6.0+cu124"
+  },
+  "build": {
+    "directory": "/workspace/GATO-tiago-task-tests/build-task-tests",
+    "target": "check-tiago-tasks",
+    "command": "GATO_BUILD_DIR=build-task-tests make test-tiago-tasks",
+    "native_build": "fresh isolated candidate17100c0 build; no B01 integration into main"
+  },
+  "full_suite": {
+    "passed": 2,
+    "failed": 1,
+    "exit_status": "nonzero",
+    "log_path": "/workspace/gato-tiago-task-regression-20261009/suite-run1.log",
+    "log_sha256": "01c768b36e34ce44e0512f4a4d7f461e67037c391743d228a5fbfb3aeb08e21f"
+  },
+  "short_bounded_repeats": {
+    "passed": 1,
+    "runs": 3,
+    "order": [
+      "failure",
+      "failure",
+      "pass"
+    ],
+    "interpretation": "material outcome variation; not a success probability estimate or qualified commit gate"
+  },
+  "scope": "No collision validation, strict settling, bitwise determinism, batching comparison or real-time performance claim; plant execution gates only. Goals and thresholds were not changed after qualification.",
+  "runs": [
+    {
+      "run": "suite_short",
+      "case": "short_reach",
+      "passed": false,
+      "raw_path": "/workspace/GATO-tiago-task-tests/test-artifacts/tiago-tasks/short_reach_8bh66qcd",
+      "source_commit_recorded": "17100c0a9500e23f72f6c4d950717f09ce9551cb",
+      "case_sha256": "fc7b77a8054d41b32f7d49ab7c4e44696c45e657c4a104d6c29f68a0664a3055",
+      "worker_sha256": "ea4317bdc91e81dd98279a3ad6f10eb92dfec1f29eb6e9deac8b1adb395adb98",
+      "module_path": "/workspace/GATO-tiago-task-tests/python/bsqp/bsqpN32_tiago_right.cpython-310-x86_64-linux-gnu.so",
+      "module_sha256": "93cb1804ecc07c7b1c13e6279b1d70aa5cb4df0512b11eec0fea979a750c76b4",
+      "source_sha256": {
+        "tiago_src/gato_tiago/tiago_mpc_controller.py": "7259a5c9324c041ac2c97748a521fbd3d24c4b166123dbf7c21bc7641bdaa122",
+        "tiago_src/gato_tiago/config.py": "74b27c17843f5668c14cf9b806d82ec6cba23ffc7df2882806d0b0beafbf31a6",
+        "python/bsqp/interface.py": "7caa7781a98126646f3f50e7569b34db1f01339331a2341e4e37ebebba3a3770",
+        "python/bsqp/common.py": "e746b5bf5c46749cd053e48c6eb9c2de9d853fa9dd5afa51aab91af32803a012",
+        "tiago_src/gato_tiago/references.py": "192069822db86402c34ade30314f23ea9b35d3fbce2baa02da38c074e0cedf8b",
+        "gato/dynamics/tiago_right/tiago_right_arm.urdf": "8e1fd973a1d1c3fbddd55039e6eb17b355ebb29f46e1bd8c774b7879c2cdc5bb"
+      },
+      "metrics": {
+        "final_L1_speed_rad_s": 145.4207253564089,
+        "executed_displacement_m": 0.6279243476801819,
+        "executed_duration_s": 3.7359999999996996,
+        "plant_steps": 3736,
+        "solves": 125,
+        "physical_limits": {
+          "position_violation_rad": 5.5500398198543675,
+          "velocity_violation_rad_s": 48.46503095643656,
+          "torque_violation_Nm": 0.0
+        },
+        "public_goal_outcomes": null,
+        "public_goal_reached_times": null,
+        "initial_distance_m": 0.10063625937168882,
+        "final_distance_m": 0.6945545093019662,
+        "final_axis_error_deg": 37.034367618744284,
+        "final_full_SO3_error_deg": 38.86345720043585,
+        "solve_wall_total_s": 0.8053615009812347
+      },
+      "failed_gates": [
+        "completed_without_exception",
+        "position_limits",
+        "velocity_limits",
+        "public_reaching_success",
+        "position_reached",
+        "axis_reached",
+        "speed_reached",
+        "completion_clock_matches_execution"
+      ],
+      "execution_error": "execution guard",
+      "artifact_sha256": {
+        "execution.npz": "153fa235385af654eacdd50f3a6f139793f4f0f05db8be94b9190a50d3703599",
+        "public_stats.json": "ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356",
+        "receipt.json": "0ce1cab089f34bd1956290ab7e23eae86573bcb3c89a178ff6cde56f0da5c8a1",
+        "stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout.txt": "699624f3dc1713bfe4d64173c585f6e80b026f801f5b0a064d09215c187e4723",
+        "summary.json": "15e08c8cabf6b1e60245f3f2e7b4b0f2fa4bc53ead8981ae8ad1bb1f6a0c4525"
+      }
+    },
+    {
+      "run": "suite_long",
+      "case": "long_reach",
+      "passed": true,
+      "raw_path": "/workspace/GATO-tiago-task-tests/test-artifacts/tiago-tasks/long_reach_dqbqb6a5",
+      "source_commit_recorded": "17100c0a9500e23f72f6c4d950717f09ce9551cb",
+      "case_sha256": "05a0784ee2abe24e00eb0c799c4197c08bc401d1eee67f39e6cc9dbc107dd691",
+      "worker_sha256": "ea4317bdc91e81dd98279a3ad6f10eb92dfec1f29eb6e9deac8b1adb395adb98",
+      "module_path": "/workspace/GATO-tiago-task-tests/python/bsqp/bsqpN32_tiago_right.cpython-310-x86_64-linux-gnu.so",
+      "module_sha256": "93cb1804ecc07c7b1c13e6279b1d70aa5cb4df0512b11eec0fea979a750c76b4",
+      "source_sha256": {
+        "tiago_src/gato_tiago/tiago_mpc_controller.py": "7259a5c9324c041ac2c97748a521fbd3d24c4b166123dbf7c21bc7641bdaa122",
+        "tiago_src/gato_tiago/config.py": "74b27c17843f5668c14cf9b806d82ec6cba23ffc7df2882806d0b0beafbf31a6",
+        "python/bsqp/interface.py": "7caa7781a98126646f3f50e7569b34db1f01339331a2341e4e37ebebba3a3770",
+        "python/bsqp/common.py": "e746b5bf5c46749cd053e48c6eb9c2de9d853fa9dd5afa51aab91af32803a012",
+        "tiago_src/gato_tiago/references.py": "192069822db86402c34ade30314f23ea9b35d3fbce2baa02da38c074e0cedf8b",
+        "gato/dynamics/tiago_right/tiago_right_arm.urdf": "8e1fd973a1d1c3fbddd55039e6eb17b355ebb29f46e1bd8c774b7879c2cdc5bb"
+      },
+      "metrics": {
+        "final_L1_speed_rad_s": 0.43114674053282254,
+        "executed_displacement_m": 0.26814178914944414,
+        "executed_duration_s": 1.4999999999999456,
+        "plant_steps": 1500,
+        "solves": 50,
+        "physical_limits": {
+          "position_violation_rad": 0.0,
+          "velocity_violation_rad_s": 0.0,
+          "torque_violation_Nm": 0.0
+        },
+        "public_goal_outcomes": [
+          "reached"
+        ],
+        "public_goal_reached_times": [
+          1.4999999999999456
+        ],
+        "initial_distance_m": 0.3170519461956621,
+        "final_distance_m": 0.04970790572980842,
+        "final_axis_error_deg": 8.096863424607045,
+        "final_full_SO3_error_deg": 8.137112607825918,
+        "solve_wall_total_s": 0.07778192100522574
+      },
+      "failed_gates": [],
+      "execution_error": null,
+      "artifact_sha256": {
+        "execution.npz": "209f7787f21b558bd12631e844ab4fb188ebfb4c5c7590e2b5003d2ed37f4fa6",
+        "public_stats.json": "91b80725c5d21609f925bdd1c5cef45e4a4c952104ca4479397fcf8375dcd807",
+        "receipt.json": "5cac63d2c6c80e8254104460f44cc39faef8f8671d6f14cd513867dbf910f8c9",
+        "stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout.txt": "c216c3a86618e9fb298b0f0ee060aa57778af72d6bb8c565fe6d691e5af3489b",
+        "summary.json": "3f795f79d6edd6bec6f2e8d60aa4fdc14bf7247d27f72d78bad17b5bfcc5b652"
+      }
+    },
+    {
+      "run": "suite_tracking",
+      "case": "figure8_tracking",
+      "passed": true,
+      "raw_path": "/workspace/GATO-tiago-task-tests/test-artifacts/tiago-tasks/figure8_tracking_55706yqj",
+      "source_commit_recorded": "17100c0a9500e23f72f6c4d950717f09ce9551cb",
+      "case_sha256": "78da04c93f8e799cd04543de7fed6492cb6dfd725ae0bb42b4b9b768ed85ce15",
+      "worker_sha256": "ea4317bdc91e81dd98279a3ad6f10eb92dfec1f29eb6e9deac8b1adb395adb98",
+      "module_path": "/workspace/GATO-tiago-task-tests/python/bsqp/bsqpN32_tiago_right.cpython-310-x86_64-linux-gnu.so",
+      "module_sha256": "93cb1804ecc07c7b1c13e6279b1d70aa5cb4df0512b11eec0fea979a750c76b4",
+      "source_sha256": {
+        "tiago_src/gato_tiago/tiago_mpc_controller.py": "7259a5c9324c041ac2c97748a521fbd3d24c4b166123dbf7c21bc7641bdaa122",
+        "tiago_src/gato_tiago/config.py": "74b27c17843f5668c14cf9b806d82ec6cba23ffc7df2882806d0b0beafbf31a6",
+        "python/bsqp/interface.py": "7caa7781a98126646f3f50e7569b34db1f01339331a2341e4e37ebebba3a3770",
+        "python/bsqp/common.py": "e746b5bf5c46749cd053e48c6eb9c2de9d853fa9dd5afa51aab91af32803a012",
+        "tiago_src/gato_tiago/references.py": "192069822db86402c34ade30314f23ea9b35d3fbce2baa02da38c074e0cedf8b",
+        "gato/dynamics/tiago_right/tiago_right_arm.urdf": "8e1fd973a1d1c3fbddd55039e6eb17b355ebb29f46e1bd8c774b7879c2cdc5bb"
+      },
+      "metrics": {
+        "final_L1_speed_rad_s": 0.29572103986225406,
+        "executed_displacement_m": 0.34533082929900655,
+        "executed_duration_s": 24.00000000000635,
+        "plant_steps": 24000,
+        "solves": 3001,
+        "physical_limits": {
+          "position_violation_rad": 0.0,
+          "velocity_violation_rad_s": 0.0,
+          "torque_violation_Nm": 0.0
+        },
+        "public_goal_outcomes": null,
+        "public_goal_reached_times": null,
+        "tracking_RMS_error_m": 0.014316481916927247,
+        "tracking_max_error_m": 0.02619886016031419,
+        "reference_displacement_m": 0.31999999999999995,
+        "solve_wall_total_s": 3.8550882329691376
+      },
+      "failed_gates": [],
+      "execution_error": null,
+      "artifact_sha256": {
+        "execution.npz": "8d828e039e4c3a24ba8d3a2643db5f0c47932ba0cffebb37c8e13c466643dd3e",
+        "public_stats.json": "cd484cceba09612810a4e2a42698d9677de150c18cf141719f4216c215ad6256",
+        "receipt.json": "7997be485f785d35a6fd2e4378a3362647f7975d277603db187ce31310764c77",
+        "reference.npz": "560a7fb7287602a3f5852db1992e9c695c6285a4837c617308145517db68370a",
+        "stderr.txt": "4145d521eb7d07f20cf86b4fa5c64e95b3b2f25fd18b152f051e22362864072a",
+        "stdout.txt": "590b58e3c58e864a7f0f65ee21f81509394d3188de105e77298a5dcc2966bd6f",
+        "summary.json": "004197f8f1821a0f511a0e8928e0ef9273c97c2b99e02c6bece1d63a1488ab6b"
+      }
+    },
+    {
+      "run": "short_repeat2",
+      "case": "short_reach",
+      "passed": false,
+      "raw_path": "/workspace/gato-tiago-task-regression-20261009/short_corrected_repeat2/short_reach_4bn1iz3_",
+      "source_commit_recorded": "17100c0a9500e23f72f6c4d950717f09ce9551cb",
+      "case_sha256": "fc7b77a8054d41b32f7d49ab7c4e44696c45e657c4a104d6c29f68a0664a3055",
+      "worker_sha256": "ea4317bdc91e81dd98279a3ad6f10eb92dfec1f29eb6e9deac8b1adb395adb98",
+      "module_path": "/workspace/GATO-tiago-task-tests/python/bsqp/bsqpN32_tiago_right.cpython-310-x86_64-linux-gnu.so",
+      "module_sha256": "93cb1804ecc07c7b1c13e6279b1d70aa5cb4df0512b11eec0fea979a750c76b4",
+      "source_sha256": {
+        "tiago_src/gato_tiago/tiago_mpc_controller.py": "7259a5c9324c041ac2c97748a521fbd3d24c4b166123dbf7c21bc7641bdaa122",
+        "tiago_src/gato_tiago/config.py": "74b27c17843f5668c14cf9b806d82ec6cba23ffc7df2882806d0b0beafbf31a6",
+        "python/bsqp/interface.py": "7caa7781a98126646f3f50e7569b34db1f01339331a2341e4e37ebebba3a3770",
+        "python/bsqp/common.py": "e746b5bf5c46749cd053e48c6eb9c2de9d853fa9dd5afa51aab91af32803a012",
+        "tiago_src/gato_tiago/references.py": "192069822db86402c34ade30314f23ea9b35d3fbce2baa02da38c074e0cedf8b",
+        "gato/dynamics/tiago_right/tiago_right_arm.urdf": "8e1fd973a1d1c3fbddd55039e6eb17b355ebb29f46e1bd8c774b7879c2cdc5bb"
+      },
+      "metrics": {
+        "final_L1_speed_rad_s": 83.20778171278695,
+        "executed_displacement_m": 0.15842916680826385,
+        "executed_duration_s": 1.2079999999999778,
+        "plant_steps": 1208,
+        "solves": 41,
+        "physical_limits": {
+          "position_violation_rad": 10.326281662093102,
+          "velocity_violation_rad_s": 47.68875562295799,
+          "torque_violation_Nm": 0.0
+        },
+        "public_goal_outcomes": null,
+        "public_goal_reached_times": null,
+        "initial_distance_m": 0.10063625937168882,
+        "final_distance_m": 0.1392959653437716,
+        "final_axis_error_deg": 102.89902833583608,
+        "final_full_SO3_error_deg": 179.56760487748326,
+        "solve_wall_total_s": 0.28551572698779637
+      },
+      "failed_gates": [
+        "completed_without_exception",
+        "position_limits",
+        "velocity_limits",
+        "public_reaching_success",
+        "position_reached",
+        "axis_reached",
+        "speed_reached",
+        "completion_clock_matches_execution"
+      ],
+      "execution_error": "execution guard",
+      "artifact_sha256": {
+        "execution.npz": "edab8520adfdd2ba7c1843131d6b53fde555f155f48d64f0b0e71c9c6e313204",
+        "public_stats.json": "ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356",
+        "receipt.json": "0ce1cab089f34bd1956290ab7e23eae86573bcb3c89a178ff6cde56f0da5c8a1",
+        "stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout.txt": "9dc48acdde591a2937c45dc765ba72d84fbf9cc53913c99a850b297d824e63f0",
+        "summary.json": "2295e31a650877766a194a6357c32aca5f676ec0aa05e4f4757d5f70fe747ca3"
+      }
+    },
+    {
+      "run": "short_repeat3",
+      "case": "short_reach",
+      "passed": true,
+      "raw_path": "/workspace/gato-tiago-task-regression-20261009/short_corrected_repeat3/short_reach_00nz4gxk",
+      "source_commit_recorded": "17100c0a9500e23f72f6c4d950717f09ce9551cb",
+      "case_sha256": "fc7b77a8054d41b32f7d49ab7c4e44696c45e657c4a104d6c29f68a0664a3055",
+      "worker_sha256": "ea4317bdc91e81dd98279a3ad6f10eb92dfec1f29eb6e9deac8b1adb395adb98",
+      "module_path": "/workspace/GATO-tiago-task-tests/python/bsqp/bsqpN32_tiago_right.cpython-310-x86_64-linux-gnu.so",
+      "module_sha256": "93cb1804ecc07c7b1c13e6279b1d70aa5cb4df0512b11eec0fea979a750c76b4",
+      "source_sha256": {
+        "tiago_src/gato_tiago/tiago_mpc_controller.py": "7259a5c9324c041ac2c97748a521fbd3d24c4b166123dbf7c21bc7641bdaa122",
+        "tiago_src/gato_tiago/config.py": "74b27c17843f5668c14cf9b806d82ec6cba23ffc7df2882806d0b0beafbf31a6",
+        "python/bsqp/interface.py": "7caa7781a98126646f3f50e7569b34db1f01339331a2341e4e37ebebba3a3770",
+        "python/bsqp/common.py": "e746b5bf5c46749cd053e48c6eb9c2de9d853fa9dd5afa51aab91af32803a012",
+        "tiago_src/gato_tiago/references.py": "192069822db86402c34ade30314f23ea9b35d3fbce2baa02da38c074e0cedf8b",
+        "gato/dynamics/tiago_right/tiago_right_arm.urdf": "8e1fd973a1d1c3fbddd55039e6eb17b355ebb29f46e1bd8c774b7879c2cdc5bb"
+      },
+      "metrics": {
+        "final_L1_speed_rad_s": 0.6964079622385083,
+        "executed_displacement_m": 0.05392607135830883,
+        "executed_duration_s": 0.5100000000000003,
+        "plant_steps": 510,
+        "solves": 17,
+        "physical_limits": {
+          "position_violation_rad": 0.0,
+          "velocity_violation_rad_s": 0.0,
+          "torque_violation_Nm": 0.0
+        },
+        "public_goal_outcomes": [
+          "reached"
+        ],
+        "public_goal_reached_times": [
+          0.5100000000000003
+        ],
+        "initial_distance_m": 0.10063625937168882,
+        "final_distance_m": 0.04841622481177655,
+        "final_axis_error_deg": 8.43533422244634,
+        "final_full_SO3_error_deg": 8.444103549501618,
+        "solve_wall_total_s": 0.075019275998784
+      },
+      "failed_gates": [],
+      "execution_error": null,
+      "artifact_sha256": {
+        "execution.npz": "50526e9af201faa5b0fc714890ae973904d7bdf421c02ee594c8384e0372a2f0",
+        "public_stats.json": "8a3fe6091b694d2e10257c4746d1af0f5592e4726d781d1034bad1b437aa9de5",
+        "receipt.json": "0ce1cab089f34bd1956290ab7e23eae86573bcb3c89a178ff6cde56f0da5c8a1",
+        "stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout.txt": "e5e658237e0fd62472028d15f7304bc1387c6682ea404178c19f2b4e305faaf4",
+        "summary.json": "8a49f5fe1b2ca33474ba16f87e221cc669bccef2982e6f7c193ba112c8d7d0d5"
+      }
+    },
+    {
+      "run": "original_short_control1",
+      "case": "short_reach",
+      "passed": true,
+      "raw_path": "/workspace/gato-tiago-task-regression-20261009/original_short_corrected_controls/repeat1",
+      "source_commit_recorded": "104a84de6b1b9d95a162ac992d0f715d81215be2",
+      "native_source_commit": "2a39ed1daa7cbad4ffc5f2dda954bb64bbacc22e",
+      "case_sha256": "fc7b77a8054d41b32f7d49ab7c4e44696c45e657c4a104d6c29f68a0664a3055",
+      "worker_sha256": "ea4317bdc91e81dd98279a3ad6f10eb92dfec1f29eb6e9deac8b1adb395adb98",
+      "module_path": "/workspace/gato-tiago-task-regression-20261009/diagnostic/modules/original_standard_2a39ed1/bsqpN32_tiago_right.cpython-310-x86_64-linux-gnu.so",
+      "module_sha256": "9ec82c2c8d8082b74b4a71ea3a88d8ace85b29343fd7e7c9abdf4b63d5c19609",
+      "source_sha256": {
+        "tiago_src/gato_tiago/tiago_mpc_controller.py": "7259a5c9324c041ac2c97748a521fbd3d24c4b166123dbf7c21bc7641bdaa122",
+        "tiago_src/gato_tiago/config.py": "c2287d1522f4f07a09e922af76ecddb215e5801f9b8b297e74cc5a4c849fc316",
+        "python/bsqp/interface.py": "7caa7781a98126646f3f50e7569b34db1f01339331a2341e4e37ebebba3a3770",
+        "python/bsqp/common.py": "e746b5bf5c46749cd053e48c6eb9c2de9d853fa9dd5afa51aab91af32803a012",
+        "tiago_src/gato_tiago/references.py": "192069822db86402c34ade30314f23ea9b35d3fbce2baa02da38c074e0cedf8b",
+        "gato/dynamics/tiago_right/tiago_right_arm.urdf": "8e1fd973a1d1c3fbddd55039e6eb17b355ebb29f46e1bd8c774b7879c2cdc5bb"
+      },
+      "metrics": {
+        "final_L1_speed_rad_s": 0.7020446888937661,
+        "executed_displacement_m": 0.05405052539741069,
+        "executed_duration_s": 0.5100000000000003,
+        "plant_steps": 510,
+        "solves": 17,
+        "physical_limits": {
+          "position_violation_rad": 0.0,
+          "velocity_violation_rad_s": 0.0,
+          "torque_violation_Nm": 0.0
+        },
+        "public_goal_outcomes": [
+          "reached"
+        ],
+        "public_goal_reached_times": [
+          0.5100000000000003
+        ],
+        "initial_distance_m": 0.10063625937168882,
+        "final_distance_m": 0.048349956915618435,
+        "final_axis_error_deg": 8.280117952067325,
+        "final_full_SO3_error_deg": 8.28763852933452,
+        "solve_wall_total_s": 0.07351067100535147
+      },
+      "failed_gates": [],
+      "execution_error": null,
+      "artifact_sha256": {
+        "execution.npz": "0ad1b59c277676b9a92878757ea824a83904824c5242c31525003ce0dae55e06",
+        "public_stats.json": "5da74c751e685bae246a3f4c76d291a591d12ef74995cc7790c22666dfe775df",
+        "receipt.json": "2c3dd7755ab571f42c1e0c8ca98255a38c71824952baaadbb04c243cf5a107cc",
+        "stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout.txt": "92987f46c6441eab25ffa446d35091f40973cd6eed7713823b0c4e0de572036d",
+        "summary.json": "0d91036a4964f7ebc881e792de321c087f2f30dd5dc87d401b9580bb5a0b5702",
+        "variant.json": "52a6b028ee1d81f7f11cbafecd97a3fde72c2dd91247de8d6a69722770030b0e"
+      }
+    },
+    {
+      "run": "original_short_control2",
+      "case": "short_reach",
+      "passed": false,
+      "raw_path": "/workspace/gato-tiago-task-regression-20261009/original_short_corrected_controls/repeat2",
+      "source_commit_recorded": "104a84de6b1b9d95a162ac992d0f715d81215be2",
+      "native_source_commit": "2a39ed1daa7cbad4ffc5f2dda954bb64bbacc22e",
+      "case_sha256": "fc7b77a8054d41b32f7d49ab7c4e44696c45e657c4a104d6c29f68a0664a3055",
+      "worker_sha256": "ea4317bdc91e81dd98279a3ad6f10eb92dfec1f29eb6e9deac8b1adb395adb98",
+      "module_path": "/workspace/gato-tiago-task-regression-20261009/diagnostic/modules/original_standard_2a39ed1/bsqpN32_tiago_right.cpython-310-x86_64-linux-gnu.so",
+      "module_sha256": "9ec82c2c8d8082b74b4a71ea3a88d8ace85b29343fd7e7c9abdf4b63d5c19609",
+      "source_sha256": {
+        "tiago_src/gato_tiago/tiago_mpc_controller.py": "7259a5c9324c041ac2c97748a521fbd3d24c4b166123dbf7c21bc7641bdaa122",
+        "tiago_src/gato_tiago/config.py": "c2287d1522f4f07a09e922af76ecddb215e5801f9b8b297e74cc5a4c849fc316",
+        "python/bsqp/interface.py": "7caa7781a98126646f3f50e7569b34db1f01339331a2341e4e37ebebba3a3770",
+        "python/bsqp/common.py": "e746b5bf5c46749cd053e48c6eb9c2de9d853fa9dd5afa51aab91af32803a012",
+        "tiago_src/gato_tiago/references.py": "192069822db86402c34ade30314f23ea9b35d3fbce2baa02da38c074e0cedf8b",
+        "gato/dynamics/tiago_right/tiago_right_arm.urdf": "8e1fd973a1d1c3fbddd55039e6eb17b355ebb29f46e1bd8c774b7879c2cdc5bb"
+      },
+      "metrics": {
+        "final_L1_speed_rad_s": 87.86731591824923,
+        "executed_displacement_m": 0.158821293301604,
+        "executed_duration_s": 1.2279999999999756,
+        "plant_steps": 1228,
+        "solves": 41,
+        "physical_limits": {
+          "position_violation_rad": 10.355002498417317,
+          "velocity_violation_rad_s": 47.64820038158969,
+          "torque_violation_Nm": 0.0
+        },
+        "public_goal_outcomes": null,
+        "public_goal_reached_times": null,
+        "initial_distance_m": 0.10063625937168882,
+        "final_distance_m": 0.1023337013541818,
+        "final_axis_error_deg": 102.61390942465766,
+        "final_full_SO3_error_deg": 103.20028938657384,
+        "solve_wall_total_s": 0.2793689819991414
+      },
+      "failed_gates": [
+        "completed_without_exception",
+        "position_limits",
+        "velocity_limits",
+        "public_reaching_success",
+        "position_reached",
+        "axis_reached",
+        "speed_reached",
+        "completion_clock_matches_execution"
+      ],
+      "execution_error": "execution guard",
+      "artifact_sha256": {
+        "execution.npz": "3a8082a3e05333cab7c9811410c0aefa814b0ea57d32cfb8c063fd78582192c1",
+        "public_stats.json": "ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356",
+        "receipt.json": "2c3dd7755ab571f42c1e0c8ca98255a38c71824952baaadbb04c243cf5a107cc",
+        "stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout.txt": "d32094cd67f977c0f7e58fb17ebc4808ebbc84b38b29fcf7300297d283387330",
+        "summary.json": "d92c9a4c57bf03d9d8c5217d9e828d4214ca934dd6779b08e5591b7f2facb256",
+        "variant.json": "900024653d08151568a6d645b2b3e67f27a4f45d3fc95bde9fb96c08c5f3a978"
+      }
+    },
+    {
+      "run": "original_short_control3",
+      "case": "short_reach",
+      "passed": true,
+      "raw_path": "/workspace/gato-tiago-task-regression-20261009/original_short_corrected_controls/repeat3",
+      "source_commit_recorded": "104a84de6b1b9d95a162ac992d0f715d81215be2",
+      "native_source_commit": "2a39ed1daa7cbad4ffc5f2dda954bb64bbacc22e",
+      "case_sha256": "fc7b77a8054d41b32f7d49ab7c4e44696c45e657c4a104d6c29f68a0664a3055",
+      "worker_sha256": "ea4317bdc91e81dd98279a3ad6f10eb92dfec1f29eb6e9deac8b1adb395adb98",
+      "module_path": "/workspace/gato-tiago-task-regression-20261009/diagnostic/modules/original_standard_2a39ed1/bsqpN32_tiago_right.cpython-310-x86_64-linux-gnu.so",
+      "module_sha256": "9ec82c2c8d8082b74b4a71ea3a88d8ace85b29343fd7e7c9abdf4b63d5c19609",
+      "source_sha256": {
+        "tiago_src/gato_tiago/tiago_mpc_controller.py": "7259a5c9324c041ac2c97748a521fbd3d24c4b166123dbf7c21bc7641bdaa122",
+        "tiago_src/gato_tiago/config.py": "c2287d1522f4f07a09e922af76ecddb215e5801f9b8b297e74cc5a4c849fc316",
+        "python/bsqp/interface.py": "7caa7781a98126646f3f50e7569b34db1f01339331a2341e4e37ebebba3a3770",
+        "python/bsqp/common.py": "e746b5bf5c46749cd053e48c6eb9c2de9d853fa9dd5afa51aab91af32803a012",
+        "tiago_src/gato_tiago/references.py": "192069822db86402c34ade30314f23ea9b35d3fbce2baa02da38c074e0cedf8b",
+        "gato/dynamics/tiago_right/tiago_right_arm.urdf": "8e1fd973a1d1c3fbddd55039e6eb17b355ebb29f46e1bd8c774b7879c2cdc5bb"
+      },
+      "metrics": {
+        "final_L1_speed_rad_s": 0.5794257834187674,
+        "executed_displacement_m": 0.05461936814698803,
+        "executed_duration_s": 0.5100000000000003,
+        "plant_steps": 510,
+        "solves": 17,
+        "physical_limits": {
+          "position_violation_rad": 0.0,
+          "velocity_violation_rad_s": 0.0,
+          "torque_violation_Nm": 0.0
+        },
+        "public_goal_outcomes": [
+          "reached"
+        ],
+        "public_goal_reached_times": [
+          0.5100000000000003
+        ],
+        "initial_distance_m": 0.10063625937168882,
+        "final_distance_m": 0.04792298787094307,
+        "final_axis_error_deg": 8.069147731905446,
+        "final_full_SO3_error_deg": 8.075749022760434,
+        "solve_wall_total_s": 0.022532363997015636
+      },
+      "failed_gates": [],
+      "execution_error": null,
+      "artifact_sha256": {
+        "execution.npz": "c9d9c03d87ca1432f877786bbcf3342adc2279470a7a0d49638112dd2fabd2ba",
+        "public_stats.json": "f4f5f6ec644766db1a2b51d29fbf85aa7c2d6f2ab918be0aadaf416dcd5bb4fb",
+        "receipt.json": "2c3dd7755ab571f42c1e0c8ca98255a38c71824952baaadbb04c243cf5a107cc",
+        "stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout.txt": "2dd7469951c0f84051a6f83f6c4fb520d3f7933fb7ee3bf6167834439ac9ed3a",
+        "summary.json": "4e66bbfd47d90bcac27f600e4b97bbbfd283e7b540c61308a8e626a5fa808f1d",
+        "variant.json": "bed63a7bd3b6516b25ae427520e3c0f2f1659bba8fd9fa05c67ca26251edf13b"
+      }
+    }
+  ],
+  "CPU_negative_controls": [
+    {
+      "path": "/workspace/gato-tiago-task-regression-20261009/short_gate_negative_audit.json",
+      "sha256": "9797a5226a940244072ad5f08f1b1e961ebc832293d95c9d6edcce3cde73ca7a"
+    },
+    {
+      "path": "/workspace/gato-tiago-task-regression-20261009/short_gate_negative_audit_v2.json",
+      "sha256": "0cd68b439ba251a6c6a9b49a23ca538f784b04934e03ee83753db9aa38d01670"
+    }
+  ],
+  "missing_native_control": {
+    "path": "/workspace/gato-tiago-task-regression-20261009/missing_native_negative_control/summary.json",
+    "sha256": "905591a26482e716c48c5f14272d29a30ee4650b35e4ea8d10afe8d18ad4f558",
+    "expected_exit_code": 1
+  },
+  "matched_original_short_controls": {
+    "original_cost_native_source_commit": "2a39ed1daa7cbad4ffc5f2dda954bb64bbacc22e",
+    "repaired_cost_native_source_commit": "17100c0a9500e23f72f6c4d950717f09ce9551cb",
+    "task_policy": "Same frozen short case, qd_cost0.1, vel_lim_cost0.1, production Python worker/controller; original archived native injected in fresh process. No goal, seed, timing, weights, thresholds or acceptance changes.",
+    "original_combined_passes": 2,
+    "original_rough_reaches": 2,
+    "original_physical_passes": 2,
+    "original_runs": 3,
+    "original_order": [
+      "pass",
+      "failure",
+      "pass"
+    ],
+    "original_durations_s": [
+      0.5100000000000003,
+      1.2279999999999756,
+      0.5100000000000003
+    ],
+    "repaired_existing_passes": 1,
+    "repaired_existing_runs": 3,
+    "interpretation": "Both variants have material short-task execution failures; these small bounded counts do not establish statistically meaningful success-rate ordering or a repair benefit. The full suite remains unqualified.",
+    "exact_wrapper_path": "/workspace/gato-tiago-task-regression-20261009/original_short_corrected_controls/run_original_short.py",
+    "wrapper_sha256": "3d9420182062691748c356a213b5644d99a930093db933c26d827129e5d068cf",
+    "frozen_case_path": "/workspace/gato-tiago-task-regression-20261009/original_short_corrected_controls/short_reach.json",
+    "frozen_case_sha256": "fc7b77a8054d41b32f7d49ab7c4e44696c45e657c4a104d6c29f68a0664a3055",
+    "comparison_path": "/workspace/gato-tiago-task-regression-20261009/original_short_corrected_controls/comparison.json",
+    "comparison_sha256": "3540bf95d03f76124a1f027998b0fe059c345f9b2bc9c726741985fa182b8849",
+    "commands": [
+      "/opt/gato-venv/bin/python3 /workspace/gato-tiago-task-regression-20261009/original_short_corrected_controls/run_original_short.py --repeat 1",
+      "/opt/gato-venv/bin/python3 /workspace/gato-tiago-task-regression-20261009/original_short_corrected_controls/run_original_short.py --repeat 2",
+      "/opt/gato-venv/bin/python3 /workspace/gato-tiago-task-regression-20261009/original_short_corrected_controls/run_original_short.py --repeat 3"
+    ]
+  }
+}

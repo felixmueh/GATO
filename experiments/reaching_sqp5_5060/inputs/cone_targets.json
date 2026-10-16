@@ -1,0 +1,2773 @@
+{
+  "seed": 20261016,
+  "half_angle_deg": 45.0,
+  "full_opening_deg": 90.0,
+  "count": 100,
+  "axis_torso": [
+    1.0,
+    0.0,
+    0.0
+  ],
+  "apex_xyz_torso_m": [
+    0.45567472766540734,
+    -0.28729301846437616,
+    -0.5256556575135656
+  ],
+  "initial_q_rad": [
+    -0.5,
+    -1.4,
+    -0.3,
+    -1.7,
+    0.0,
+    -0.9,
+    0.0
+  ],
+  "initial_velocity_rad_s": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "frame": "torso_lift_link",
+  "enclosing_ball": {
+    "center_torso_m": [
+      0.08976,
+      -0.15918,
+      -0.092008
+    ],
+    "radius_m": 0.9860686902009057,
+    "chain": [
+      {
+        "joint": "arm_right_1_joint",
+        "type": "revolute",
+        "parent": "torso_lift_link",
+        "child": "arm_right_1_link",
+        "origin_xyz_m": [
+          0.08976,
+          -0.15918,
+          -0.092008
+        ],
+        "origin_rpy_rad": [
+          -2.0679,
+          -0.0,
+          -1.9198899999999999
+        ],
+        "translation_norm_m": 0.20459863651549587,
+        "contributes_to_radius": false
+      },
+      {
+        "joint": "arm_right_2_joint",
+        "type": "revolute",
+        "parent": "arm_right_1_link",
+        "child": "arm_right_2_link",
+        "origin_xyz_m": [
+          0.0371099999999995,
+          0.02,
+          0.18
+        ],
+        "origin_rpy_rad": [
+          -1.57079632679489,
+          0.0,
+          -1.5707963267949
+        ],
+        "translation_norm_m": 0.18487063612158627,
+        "contributes_to_radius": true
+      },
+      {
+        "joint": "arm_right_3_joint",
+        "type": "revolute",
+        "parent": "arm_right_2_link",
+        "child": "arm_right_3_link",
+        "origin_xyz_m": [
+          0.019999999999999,
+          -0.17011,
+          -0.037110000000001
+        ],
+        "origin_rpy_rad": [
+          1.5707963267949,
+          0.0,
+          0.0
+        ],
+        "translation_norm_m": 0.17525571089125752,
+        "contributes_to_radius": true
+      },
+      {
+        "joint": "arm_right_4_joint",
+        "type": "revolute",
+        "parent": "arm_right_3_link",
+        "child": "arm_right_4_link",
+        "origin_xyz_m": [
+          0.0199999999999993,
+          -0.0371100000000008,
+          0.15989
+        ],
+        "origin_rpy_rad": [
+          1.57079632679489,
+          0.0,
+          0.0
+        ],
+        "translation_norm_m": 0.1653540571017235,
+        "contributes_to_radius": true
+      },
+      {
+        "joint": "arm_right_5_joint",
+        "type": "revolute",
+        "parent": "arm_right_4_link",
+        "child": "arm_right_5_link",
+        "origin_xyz_m": [
+          -0.0199999999999971,
+          0.17011,
+          -0.037110000000002
+        ],
+        "origin_rpy_rad": [
+          -1.5707963267949,
+          3.14,
+          0.0
+        ],
+        "translation_norm_m": 0.17525571089125752,
+        "contributes_to_radius": true
+      },
+      {
+        "joint": "arm_right_6_joint",
+        "type": "revolute",
+        "parent": "arm_right_5_link",
+        "child": "arm_right_6_link",
+        "origin_xyz_m": [
+          0.0,
+          -0.0422,
+          0.1654
+        ],
+        "origin_rpy_rad": [
+          -1.5708,
+          0.0,
+          3.14
+        ],
+        "translation_norm_m": 0.17069856472741649,
+        "contributes_to_radius": true
+      },
+      {
+        "joint": "arm_right_7_joint",
+        "type": "revolute",
+        "parent": "arm_right_6_link",
+        "child": "arm_right_7_link",
+        "origin_xyz_m": [
+          0.07,
+          -0.0534,
+          -0.0422
+        ],
+        "origin_rpy_rad": [
+          1.5708,
+          0.0,
+          0.0
+        ],
+        "translation_norm_m": 0.0976340104676644,
+        "contributes_to_radius": true
+      },
+      {
+        "joint": "arm_right_tool_joint",
+        "type": "fixed",
+        "parent": "arm_right_7_link",
+        "child": "arm_right_tool_link",
+        "origin_xyz_m": [
+          0.0,
+          0.0,
+          0.017
+        ],
+        "origin_rpy_rad": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "translation_norm_m": 0.017,
+        "contributes_to_radius": true
+      }
+    ],
+    "first_actuated_joint": "arm_right_1_joint",
+    "proof": "The first actuated joint origin is fixed in torso coordinates. The tool displacement from it is a sum of subsequent joint-origin translations transformed by rotations. Triangle inequality and rotation invariance of Euclidean norm bound every FK endpoint by the sum of their norms, including the fixed tool offset.",
+    "artificial_radial_cutoff": false,
+    "limitation": "A conservative containing volume, not a characterization of reachable positions."
+  },
+  "proposal_measure": "Uniform Cartesian volume in the URDF enclosing ball intersected with the cone; implemented by uniform bounding-cube proposals and geometric rejection.",
+  "accepted_measure": "Proposal measure conditioned on a bounded numerical position-IK witness; not certified uniform sampling of the entire reachable workspace.",
+  "acceptance": "Position residual <=1 mm and actual raw URDF joint bounds. No orientation, soft-margin, collision, gravity, dynamics or MPC-outcome filter.",
+  "already_inside_arrival_region": "Retain and flag position distance <=50 mm; never reject based on distance.",
+  "IK_random_restarts": 5,
+  "IK_max_nfev_per_start": 200,
+  "IK_solver_tolerance": 1e-06,
+  "IK_position_tolerance_m": 0.001,
+  "max_ik_candidates": 10000,
+  "max_cartesian_proposals": 1000000,
+  "max_cpu_wall_s": 3600.0,
+  "wall_check": "Checked between proposals and bounded IK calls; the final bounded call may finish after the allowance.",
+  "radius_min_m": null,
+  "radius_max_m": null,
+  "source_commit": "dd2a311bae48512f7b5d39b06b726d1223ea6999",
+  "model_sha256": "8e1fd973a1d1c3fbddd55039e6eb17b355ebb29f46e1bd8c774b7879c2cdc5bb",
+  "no_native_solver_or_GPU_calls": true,
+  "targets": [
+    {
+      "id": 0,
+      "name": "cone_000",
+      "proposal_id": 20,
+      "xyz_torso_m": [
+        0.7932606030785541,
+        -0.4246550421660222,
+        -0.4092455507274356
+      ],
+      "displacement_from_initial_tool_m": 0.3826014398768389,
+      "cone_angle_deg": 28.07364218728308,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -1.2872054843554095,
+        -0.6465204322203162,
+        0.35511037878825313,
+        -1.120014959771991,
+        -0.95319527727517,
+        -0.06521969433817389,
+        0.0
+      ],
+      "IK_position_residual_m": 1.4209926388666742e-06,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 0.6176010495197266
+    },
+    {
+      "id": 1,
+      "name": "cone_001",
+      "proposal_id": 27,
+      "xyz_torso_m": [
+        0.6639825988609453,
+        -0.12737663275181288,
+        -0.4532250162369952
+      ],
+      "displacement_from_initial_tool_m": 0.27241809304288395,
+      "cone_angle_deg": 40.123033562839055,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -0.40027408198335823,
+        -0.8431753725076763,
+        -0.44728933785558617,
+        -1.6684945251237535,
+        -0.9348109988812704,
+        -0.03092522823270824,
+        0.0
+      ],
+      "IK_position_residual_m": 1.9642631862913243e-06,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 0.6359853279136262
+    },
+    {
+      "id": 2,
+      "name": "cone_002",
+      "proposal_id": 137,
+      "xyz_torso_m": [
+        0.6547633636111012,
+        -0.32123043655176753,
+        -0.568078254520913
+      ],
+      "displacement_from_initial_tool_m": 0.2063678997470373,
+      "cone_angle_deg": 15.263186290828912,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -0.4351969207352338,
+        -0.9481416182338526,
+        -0.25625143857890875,
+        -1.2034141901643245,
+        0.059351921511465885,
+        -0.35873552210285226,
+        0.0
+      ],
+      "IK_position_residual_m": 1.5110418642579535e-07,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 0.9587956963335327
+    },
+    {
+      "id": 3,
+      "name": "cone_003",
+      "proposal_id": 347,
+      "xyz_torso_m": [
+        0.8893245793641102,
+        -0.4864971619816439,
+        -0.38439052295164455
+      ],
+      "displacement_from_initial_tool_m": 0.4976849635216568,
+      "cone_angle_deg": 29.385964028905974,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -1.0964393126638308,
+        -0.30374927143738684,
+        0.5491517578054051,
+        -0.7389951924055463,
+        0.2844001259575387,
+        0.8211916656530223,
+        0.0
+      ],
+      "IK_position_residual_m": 1.7387375434774971e-07,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 1.438213285233701
+    },
+    {
+      "id": 4,
+      "name": "cone_004",
+      "proposal_id": 433,
+      "xyz_torso_m": [
+        0.6926125272730215,
+        -0.4022004193580049,
+        -0.4993920754311393
+      ],
+      "displacement_from_initial_tool_m": 0.2646375018904678,
+      "cone_angle_deg": 26.44919739734785,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -0.4326455805657773,
+        -0.5413127846593708,
+        0.19652679247076849,
+        -1.1819421283534424,
+        0.6327753037170801,
+        2.9135276290622176,
+        0.0
+      ],
+      "IK_position_residual_m": 2.6504692405990637e-06,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 0.08843868436802937
+    },
+    {
+      "id": 5,
+      "name": "cone_005",
+      "proposal_id": 523,
+      "xyz_torso_m": [
+        0.7506577410729638,
+        -0.36055856804756903,
+        -0.25930382691197407
+      ],
+      "displacement_from_initial_tool_m": 0.4041362599663,
+      "cone_angle_deg": 43.12116787618649,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -0.1889902772529686,
+        0.5766429175247244,
+        0.3405942082803111,
+        0.6051279275788063,
+        1.0152485188323983,
+        -1.8709909898869352,
+        0.0
+      ],
+      "IK_position_residual_m": 2.8600906457103827e-07,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 0.013964602266940629
+    },
+    {
+      "id": 6,
+      "name": "cone_006",
+      "proposal_id": 613,
+      "xyz_torso_m": [
+        0.8655354335026657,
+        -0.017060975573418152,
+        -0.2757649141783093
+      ],
+      "displacement_from_initial_tool_m": 0.5508688943833036,
+      "cone_angle_deg": 41.92450376098898,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -0.7762032337472587,
+        0.11425909339390304,
+        -0.4688015549884329,
+        -0.9301603781309984,
+        -0.00692425746257548,
+        0.17342856249648497,
+        0.0
+      ],
+      "IK_position_residual_m": 5.192423940164266e-07,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 1.0202049204024113
+    },
+    {
+      "id": 7,
+      "name": "cone_007",
+      "proposal_id": 629,
+      "xyz_torso_m": [
+        0.970432436795041,
+        -0.331572631816056,
+        -0.2998273437716613
+      ],
+      "displacement_from_initial_tool_m": 0.5638569060980585,
+      "cone_angle_deg": 24.087590661443897,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -0.6517616264332107,
+        0.14565269249066204,
+        0.2718589875202176,
+        -0.481653214834032,
+        0.3830044555606974,
+        1.1201874710165,
+        0.0
+      ],
+      "IK_position_residual_m": 4.6646284828570406e-08,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 0.9888113213056522
+    },
+    {
+      "id": 8,
+      "name": "cone_008",
+      "proposal_id": 655,
+      "xyz_torso_m": [
+        0.8118387602143655,
+        -0.5941978282481493,
+        -0.5268431964235831
+      ],
+      "displacement_from_initial_tool_m": 0.4701540073195294,
+      "cone_angle_deg": 40.75152725293267,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -1.6872653932930317,
+        -0.30498255271169067,
+        -0.0897153294441144,
+        -0.1640825253117823,
+        1.5218067773756863,
+        0.7835699512117996,
+        0.0
+      ],
+      "IK_position_residual_m": 0.00019570952391038723,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 1.2985465391080966
+    },
+    {
+      "id": 9,
+      "name": "cone_009",
+      "proposal_id": 753,
+      "xyz_torso_m": [
+        0.8491023601299192,
+        -0.23749762816677128,
+        -0.3016266791754798
+      ],
+      "displacement_from_initial_tool_m": 0.45547103751690776,
+      "cone_angle_deg": 30.256097557601,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -0.536131441914905,
+        -0.29012864204952876,
+        -0.19520864658106624,
+        -1.078523622990963,
+        0.05403326383341905,
+        -0.05864254606496394,
+        0.0
+      ],
+      "IK_position_residual_m": 3.91818077965958e-06,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 1.059730217513204
+    },
+    {
+      "id": 10,
+      "name": "cone_010",
+      "proposal_id": 909,
+      "xyz_torso_m": [
+        0.7345635668355917,
+        -0.19197257549744245,
+        -0.5715162705222212
+      ],
+      "displacement_from_initial_tool_m": 0.29827532128326517,
+      "cone_angle_deg": 20.771089281827653,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -0.07467467436932533,
+        -0.8568540949755622,
+        -0.4085641605162638,
+        -1.1907401777482851,
+        -0.6477121842227954,
+        0.12114258997223586,
+        0.0
+      ],
+      "IK_position_residual_m": 1.2437327163130814e-07,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 0.5982734499676241
+    },
+    {
+      "id": 11,
+      "name": "cone_011",
+      "proposal_id": 1040,
+      "xyz_torso_m": [
+        0.6992371219937472,
+        -0.47657476477717287,
+        -0.5141666956923094
+      ],
+      "displacement_from_initial_tool_m": 0.3086781749037433,
+      "cone_angle_deg": 37.9032151872078,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -0.16266605851039181,
+        -0.28801522085898557,
+        0.802956088121086,
+        -0.19128687301042607,
+        -0.3169608666462651,
+        -1.2219376284315622,
+        0.0
+      ],
+      "IK_position_residual_m": 5.594188284774115e-07,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 0.6630179637223137
+    },
+    {
+      "id": 12,
+      "name": "cone_012",
+      "proposal_id": 1120,
+      "xyz_torso_m": [
+        0.6423409769210449,
+        -0.24488459407761337,
+        -0.3821817760383258
+      ],
+      "displacement_from_initial_tool_m": 0.2392227366612687,
+      "cone_angle_deg": 38.71166227277936,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -0.44300717523579364,
+        -0.8393805580942901,
+        -0.265468757388079,
+        -1.604332610645326,
+        0.019555145675086365,
+        -0.6260347415207008,
+        0.0
+      ],
+      "IK_position_residual_m": 7.015295313501562e-07,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 0.8391283421467353
+    },
+    {
+      "id": 13,
+      "name": "cone_013",
+      "proposal_id": 1368,
+      "xyz_torso_m": [
+        0.6000437414861148,
+        -0.383378619717611,
+        -0.5426302365323492
+      ],
+      "displacement_from_initial_tool_m": 0.17424979555977735,
+      "cone_angle_deg": 34.053245584272275,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -0.5114497679580005,
+        -1.1100438135993853,
+        -0.19177759428657862,
+        -1.402800675027377,
+        0.506432388181984,
+        -0.39556646413345226,
+        0.0
+      ],
+      "IK_position_residual_m": 1.3154867523174465e-06,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 1.0350485435562993
+    },
+    {
+      "id": 14,
+      "name": "cone_014",
+      "proposal_id": 1421,
+      "xyz_torso_m": [
+        0.6390446703793018,
+        -0.35356003284750226,
+        -0.416170985949635
+      ],
+      "displacement_from_initial_tool_m": 0.22361293878846128,
+      "cone_angle_deg": 34.91192342208186,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -0.4325755483058069,
+        -0.9727701100730413,
+        -0.048550544168333196,
+        -1.5622272874848575,
+        0.1249407162123734,
+        -0.4288893426017749,
+        0.0
+      ],
+      "IK_position_residual_m": 6.09391218417314e-07,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 0.8812336653072037
+    },
+    {
+      "id": 15,
+      "name": "cone_015",
+      "proposal_id": 1502,
+      "xyz_torso_m": [
+        0.925464662008838,
+        -0.06143676564349562,
+        -0.3537760897423662
+      ],
+      "displacement_from_initial_tool_m": 0.548868121834297,
+      "cone_angle_deg": 31.137927071868216,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -0.9784460508121717,
+        0.19003767627169782,
+        -0.3809832519830888,
+        -0.6405132422581187,
+        0.04416633131507508,
+        0.5049973761653123,
+        0.0
+      ],
+      "IK_position_residual_m": 2.601421261691441e-06,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 0.9444263375246165
+    },
+    {
+      "id": 16,
+      "name": "cone_016",
+      "proposal_id": 1536,
+      "xyz_torso_m": [
+        0.6292111042672228,
+        -0.3572594629079514,
+        -0.5854015409449954
+      ],
+      "displacement_from_initial_tool_m": 0.19641728014399606,
+      "cone_angle_deg": 27.93144309712305,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -0.4198679620510176,
+        -1.0329482837515747,
+        -0.08109124842096446,
+        -1.2372080404231809,
+        -0.359097391993819,
+        -0.3134555853884641,
+        0.0
+      ],
+      "IK_position_residual_m": 1.0439563821632159e-06,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 0.9434667376493164
+    },
+    {
+      "id": 17,
+      "name": "cone_017",
+      "proposal_id": 1575,
+      "xyz_torso_m": [
+        0.9986701014031476,
+        -0.1864892808521149,
+        -0.28326371634202185
+      ],
+      "displacement_from_initial_tool_m": 0.6031245497922455,
+      "cone_angle_deg": 25.80195998826428,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -3.9895454357452045,
+        -0.518392498160884,
+        -1.387021735679207,
+        0.09257410799725113,
+        3.2787134263298268,
+        1.139759570861227,
+        1.9033166290435735
+      ],
+      "IK_position_residual_m": 1.563384940752489e-06,
+      "IK_selected_restart": 1,
+      "minimum_raw_joint_clearance_rad": 0.3864780028582655
+    },
+    {
+      "id": 18,
+      "name": "cone_018",
+      "proposal_id": 1598,
+      "xyz_torso_m": [
+        0.9861361134694462,
+        -0.3627187426564573,
+        -0.12380178346472515
+      ],
+      "displacement_from_initial_tool_m": 0.6697498471721383,
+      "cone_angle_deg": 37.62445718734015,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -3.3538865865134007,
+        -0.5494230682834913,
+        -1.4276852996941714,
+        0.14996127330367123,
+        2.4686087599615196,
+        1.2174058512572081,
+        -0.43113824882314145
+      ],
+      "IK_position_residual_m": 0.00032574302359227356,
+      "IK_selected_restart": 1,
+      "minimum_raw_joint_clearance_rad": 0.984502740492643
+    },
+    {
+      "id": 19,
+      "name": "cone_019",
+      "proposal_id": 1628,
+      "xyz_torso_m": [
+        0.8391447851945857,
+        -0.4857310476750094,
+        -0.33578656214155944
+      ],
+      "displacement_from_initial_tool_m": 0.47167489845847793,
+      "cone_angle_deg": 35.610257342364804,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -1.2842532610634523,
+        -0.5495992783631355,
+        0.4573594620206399,
+        -0.9778883626485054,
+        0.2981249438518375,
+        0.2950663199403205,
+        0.0
+      ],
+      "IK_position_residual_m": 1.2540988328902854e-06,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 1.4655725901435557
+    },
+    {
+      "id": 20,
+      "name": "cone_020",
+      "proposal_id": 1763,
+      "xyz_torso_m": [
+        0.5832687180881871,
+        -0.3210448989619682,
+        -0.4169075510585807
+      ],
+      "displacement_from_initial_tool_m": 0.1710133517789675,
+      "cone_angle_deg": 41.74586491707819,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -0.4597247338200384,
+        -1.0515122148378357,
+        -0.11892032711333028,
+        -1.664796243767001,
+        0.10469740900318876,
+        -0.7305048251175573,
+        0.0
+      ],
+      "IK_position_residual_m": 1.5000582808919083e-07,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 0.7786647090250602
+    },
+    {
+      "id": 21,
+      "name": "cone_021",
+      "proposal_id": 1821,
+      "xyz_torso_m": [
+        0.9127079421499185,
+        -0.49718888672952066,
+        -0.32273256044385723
+      ],
+      "displacement_from_initial_tool_m": 0.5423222455156955,
+      "cone_angle_deg": 32.5700760521362,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -0.6499540999052154,
+        -0.031125842041807697,
+        0.7491374250585687,
+        -0.5717285972321761,
+        -0.543149166165079,
+        0.763322273572653,
+        0.0
+      ],
+      "IK_position_residual_m": 2.765346437855448e-06,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 1.0276471606298174
+    },
+    {
+      "id": 22,
+      "name": "cone_022",
+      "proposal_id": 1828,
+      "xyz_torso_m": [
+        0.7958288859482392,
+        -0.400422156891212,
+        -0.5049098148922971
+      ],
+      "displacement_from_initial_tool_m": 0.35907303344078406,
+      "cone_angle_deg": 18.68183051623999,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -1.4149532391405297,
+        -0.5876612225979981,
+        0.04506265758590075,
+        -1.234918945516031,
+        0.41506463463452853,
+        1.5125806060802114,
+        0.0
+      ],
+      "IK_position_residual_m": 1.3941236825463552e-06,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 1.2085420072760302
+    },
+    {
+      "id": 23,
+      "name": "cone_023",
+      "proposal_id": 1852,
+      "xyz_torso_m": [
+        0.9474325094760172,
+        -0.14319466118427993,
+        -0.2844390266219527
+      ],
+      "displacement_from_initial_tool_m": 0.5663704755377121,
+      "cone_angle_deg": 29.74274016290977,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -0.777484570566869,
+        0.13743533947503747,
+        -0.24934042802146267,
+        -0.6374674630759061,
+        0.018956908896903435,
+        0.3902060978733584,
+        0.0
+      ],
+      "IK_position_residual_m": 1.7825012302014012e-06,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 0.9970286743212767
+    },
+    {
+      "id": 24,
+      "name": "cone_024",
+      "proposal_id": 1883,
+      "xyz_torso_m": [
+        0.8544373494271511,
+        -0.5357307528512446,
+        -0.4656943959855302
+      ],
+      "displacement_from_initial_tool_m": 0.4736330745055851,
+      "cone_angle_deg": 32.65624615714703,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -2.0656724850036987,
+        -0.48526784174348736,
+        0.10402144810863743,
+        -0.6466762381107121,
+        0.08955549693272787,
+        1.0637234152422503,
+        0.0
+      ],
+      "IK_position_residual_m": 9.343241777154268e-06,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 1.6197318555398015
+    },
+    {
+      "id": 25,
+      "name": "cone_025",
+      "proposal_id": 2037,
+      "xyz_torso_m": [
+        0.7638116545045326,
+        -0.04990182179587864,
+        -0.49680411337721064
+      ],
+      "displacement_from_initial_tool_m": 0.3900453275410612,
+      "cone_angle_deg": 37.81422062234903,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -0.2798351464701701,
+        -0.48273964460289986,
+        -0.9511064892220085,
+        -1.3915185606648297,
+        -0.592356330800911,
+        1.1550841884913305,
+        0.0
+      ],
+      "IK_position_residual_m": 5.019887968953112e-07,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 0.803433922068469
+    },
+    {
+      "id": 26,
+      "name": "cone_026",
+      "proposal_id": 2176,
+      "xyz_torso_m": [
+        0.6929082898618033,
+        -0.3044497538617077,
+        -0.43629484750733183
+      ],
+      "displacement_from_initial_tool_m": 0.25408555835949337,
+      "cone_angle_deg": 20.984730533657505,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        0.3886994727855574,
+        -0.9837668918392798,
+        -0.10386276939715805,
+        -1.4841617239827647,
+        -0.22219468481591972,
+        -0.2032355519975636,
+        0.0
+      ],
+      "IK_position_residual_m": 4.266086599689345e-07,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 0.13489930281274143
+    },
+    {
+      "id": 27,
+      "name": "cone_027",
+      "proposal_id": 2478,
+      "xyz_torso_m": [
+        0.7411385675171169,
+        -0.2610912232923166,
+        -0.7594578960276479
+      ],
+      "displacement_from_initial_tool_m": 0.36991840271513515,
+      "cone_angle_deg": 39.49373995604442,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        0.013810732905466796,
+        -0.46972940823271925,
+        -1.0696086670602385,
+        -0.3220718298847329,
+        0.2904224563430609,
+        0.757636270179485,
+        0.0
+      ],
+      "IK_position_residual_m": 1.2503854487191014e-06,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 0.5097880426928321
+    },
+    {
+      "id": 28,
+      "name": "cone_028",
+      "proposal_id": 2541,
+      "xyz_torso_m": [
+        0.8870195937815604,
+        -0.18420663542218763,
+        -0.22980259371772105
+      ],
+      "displacement_from_initial_tool_m": 0.5331174647775768,
+      "cone_angle_deg": 35.991994841854776,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -0.5698842482688573,
+        -0.06012302736076146,
+        -0.22378228605251044,
+        -0.942357695549802,
+        0.05732653312945697,
+        0.010020291265448794,
+        0.0
+      ],
+      "IK_position_residual_m": 3.872337320850032e-06,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 1.0934830238671562
+    },
+    {
+      "id": 29,
+      "name": "cone_029",
+      "proposal_id": 2605,
+      "xyz_torso_m": [
+        0.739261166261105,
+        -0.19769462074776187,
+        -0.46920026740667053
+      ],
+      "displacement_from_initial_tool_m": 0.3027149684123627,
+      "cone_angle_deg": 20.477425844060736,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -0.3947480299987576,
+        -0.7606921793968009,
+        -0.43685900460804633,
+        -1.4400419115729681,
+        0.0488326074551617,
+        0.25754580929704957,
+        0.0
+      ],
+      "IK_position_residual_m": 7.504432773209642e-07,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 0.9183468055970564
+    },
+    {
+      "id": 30,
+      "name": "cone_030",
+      "proposal_id": 2680,
+      "xyz_torso_m": [
+        0.984042550902982,
+        -0.2065587137248291,
+        -0.3207500302903109
+      ],
+      "displacement_from_initial_tool_m": 0.572430695073514,
+      "cone_angle_deg": 22.627603590095664,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -0.8546589530952442,
+        0.3590290396965488,
+        -0.19490119943252043,
+        -0.17986730168854678,
+        0.19273078437461025,
+        0.8379346508144971,
+        0.0
+      ],
+      "IK_position_residual_m": 0.0004468218692996307,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 0.7754349740997655
+    },
+    {
+      "id": 31,
+      "name": "cone_031",
+      "proposal_id": 2700,
+      "xyz_torso_m": [
+        0.9952652247709852,
+        -0.06367594012452364,
+        -0.1057771694180101
+      ],
+      "displacement_from_initial_tool_m": 0.7193472367760273,
+      "cone_angle_deg": 41.399979297014525,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -3.708973639673896,
+        -0.8017308500220739,
+        1.4512452064756052,
+        -0.2826916215916247,
+        0.08138956895149775,
+        0.6479207856670771,
+        -1.5531179257786152
+      ],
+      "IK_position_residual_m": 1.0919412857128994e-06,
+      "IK_selected_restart": 1,
+      "minimum_raw_joint_clearance_rad": 1.0034153407107937
+    },
+    {
+      "id": 32,
+      "name": "cone_032",
+      "proposal_id": 2764,
+      "xyz_torso_m": [
+        0.7841106659049644,
+        -0.20274583528412243,
+        -0.7193015663540344
+      ],
+      "displacement_from_initial_tool_m": 0.39053441554063406,
+      "cone_angle_deg": 32.755082208797184,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        0.22330577253926637,
+        -0.4240678738696638,
+        -1.2471352455718323,
+        -0.33960634354731983,
+        -1.539481003446478,
+        0.7319267999761416,
+        0.0
+      ],
+      "IK_position_residual_m": 2.5052517435606493e-06,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 0.03131532334841847
+    },
+    {
+      "id": 33,
+      "name": "cone_033",
+      "proposal_id": 2843,
+      "xyz_torso_m": [
+        0.9096389271141023,
+        -0.37516611577054915,
+        -0.19334244366278802
+      ],
+      "displacement_from_initial_tool_m": 0.5694183415654147,
+      "cone_angle_deg": 37.13246899122955,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -0.6199282995141143,
+        -0.008068294474674473,
+        0.3239947081722655,
+        -0.7363128982340161,
+        0.25607525088967015,
+        0.09380462119907669,
+        0.0
+      ],
+      "IK_position_residual_m": 1.6675865312536517e-07,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 1.1425323082709886
+    },
+    {
+      "id": 34,
+      "name": "cone_034",
+      "proposal_id": 3107,
+      "xyz_torso_m": [
+        0.8750699351861606,
+        -0.15190988690310003,
+        -0.27599874917378475
+      ],
+      "displacement_from_initial_tool_m": 0.50650716113841,
+      "cone_angle_deg": 34.10469725762095,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -0.622658817076885,
+        -0.09490503955019565,
+        -0.30492636988298216,
+        -0.9662963395351583,
+        0.022542924464671103,
+        0.004051452010631692,
+        0.0
+      ],
+      "IK_position_residual_m": 7.796101798316521e-07,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 1.146257592675184
+    },
+    {
+      "id": 35,
+      "name": "cone_035",
+      "proposal_id": 3157,
+      "xyz_torso_m": [
+        0.7417165988174081,
+        -0.1876074476233777,
+        -0.38779137546242304
+      ],
+      "displacement_from_initial_tool_m": 0.3328118467715813,
+      "cone_angle_deg": 30.74284883886732,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -0.6374200336287263,
+        -0.6451263283160757,
+        -0.333159331236815,
+        -1.55076734747275,
+        0.16338930021993284,
+        0.21661401578446499,
+        0.0
+      ],
+      "IK_position_residual_m": 8.014069603019583e-07,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 0.8926936053193113
+    },
+    {
+      "id": 36,
+      "name": "cone_036",
+      "proposal_id": 3242,
+      "xyz_torso_m": [
+        0.7990451950801059,
+        -0.40423446775908833,
+        -0.2828607164525215
+      ],
+      "displacement_from_initial_tool_m": 0.4364950903052315,
+      "cone_angle_deg": 38.12611719014839,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -1.008753806107008,
+        -0.5499942308378712,
+        0.5032289204962294,
+        -1.2875241441729963,
+        2.2951819602525774,
+        1.575971718722917,
+        0.0
+      ],
+      "IK_position_residual_m": 7.276761426139368e-08,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 1.155936808619065
+    },
+    {
+      "id": 37,
+      "name": "cone_037",
+      "proposal_id": 3327,
+      "xyz_torso_m": [
+        0.6514713440453532,
+        -0.1967477089129553,
+        -0.6768298056052267
+      ],
+      "displacement_from_initial_tool_m": 0.2634167631697683,
+      "cone_angle_deg": 41.98705698155961,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -0.5550919753344445,
+        -0.6444944574249823,
+        -0.8166309728619066,
+        -0.867385071578268,
+        -0.15800319373317637,
+        -0.28197272012983887,
+        0.0
+      ],
+      "IK_position_residual_m": 1.495132911310536e-06,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 1.0786907509327435
+    },
+    {
+      "id": 38,
+      "name": "cone_038",
+      "proposal_id": 3390,
+      "xyz_torso_m": [
+        0.8289330351454658,
+        -0.41705262845639396,
+        -0.4171874405434335
+      ],
+      "displacement_from_initial_tool_m": 0.4097861327336957,
+      "cone_angle_deg": 24.3753580186738,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -2.02753558784248,
+        -0.5997092667106844,
+        0.3894210423836881,
+        -1.1845354916092272,
+        0.7344998284020924,
+        1.7518464659035877,
+        0.0
+      ],
+      "IK_position_residual_m": 3.7298588045379535e-07,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 1.2501198475266593
+    },
+    {
+      "id": 39,
+      "name": "cone_039",
+      "proposal_id": 3394,
+      "xyz_torso_m": [
+        0.5422355954273895,
+        -0.30180498398814726,
+        -0.511986841280111
+      ],
+      "displacement_from_initial_tool_m": 0.08882689631127746,
+      "cone_angle_deg": 12.969573164551361,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -0.6210151617352586,
+        -0.9598793911102934,
+        -0.3295004383157658,
+        -1.3885680994841725,
+        -0.010108196160518484,
+        -1.385132819497113,
+        0.0
+      ],
+      "IK_position_residual_m": 1.12897179871395e-07,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 0.4998227726567628
+    },
+    {
+      "id": 40,
+      "name": "cone_040",
+      "proposal_id": 3470,
+      "xyz_torso_m": [
+        0.8154107442596263,
+        -0.07069045972076049,
+        -0.4336719341156765
+      ],
+      "displacement_from_initial_tool_m": 0.4298693702271622,
+      "cone_angle_deg": 33.19107326927481,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        0.018995085224466295,
+        -0.3171752044182507,
+        -1.0974120722044807,
+        -0.9401140787386797,
+        0.07865240749949003,
+        -0.09016151558284027,
+        0.0
+      ],
+      "IK_position_residual_m": 9.760326457907463e-10,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 0.5046036903738326
+    },
+    {
+      "id": 41,
+      "name": "cone_041",
+      "proposal_id": 3519,
+      "xyz_torso_m": [
+        0.9668737955151043,
+        -0.14228299531942606,
+        -0.16799134837934668
+      ],
+      "displacement_from_initial_tool_m": 0.6405280257813518,
+      "cone_angle_deg": 37.05189579754647,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -0.8929725576595825,
+        0.3175602704000396,
+        0.10801505275116326,
+        -0.5787033974527599,
+        1.0974999426253114,
+        0.4697273006692271,
+        0.0
+      ],
+      "IK_position_residual_m": 5.31933372373107e-07,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 0.8169037433962747
+    },
+    {
+      "id": 42,
+      "name": "cone_042",
+      "proposal_id": 3573,
+      "xyz_torso_m": [
+        0.9103372679178414,
+        -0.3194358340908037,
+        -0.362311320685884
+      ],
+      "displacement_from_initial_tool_m": 0.48418236076799187,
+      "cone_angle_deg": 20.110441763349257,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -0.182506179105978,
+        -0.15536245241405944,
+        -0.1416979832812549,
+        -0.6940145237218246,
+        -1.069457741182797,
+        0.036790261839400526,
+        0.0
+      ],
+      "IK_position_residual_m": 6.0251417148088e-07,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 0.5013385856120995
+    },
+    {
+      "id": 43,
+      "name": "cone_043",
+      "proposal_id": 3669,
+      "xyz_torso_m": [
+        0.9207758196755578,
+        -0.5120057561120737,
+        -0.3169368230852339
+      ],
+      "displacement_from_initial_tool_m": 0.5571161387855127,
+      "cone_angle_deg": 33.401144480330046,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -0.19477282562890494,
+        0.21170897796165764,
+        1.1226501608468509,
+        -0.302459874372436,
+        0.665654925985226,
+        1.0539558855659732,
+        0.0
+      ],
+      "IK_position_residual_m": 6.329276938765578e-08,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 0.7183716012272038
+    },
+    {
+      "id": 44,
+      "name": "cone_044",
+      "proposal_id": 3683,
+      "xyz_torso_m": [
+        0.8330093801977119,
+        -0.43202188799587915,
+        -0.4428121349193651
+      ],
+      "displacement_from_initial_tool_m": 0.4125420401769468,
+      "cone_angle_deg": 23.84287213638806,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -2.3954547434570683,
+        -0.6112570889821678,
+        -0.006438959967394447,
+        -1.1069518345267235,
+        2.442362230447275,
+        -0.05533921034496485,
+        0.0
+      ],
+      "IK_position_residual_m": 4.659435881507907e-06,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 1.222829198740817
+    },
+    {
+      "id": 45,
+      "name": "cone_045",
+      "proposal_id": 4043,
+      "xyz_torso_m": [
+        0.6958918421246245,
+        -0.17547138906990098,
+        -0.342170567674173
+      ],
+      "displacement_from_initial_tool_m": 0.3222966290126503,
+      "cone_angle_deg": 41.81261061174014,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -0.4298907018640723,
+        -0.6065394053551549,
+        -0.3957680179189153,
+        -1.50079866643444,
+        -0.025649747119438553,
+        -0.5077002678975389,
+        0.0
+      ],
+      "IK_position_residual_m": 1.813593189082289e-06,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 0.9426622863576213
+    },
+    {
+      "id": 46,
+      "name": "cone_046",
+      "proposal_id": 4198,
+      "xyz_torso_m": [
+        0.8884460300101853,
+        -0.10255356393067902,
+        -0.21192338737548724
+      ],
+      "displacement_from_initial_tool_m": 0.5655507081779629,
+      "cone_angle_deg": 40.073339081195954,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -0.6442274309520521,
+        0.06420193623392846,
+        -0.31547756050619413,
+        -0.9218993142815475,
+        0.024781494142634274,
+        0.09688612353853533,
+        0.0
+      ],
+      "IK_position_residual_m": 2.68514886460887e-06,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 1.0702620775623857
+    },
+    {
+      "id": 47,
+      "name": "cone_047",
+      "proposal_id": 4271,
+      "xyz_torso_m": [
+        0.7464465190429421,
+        -0.0731424057892557,
+        -0.37463948336845043
+      ],
+      "displacement_from_initial_tool_m": 0.3914263716504776,
+      "cone_angle_deg": 42.0250834034472,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -0.30710499899793386,
+        -0.5795522987334718,
+        -0.6671105941788934,
+        -1.6494650213606663,
+        0.03304364884519327,
+        0.7863703527158945,
+        0.0
+      ],
+      "IK_position_residual_m": 3.7544484684252945e-06,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 0.7939959314313949
+    },
+    {
+      "id": 48,
+      "name": "cone_048",
+      "proposal_id": 4323,
+      "xyz_torso_m": [
+        0.6596724406821768,
+        -0.10836494879221598,
+        -0.6157236025084514
+      ],
+      "displacement_from_initial_tool_m": 0.28590655072642074,
+      "cone_angle_deg": 44.478627439946855,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -0.8264006729621787,
+        0.014172485553486476,
+        -1.4518571101242688,
+        -0.7795668653798801,
+        -0.11694659355045034,
+        -0.6241547837927437,
+        0.0
+      ],
+      "IK_position_residual_m": 8.659985104427739e-11,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 1.1202915282428278
+    },
+    {
+      "id": 49,
+      "name": "cone_049",
+      "proposal_id": 4483,
+      "xyz_torso_m": [
+        0.7812567516897653,
+        -0.5039414887735937,
+        -0.6412860969847688
+      ],
+      "displacement_from_initial_tool_m": 0.407811981907625,
+      "cone_angle_deg": 37.02593028824277,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -0.39858240123504873,
+        -0.23876408501269542,
+        0.775738022159299,
+        -0.13586044120856333,
+        0.5951855675150236,
+        0.8444547231501552,
+        0.0
+      ],
+      "IK_position_residual_m": 2.968688611027601e-06,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 0.9221811768333475
+    },
+    {
+      "id": 50,
+      "name": "cone_050",
+      "proposal_id": 4529,
+      "xyz_torso_m": [
+        0.6918328522660717,
+        -0.3651852603073794,
+        -0.5754731996510659
+      ],
+      "displacement_from_initial_tool_m": 0.2536131870760143,
+      "cone_angle_deg": 21.381360556003504,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -1.757394017995108,
+        -0.7070294092097007,
+        -0.2195110607176,
+        -1.2959268512985933,
+        -0.5514902893061733,
+        0.3181270507748948,
+        0.0
+      ],
+      "IK_position_residual_m": 2.239327425676346e-06,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 1.0193060374887233
+    },
+    {
+      "id": 51,
+      "name": "cone_051",
+      "proposal_id": 4607,
+      "xyz_torso_m": [
+        0.8833605548046004,
+        -0.6139388571665804,
+        -0.30762431231321247
+      ],
+      "displacement_from_initial_tool_m": 0.5806464829541962,
+      "cone_angle_deg": 42.56009294717154,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -2.1446141318462284,
+        -0.43928948870513035,
+        1.0981667814973628,
+        -0.34248461712510087,
+        0.3684518276382069,
+        0.9266853924886613,
+        0.0
+      ],
+      "IK_position_residual_m": 2.936337900245064e-07,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 1.476948630921415
+    },
+    {
+      "id": 52,
+      "name": "cone_052",
+      "proposal_id": 4610,
+      "xyz_torso_m": [
+        0.9338759514023813,
+        -0.35678578026841046,
+        -0.1802249797972108
+      ],
+      "displacement_from_initial_tool_m": 0.5939932722129704,
+      "cone_angle_deg": 36.38378714222139,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -0.8074637712574122,
+        0.013784658986219799,
+        0.5038821927561743,
+        -0.8636238134220884,
+        0.7501477945248008,
+        0.7026501701458583,
+        0.0
+      ],
+      "IK_position_residual_m": 1.0716500718993286e-06,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 1.1206793548100944
+    },
+    {
+      "id": 53,
+      "name": "cone_053",
+      "proposal_id": 4734,
+      "xyz_torso_m": [
+        0.5276030740057618,
+        -0.2190817189189403,
+        -0.5086672444424081
+      ],
+      "displacement_from_initial_tool_m": 0.10057372704444952,
+      "cone_angle_deg": 44.34202423208851,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -0.46766889946385204,
+        -1.1160810040393412,
+        -0.48711323867997247,
+        -1.5841407606468878,
+        0.0433519440584354,
+        -0.9338477634886886,
+        0.0
+      ],
+      "IK_position_residual_m": 1.0388471168948468e-06,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 0.8593201921451734
+    },
+    {
+      "id": 54,
+      "name": "cone_054",
+      "proposal_id": 4778,
+      "xyz_torso_m": [
+        0.67284242249222,
+        -0.4548846313270807,
+        -0.4152323304735448
+      ],
+      "displacement_from_initial_tool_m": 0.29570604919903426,
+      "cone_angle_deg": 42.74312415567172,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -1.3020388422217928,
+        -1.012685395823393,
+        0.08243991504225656,
+        -1.4214088452386968,
+        0.13973670772268926,
+        -0.1584581717619521,
+        0.0
+      ],
+      "IK_position_residual_m": 4.1580233296210245e-08,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 1.0220521075533644
+    },
+    {
+      "id": 55,
+      "name": "cone_055",
+      "proposal_id": 4961,
+      "xyz_torso_m": [
+        0.7472862191288101,
+        -0.37741041959816696,
+        -0.5942305815666206
+      ],
+      "displacement_from_initial_tool_m": 0.31282731362446764,
+      "cone_angle_deg": 21.22270831422295,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -1.727560209950412,
+        -0.5527900162604781,
+        -0.2147517461608486,
+        -1.0412370495259016,
+        -0.6865724584790174,
+        0.4016144829673895,
+        0.0
+      ],
+      "IK_position_residual_m": 4.247470842683207e-07,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 0.8842238683158792
+    },
+    {
+      "id": 56,
+      "name": "cone_056",
+      "proposal_id": 5030,
+      "xyz_torso_m": [
+        0.6936829994766209,
+        -0.2893358076994892,
+        -0.6900338309493468
+      ],
+      "displacement_from_initial_tool_m": 0.2892616364824471,
+      "cone_angle_deg": 34.632601762598846,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -0.036233571143069396,
+        -0.8854343954135624,
+        -0.27898245473074906,
+        -0.8454418321175574,
+        0.09394066906708343,
+        0.08045849407653483,
+        0.0
+      ],
+      "IK_position_residual_m": 5.472040868723081e-08,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 0.5598323467413682
+    },
+    {
+      "id": 57,
+      "name": "cone_057",
+      "proposal_id": 5096,
+      "xyz_torso_m": [
+        0.7806354394374668,
+        -0.09006944654886173,
+        -0.47495166575664316
+      ],
+      "displacement_from_initial_tool_m": 0.38349380215930956,
+      "cone_angle_deg": 32.07336339209295,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -0.2071359554120107,
+        -0.28787596192566817,
+        -1.0142031340204385,
+        -0.869859823169609,
+        -0.078827965369655,
+        -0.3871370199552765,
+        0.0
+      ],
+      "IK_position_residual_m": 3.4307799472051362e-09,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 0.7307347310103095
+    },
+    {
+      "id": 58,
+      "name": "cone_058",
+      "proposal_id": 5114,
+      "xyz_torso_m": [
+        0.6876380835843325,
+        -0.43309498398307056,
+        -0.6428116350499121
+      ],
+      "displacement_from_initial_tool_m": 0.2979777419720833,
+      "cone_angle_deg": 38.8803317297538,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -0.08911840812704142,
+        -0.38069867181075123,
+        0.4139360086615368,
+        0.031156682241832916,
+        0.022599417810457517,
+        -0.7715283257165991,
+        0.0
+      ],
+      "IK_position_residual_m": 8.706452231373791e-07,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 0.6127171837253402
+    },
+    {
+      "id": 59,
+      "name": "cone_059",
+      "proposal_id": 5165,
+      "xyz_torso_m": [
+        0.6101745156129701,
+        -0.24106062625081204,
+        -0.454876622213334
+      ],
+      "displacement_from_initial_tool_m": 0.17611726321874893,
+      "cone_angle_deg": 28.68698609052588,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -0.44840566525950565,
+        -0.9602917089661616,
+        -0.42030964679946115,
+        -1.565079938184586,
+        0.3047727673113943,
+        -0.6895114360513226,
+        0.0
+      ],
+      "IK_position_residual_m": 1.2127116356436335e-07,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 0.8783810146074753
+    },
+    {
+      "id": 60,
+      "name": "cone_060",
+      "proposal_id": 5182,
+      "xyz_torso_m": [
+        0.9099326912598609,
+        -0.2756476903566116,
+        -0.5031971583105065
+      ],
+      "displacement_from_initial_tool_m": 0.4549618614149665,
+      "cone_angle_deg": 3.1875789767753995,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -1.022395996949472,
+        0.14432229451831616,
+        -0.8042817082330125,
+        -0.08388906711906659,
+        -0.17898458880766338,
+        0.24347653758815962,
+        0.0
+      ],
+      "IK_position_residual_m": 1.0773032003967418e-06,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 0.9901417192779981
+    },
+    {
+      "id": 61,
+      "name": "cone_061",
+      "proposal_id": 5263,
+      "xyz_torso_m": [
+        0.8362050193810331,
+        0.06084270663711164,
+        -0.5309392615729512
+      ],
+      "displacement_from_initial_tool_m": 0.5157806728416394,
+      "cone_angle_deg": 42.45774309049518,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -1.388379918028628,
+        0.584783977683738,
+        -1.3373761682657825,
+        -0.44627111853524737,
+        -0.122770081805077,
+        0.9433231393698991,
+        0.0
+      ],
+      "IK_position_residual_m": 1.3105703034220693e-06,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 0.5496800361125762
+    },
+    {
+      "id": 62,
+      "name": "cone_062",
+      "proposal_id": 5340,
+      "xyz_torso_m": [
+        0.7013453511977086,
+        -0.052619151425016136,
+        -0.4880376861792728
+      ],
+      "displacement_from_initial_tool_m": 0.3418201148341984,
+      "cone_angle_deg": 44.051659421255714,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -0.4076599398017146,
+        -0.49106927676729684,
+        -0.868359043260418,
+        -1.2480408756704973,
+        -0.11024675870970356,
+        -0.17183587370289835,
+        0.0
+      ],
+      "IK_position_residual_m": 3.900501472805588e-10,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 0.9312587154000134
+    },
+    {
+      "id": 63,
+      "name": "cone_063",
+      "proposal_id": 5730,
+      "xyz_torso_m": [
+        0.7980689970693293,
+        -0.14964887504548044,
+        -0.6666561812494767
+      ],
+      "displacement_from_initial_tool_m": 0.39504543236439055,
+      "cone_angle_deg": 29.920165983745182,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -0.04038001725043787,
+        -0.27846280301162296,
+        -1.5298333434271918,
+        -0.6475362254534166,
+        2.876161070398256,
+        0.6890231064438547,
+        0.0
+      ],
+      "IK_position_residual_m": 9.13370390707196e-07,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 0.5639787928487366
+    },
+    {
+      "id": 64,
+      "name": "cone_064",
+      "proposal_id": 5755,
+      "xyz_torso_m": [
+        0.6819098283728624,
+        -0.32739164986204944,
+        -0.37155849983857037
+      ],
+      "displacement_from_initial_tool_m": 0.27665168540168183,
+      "cone_angle_deg": 35.13866369693622,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -0.4724345275062623,
+        -0.7890189866658623,
+        -0.034699819517762034,
+        -1.4769295073186122,
+        -0.046308615652231926,
+        -0.5112190834644809,
+        0.0
+      ],
+      "IK_position_residual_m": 2.933592753141791e-09,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 0.966531445473449
+    },
+    {
+      "id": 65,
+      "name": "cone_065",
+      "proposal_id": 5766,
+      "xyz_torso_m": [
+        0.6408163703284553,
+        -0.26339391041190807,
+        -0.6524267046024531
+      ],
+      "displacement_from_initial_tool_m": 0.22565348123547357,
+      "cone_angle_deg": 34.86824924729435,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -0.39880984902162797,
+        -0.9287493344361321,
+        -0.4540001518106858,
+        -1.0438415731521387,
+        -0.030924929178972348,
+        -0.2487705570945903,
+        0.0
+      ],
+      "IK_position_residual_m": 9.53188131229688e-08,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 0.9224086246199268
+    },
+    {
+      "id": 66,
+      "name": "cone_066",
+      "proposal_id": 5845,
+      "xyz_torso_m": [
+        0.789897899996993,
+        0.017229231597887834,
+        -0.5206660342224962
+      ],
+      "displacement_from_initial_tool_m": 0.4521767641608308,
+      "cone_angle_deg": 42.34155873079402,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -0.7570098572563021,
+        0.16972741379396747,
+        -1.267294240785393,
+        -1.019945931568625,
+        -0.4022063925895417,
+        0.8648034307279941,
+        0.0
+      ],
+      "IK_position_residual_m": 2.147021937791172e-07,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 0.9647366000023467
+    },
+    {
+      "id": 67,
+      "name": "cone_067",
+      "proposal_id": 5873,
+      "xyz_torso_m": [
+        0.6238288613438197,
+        -0.19881088815087572,
+        -0.5043775215970875
+      ],
+      "displacement_from_initial_tool_m": 0.19120057302746962,
+      "cone_angle_deg": 28.42215539055301,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -0.34213538840437263,
+        -1.178260859120513,
+        -0.41951727590576393,
+        -1.9765280444624047,
+        -0.029511449735302585,
+        1.204997886741008,
+        0.0
+      ],
+      "IK_position_residual_m": 2.596185890859237e-08,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 0.4669329083296565
+    },
+    {
+      "id": 68,
+      "name": "cone_068",
+      "proposal_id": 5959,
+      "xyz_torso_m": [
+        0.8571273109291084,
+        -0.3050505829975142,
+        -0.4148212033873242
+      ],
+      "displacement_from_initial_tool_m": 0.4168498337875515,
+      "cone_angle_deg": 15.621234371614364,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -0.2043092373016155,
+        -0.3364934483550329,
+        -0.3592504367890401,
+        -0.7548589484795133,
+        0.14910051301895463,
+        -0.1931625635530978,
+        0.0
+      ],
+      "IK_position_residual_m": 2.532060053979164e-06,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 0.7279080128999142
+    },
+    {
+      "id": 69,
+      "name": "cone_069",
+      "proposal_id": 6066,
+      "xyz_torso_m": [
+        0.7046895856181734,
+        -0.3766653101828333,
+        -0.7058521485496404
+      ],
+      "displacement_from_initial_tool_m": 0.3201040165164434,
+      "cone_angle_deg": 38.9296055248167,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -0.3641874796879303,
+        -0.6820586405847527,
+        -0.31342573374073907,
+        -0.5659818675207527,
+        -0.018158807352689422,
+        0.0766664357760194,
+        0.0
+      ],
+      "IK_position_residual_m": 2.0731958891672758e-07,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 0.8877862552862291
+    },
+    {
+      "id": 70,
+      "name": "cone_070",
+      "proposal_id": 6255,
+      "xyz_torso_m": [
+        0.7630731035504901,
+        -0.3546297731742485,
+        -0.7044197139155305
+      ],
+      "displacement_from_initial_tool_m": 0.3619179297754244,
+      "cone_angle_deg": 31.857943523702208,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -0.43882469522313283,
+        -0.47424611947592044,
+        -0.6021992067182922,
+        -0.5924772994653746,
+        0.12478338062215624,
+        1.038776876667602,
+        0.0
+      ],
+      "IK_position_residual_m": 6.6279254595219585e-06,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 0.9624234708214316
+    },
+    {
+      "id": 71,
+      "name": "cone_071",
+      "proposal_id": 6390,
+      "xyz_torso_m": [
+        0.9296951095221193,
+        -0.11847581948552682,
+        -0.3014064849897956
+      ],
+      "displacement_from_initial_tool_m": 0.5508922403376572,
+      "cone_angle_deg": 30.63180155917933,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -0.20158831557845525,
+        0.08326805463168582,
+        -0.9536101941234066,
+        -0.8988492685013846,
+        3.568106096613237,
+        0.706031843786429,
+        0.0
+      ],
+      "IK_position_residual_m": 7.426878440756245e-08,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 0.09708533257485508
+    },
+    {
+      "id": 72,
+      "name": "cone_072",
+      "proposal_id": 6413,
+      "xyz_torso_m": [
+        0.7176775236192314,
+        -0.38987296651729336,
+        -0.38007678442699855
+      ],
+      "displacement_from_initial_tool_m": 0.31679854658649426,
+      "cone_angle_deg": 34.20486731908938,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        0.27032370580649967,
+        -0.841040525951583,
+        -0.045418113408781685,
+        -1.5756229787055462,
+        0.0978906755632892,
+        0.28680610623370245,
+        0.0
+      ],
+      "IK_position_residual_m": 3.7827381582127745e-10,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 0.25327506979179915
+    },
+    {
+      "id": 73,
+      "name": "cone_073",
+      "proposal_id": 6475,
+      "xyz_torso_m": [
+        0.5712319377073755,
+        -0.3188723555147719,
+        -0.4166189341314237
+      ],
+      "displacement_from_initial_tool_m": 0.16198682158478128,
+      "cone_angle_deg": 44.48988773857159,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -0.35788219837561375,
+        -1.0793118068354388,
+        -0.11155956878143146,
+        -1.6888034270582843,
+        0.0986836881893846,
+        -0.7829991173604267,
+        0.0
+      ],
+      "IK_position_residual_m": 8.484095405929855e-07,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 0.7546575257337769
+    },
+    {
+      "id": 74,
+      "name": "cone_074",
+      "proposal_id": 6487,
+      "xyz_torso_m": [
+        0.558857068006978,
+        -0.28684862890726026,
+        -0.5476308016411904
+      ],
+      "displacement_from_initial_tool_m": 0.10549739238422945,
+      "cone_angle_deg": 12.02526199668513,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -0.5904205862750443,
+        -0.9562571918440164,
+        -0.3981341902248074,
+        -1.277361065691184,
+        -0.007241263167269561,
+        -1.1583386778246625,
+        0.0
+      ],
+      "IK_position_residual_m": 1.1379400820798787e-06,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 0.7266169143292134
+    },
+    {
+      "id": 75,
+      "name": "cone_075",
+      "proposal_id": 6671,
+      "xyz_torso_m": [
+        0.8384339891314536,
+        -0.22831447891676748,
+        -0.6388259308911369
+      ],
+      "displacement_from_initial_tool_m": 0.4034732099428118,
+      "cone_angle_deg": 18.439005241283713,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -0.07300356775443885,
+        -0.183848111935574,
+        -1.5149078058906849,
+        -0.4947698173340339,
+        -0.2717331655966178,
+        0.8750235449832866,
+        0.0
+      ],
+      "IK_position_residual_m": 9.453705907212814e-07,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 0.5966023433527377
+    },
+    {
+      "id": 76,
+      "name": "cone_076",
+      "proposal_id": 6787,
+      "xyz_torso_m": [
+        0.6160098735072321,
+        -0.38258992723953533,
+        -0.4056222177356771
+      ],
+      "displacement_from_initial_tool_m": 0.22180371159908982,
+      "cone_angle_deg": 43.708094410390146,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -0.5666988505664038,
+        -0.9617974489113447,
+        0.0285853756598124,
+        -1.5224390328997706,
+        0.13437544953068337,
+        -0.6985687606483991,
+        0.0
+      ],
+      "IK_position_residual_m": 4.655977460814079e-08,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 0.9210219198922907
+    },
+    {
+      "id": 77,
+      "name": "cone_077",
+      "proposal_id": 6866,
+      "xyz_torso_m": [
+        0.6910930843293759,
+        -0.16888647865787337,
+        -0.7133584303264437
+      ],
+      "displacement_from_initial_tool_m": 0.323533989319446,
+      "cone_angle_deg": 43.3105517208392,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -0.006246360643380543,
+        -0.8627952701159094,
+        -0.5790417010102283,
+        -0.804897980077387,
+        -0.19580778812423938,
+        0.17383100394626563,
+        0.0
+      ],
+      "IK_position_residual_m": 1.0164352095482718e-06,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 0.5298451362416794
+    },
+    {
+      "id": 78,
+      "name": "cone_078",
+      "proposal_id": 6875,
+      "xyz_torso_m": [
+        0.9849792271560391,
+        -0.244852761550228,
+        -0.2883112256755175
+      ],
+      "displacement_from_initial_tool_m": 0.5816328807009564,
+      "cone_angle_deg": 24.490234061505944,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -0.6782291837499473,
+        0.37224625238288533,
+        -0.3230905556495164,
+        -0.22848015542636563,
+        0.10132037331696389,
+        1.1381843243291276,
+        0.0
+      ],
+      "IK_position_residual_m": 7.296243472049848e-07,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 0.7622177614134289
+    },
+    {
+      "id": 79,
+      "name": "cone_079",
+      "proposal_id": 7089,
+      "xyz_torso_m": [
+        0.6427704710326807,
+        -0.2833679547282561,
+        -0.6447655052103319
+      ],
+      "displacement_from_initial_tool_m": 0.2218273633477892,
+      "cone_angle_deg": 32.49594122401671,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -0.39325620333199496,
+        -0.9412658125486737,
+        -0.393851840572055,
+        -1.0511196608532154,
+        -0.02019917921301115,
+        -0.26416082765595567,
+        0.0
+      ],
+      "IK_position_residual_m": 1.773257166636833e-06,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 0.9168549789302938
+    },
+    {
+      "id": 80,
+      "name": "cone_080",
+      "proposal_id": 7090,
+      "xyz_torso_m": [
+        0.9095699786741402,
+        -0.4063404851842828,
+        -0.45468310992776084
+      ],
+      "displacement_from_initial_tool_m": 0.4745843452238256,
+      "cone_angle_deg": 16.98017463045749,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -0.40157933600892104,
+        -0.01316945937600941,
+        -0.041910777807714975,
+        -0.40497900347724836,
+        0.08646309760492198,
+        1.4231912720890412,
+        0.0
+      ],
+      "IK_position_residual_m": 1.5858751578986434e-07,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 0.9251781116072199
+    },
+    {
+      "id": 81,
+      "name": "cone_081",
+      "proposal_id": 7193,
+      "xyz_torso_m": [
+        0.8338185840898269,
+        -0.12428036168963147,
+        -0.6176674728666514
+      ],
+      "displacement_from_initial_tool_m": 0.4219384748809512,
+      "cone_angle_deg": 26.336221216219702,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -1.2819726463223091,
+        0.31092031458359065,
+        -1.4879289428949536,
+        -0.5124058038229707,
+        -0.1762102942898838,
+        0.8324086303552832,
+        0.0
+      ],
+      "IK_position_residual_m": 7.534356893753383e-06,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 0.8235436992127236
+    },
+    {
+      "id": 82,
+      "name": "cone_082",
+      "proposal_id": 7212,
+      "xyz_torso_m": [
+        0.7889932857659929,
+        -0.43915714554740326,
+        -0.5081739349656398
+      ],
+      "displacement_from_initial_tool_m": 0.3667009474928936,
+      "cone_angle_deg": 24.637201511188746,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -0.9128688898285184,
+        -0.6440241729714212,
+        0.11245971577668995,
+        -1.1815937560096448,
+        0.6934382419542993,
+        1.3517743186007656,
+        0.0
+      ],
+      "IK_position_residual_m": 3.1429351900781383e-06,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 1.2618671967824164
+    },
+    {
+      "id": 83,
+      "name": "cone_083",
+      "proposal_id": 7387,
+      "xyz_torso_m": [
+        0.9895854134527835,
+        -0.012144580889649786,
+        -0.25406276704546005
+      ],
+      "displacement_from_initial_tool_m": 0.6591888813159547,
+      "cone_angle_deg": 35.908856898578236,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -4.2008507384024805,
+        -0.8027535655612642,
+        0.141494320606154,
+        -0.17949158148203978,
+        2.851488069503413,
+        0.7286600944703903,
+        -2.541715407348105
+      ],
+      "IK_position_residual_m": 0.0008202224675514852,
+      "IK_selected_restart": 1,
+      "minimum_raw_joint_clearance_rad": 0.07627847064338944
+    },
+    {
+      "id": 84,
+      "name": "cone_084",
+      "proposal_id": 7504,
+      "xyz_torso_m": [
+        0.6852120205677954,
+        -0.247949043506217,
+        -0.30295439197571283
+      ],
+      "displacement_from_initial_tool_m": 0.32222844516061294,
+      "cone_angle_deg": 44.574101303553924,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -0.4380872027197805,
+        -0.6514892836763556,
+        -0.19230397609753927,
+        -1.5708086490995083,
+        0.045546067459486,
+        -0.560087250551696,
+        0.0
+      ],
+      "IK_position_residual_m": 1.2445292526038715e-06,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 0.8726523036925529
+    },
+    {
+      "id": 85,
+      "name": "cone_085",
+      "proposal_id": 7593,
+      "xyz_torso_m": [
+        0.6849617009296278,
+        -0.5134289868794897,
+        -0.5010854032668407
+      ],
+      "displacement_from_initial_tool_m": 0.3229762989964701,
+      "cone_angle_deg": 44.77168422870804,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -0.16259016618437627,
+        -0.5155229417543923,
+        0.3575826647759348,
+        -0.6384425961373458,
+        0.2708436185770942,
+        -0.8303959842833417,
+        0.0
+      ],
+      "IK_position_residual_m": 8.661141418897286e-07,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 0.6861889417826751
+    },
+    {
+      "id": 86,
+      "name": "cone_086",
+      "proposal_id": 7610,
+      "xyz_torso_m": [
+        0.9199885957900904,
+        -0.5159396006101342,
+        -0.21271346661818427
+      ],
+      "displacement_from_initial_tool_m": 0.6048135601176976,
+      "cone_angle_deg": 39.85242430246707,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -0.5010054971076647,
+        0.29100207395193095,
+        1.305704674996145,
+        -0.5082388850355374,
+        3.2970541028975178,
+        0.7140338062631745,
+        0.0
+      ],
+      "IK_position_residual_m": 1.6907953839185198e-06,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 0.3681373262905745
+    },
+    {
+      "id": 87,
+      "name": "cone_087",
+      "proposal_id": 7696,
+      "xyz_torso_m": [
+        0.6884048211621638,
+        -0.05738804851116221,
+        -0.4951480252638335
+      ],
+      "displacement_from_initial_tool_m": 0.32855792069843964,
+      "cone_angle_deg": 44.90014099967825,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -0.4553600132524348,
+        -0.5894217837214811,
+        -0.8590839879147731,
+        -1.386193921983095,
+        0.26849299773118757,
+        0.057226882982981064,
+        0.0
+      ],
+      "IK_position_residual_m": 4.358192267885121e-06,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 0.9789587888507336
+    },
+    {
+      "id": 88,
+      "name": "cone_088",
+      "proposal_id": 7822,
+      "xyz_torso_m": [
+        0.9898272296220199,
+        -0.2874086408043044,
+        -0.19829070403778587
+      ],
+      "displacement_from_initial_tool_m": 0.6264876068041839,
+      "cone_angle_deg": 31.50279941221938,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -0.6301279446587634,
+        0.3520599430852509,
+        0.3365487887443782,
+        -0.3210323610428468,
+        0.40713136718287446,
+        0.8136977978414063,
+        0.0
+      ],
+      "IK_position_residual_m": 1.2595172537872358e-06,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 0.7824040707110633
+    },
+    {
+      "id": 89,
+      "name": "cone_089",
+      "proposal_id": 7847,
+      "xyz_torso_m": [
+        0.9612265650011655,
+        -0.08627326669025613,
+        -0.09350538174038918
+      ],
+      "displacement_from_initial_tool_m": 0.6947988641957629,
+      "cone_angle_deg": 43.31248540635779,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -0.7663087714335937,
+        0.4874488927459599,
+        -0.025074139490129935,
+        -0.4796323911177314,
+        0.15513644892774522,
+        0.5778988828735028,
+        0.0
+      ],
+      "IK_position_residual_m": 2.3836403246244645e-09,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 0.6470151210503543
+    },
+    {
+      "id": 90,
+      "name": "cone_090",
+      "proposal_id": 7990,
+      "xyz_torso_m": [
+        0.7765193368593222,
+        -0.13996530351927616,
+        -0.3752902764777679
+      ],
+      "displacement_from_initial_tool_m": 0.38374010300433964,
+      "cone_angle_deg": 33.269581577150724,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -0.5192654973760928,
+        0.09060695192703287,
+        -0.6652292709850817,
+        -0.7028516000585796,
+        -1.0625390091651132,
+        -1.3574385192501148,
+        0.0
+      ],
+      "IK_position_residual_m": 6.052471825318898e-09,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 0.5082573176297833
+    },
+    {
+      "id": 91,
+      "name": "cone_091",
+      "proposal_id": 7995,
+      "xyz_torso_m": [
+        0.8765835845765504,
+        -0.056263529514018584,
+        -0.49401841146795333
+      ],
+      "displacement_from_initial_tool_m": 0.48118583305024587,
+      "cone_angle_deg": 28.9866744348275,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -1.0209201235728236,
+        0.2109511850930222,
+        -0.9672552657583473,
+        -0.7371989565233877,
+        -0.42584627890093685,
+        1.2231473047295378,
+        0.0
+      ],
+      "IK_position_residual_m": 7.061114255038121e-08,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 0.9235128287032921
+    },
+    {
+      "id": 92,
+      "name": "cone_092",
+      "proposal_id": 8110,
+      "xyz_torso_m": [
+        0.9930395477643534,
+        -0.05353330798614586,
+        -0.2888760825411804
+      ],
+      "displacement_from_initial_tool_m": 0.632035694598764,
+      "cone_angle_deg": 31.765180785488838,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -4.288868858573407,
+        -0.721152727300629,
+        -0.45372139343529794,
+        -0.17021915310997082,
+        2.5092910290469073,
+        0.728757363152139,
+        -0.2296821863941796
+      ],
+      "IK_position_residual_m": 5.428435174983883e-05,
+      "IK_selected_restart": 5,
+      "minimum_raw_joint_clearance_rad": 0.42352012181128273
+    },
+    {
+      "id": 93,
+      "name": "cone_093",
+      "proposal_id": 8165,
+      "xyz_torso_m": [
+        0.6787953133464149,
+        -0.4099889566885598,
+        -0.620624726537557
+      ],
+      "displacement_from_initial_tool_m": 0.27176499605841836,
+      "cone_angle_deg": 34.81441402548021,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -0.37137456744650416,
+        -0.26084506675291236,
+        0.13806229403507736,
+        0.28067571500627037,
+        -0.27946258314297856,
+        -1.0363334583777837,
+        0.0
+      ],
+      "IK_position_residual_m": 1.916876601465729e-06,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 0.8486221337760922
+    },
+    {
+      "id": 94,
+      "name": "cone_094",
+      "proposal_id": 8260,
+      "xyz_torso_m": [
+        0.75632716043162,
+        -0.43886601966318806,
+        -0.4234884552943182
+      ],
+      "displacement_from_initial_tool_m": 0.35185849034798866,
+      "cone_angle_deg": 31.298796771061628,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -1.447697305829522,
+        -0.8018507951230287,
+        -0.03300911483917632,
+        -1.3947139637027606,
+        1.73574623324154,
+        -0.02142026608424435,
+        0.0
+      ],
+      "IK_position_residual_m": 1.564173523450111e-09,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 1.0487469890893006
+    },
+    {
+      "id": 95,
+      "name": "cone_095",
+      "proposal_id": 8776,
+      "xyz_torso_m": [
+        0.6799170737898534,
+        -0.0866012665506156,
+        -0.4822780638122751
+      ],
+      "displacement_from_initial_tool_m": 0.3040451030964395,
+      "cone_angle_deg": 42.478578460039536,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -1.3076244078498298,
+        0.7114922791643942,
+        -2.0700532246450343,
+        -0.6166344239309902,
+        -0.6376533482360944,
+        -1.5838335316680765,
+        0.0
+      ],
+      "IK_position_residual_m": 1.0054902769709458e-07,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 0.30112206048579937
+    },
+    {
+      "id": 96,
+      "name": "cone_096",
+      "proposal_id": 8975,
+      "xyz_torso_m": [
+        0.6685931762233932,
+        -0.3459262802617616,
+        -0.6024974966675521
+      ],
+      "displacement_from_initial_tool_m": 0.23383069381479316,
+      "cone_angle_deg": 24.416213732836358,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -1.1476984421924659,
+        -0.5351999515146998,
+        -0.42545473473543616,
+        -1.3001837576057553,
+        0.328109099405803,
+        2.44998233630181,
+        0.0
+      ],
+      "IK_position_residual_m": 1.7951342243787174e-06,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 0.5519839771284372
+    },
+    {
+      "id": 97,
+      "name": "cone_097",
+      "proposal_id": 8981,
+      "xyz_torso_m": [
+        0.9372781484757418,
+        0.07461572134290526,
+        -0.26843724228918686
+      ],
+      "displacement_from_initial_tool_m": 0.6550428260928071,
+      "cone_angle_deg": 42.67382517846316,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -4.186480772822122,
+        -0.8980814633969216,
+        -2.2075764952847474,
+        0.1867428998121199,
+        3.014593624908234,
+        0.3174308026885588,
+        0.4530927055824647
+      ],
+      "IK_position_residual_m": 8.672457127943534e-07,
+      "IK_selected_restart": 1,
+      "minimum_raw_joint_clearance_rad": 0.410417382706747
+    },
+    {
+      "id": 98,
+      "name": "cone_098",
+      "proposal_id": 9067,
+      "xyz_torso_m": [
+        0.771567884226205,
+        -0.3302019247531992,
+        -0.6253619306191139
+      ],
+      "displacement_from_initial_tool_m": 0.33402245657656887,
+      "cone_angle_deg": 18.963760496565136,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -0.3898730669918727,
+        -0.5098737712878277,
+        -0.44319343886467083,
+        -0.5447485398699936,
+        -0.0035031232144036115,
+        -0.12400809767608706,
+        0.0
+      ],
+      "IK_position_residual_m": 3.3460823118771763e-07,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 0.9134718425901716
+    },
+    {
+      "id": 99,
+      "name": "cone_099",
+      "proposal_id": 9231,
+      "xyz_torso_m": [
+        0.8318077894252789,
+        -0.5327726452365253,
+        -0.48051567679382245
+      ],
+      "displacement_from_initial_tool_m": 0.4514132753568816,
+      "cone_angle_deg": 33.56756482316499,
+      "already_inside_arrival_region": false,
+      "IK_witness_q_rad": [
+        -0.659300057834398,
+        0.09408992810494399,
+        1.7812740338511586,
+        -0.26656003316133553,
+        1.3212834645501714,
+        0.07400111044880481,
+        0.0
+      ],
+      "IK_position_residual_m": 1.01410552473132e-06,
+      "IK_selected_restart": 0,
+      "minimum_raw_joint_clearance_rad": 0.8367198441403358
+    }
+  ],
+  "complete": true,
+  "stop_reason": "requested_target_count_complete",
+  "cartesian_proposals": 9232,
+  "IK_candidates": 132,
+  "IK_starts_attempted": 302,
+  "CPU_wall_s": 12.670110638951883,
+  "reference_rotation": [
+    [
+      -0.5551015195223314,
+      0.18792312410711964,
+      0.8102760038714094
+    ],
+    [
+      0.1554753012626447,
+      -0.9335331613608865,
+      0.32302208490572387
+    ],
+    [
+      0.8171228388200215,
+      0.30528795597823727,
+      0.48898827206114204
+    ]
+  ],
+  "raw_joint_lower_rad": [
+    -4.71238898038469,
+    -2.443460952792061,
+    -2.6179938779914944,
+    -2.443460952792061,
+    -1.5707963267948966,
+    -1.8849555921538759,
+    -2.6179938779914944
+  ],
+  "raw_joint_upper_rad": [
+    0.5235987755982988,
+    1.1344640137963142,
+    2.6179938779914944,
+    1.1344640137963142,
+    3.6651914291880923,
+    3.001966313430247,
+    2.6179938779914944
+  ],
+  "raw_speed_limits_rad_s": [
+    2.5,
+    2.5,
+    2.5,
+    2.5,
+    2.5,
+    2.5,
+    2.5
+  ],
+  "raw_effort_limits_Nm": [
+    43.0,
+    43.0,
+    26.0,
+    26.0,
+    26.0,
+    26.0,
+    26.0
+  ],
+  "IK_witness_is_MPC_seed": false,
+  "no_collision_or_dynamic_feasibility_certificate": true
+}
