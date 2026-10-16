@@ -12,7 +12,7 @@ RAW_OUTPUT_ROOT = "_expr_results/physical-arm"
 # State [rad], time [s], velocity [rad/s], torque [Nm], Cartesian positions [m].
 START_Q_RAD = [-0.39, -1.73, -0.38, -2.35, 0.0, -1.21, 0.04]
 N_STATE_KNOTS = 32
-KNOT_DT_S = 0.03  # 0.93 s prediction window, nominal feedback interval
+KNOT_DT_S = 0.03  # 0.93 s prediction window; live update intervals are measured
 SIM_DT_S = 0.003  # API parameter; live execution uses observed ROS time
 SOLVER_PARAMS = {
     "max_sqp_iters": 5, "max_pcg_iters": 120,

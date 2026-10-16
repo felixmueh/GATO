@@ -31,7 +31,7 @@ def test_gate_is_opt_in_and_reset_target_must_be_finite():
 def test_gate_configuration_reaches_worker(monkeypatch):
     controller = execution.TiagoControllerOrchestrator(
         reset_position_tolerance_rad=.04, reset_velocity_l1_tolerance_rad_s=.08,
-        reset_arrival_timeout_sec=3.)
+        reset_arrival_timeout_sec=3., record_command_events=True)
     controller._status_q = queue.Queue()
     monkeypatch.setattr(ros, "ensure_ros_environment", lambda **kwargs: None)
     monkeypatch.setattr(execution.atexit, "register", lambda *args: None)
@@ -44,6 +44,7 @@ def test_gate_configuration_reaches_worker(monkeypatch):
     assert captured["reset_position_tolerance_rad"] == .04
     assert captured["reset_velocity_l1_tolerance_rad_s"] == .08
     assert captured["reset_arrival_timeout_sec"] == 3.
+    assert captured["record_command_events"] is True
 
 
 def sample(q=0., qd=0., received=0., seq=1):

@@ -65,6 +65,11 @@ def family_identity(cfg, receipt):
                    "runtime_sources": sources, "geometry": geometry})
 
 
+def preflight_script_identity(cfg):
+    path = Path(__file__).with_name(f"preflight_{cfg['NATIVE_PROFILE']}.py")
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
 class RecordedSolver:
     """Observe the public solve boundary; retain compact per-call work/timing."""
     def __init__(self, solver, output):
@@ -72,6 +77,12 @@ class RecordedSolver:
         self.output = output
         self.stream = (output / "solves.jsonl").open("x")
         self.count = 0
+        self.last_call = None
+
+    def save_last_call(self, name):
+        if self.last_call is not None:
+            import numpy as np
+            np.savez_compressed(self.output / name, **self.last_call)
 
     def __getattr__(self, name):
         return getattr(self.delegate, name)
@@ -80,12 +91,15 @@ class RecordedSolver:
         import numpy as np
         actual_state = np.array(state, copy=True)
         seed_copy = np.array(seed if seed is not None else self.delegate.XU_B, copy=True)
+        self.last_call = dict(measured_state=actual_state, reference=np.array(reference, copy=True),
+                              seed=seed_copy, output=np.array([]), solve_index=self.count)
         started = time.perf_counter()
         result = None
         error = None
         try:
             result = self.delegate.solve(state, reference, seed)
             elapsed = time.perf_counter() - started
+            self.last_call["output"] = np.array(result[0], copy=True)
             stats = getattr(self.delegate, "stats", {})
             if not np.isfinite(result[0]).all() or not np.isfinite(stats.get("final_merit", [])).all():
                 raise FloatingPointError("Nonfinite returned plan or merit")
@@ -93,9 +107,7 @@ class RecordedSolver:
         except BaseException as exc:
             elapsed = time.perf_counter() - started
             error = f"{type(exc).__name__}: {exc}"
-            np.savez_compressed(self.output / f"failed_solve_{self.count:06d}.npz",
-                                measured_state=actual_state, reference=reference, seed=seed_copy,
-                                output=result[0] if result is not None else np.array([]))
+            self.save_last_call(f"failed_solve_{self.count:06d}.npz")
             raise
         finally:
             stats = getattr(self.delegate, "stats", {})
@@ -168,8 +180,10 @@ def _execute(cfg, output, goal=None):
         collision_blacklist_path=ROOT / cfg["COLLISION_BLACKLIST_PATH"],
         joint_position_margin_rad=cfg["JOINT_POSITION_MARGIN_RAD"],
         joint_velocity_scale=cfg["JOINT_VELOCITY_SCALE"],
+        record_command_events=True,
         history_max_records=cfg["HISTORY_MAX_RECORDS"], start_method="spawn")
     stats, errors, recorder = {}, [], None
+    mpc = None
     handback = False
     interrupted = False
     try:
@@ -193,6 +207,7 @@ def _execute(cfg, output, goal=None):
                 velocity_threshold=cfg["ARRIVAL_SPEED_L1_RAD_S"], goal_dwell_time=cfg["DWELL_S"],
                 reset_rho_each_solve=False, initial_guess=None, **common)
     except BaseException as exc:
+        stats = getattr(mpc, "last_task_stats", stats)
         interrupted = isinstance(exc, KeyboardInterrupt)
         errors.append({"stage": "task", "error": f"{type(exc).__name__}: {exc}",
                        "traceback": traceback.format_exc()})
@@ -205,6 +220,11 @@ def _execute(cfg, output, goal=None):
         except BaseException as exc:
             errors.append({"stage": "handback", "error": str(exc)})
         if recorder is not None:
+            if errors:
+                try:
+                    recorder.save_last_call("last_solve_before_failure.npz")
+                except Exception as exc:
+                    errors.append({"stage": "last_solve_evidence", "error": str(exc)})
             recorder.stream.close()
         for method, name in (("write_state_history_csv", "controller_state_history.csv"),
                              ("write_full_state_history_jsonl", "full_joint_state_history.jsonl")):
@@ -212,6 +232,16 @@ def _execute(cfg, output, goal=None):
                 result = getattr(controller, method)(output / name)
                 if result is not None:
                     write_json(output / "history_summary.json", result)
+            except BaseException as exc:
+                errors.append({"stage": method, "error": str(exc)})
+        for method, name in (("write_command_history_jsonl", "command_history.jsonl"),
+                             ("write_lifecycle_events_json", "lifecycle_events.json")):
+            try:
+                saved = getattr(controller, method)(output / name)
+                if saved.get("recording_complete") is not True or saved.get("errors"):
+                    raise RuntimeError(f"incomplete {name}: {saved}")
+                if method == "write_command_history_jsonl":
+                    write_json(output / "command_history_metadata.json", saved)
             except BaseException as exc:
                 errors.append({"stage": method, "error": str(exc)})
         metadata_path = getattr(controller, "_history_metadata_path", None)
@@ -254,15 +284,21 @@ def observed_physical(output, model, cfg):
     finite = bool(np.isfinite(q).all() and np.isfinite(v).all())
     q_excess = float(max(0, np.max(model.lowerPositionLimit - q), np.max(q - model.upperPositionLimit)))
     v_excess = float(max(0, np.max(np.abs(v) - model.velocityLimit)))
-    torques = [r["applied_tau"] for r in rows if r.get("applied_tau") is not None]
+    commands = [json.loads(line) for line in (output / "command_history.jsonl").read_text().splitlines()]
+    command_metadata = json.loads((output / "command_history_metadata.json").read_text())
+    command_complete = (command_metadata.get("recording_complete") is True and
+                        command_metadata.get("record_count") == len(commands) and
+                        [r["sequence"] for r in commands] == list(range(1, len(commands) + 1)))
+    torques = [r["tau_Nm"] for r in commands if r["publication_succeeded"] is True]
     u_max = float(np.max(np.abs(torques))) if torques else None
     faults = [r for r in rows if r.get("safety_fault")]
     summary = json.loads((output / "history_summary.json").read_text())
     metadata = json.loads((output / "history_metadata.json").read_text())
     complete = (metadata.get("dropped_history_records") == 0 and
                 metadata.get("record_count") == len(rows))
-    physical = finite and complete and q_excess <= 1e-4 and v_excess <= 1e-3 and u_max is not None and np.isfinite(u_max) and u_max <= cfg["MAX_TORQUE_NM"] + 1e-3 and not faults
+    physical = finite and complete and command_complete and q_excess <= 1e-4 and v_excess <= 1e-3 and u_max is not None and np.isfinite(u_max) and u_max <= cfg["MAX_TORQUE_NM"] + 1e-3 and not faults
     return bool(physical), dict(history_complete=complete, recorded_states=len(rows),
+        command_history_complete=command_complete, recorded_publications=len(torques),
         q_excess_rad=q_excess, speed_excess_rad_s=v_excess, max_published_torque_Nm=u_max,
         recorded_safety_faults=len(faults), state_frequency=summary,
         measured_actuator_torque_available=False)
@@ -294,10 +330,12 @@ def main(namespace, *, tracking=False):
     temp_root.mkdir(exist_ok=True)
     tempfile.tempdir = str(temp_root)
     identity = family_identity(cfg, receipt)
+    qualification = preflight_script_identity(cfg)
     preflight_file = raw_root / f"preflight_{cfg['NATIVE_PROFILE']}.json"
     if not cfg["IS_PREFLIGHT"]:
         preflight = json.loads(preflight_file.read_text()) if preflight_file.exists() else {}
-        if preflight.get("identity") != identity or preflight.get("passed") is not True:
+        if (preflight.get("identity") != identity or preflight.get("passed") is not True
+                or preflight.get("preflight_script_sha256") != qualification):
             raise RuntimeError(f"Run preflight_{cfg['NATIVE_PROFILE']}.py first; matching passed evidence is required.")
     if cfg["BACKEND"] == "physical_robot" and not cfg["PHYSICAL_PATH_AND_WORKSPACE_REVIEWED"]:
         raise RuntimeError("Review Gazebo paths/reset collision results and actual workspace before enabling physical execution.")
@@ -322,7 +360,8 @@ def main(namespace, *, tracking=False):
         write_json(output / "result.json", result)
         passed = result["task_success"] and result["physical_pass"] and result["handback_confirmed"] and not result["errors"]
         if cfg["IS_PREFLIGHT"]:
-            write_json(preflight_file, dict(identity=identity, passed=bool(passed), result_directory=str(output)))
+            write_json(preflight_file, dict(identity=identity, preflight_script_sha256=qualification,
+                                           passed=bool(passed), result_directory=str(output)))
         with (raw_root / "manual-run-index.jsonl").open("a") as stream:
             stream.write(json.dumps(dict(task=cfg["TASK_NAME"], path=str(output), **result), default=json_value) + "\n")
         print(json.dumps(dict(path=str(output), **result), default=json_value, indent=2))

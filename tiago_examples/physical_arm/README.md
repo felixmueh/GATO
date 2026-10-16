@@ -53,6 +53,8 @@ automatically; no preflight after every small run. A failed new preflight
 invalidates the cached pass for that family. Preserve the failure and review it
 before dependent runs. These are new preflights; older orientation-on or
 infrastructure-only canonical results are not substituted.
+The receipt also binds the designated preflight script, including its target,
+arrival thresholds, dwell and timeout; changing that script requires a new pass.
 
 Tracking: one horizontal figure-eight cycle at 24 s or 12 s, N32/.03 s,
 SQP5/PCG120, orientation off. Repeat the 24 s script manually for the proposed
@@ -60,6 +62,9 @@ second run. The original 30/60 mm RMS/maximum labels remain descriptive task
 criteria and do not change physical guards. Timing/error metrics in result.json
 are feedback-sample metrics; full controller observations/reference are saved
 for subsequent time-weighted analysis. All native/wall solve times are retained.
+The 30 ms value is prediction-knot spacing, not a scheduled feedback period.
+The existing live loop solves continuously using observed time; its actual
+update intervals are recorded.
 
 Reaching: three T01 FK-derived targets 100.636/207.933/317.052 mm from the nominal
 comfortable start, eight seconds each, no final approach or orientation gate.
@@ -81,7 +86,14 @@ It checks full named robot states and <=3 ms linear interpolation, including
 the recorded reset, against the same collision geometry/excluded pairs and
 4 cm monitored-pair margin. `collision_review.json` reports the limiting pair,
 clearance/time, configuration and geometry hashes, missing/dropped data and
-separate q/v violations. Nonzero exit means failed/incomplete review. A sampled
+separate q/v violations. Geometry clearance and coverage completeness have
+separate labels. Original observation gaps above 100 ms are reported and never
+filled by interpolation. A full pass requires complete, error-free recorded
+execution/handback and observed reset, actual task and post-handback endpoints.
+Tracking-error labels and ordinary reaching timeouts remain separate from
+collision clearance and recording completeness. A successful reach
+may finish before eight seconds; its timeout is not a coverage-duration target.
+Nonzero exit means failed/incomplete review. A sampled
 interpolated path is not a continuous-motion guarantee. Inspect the trajectory
 visually as well; external lab objects are outside this self-collision model.
 
@@ -95,9 +107,22 @@ Supervised motion, a reviewed reset path and the normal manual stop remain
 necessary for physical operation.
 
 Saved files include resolved_config/provenance/result, compact per-solve work and
-timing JSONL, failed-call arrays where applicable, reference, task stats, full
-joint/publication history, history completeness and a manual-run index. Published
-`applied_tau` is distinct from measured actuator torque, which is unavailable.
+timing JSONL, reference, task stats (including available partial stats after a
+failure), full joint history, history completeness and a manual-run index.
+`last_solve_before_failure.npz` retains the last call's actual measured state,
+reference, seed and returned plan after abnormal termination; ordinary successful
+horizons are not all written to disk.
+
+`command_history.jsonl` records EVERY effort publication attempt, including
+priming, regular commands and handback-zero bursts, with seven torques in Nm,
+monotonic timestamps before/after publish, latest observed source stamp/sequence,
+trajectory/knot identity and whether publication returned successfully. Recording
+is buffered in the worker and written after control stops; no per-tick disk IO.
+`command_history_metadata.json` records counts/completeness and errors.
+`lifecycle_events.json` records reset/task/handback boundaries and the fresh
+post-handback observation. Joint-state `applied_tau` remains a state-sampled
+snapshot; use the command event stream for the publication sequence. Neither
+stream measures actual actuator torque, which remains unavailable.
 Keep raw data and a separate backup; finalized reports/figures go to thesis_results.
 No KKT acceptance gate, retries or automatic tuning is added.
 

@@ -184,6 +184,7 @@ class MPC_GATO:
         
         Returns only essential statistics for visualization and analysis.
         """
+        self.last_task_stats = {}
         self.final_approach.reset(self.solver)
         use_controller = controller is not None
         if offline_timing not in {"controller_dt", "solve_time"}:
@@ -216,6 +217,8 @@ class MPC_GATO:
             'applied_controls': [],   # First control applied over the last interval
             'planned_controls': [],   # First control planned for the next interval
         }
+        self.last_task_stats = stats  # Preserve appended observations if the task raises.
+        stats['source_time_origin_sec'] = sim_stamp_origin_sec
         if use_controller:
             stats['state_age_sec'] = []
             stats['controller_command_rate_hz'] = []
@@ -549,6 +552,7 @@ class MPC_GATO:
                 - time_to_all_reached: total time if all succeeded, else None
                 - standard tracking stats (solve_times, timestamps, etc.)
         """
+        self.last_task_stats = {}
         use_controller = controller is not None
         goals = np.asarray(goals, dtype=np.float32)
         goals = np.atleast_2d(goals)
@@ -610,6 +614,8 @@ class MPC_GATO:
             'planned_goal_indices': [],
             'final_approach_switches': [],
         }
+        self.last_task_stats = stats
+        stats['source_time_origin_sec'] = sim_stamp_origin_sec
         if use_controller:
             stats['state_age_sec'] = []
             stats['controller_command_rate_hz'] = []
