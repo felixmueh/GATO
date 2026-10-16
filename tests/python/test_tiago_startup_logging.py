@@ -67,3 +67,24 @@ def test_invalid_startup_timeout_rejected_before_spawn(timeout):
     with pytest.raises(ValueError, match="finite and positive"):
         controller.initialize(timeout_sec=timeout)
     assert controller._process is None
+
+
+def test_selected_topic_crosses_process_boundary(monkeypatch):
+    selected = "/test/full_body_joint_states"
+    controller = execution.TiagoControllerOrchestrator(
+        joint_states_topic=selected, sea_absolute=True, sea_state_topic="/test/sea",
+        sea_velocity_filter_tau_sec=.02)
+    controller._status_q = queue.Queue()
+    captured = {}
+    monkeypatch.setattr(ros_tiago, "ensure_ros_environment", lambda **kwargs: None)
+    monkeypatch.setattr(execution.atexit, "register", lambda *args: None)
+    def process(**options):
+        captured.update(options["kwargs"])
+        return NS(start=lambda: controller._status_q.put(execution.ControllerStatus("READY")), exitcode=None)
+    controller._ctx = NS(Process=process)
+    controller.initialize(timeout_sec=.2)
+    assert captured["joint_states_topic"] == selected
+
+    assert captured["sea_absolute"] is True
+    assert captured["sea_state_topic"] == "/test/sea"
+    assert captured["sea_velocity_filter_tau_sec"] == .02

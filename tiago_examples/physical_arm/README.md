@@ -100,6 +100,48 @@ active. The PAL position-controller reset is recorded and arrival checked; the
 GATO effort collision monitor starts after reset. Normal cleanup does not cancel
 an accepted PAL reset trajectory. Physical reset paths need supervised review.
 
+## Optional SEA absolute-position feedback
+
+The normal commands above keep the existing JointState position/velocity path.
+Add `--ros-sea-absolute` to a manual launcher to select the existing arm SEA
+publisher instead. For inspection without imports or motion:
+
+```bash
+python3 tiago_examples/physical_arm/reach_goals.py --preview --ros-sea-absolute
+```
+
+This option selects `/arm_right_sea_state_broadcaster_controller/sea_joint_states`
+(type `sea_state_msgs/msg/SeaState`). It uses unfiltered `absolute_position` for
+arm q and estimates qd by differentiating advancing message timestamps with a
+light time-based low-pass filter. No 1 ms sample interval or 1 kHz delivery is
+assumed. The initial velocity-filter time constant is .01 s; the short scripts
+expose `SEA_STATE_TOPIC` and `SEA_VELOCITY_FILTER_TAU_S` at the top. The ordinary
+examples also expose `--ros-sea-state-topic` and
+`--ros-sea-velocity-filter-tau` (seconds; zero disables the velocity filter).
+`--ros-joint-states-topic` selects the full-body JointState source.
+
+The adapter still consumes full-body JointState data for collision checking,
+replacing only the right-arm entries with the SEA estimate. Each source must
+advance independently and remain within the existing stale timeout. It waits
+for velocity initialization before reset, never substitutes motor coordinates
+when SEA is unavailable, and uses the existing stop/handback behavior on loss.
+The .01 s filter is an initial configurable setting, not a live-qualified tuning.
+Absolute encoder zero/sign conventions must match the robot model; no automatic
+encoder-offset calibration is performed. The 125 Hz effort publication setting
+and existing MPC solver behavior are unchanged.
+
+The client container needs the `sea_state_msgs` Python/type-support package only
+when this option is enabled. The existing image's client-interface overlay now
+builds the minimal inspected SeaState schema alongside the PAL controller types;
+see `tiago_tools/pal_interfaces/README.md`. No robot package/controller is changed.
+Gazebo may not provide this topic; the normal path remains usable independently.
+
+Full-state history retains optional feedback metadata for the raw motor/absolute
+channels, estimated velocity and separate source timestamps. These are encoder
+and estimated-velocity data; `expected_gravity_torque` is not measured effort.
+The option has local CPU/message-serialization validation only until explicit
+read-only stream validation and separately authorized physical testing.
+
 ## Later Jetson use
 
 Review the Gazebo task/reset paths and collision reports, actual tool/full-body

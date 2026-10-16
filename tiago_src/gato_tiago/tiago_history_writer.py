@@ -35,9 +35,10 @@ class HistoryRecord:
     safety_fault: str = ""
     safety_message: str = ""
     last_safety_checked_seq: int | None = None
+    feedback_metadata: dict[str, Any] | None = None
 
     def to_json_dict(self) -> dict[str, object]:
-        return {
+        result = {
             "source_seq": int(self.source_seq),
             "stamp_sec": float(self.stamp_sec),
             "received_monotonic_sec": float(self.received_monotonic_sec),
@@ -66,6 +67,9 @@ class HistoryRecord:
                 else int(self.last_safety_checked_seq)
             ),
         }
+        if self.feedback_metadata is not None:
+            result["feedback_metadata"] = dict(self.feedback_metadata)
+        return result
 
 
 class TiagoHistoryBuffer:
@@ -127,6 +131,7 @@ def make_history_record(
         safety_fault=str(safety_fault),
         safety_message=str(safety_message),
         last_safety_checked_seq=last_safety_checked_seq,
+        feedback_metadata=getattr(state, "feedback_metadata", None),
     )
 
 

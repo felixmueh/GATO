@@ -44,7 +44,7 @@ RUN apt-get update \
         && rm -rf /var/lib/apt/lists/*
 
 # The robot and PAL simulator use different wire layouts from standard Humble.
-# Build only their message package, natively on either amd64 or arm64.
+# Build client message packages only, natively on either amd64 or arm64.
 # Humble's generators use PYTHON_EXECUTABLE as well as Python3_EXECUTABLE;
 # keep both on system Python, which has the apt-installed generator modules.
 COPY tiago_tools/pal_interfaces /tmp/gato-pal-interfaces

@@ -11,11 +11,11 @@ from gato_tiago import tiago_controller_process as execution
 from gato_tiago.safety_monitor import CollisionSafetySettings
 
 
-def run_worker(monkeypatch, *, fault=None, record=True):
+def run_worker(monkeypatch, *, fault=None, record=True, joint_states_topic="/joint_states", sea_absolute=False, block_active_read=False):
     controller = execution.TiagoControllerOrchestrator(record_command_events=record)
     clock = NS(now=0., last_update=0., seq=1, stopped=False, active=False,
-               reset_at=None, default_after_task=False, regular=0)
-    actual_publications, states, calls = [], [], []
+               reset_at=None, default_after_task=False, regular=0, configured=False, active_reads=0)
+    actual_publications, states, calls, client_options = [], [], [], []
     statuses, trajectories = queue.Queue(), queue.Queue()
     monkeypatch.setattr(execution, "time", NS(
         monotonic=lambda: clock.now, perf_counter=lambda: clock.now,
@@ -36,10 +36,17 @@ def run_worker(monkeypatch, *, fault=None, record=True):
     states.append(latest.value)
     class Arm:
         joint_names = ros.RIGHT_ARM_JOINTS
-        def __init__(self, **kwargs): pass
+        def __init__(self, **kwargs): client_options.append(kwargs)
         def __enter__(self): return self
         def __exit__(self, *args): pass
-        def latest_state(self): return latest.value
+        def latest_state(self):
+            if (fault == "sea_startup_missing"
+                    or (fault == "sea_after_switch" and clock.active)
+                    or (fault == "sea_feedback_stale" and clock.regular >= 3)):
+                return None
+            if fault == "sea_before_effort" and clock.configured:
+                return None
+            return latest.value
         def spin_once(self, timeout_sec=0.):
             clock.now += max(timeout_sec, .001)
             if clock.default_after_task:
@@ -54,6 +61,11 @@ def run_worker(monkeypatch, *, fault=None, record=True):
                 latest.value = state(0. if at_reset else .2)
                 states.append(latest.value)
         def read_state(self, **kwargs):
+            if clock.active:
+                clock.active_reads += 1
+                if block_active_read:
+                    clock.now += kwargs.get("timeout_sec", 2.)
+                    raise TimeoutError("blocking active read exhausted its timeout")
             self.spin_once(timeout_sec=.01)
             return latest.value
         def switch_to_default_control(self, **kwargs):
@@ -66,6 +78,7 @@ def run_worker(monkeypatch, *, fault=None, record=True):
         def publish_position_trajectory(self, *args, **kwargs):
             clock.reset_at = clock.now
         def configure_runtime_effort_controller(self, **kwargs):
+            clock.configured = True
             trajectories.put(execution.TorqueTrajectory(np.ones((100, 7)), .01))
         def switch_to_effort_control(self, **kwargs):
             clock.active = True
@@ -91,7 +104,8 @@ def run_worker(monkeypatch, *, fault=None, record=True):
     error = None
     try:
         execution._controller_main(
-            target_hz=125., reset_q=np.zeros(7), reset_duration_sec=.08,
+            target_hz=125., joint_states_topic=joint_states_topic, sea_absolute=sea_absolute,
+            reset_q=np.zeros(7), reset_duration_sec=.08,
             reset_position_tolerance_rad=.05, reset_velocity_l1_tolerance_rad_s=.1,
             reset_arrival_timeout_sec=.2, stale_timeout_sec=.1,
             max_abs_torque=26., clamp_torque=False, record_command_events=record,
@@ -99,10 +113,10 @@ def run_worker(monkeypatch, *, fault=None, record=True):
             shared_state=controller._state, trajectory_q=trajectories, status_q=statuses,
             history_path=controller._history_path, history_metadata_path=controller._history_metadata_path,
             stop_event=NS(is_set=lambda: clock.stopped))
-    except RuntimeError as exc:
+    except (RuntimeError, TimeoutError) as exc:
         error = exc
     return NS(controller=controller, actual=actual_publications, observed=states,
-              calls=calls, clock=clock, error=error, statuses=statuses)
+              calls=calls, client_options=client_options, clock=clock, error=error, statuses=statuses)
 
 
 def export(result, tmp_path):
@@ -210,3 +224,69 @@ def test_export_does_not_fabricate_missing_worker_receipts(tmp_path):
         controller.write_lifecycle_events_json(tmp_path / "lifecycle.json")
     assert not (tmp_path / "commands.jsonl").exists()
     assert not (tmp_path / "lifecycle.json").exists()
+
+
+def test_selected_joint_state_topic_reaches_actual_worker_client(monkeypatch):
+    selected = "/test/full_body_joint_states"
+    result = run_worker(monkeypatch, joint_states_topic=selected)
+    assert result.error is None
+    assert result.client_options == [{"node_name": "gato_tiago_controller_process",
+                                      "joint_states_topic": selected}]
+    assert result.actual
+
+
+def test_sea_options_cross_worker_boundary(monkeypatch):
+    result = run_worker(monkeypatch, sea_absolute=True)
+    assert result.error is None
+    options = result.client_options[0]
+    assert options["sea_absolute"] is True
+    assert options["sea_state_topic"] == ros.DEFAULT_SEA_STATE_TOPIC
+    assert options["sea_velocity_filter_tau_sec"] == .01
+    assert options["stale_timeout_sec"] == .1
+
+
+def test_sea_startup_missing_prevents_reset_and_effort(monkeypatch):
+    result = run_worker(monkeypatch, sea_absolute=True, fault="sea_startup_missing")
+    assert isinstance(result.error, TimeoutError)
+    assert result.clock.reset_at is None
+    assert result.actual == []
+    assert "activate" not in result.calls
+    assert result.calls[-1] == "default"
+
+
+def test_sea_stale_before_effort_prevents_priming(monkeypatch):
+    result = run_worker(monkeypatch, sea_absolute=True, fault="sea_before_effort")
+    assert "stale before effort" in str(result.error)
+    assert result.actual == []
+    assert "activate" not in result.calls
+    assert result.calls[-1] == "default"
+
+
+def test_sea_stale_feedback_preserves_zero_burst_and_handback(monkeypatch):
+    result = run_worker(monkeypatch, sea_absolute=True, fault="sea_feedback_stale")
+    assert "joint state stale during effort control" in str(result.error)
+    assert all(np.all(tau == 0) for tau in result.actual[-5:])
+    assert result.calls[-1] == "default"
+    assert result.clock.active is False
+
+
+def test_sea_stale_after_effort_switch_still_zeros_and_hands_back(monkeypatch):
+    result = run_worker(monkeypatch, sea_absolute=True, fault="sea_after_switch")
+    assert "stale after effort switch" in str(result.error)
+    assert len(result.actual) == 6  # Prime followed by cleanup zeros; no task publication.
+    assert all(np.all(tau == 0) for tau in result.actual[-5:])
+    assert result.calls[-1] == "default"
+    assert result.clock.active is False
+
+
+@pytest.mark.parametrize("fault", [None, "sea_feedback_stale"])
+def test_sea_activation_reuses_nonblocking_state_and_preserves_handback(monkeypatch, fault):
+    result = run_worker(monkeypatch, sea_absolute=True, block_active_read=True, fault=fault)
+    assert result.clock.active_reads == 0
+    if fault is None:
+        assert result.error is None
+    else:
+        assert "joint state stale during effort control" in str(result.error)
+    assert all(np.all(tau == 0) for tau in result.actual[-5:])
+    assert result.calls[-1] == "default"
+    assert result.clock.active is False

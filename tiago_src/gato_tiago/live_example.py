@@ -19,7 +19,22 @@ def _positive(value):
     return number
 
 
+def _nonnegative(value):
+    number = float(value)
+    if not math.isfinite(number) or number < 0:
+        raise ValueError("must be finite and non-negative")
+    return number
+
+
 def add_live_arguments(parser):
+    parser.add_argument("--ros-sea-absolute", action="store_true",
+                        help="Use SEA output-encoder absolute positions and estimated arm velocity.")
+    parser.add_argument("--ros-sea-state-topic",
+                        default="/arm_right_sea_state_broadcaster_controller/sea_joint_states")
+    parser.add_argument("--ros-sea-velocity-filter-tau", type=_nonnegative, default=.01,
+                        help="Derivative low-pass time constant [s]; zero disables filtering.")
+    parser.add_argument("--ros-joint-states-topic", default="/joint_states",
+                        help="JointState source for measured feedback and full-state safety checks.")
     parser.add_argument("--ros-reset-position-tolerance", type=_positive, default=None,
                         help="Opt in to measured reset arrival; max joint error [rad].")
     parser.add_argument("--ros-reset-speed-l1", type=_positive, default=.1,

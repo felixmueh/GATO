@@ -158,6 +158,31 @@ def test_figure8_parse_args_accepts_direct_wrapper_options(monkeypatch):
     path = Path(__file__).resolve().parents[2] / "tiago_examples/tiago_fig8_tracking.py"
     module = runpy.run_path(str(path), run_name="fig8_live_options_test")
     args = module["parse_args"](["--plant", "tiago_right", "--figure8-period", "12",
-        "--ros-reset-position-tolerance", ".05", "--ros-record-commands", "--ros-confirm-before-motion"])
+        "--ros-reset-position-tolerance", ".05", "--ros-record-commands", "--ros-confirm-before-motion",
+        "--ros-joint-states-topic", "/test/full_body_joint_states",
+        "--ros-sea-absolute", "--ros-sea-state-topic", "/test/sea",
+        "--ros-sea-velocity-filter-tau", ".025"])
     assert args.figure8_period == 12. and args.ros_reset_position_tolerance == .05
     assert args.ros_record_commands and args.ros_confirm_before_motion
+    assert args.ros_joint_states_topic == "/test/full_body_joint_states"
+
+    assert args.ros_sea_absolute is True
+    assert args.ros_sea_state_topic == "/test/sea"
+    assert args.ros_sea_velocity_filter_tau == .025
+
+
+@pytest.mark.parametrize("value", ["-.01", "nan", "inf"])
+def test_sea_filter_rejects_bad_cli_time_constant(value):
+    parser = argparse.ArgumentParser()
+    live.add_live_arguments(parser)
+    with pytest.raises(SystemExit):
+        parser.parse_args(["--ros-sea-velocity-filter-tau", value])
+
+
+def test_sea_default_off_and_zero_tau_available():
+    parser = argparse.ArgumentParser()
+    live.add_live_arguments(parser)
+    args = parser.parse_args([])
+    assert args.ros_sea_absolute is False
+    assert args.ros_sea_velocity_filter_tau == .01
+    assert parser.parse_args(["--ros-sea-velocity-filter-tau", "0"]).ros_sea_velocity_filter_tau == 0.

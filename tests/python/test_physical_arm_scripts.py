@@ -56,6 +56,7 @@ def launcher_dependencies(monkeypatch, tmp_path, name):
 
 def test_three_separate_public_reaching_calls(monkeypatch, tmp_path):
     script, calls = launcher_dependencies(monkeypatch, tmp_path, "reach_goals")
+    script.JOINT_STATES_TOPIC = "/test/full_body_joint_states"
     script.main()
     reaches = [call for call in calls if call[0] == "reach"]
     assert len(reaches) == 3
@@ -64,6 +65,8 @@ def test_three_separate_public_reaching_calls(monkeypatch, tmp_path):
     assert all("solver_params" not in call[2] for call in reaches)  # actual reaching defaults
     for _, options in [c for c in calls if c[0] == "options"]:
         assert "--ros-confirm-before-motion" in options and "--ros-record-commands" in options
+        assert "--ros-sea-absolute" not in options
+        assert options[options.index("--ros-joint-states-topic") + 1] == "/test/full_body_joint_states"
         assert options[options.index("--tiago-start-config") + 1] == "comfortable_high_clearance"
 
 
@@ -101,13 +104,14 @@ def test_wrong_architecture_does_not_load_native_or_call_example(monkeypatch, tm
     assert not any(c[0] == "reach" for c in calls)
 
 
-def test_reaching_entrypoint_confirms_before_run_and_preserves_partial_failure(monkeypatch, tmp_path):
+@pytest.mark.parametrize("sea_absolute", [False, True])
+def test_reaching_entrypoint_confirms_before_run_and_preserves_partial_failure(monkeypatch, tmp_path, sea_absolute):
     path = DIRECTORY.parent / "tiago_reach_target.py"
     spec = importlib.util.spec_from_file_location("direct_reach_test", path)
     example = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(example)
     from gato_tiago import tiago_controller_process, tiago_mpc_controller
-    events, constructed = [], []
+    events, constructed, controller_options = [], [], []
     partial = {"timestamps": [.02], "goal_distances": [.2]}
     failure = RuntimeError("finite plan rejected by controller")
     class MPC:
@@ -119,7 +123,10 @@ def test_reaching_entrypoint_confirms_before_run_and_preserves_partial_failure(m
             assert len(kwargs["goals"]) == 1
             raise failure
     monkeypatch.setattr(tiago_mpc_controller, "MPC_GATO", MPC)
-    monkeypatch.setattr(tiago_controller_process, "TiagoControllerOrchestrator", lambda **kwargs: NS())
+    def controller(**kwargs):
+        controller_options.append(kwargs)
+        return NS()
+    monkeypatch.setattr(tiago_controller_process, "TiagoControllerOrchestrator", controller)
     monkeypatch.setattr(example, "load_model", lambda: NS(nv=7, createData=lambda: None))
     monkeypatch.setattr(example, "tool_position", lambda *args: np.zeros(3))
     monkeypatch.setattr(example, "preflight", lambda *args, **kwargs: {})
@@ -130,10 +137,27 @@ def test_reaching_entrypoint_confirms_before_run_and_preserves_partial_failure(m
         np.testing.assert_array_equal(kwargs["context"]["goals"], [[.4, -.2, -.3]])
         return {}
     monkeypatch.setattr(live_example, "finish_live_recording", finish)
-    args = example.parse_args(["run", "--ros-tiago", "--expr-dir", str(tmp_path)])
+    feedback = (["--ros-sea-absolute", "--ros-sea-state-topic", "/test/sea",
+                 "--ros-sea-velocity-filter-tau", ".02"] if sea_absolute else [])
+    args = example.parse_args(["run", "--ros-tiago", "--expr-dir", str(tmp_path), *feedback])
     with pytest.raises(RuntimeError) as exc:
         example.run_experiment(args, goals=[[.4, -.2, -.3]])
     assert exc.value is failure
     assert events == ["confirm", "run", "finish"]
+    assert controller_options[0]["sea_absolute"] is sea_absolute
+    assert controller_options[0]["sea_state_topic"] == ("/test/sea" if sea_absolute else
+            "/arm_right_sea_state_broadcaster_controller/sea_joint_states")
+    assert controller_options[0]["sea_velocity_filter_tau_sec"] == (.02 if sea_absolute else .01)
     assert constructed[0]["solver_params"] == TIAGO_REACHING_SOLVER_PARAMS
     assert constructed[0]["final_approach"] is False
+
+
+@pytest.mark.parametrize("name", ["figure8_24s", "figure8_12s", "reach_goals", "preflight_tracking", "preflight_reaching"])
+def test_manual_launchers_forward_sea_opt_in(monkeypatch, tmp_path, name):
+    script, calls = launcher_dependencies(monkeypatch, tmp_path, name)
+    monkeypatch.setattr(sys, "argv", [name + ".py", "--ros-sea-absolute"])
+    script.main()
+    for _, options in [c for c in calls if c[0] == "options"]:
+        assert "--ros-sea-absolute" in options
+        assert options[options.index("--ros-sea-state-topic") + 1] == script.SEA_STATE_TOPIC
+        assert options[options.index("--ros-sea-velocity-filter-tau") + 1] == "0.01"

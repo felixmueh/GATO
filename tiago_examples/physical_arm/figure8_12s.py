@@ -14,6 +14,9 @@ KNOT_DT_S = 0.03  # prediction spacing; the live loop uses observed time
 SIM_DT_S = 0.003  # offline API parameter, not a live feedback scheduler
 START_CONFIG = "comfortable_high_clearance"
 CONTROLLER_HZ = 125.0
+JOINT_STATES_TOPIC = "/joint_states"  # Gazebo default; select measured robot source after inspection
+SEA_STATE_TOPIC = "/arm_right_sea_state_broadcaster_controller/sea_joint_states"
+SEA_VELOCITY_FILTER_TAU_S = 0.01  # derivative filtering only; absolute position is unfiltered
 RESET_DURATION_S = 2.0
 RESET_POSITION_TOLERANCE_RAD = 0.05
 RESET_SPEED_L1_RAD_S = 0.1
@@ -33,9 +36,14 @@ DURATION_S = 12.0  # one cycle; repeat with a separate manual invocation
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--preview", action="store_true", help="show settings without ROS/native imports")
-    if parser.parse_args().preview:
-        print(json.dumps({key: str(value) if isinstance(value, Path) else value
-                          for key, value in globals().items() if key.isupper()}, indent=2))
+    parser.add_argument("--ros-sea-absolute", action="store_true",
+                        help="Use SEA absolute position with estimated arm velocity")
+    options = parser.parse_args()
+    if options.preview:
+        settings = {key: str(value) if isinstance(value, Path) else value
+                    for key, value in globals().items() if key.isupper()}
+        settings["SEA_ABSOLUTE"] = options.ros_sea_absolute
+        print(json.dumps(settings, indent=2))
         return
     root = Path(__file__).resolve().parents[2]
     sys.path[:0] = [str(root / "tiago_src"), str(root / "tiago_examples")]
@@ -52,6 +60,7 @@ def main():
     live_options = [
         "--N", str(N_STATE_KNOTS), "--dt", str(KNOT_DT_S), "--sim-dt", str(SIM_DT_S),
         "--tiago-start-config", START_CONFIG, "--ros-tiago",
+        "--ros-joint-states-topic", JOINT_STATES_TOPIC,
         "--ros-target-hz", str(CONTROLLER_HZ), "--ros-reset-duration", str(RESET_DURATION_S),
         "--ros-reset-position-tolerance", str(RESET_POSITION_TOLERANCE_RAD),
         "--ros-reset-speed-l1", str(RESET_SPEED_L1_RAD_S),
@@ -61,6 +70,9 @@ def main():
         "--ros-collision-blacklist", COLLISION_BLACKLIST,
         "--ros-record-commands", "--ros-confirm-before-motion",
     ]
+    if options.ros_sea_absolute:
+        live_options += ["--ros-sea-absolute", "--ros-sea-state-topic", SEA_STATE_TOPIC,
+                         "--ros-sea-velocity-filter-tau", str(SEA_VELOCITY_FILTER_TAU_S)]
     import tiago_fig8_tracking as example
     args = example.parse_args(live_options + [
         "--plant", "tiago_right", "--batch-sizes", "1", "--no-gif",

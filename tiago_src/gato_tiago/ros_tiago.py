@@ -31,6 +31,8 @@ RIGHT_ARM_JOINTS = (
 )
 
 DEFAULT_JOINT_STATES_TOPIC = "/joint_states"
+DEFAULT_SEA_STATE_TOPIC = "/arm_right_sea_state_broadcaster_controller/sea_joint_states"
+DEFAULT_SEA_VELOCITY_FILTER_TAU_SEC = 0.01
 DEFAULT_TRAJECTORY_TOPIC = "/arm_right_controller/joint_trajectory"
 DEFAULT_CONTROLLER_MANAGER = "/controller_manager"
 DEFAULT_EFFORT_CONTROLLER = "gato_arm_effort_forward_runtime"
@@ -48,6 +50,10 @@ class ArmState:
     seq: int = 0
     joint_positions: dict[str, float] | None = None
     joint_velocities: dict[str, float] | None = None
+    body_stamp_sec: float | None = None
+    arm_received_monotonic_sec: float | None = None
+    body_received_monotonic_sec: float | None = None
+    feedback_metadata: dict[str, Any] | None = None
 
     @property
     def age_sec(self) -> float:
@@ -181,6 +187,64 @@ def _vector(values: Sequence[float], *, size: int, name: str) -> list[float]:
     return [float(value) for value in arr]
 
 
+class SeaAbsoluteVelocityEstimator:
+    """Differentiate advancing output-encoder samples, filtering velocity only."""
+
+    def __init__(self, joint_names=RIGHT_ARM_JOINTS, *, tau_sec=0.01, stale_timeout_sec=0.1):
+        self.joint_names = tuple(joint_names)
+        self.tau_sec = float(tau_sec)
+        self.stale_timeout_sec = float(stale_timeout_sec)
+        if not np.isfinite(self.tau_sec) or self.tau_sec < 0:
+            raise ValueError("sea_velocity_filter_tau_sec must be finite and non-negative")
+        if not np.isfinite(self.stale_timeout_sec) or self.stale_timeout_sec <= 0:
+            raise ValueError("stale_timeout_sec must be finite and positive")
+        self._previous = None
+        self._velocity = None
+
+    def update(self, msg: Any, received_sec: float):
+        try:
+            names = tuple(msg.name)
+            values = np.asarray(msg.absolute_position, dtype=np.float64)
+            motor = np.asarray(msg.position, dtype=np.float64)
+            stamp = float(msg.header.stamp.sec) + float(msg.header.stamp.nanosec) * 1e-9
+            if (values.shape != (len(names),) or motor.shape not in ((0,), values.shape)
+                    or not np.isfinite(motor).all() or len(set(names)) != len(names)
+                    or not np.isfinite(stamp) or not np.isfinite(values).all()
+                    or not all(name in names for name in self.joint_names)):
+                return None
+            q = values[[names.index(name) for name in self.joint_names]]
+        except (AttributeError, TypeError, ValueError, OverflowError):
+            return None
+        previous = self._previous
+        if previous is not None and stamp <= previous[0]:
+            return None  # Replayed/duplicate samples never refresh freshness or the filter.
+        self._previous = (stamp, q.copy(), received_sec)
+        if (previous is None or stamp - previous[0] > self.stale_timeout_sec
+                or received_sec - previous[2] > self.stale_timeout_sec):
+            self._velocity = None
+            return None  # Two distinct, recent samples are needed after startup/gaps.
+        dt = stamp - previous[0]
+        derivative = (q - previous[1]) / dt
+        if not np.isfinite(derivative).all():
+            self._velocity = None
+            return None
+        alpha = 1.0 if self.tau_sec == 0 else -np.expm1(-dt / self.tau_sec)
+        self._velocity = (derivative if self._velocity is None else
+                          self._velocity + alpha * (derivative - self._velocity))
+        return q.copy(), self._velocity.copy(), stamp
+
+
+def _sea_state_type():
+    try:
+        from sea_state_msgs.msg import SeaState
+    except ImportError as exc:
+        raise RuntimeError(
+            "SEA absolute feedback requires sea_state_msgs/msg/SeaState; "
+            "install/source that interface package before enabling --ros-sea-absolute."
+        ) from exc
+    return SeaState
+
+
 class TiagoRightArmClient:
     """ROS 2 client for TIAGo right-arm state, position, and effort commands."""
 
@@ -190,12 +254,28 @@ class TiagoRightArmClient:
         node_name: str = "gato_tiago_right_arm_client",
         joint_names: Sequence[str] = RIGHT_ARM_JOINTS,
         joint_states_topic: str = DEFAULT_JOINT_STATES_TOPIC,
+        sea_absolute: bool = False,
+        sea_state_topic: str = DEFAULT_SEA_STATE_TOPIC,
+        sea_velocity_filter_tau_sec: float = DEFAULT_SEA_VELOCITY_FILTER_TAU_SEC,
+        stale_timeout_sec: float = 0.1,
         trajectory_topic: str = DEFAULT_TRAJECTORY_TOPIC,
         controller_manager: str = DEFAULT_CONTROLLER_MANAGER,
         effort_controller: str = DEFAULT_EFFORT_CONTROLLER,
         setup_path: str | None = None,
     ) -> None:
         self.ros = _ros_imports(setup_path)
+        # Resolve the optional dependency before creating a node or any controller RPC.
+        sea_type = _sea_state_type() if sea_absolute else None
+        self.sea_absolute = bool(sea_absolute)
+        self.sea_state_topic = str(sea_state_topic).strip()
+        self._sea_estimator = SeaAbsoluteVelocityEstimator(
+            joint_names, tau_sec=sea_velocity_filter_tau_sec, stale_timeout_sec=stale_timeout_sec,
+        ) if self.sea_absolute else None
+        if self.sea_absolute and not self.sea_state_topic:
+            raise ValueError("sea_state_topic must be nonempty")
+        self._stale_timeout_sec = float(stale_timeout_sec)
+        self._body_state = None
+        self._sea_state = None
         self.rclpy = self.ros["rclpy"]
         self._owns_rclpy = False
         if not self.rclpy.ok():
@@ -212,12 +292,18 @@ class TiagoRightArmClient:
         self._state_seq = 0
 
         self.node = self.rclpy.create_node(node_name)
+        state_qos = 10
+        if self.sea_absolute:
+            from rclpy.qos import QoSProfile, ReliabilityPolicy
+            state_qos = QoSProfile(depth=1, reliability=ReliabilityPolicy.BEST_EFFORT)
         self.node.create_subscription(
             self.ros["JointState"],
             self.joint_states_topic,
             self._on_joint_state,
-            10,
+            state_qos,
         )
+        if self.sea_absolute:
+            self.node.create_subscription(sea_type, self.sea_state_topic, self._on_sea_state, state_qos)
         self._trajectory_pub = self.node.create_publisher(
             self.ros["JointTrajectory"],
             self.trajectory_topic,
@@ -241,6 +327,9 @@ class TiagoRightArmClient:
         self.close()
 
     def _on_joint_state(self, msg: Any) -> None:
+        if self.sea_absolute:
+            self._on_body_joint_state(msg)
+            return
         positions = {name: float(value) for name, value in zip(msg.name, msg.position)}
         velocities = {name: float(value) for name, value in zip(msg.name, msg.velocity)}
         if not all(name in positions for name in self.joint_names):
@@ -263,6 +352,67 @@ class TiagoRightArmClient:
             joint_velocities=velocities,
         )
 
+    def _on_body_joint_state(self, msg: Any) -> None:
+        try:
+            names = tuple(msg.name)
+            if len(names) != len(msg.position) or len(set(names)) != len(names):
+                return
+            positions = dict(zip(names, map(float, msg.position)))
+            velocities = dict(zip(names, map(float, msg.velocity)))
+            stamp = float(msg.header.stamp.sec) + float(msg.header.stamp.nanosec) * 1e-9
+            if (not np.isfinite(stamp) or not all(name in positions for name in self.joint_names)
+                    or (self._body_state is not None and stamp <= self._body_state[0])):
+                return
+        except (AttributeError, TypeError, ValueError, OverflowError):
+            return
+        # Retain the full body; the existing safety model validates its required joints.
+        # Wheel velocity NaNs on the robot are unrelated to the controlled arm.
+        self._body_state = stamp, time.monotonic(), positions, velocities
+        self._merge_sea_state()
+
+    def _on_sea_state(self, msg: Any) -> None:
+        received = time.monotonic()
+        sample = self._sea_estimator.update(msg, received)
+        if sample is None:
+            # A gap invalidates velocity readiness; ignored replay/invalid data ages out.
+            if self._sea_estimator._velocity is None:
+                self._sea_state = None
+                self._latest_state = None
+            return
+        self._state_seq += 1
+        motor = dict(zip(msg.name, map(float, msg.position)))
+        self._sea_state = (*sample, received, self._state_seq,
+                           [motor[name] for name in self.joint_names] if motor else None)
+        self._merge_sea_state()
+
+    def _merge_sea_state(self) -> None:
+        if self._body_state is None or self._sea_state is None:
+            return
+        body_stamp, body_received, positions, velocities = self._body_state
+        q, qd, stamp, arm_received, seq, motor = self._sea_state
+        positions, velocities = positions.copy(), velocities.copy()
+        positions.update(zip(self.joint_names, map(float, q)))
+        velocities.update(zip(self.joint_names, map(float, qd)))
+        self._latest_state = ArmState(
+            q=q.copy(), qd=qd.copy(), stamp_sec=stamp,
+            received_monotonic_sec=min(arm_received, body_received), seq=seq,
+            joint_positions=positions, joint_velocities=velocities,
+            body_stamp_sec=body_stamp, arm_received_monotonic_sec=arm_received,
+            body_received_monotonic_sec=body_received,
+            feedback_metadata={
+                "arm_source": "sea_state_msgs/msg/SeaState.absolute_position",
+                "arm_topic": self.sea_state_topic,
+                "body_topic": self.joint_states_topic,
+                "body_stamp_sec": body_stamp,
+                "body_received_monotonic_sec": body_received,
+                "arm_received_monotonic_sec": arm_received,
+                "joint_names": list(self.joint_names),
+                "sea_motor_position": motor,
+                "sea_absolute_position": q.tolist(),
+                "velocity_filter_tau_sec": self._sea_estimator.tau_sec,
+            },
+        )
+
     def spin_once(self, timeout_sec: float = 0.0) -> None:
         self.rclpy.spin_once(self.node, timeout_sec=timeout_sec)
 
@@ -270,14 +420,21 @@ class TiagoRightArmClient:
         deadline = time.monotonic() + timeout_sec
         while self.rclpy.ok() and time.monotonic() < deadline:
             self.spin_once(timeout_sec=0.05)
-            if self._latest_state is not None:
-                return self._latest_state
+            state = self.latest_state()
+            if state is not None:
+                return state
         raise TimeoutError(
             f"did not receive {len(self.joint_names)} right-arm joints on "
-            f"{self.joint_states_topic} within {timeout_sec:.1f}s"
+            f"{self.joint_states_topic}"
+            + (f" and fresh SEA absolute position/estimated velocity on {self.sea_state_topic}"
+               if self.sea_absolute else "")
+            + f" within {timeout_sec:.1f}s"
         )
 
     def latest_state(self) -> ArmState | None:
+        if (self.sea_absolute and self._latest_state is not None
+                and self._latest_state.age_sec > self._stale_timeout_sec):
+            return None
         return self._latest_state
 
     def publish_position_trajectory(

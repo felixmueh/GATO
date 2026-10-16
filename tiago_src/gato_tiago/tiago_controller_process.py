@@ -39,7 +39,10 @@ from gato_tiago.tiago_history_writer import (
     make_history_record,
     write_history_outputs,
 )
-from gato_tiago.ros_tiago import RIGHT_ARM_JOINTS
+from gato_tiago.ros_tiago import (
+    DEFAULT_JOINT_STATES_TOPIC, DEFAULT_SEA_STATE_TOPIC,
+    DEFAULT_SEA_VELOCITY_FILTER_TAU_SEC, RIGHT_ARM_JOINTS,
+)
 
 
 DEFAULT_HISTORY_MAX_RECORDS = 20_000
@@ -439,6 +442,10 @@ class TiagoControllerOrchestrator:
         self,
         *,
         target_hz: float = 100.0,
+        joint_states_topic: str = DEFAULT_JOINT_STATES_TOPIC,
+        sea_absolute: bool = False,
+        sea_state_topic: str = DEFAULT_SEA_STATE_TOPIC,
+        sea_velocity_filter_tau_sec: float = DEFAULT_SEA_VELOCITY_FILTER_TAU_SEC,
         reset_q: Sequence[float] | None = None,
         reset_duration_sec: float = 2.0,
         stale_timeout_sec: float = 0.1,
@@ -460,6 +467,17 @@ class TiagoControllerOrchestrator:
         start_method: str = "spawn",
     ) -> None:
         self.target_hz = float(target_hz)
+        self.sea_absolute = bool(sea_absolute)
+        self.sea_state_topic = str(sea_state_topic).strip()
+        self.sea_velocity_filter_tau_sec = float(sea_velocity_filter_tau_sec)
+        if not self.sea_state_topic:
+            raise ValueError("sea_state_topic must be nonempty")
+        if (not np.isfinite(self.sea_velocity_filter_tau_sec)
+                or self.sea_velocity_filter_tau_sec < 0):
+            raise ValueError("sea_velocity_filter_tau_sec must be finite and non-negative")
+        self.joint_states_topic = str(joint_states_topic).strip()
+        if not self.joint_states_topic:
+            raise ValueError("joint_states_topic must be nonempty")
         if reset_q is None:
             reset_q = TIAGO_RIGHT_START_CONFIGS[TIAGO_RIGHT_DEFAULT_START_CONFIG]
         self.reset_q = np.asarray(reset_q, dtype=np.float64)
@@ -557,6 +575,10 @@ class TiagoControllerOrchestrator:
             target=_controller_main,
             kwargs={
                 "target_hz": self.target_hz,
+                "joint_states_topic": self.joint_states_topic,
+                "sea_absolute": self.sea_absolute,
+                "sea_state_topic": self.sea_state_topic,
+                "sea_velocity_filter_tau_sec": self.sea_velocity_filter_tau_sec,
                 "reset_q": self.reset_q,
                 "reset_duration_sec": self.reset_duration_sec,
                 "stale_timeout_sec": self.stale_timeout_sec,
@@ -790,6 +812,10 @@ def _controller_main(
     reset_velocity_l1_tolerance_rad_s: float = 0.1,
     reset_arrival_timeout_sec: float = 5.0,
     record_command_events: bool = False,
+    joint_states_topic: str = DEFAULT_JOINT_STATES_TOPIC,
+    sea_absolute: bool = False,
+    sea_state_topic: str = DEFAULT_SEA_STATE_TOPIC,
+    sea_velocity_filter_tau_sec: float = DEFAULT_SEA_VELOCITY_FILTER_TAU_SEC,
 ) -> None:
     from gato_tiago.ros_tiago import TiagoRightArmClient
 
@@ -899,7 +925,13 @@ def _controller_main(
         )
 
     setup_stage("creating ROS client (imports, interface validation, node and topics)")
-    with TiagoRightArmClient(node_name="gato_tiago_controller_process") as arm:
+    client_options = {"node_name": "gato_tiago_controller_process",
+                      "joint_states_topic": joint_states_topic}
+    if sea_absolute:
+        client_options.update(sea_absolute=True, sea_state_topic=sea_state_topic,
+                              sea_velocity_filter_tau_sec=sea_velocity_filter_tau_sec,
+                              stale_timeout_sec=stale_timeout_sec)
+    with TiagoRightArmClient(**client_options) as arm:
         def source_fields(state: Any) -> dict[str, Any]:
             return {
                 "source_stamp_sec": float(state.stamp_sec) if state is not None else None,
@@ -1004,6 +1036,15 @@ def _controller_main(
 
         try:
             set_status("RESETTING")
+            if sea_absolute:
+                setup_stage("waiting for fresh SEA and full-body feedback before reset")
+                _wait_for_reset_arrival(
+                    arm, reset_q=reset_q, position_tolerance_rad=None,
+                    velocity_l1_tolerance_rad_s=reset_velocity_l1_tolerance_rad_s,
+                    timeout_sec=reset_arrival_timeout_sec, stale_timeout_sec=stale_timeout_sec,
+                    not_before_monotonic_sec=time.monotonic() - stale_timeout_sec,
+                    stop_event=stop_event,
+                )
             setup_stage("switching to position control")
             arm.switch_to_default_control(timeout_sec=5.0)
             if stop_event.is_set():
@@ -1136,15 +1177,23 @@ def _controller_main(
                     active_trajectory_id = next_trajectory_id
                     next_trajectory_id += 1
                     if not effort_active:
+                        if sea_absolute and arm.latest_state() is None:
+                            raise RuntimeError("SEA or full-body joint state stale before effort control")
                         publish_effort(current_torques[0], "prime", knot_index=0)
                         current_applied_tau = current_torques[0].copy()
                         arm.spin_once(timeout_sec=0.01)
                         arm.switch_to_effort_control(timeout_sec=5.0)
+                        if sea_absolute:
+                            effort_active = True  # A subsequent source timeout must still zero/hand back.
+                            state = arm.latest_state()
+                            if state is None:
+                                raise RuntimeError("SEA or full-body joint state stale after effort switch")
                         if record_command_events:
-                            active_state = arm.latest_state()
+                            active_state = state if sea_absolute else arm.latest_state()
                             write_history_state(active_state, "RUNNING", force=True)
                             lifecycle_event("first_task_effort", state=active_state)
-                        state = arm.read_state(timeout_sec=2.0)
+                        if not sea_absolute:
+                            state = arm.read_state(timeout_sec=2.0)
                         if safety_monitor is not None:
                             safety_state = _safety_check_state(state)
                             try:

@@ -538,6 +538,10 @@ def run(args):
 
         ros_controller = TiagoControllerOrchestrator(
             target_hz=args.ros_target_hz,
+            joint_states_topic=args.ros_joint_states_topic,
+            sea_absolute=args.ros_sea_absolute,
+            sea_state_topic=args.ros_sea_state_topic,
+            sea_velocity_filter_tau_sec=args.ros_sea_velocity_filter_tau,
             reset_q=cfg["start_q"],
             reset_duration_sec=args.ros_reset_duration,
             stale_timeout_sec=args.ros_stale_timeout,
