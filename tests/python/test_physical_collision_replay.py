@@ -252,3 +252,51 @@ def test_incomplete_paths_retain_geometry_without_full_qualification(tmp_path, p
     assert report["geometry_clearance_pass"] and report["checked_samples"] >= len(rows)
     assert not report["coverage_complete"] and not report["passed"]
     assert report["coverage_reasons"]
+
+
+def test_unavailable_fixed_wheel_velocities_are_omitted_only_in_replay(tmp_path):
+    rows = make_run(tmp_path)
+    wheels = ["wheel_front_left_joint", "wheel_front_right_joint",
+              "wheel_rear_left_joint", "wheel_rear_right_joint"]
+    for index, row in enumerate(rows):
+        row["positions_by_name"].update(dict.fromkeys(wheels, .25))
+        row["velocities_by_name"].update(dict.fromkeys(wheels, None if index else 0.))
+    history = tmp_path / "full_joint_state_history.jsonl"
+    history.write_text("".join(json.dumps(row) + "\n" for row in rows))
+    original = history.read_bytes()
+
+    class FixedWheelGeometry(ClearGeometry):
+        def __init__(self, config, first):
+            self.fixed = dict.fromkeys(wheels, .25)
+
+        def check(self, row):
+            assert all(name not in row["velocities_by_name"] for name in wheels)
+            # Exercise the unchanged production fixed-position guard before
+            # substituting the expensive mesh query for this focused test.
+            if any(row["positions_by_name"][name] != .25 for name in wheels):
+                replay.GeometryReview.check(self, row)
+            return super().check(row)
+
+    report = replay.review(tmp_path, FixedWheelGeometry)
+    assert report["passed"]
+    assert report["excluded_unavailable_fixed_joint_velocities"] == sorted(wheels)
+    assert history.read_bytes() == original
+    rows[-1]["positions_by_name"][wheels[0]] += .01
+    history.write_text("".join(json.dumps(row) + "\n" for row in rows))
+    report = replay.review(tmp_path, FixedWheelGeometry)
+    assert not report["passed"]
+    assert any("runtime fixed joint moved" in error for error in report["errors"])
+
+
+@pytest.mark.parametrize("name", ["arm_right_1_joint", "unknown_joint"])
+def test_unavailable_required_or_unknown_velocity_still_fails(tmp_path, name):
+    rows = make_run(tmp_path)
+    for row in rows:
+        row["velocities_by_name"][name] = None
+    (tmp_path / "full_joint_state_history.jsonl").write_text(
+        "".join(json.dumps(row) + "\n" for row in rows))
+    report = replay.review(tmp_path, ClearGeometry)
+    assert not report["passed"]
+    assert report["checked_samples"] == 0
+    assert report["excluded_unavailable_fixed_joint_velocities"] == []
+    assert any("nonfinite velocities_by_name" in error for error in report["errors"])

@@ -6,14 +6,17 @@ and the explicit `example.run(...)` or `example.run_experiment(...)` call:
 - `figure8_24s.py`: one 24 s figure-eight using `tiago_fig8_tracking.py`.
 - `figure8_12s.py`: one 12 s figure-eight using the same example.
 - `reach_goals.py`: three calls to `tiago_reach_target.py`, one goal per call.
+- `square_forward.py`: one sequential call for four forward-facing pose goals,
+  with one comfortable reset and the selected final-approach settings.
 - `preflight_tracking.py` / `preflight_reaching.py`: one modest 100.636 mm reach
   using the selected family's costs and native module.
 
 The examples import their ordinary costs from `tiago_src/gato_tiago/config.py`.
 Reaching uses the agreed defaults, including `u_cost=.0001`, `qd_cost=.05` and
 `mu=10`. Tracking retains its own defaults. Both use N32, .03 s prediction knots,
-SQP5/PCG120, B1 and orientation off. The live loop uses observed time; .03 s is
-not a scheduled feedback interval. No solver changes or final-approach tuning.
+SQP5/PCG120, B1 and orientation off. The square uses its explicit pose/final-approach
+settings described below. The live loop uses observed time; .03 s is
+not a scheduled feedback interval. No solver changes.
 There is no dispatcher, runner queue or preflight cache.
 
 ## Prepare and inspect on RTX5060
@@ -26,6 +29,7 @@ source tiago_tools/ros_simulation.sh
 python3 tiago_examples/physical_arm/native_build.py --cuda-architecture 120
 python3 tiago_examples/physical_arm/figure8_24s.py --preview
 python3 tiago_examples/physical_arm/reach_goals.py --preview
+python3 tiago_examples/physical_arm/square_forward.py --preview
 ```
 
 Preview imports no ROS/native modules and causes no motion. The build command
@@ -44,6 +48,7 @@ python3 tiago_examples/physical_arm/figure8_12s.py
 
 python3 tiago_examples/physical_arm/preflight_reaching.py
 python3 tiago_examples/physical_arm/reach_goals.py
+python3 tiago_examples/physical_arm/square_forward.py
 ```
 
 Review each family preflight's outcome before running its tasks. A failed
@@ -51,8 +56,8 @@ preflight raises and retains data; preserve it and discuss the setup before
 continuing that family. Task launches do not enforce a cached receipt.
 
 Each call prints its settings and actual task/cost configuration, then asks you
-to type `MOVE` before reset or effort motion. Every reaching goal creates a new
-controller, resets to comfortable, verifies measured arrival and hands back.
+to type `MOVE` before reset or effort motion. In `reach_goals.py`, each goal creates
+a new controller, resets to comfortable, verifies measured arrival and hands back.
 Arrival requires <=.05 rad maximum joint error and <=.1 rad/s joint-speed L1.
 The three target distances are 100.636/207.933/317.052 mm from nominal comfortable;
 they remain candidates awaiting current-setting simulation/collision review.
@@ -60,11 +65,75 @@ Each gets eight seconds, <=5 cm position arrival, speed L1<=1 rad/s, zero dwell.
 An ordinary timeout is recorded; the next goal still requires confirmation.
 Errors stop the sequence. Repeat a tracking run with another manual invocation.
 
+## Forward-square final experiment
+
+Run from the checkout root, inside the existing container with the usual Gazebo
+already running. Fetch/switch to `felix-final-tiago-expr` and fast-forward the
+branch, preserving any local edits. Use the same isolated reaching native build:
+
+```bash
+source tiago_tools/ros_simulation.sh
+python3 tiago_examples/physical_arm/native_build.py --cuda-architecture 120
+python3 tiago_examples/physical_arm/square_forward.py --preview
+python3 tiago_examples/physical_arm/square_forward.py
+```
+
+The launcher defaults to Gazebo, ordinary JointState feedback and physical-review
+flag false. It prints its settings, then the existing example requests `MOVE`
+before reset/motion. One invocation resets once to comfortable, verifies arrival,
+then uses one controller and the existing warm starts to reach these four full
+poses in order (XYZ in `torso_lift_link`, tool `arm_right_tool_link`):
+
+```text
+[.60, -.40, -.20] -> [.60, -.40, -.10] -> [.60, -.30, -.10] -> [.60, -.30, -.20]
+RPY at every corner: [pi/2, 0, pi/2] rad; tool +Z points torso +X.
+```
+
+There is no center goal, closing fifth reach or automatic repetition. This is
+sequential pose reaching; straight constant-speed edges are not prescribed.
+Each corner has 15 s. The transition gate is 1 cm position, 10 degrees tool-axis
+error and speed L1 <=.2 rad/s for .2 s. An ordinary timeout is retained and the
+existing loop advances; safety errors stop the sequence and retain partial data.
+
+Approach costs are explicitly q4/N80, qd.05/u.0001, orientation.1/2, mu10,
+SQP5/PCG120. Final approach uses q800/N2400, qd1/u.0003, orientation10/10, mu30
+and SQP20, with the existing .075 m/.1 rad/s trigger and per-goal reset.
+C2 and .20 rad/.80 velocity/.85 effort cost insets use the existing reaching
+profile. Runtime guards, 26 Nm rejection, 4 cm collision margin and handback
+are unchanged. The selected settings are local to this launcher.
+
+The fresh run directory is `_expr_results/physical-arm/gazebo/<UTC>-square_forward/`.
+Its root keeps `launcher_config.json` and `final_approach_params.json`; ordinary
+example recordings, outcomes, effective settings and partial stats are in `data/`.
+After the run, use the separate offline commands:
+
+```bash
+python3 tiago_examples/physical_arm/report_square_forward.py /absolute/path/to/run
+python3 tiago_examples/physical_arm/check_collisions.py /absolute/path/to/run/data
+```
+
+The square report records sampled rough entry (5 cm/30 degrees/speed L1<=1),
+original strict outcomes/times, last observed XYZ/axis/full-rotation errors and
+speed. It distinguishes available boundary observations from earlier samples
+and leaves unobserved goals incomplete. It does not rescore task outcomes or
+establish physical compliance. Collision replay reports geometry and coverage
+separately; retain both reports and raw failures.
+
+The internal selected square passed 44/44 strict corners across 11 sequences.
+Its sampled 46.024 mm minimum occurs at the comfortable starting pose; torso,
+left arm and head were fixed. Earlier Gazebo reset-margin, source-gap and
+wheel-drift failures remain recorded. This launcher adds no guard waiver or
+physical qualification. Inspect the actual reset/task path and body/tool setup.
+SEA feedback remains an explicit optional `--ros-sea-absolute` choice after its
+separate review. Jetson later uses the same launcher with the reviewed physical
+backend and sm87 preparation described below.
+
 ## Data and collision review
 
 Each invocation uses a fresh UTC-stamped folder in
 `_expr_results/physical-arm/gazebo/`. Existing example outputs are retained:
-tracking data are in `<run>/tiago_right/`; reaching data in `<run>/goal-N/data/`.
+tracking data are in `<run>/tiago_right/`; independent reaching data in
+`<run>/goal-N/data/`; square data in `<run>/data/`.
 Those leaf directories also contain:
 
 - `command_history.jsonl`: every effort publication attempt, including priming
@@ -94,6 +163,11 @@ reports original gaps >100 ms and never interpolates across them. <=3 ms linear
 interpolation within supported gaps is sampled review, not a continuous-motion
 guarantee. Task error/timeout labels remain separate. Inspect paths visually;
 external workspace objects are outside this self-collision model.
+
+The previously reviewed Gazebo replay fix is included here: unavailable wheel/
+finger velocities are omitted only for joints explicitly locked by the existing
+reduced collision model. Required velocities and fixed-position checks remain
+mandatory; raw history is unchanged. Wheel drift still fails that model check.
 
 Runtime collision, joint, speed, torque, nonfinite and stale-state guards remain
 active. The PAL position-controller reset is recorded and arrival checked; the

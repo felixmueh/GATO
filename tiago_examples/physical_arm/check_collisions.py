@@ -33,12 +33,30 @@ def source_path(value):
     return path if path.is_absolute() else ROOT / path
 
 
-def load_observations(path):
+def load_observations(path, excluded_velocity_names=None):
+    from gato_tiago.safety_monitor import TIAGO_RUNTIME_STATE_FIXED_JOINT_NAMES
+
+    fixed_names = set(TIAGO_RUNTIME_STATE_FIXED_JOINT_NAMES)
     rows = []
+    excluded = set()
+    # Normalize only unavailable velocities of joints removed by the runtime
+    # reduced model. Drop the same names throughout this in-memory replay so
+    # interpolation never fabricates a velocity or sees changing key sets.
     for line_number, line in enumerate(path.read_text().splitlines(), 1):
         if not line.strip():
             continue
         row = json.loads(line)
+        for name, value in row["velocities_by_name"].items():
+            if name in fixed_names and (value is None or not math.isfinite(float(value))):
+                excluded.add(name)
+        rows.append((line_number, row))
+    if excluded_velocity_names is not None:
+        excluded_velocity_names.extend(sorted(excluded))
+    observations = rows
+    rows = []
+    for line_number, row in observations:
+        row["velocities_by_name"] = {name: value for name, value in row["velocities_by_name"].items()
+                                     if name not in excluded}
         for key in ("positions_by_name", "velocities_by_name"):
             values = row[key]
             if not values or any(v is None or not math.isfinite(float(v)) for v in values.values()):
@@ -288,9 +306,12 @@ class GeometryReview:
 
 def review(run_directory, geometry_factory=GeometryReview):
     run_directory = Path(run_directory)
-    report = {"passed": False, "geometry_clearance_pass": False,
+    report = {"checker_source_sha256": sha256(Path(__file__)),
+              "passed": False, "geometry_clearance_pass": False,
               "joint_limits_pass": False, "coverage_complete": False,
               "coverage_reasons": [], "errors": [], "minimum_checked_clearance": None,
+              "excluded_unavailable_fixed_joint_velocities": [],
+              "velocity_scope": "Unavailable velocities are omitted only for explicitly fixed joints in the runtime reduced model. Their recorded positions must remain fixed; all required model velocities remain mandatory. Raw history is unchanged.",
               "checked_samples": 0, "interpolated_samples": 0,
               "collision_violation_samples": 0, "joint_position_violation_samples": 0,
               "joint_velocity_violation_samples": 0, "first_joint_violations": [],
@@ -309,7 +330,7 @@ def review(run_directory, geometry_factory=GeometryReview):
         if not math.isfinite(margin) or margin < 0:
             raise ValueError("invalid collision margin")
         report["collision_margin_m"] = margin
-        rows = load_observations(history)
+        rows = load_observations(history, report["excluded_unavailable_fixed_joint_velocities"])
         report["source_observations"] = len(rows)
         report["source_modes"] = {mode: sum(r["controller_mode"] == mode for r in rows)
                                   for mode in sorted({r["controller_mode"] for r in rows})}
