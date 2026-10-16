@@ -1,0 +1,1671 @@
+{
+  "scope": "Four candidate targets selected from historical successes; current protocol and physical paths unqualified. CPU endpoint checks do not qualify reset or executed path.",
+  "goal_frame": "torso_lift_link",
+  "tool_frame": "arm_right_tool_link",
+  "body_setup": "Historical sources use fixed-base reduced right-arm URDF; no full-body collision qualification. CPU collision screen, if available, names its separate fixed body assumption; actual torso/head/left-arm/tool/workspace require review.",
+  "current_start_q_rad": [
+    -0.38999998569488525,
+    -1.7300000190734863,
+    -0.3799999952316284,
+    -2.3499999046325684,
+    0.0,
+    -1.2100000381469727,
+    0.03999999910593033
+  ],
+  "current_start_xyz_torso_m": [
+    0.3253464688311586,
+    -0.22798123490730832,
+    -0.3816577465517488
+  ],
+  "cases": {
+    "orientation-04": {
+      "source_study": "random-reaching-orientation-pilot-20261014",
+      "source_case": "target-04-on",
+      "input_pool": {
+        "path": "/workspace/GATO/thesis_results/random-reaching-orientation-pilot-20261014/targets.json",
+        "sha256": "752e24d76369e94684e5767356b4b05c159efec267b1ce5e998cf4a9d9326972"
+      },
+      "input_pool_original_sha256": "752e24d76369e94684e5767356b4b05c159efec267b1ce5e998cf4a9d9326972",
+      "protocol_file": {
+        "path": "/workspace/GATO/_expr_results/random-reaching-orientation-pilot-20261014/target-04-on/protocol.json",
+        "sha256": "e2868f3be856205a15711b5586523c2e92a0141b73c9edec7ae0cf6ec9789db7"
+      },
+      "source_protocol": {
+        "kind": "reaching",
+        "id": "target-04",
+        "initial_state": [
+          -0.38999998569488525,
+          -1.7300000190734863,
+          -0.3799999952316284,
+          -2.3499999046325684,
+          0.0,
+          -1.2100000381469727,
+          0.03999999910593033,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "goal": [
+          0.4829671991662936,
+          -0.4927169103762848,
+          -0.3760850898386358,
+          -1.1128923187175253,
+          -0.08746442192533,
+          -2.630541825445276
+        ],
+        "urdf": {
+          "path": "gato/dynamics/tiago_right/tiago_right_arm.urdf",
+          "sha256": "8e1fd973a1d1c3fbddd55039e6eb17b355ebb29f46e1bd8c774b7879c2cdc5bb"
+        },
+        "gravity_m_s2": [
+          0.0,
+          0.0,
+          -9.81
+        ],
+        "N": 32,
+        "dt_s": 0.03,
+        "sim_dt_s": 0.003,
+        "timeout_s": 8.0,
+        "constant_f_ext": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "position_threshold_m": 0.05,
+        "axis_threshold_deg": 30.0,
+        "speed_L1_threshold_rad_s": 1.0,
+        "minimum_executed_displacement_m": 0.05,
+        "goal_dwell_time_s": 0.0,
+        "final_approach": false,
+        "physical_validation": {
+          "position_tolerance_rad": 0.0001,
+          "velocity_tolerance_rad_s": 0.001,
+          "effort_tolerance_Nm": 0.001,
+          "scope": "every actual RK4 state and applied control, sampled model limits"
+        },
+        "solver_params": {
+          "max_sqp_iters": 5,
+          "kkt_tol": 0.001,
+          "max_pcg_iters": 120,
+          "pcg_tol": 0.001,
+          "solve_ratio": 1.0,
+          "mu": 1.0,
+          "q_cost": 4.0,
+          "qd_cost": 0.1,
+          "u_cost": 0.0001,
+          "N_cost": 80.0,
+          "ee_orient_cost": 0.1,
+          "ee_orient_N_cost": 2.0,
+          "q_lim_cost": 0.01,
+          "vel_lim_cost": 0.1,
+          "ctrl_lim_cost": 0.05,
+          "rho": 0.01
+        },
+        "offline_timing": "solve_time",
+        "timing_mode": "B",
+        "collision_filter": false,
+        "safety_monitor": false,
+        "orientation_condition": "on",
+        "orientation_gate_enabled": true,
+        "API_goal_dimension": 6,
+        "target_quaternion_xyzw": [
+          0.1692872717231796,
+          -0.5011509087750798,
+          0.8266173239329022,
+          -0.1920765109024059
+        ],
+        "witness_q_rad": [
+          0.141641528974918,
+          -1.0729123642060503,
+          0.3475594174051271,
+          -1.917294554188766,
+          0.7460467224797274,
+          -0.2533543683833519,
+          0.5300201255089767
+        ],
+        "initial_guess": null,
+        "seed_policy": "production current-state/zero-control cold seed and shifted warm starts; witnesses define goals only",
+        "timing_scope": "native and public solve-wrapper time; existing modeB charges wrapper solve time, recorder overhead excluded",
+        "physical_scope": "every simulated plant substep and applied control against raw URDF bounds; no collision assessment",
+        "target_pool_sha256": "752e24d76369e94684e5767356b4b05c159efec267b1ce5e998cf4a9d9326972"
+      },
+      "metrics_file": {
+        "path": "/workspace/GATO/_expr_results/random-reaching-orientation-pilot-20261014/target-04-on/metrics.json",
+        "sha256": "05b1a8bf9f77b6c3c73a9358b87d25586f1102c165307ada81a2125062ff71b1"
+      },
+      "success_metrics": {
+        "research_question": "RQ-control",
+        "campaign_id": "T01",
+        "execution_backend": "internal",
+        "timing_mode": "B",
+        "offline_timing": "solve_time",
+        "machine": "gtx1070",
+        "configuration_file": "protocol.json",
+        "recording_format": "task-observations-v1",
+        "task_success": true,
+        "physical_pass": true,
+        "solver_numerical_pass": null,
+        "execution_error": null,
+        "unmeasured": {
+          "solver_numerical_pass": "SB-001/SB-002 and frozen Q02 method-negative retained; no full nonlinear/KKT certificate"
+        },
+        "validation": {
+          "recording_shapes": true,
+          "finite_execution": true,
+          "recording_clock": true,
+          "initial_state_matches": true,
+          "recorded_applied_control": true
+        },
+        "task_gates": {
+          "position": true,
+          "tool_axis": true,
+          "speed_L1": true,
+          "initial_motion_required": true,
+          "positive_bounded_duration": true,
+          "controller_reached": true,
+          "completed_without_exception": true,
+          "recording_clock": true,
+          "initial_state_matches": true,
+          "executed_control": true
+        },
+        "physical_limits": {
+          "position_violation_rad": 0.0,
+          "velocity_violation_rad_s": 0.0,
+          "torque_violation_Nm": 0.0
+        },
+        "initial_distance_m": 0.3081563353238722,
+        "final_distance_m": 0.04998215310849286,
+        "final_axis_error_deg": 20.106963847550244,
+        "final_full_SO3_error_deg": 21.46619636434929,
+        "final_L1_speed_rad_s": 0.8528614761888924,
+        "executed_duration_s": 1.3570814353018068,
+        "plant_steps": 1139,
+        "common_position_speed_task_success": true,
+        "common_criterion_scope": "terminal position/speed and valid execution; independent of controller axis-gated outcome",
+        "orientation_gate_enabled": true,
+        "outcome": "task_passed",
+        "timing_distributions": {
+          "wall_ms": {
+            "count": 1097,
+            "mean": 1.2167703758593251,
+            "median": 0.9234680328518152,
+            "p95": 2.9207926127128303
+          },
+          "native_ms": {
+            "count": 1097,
+            "mean": 1.0976526891522334,
+            "median": 0.796,
+            "p95": 2.7828000000000004
+          },
+          "update_s": {
+            "count": 1097,
+            "mean": 0.0012370842618977273,
+            "median": 0.0009234680328518152,
+            "p95": 0.0029207926127128303
+          }
+        },
+        "timing_scope": "native and public solve-wrapper time; existing modeB charges wrapper solve time, recorder overhead excluded",
+        "update_fraction_above_nominal": 0.0,
+        "study": "random-local-reaching-orientation-pilot",
+        "target_id": "target-04",
+        "orientation_condition": "on",
+        "target_pool_sha256": "752e24d76369e94684e5767356b4b05c159efec267b1ce5e998cf4a9d9326972",
+        "collision_scope": "ignored; unassessed",
+        "safety_monitor": false,
+        "final_comparison": false
+      },
+      "witness_q_rad": [
+        0.141641528974918,
+        -1.0729123642060503,
+        0.3475594174051271,
+        -1.917294554188766,
+        0.7460467224797274,
+        -0.2533543683833519,
+        0.5300201255089767
+      ],
+      "distance_from_current_comfortable_m": 0.3081563353238722,
+      "source_start_matches_current": true,
+      "source_runtime": "fa6f6bede286c122cc41ac65f42a583da84290e0",
+      "source_collector": "7755e44ee240e85ab5aa0bfd5d304292bff92e37",
+      "source_native_module_sha256": "ddd78006da6ea6aa841f283b9db810f4ab37785fc4572732cdfb3a50e26c3b5d",
+      "setup_difference": "Historical qd=.1,mu=1,q/v/u-limit weights=.01/.1/.05 and historical native bound cost; current qd=.05,mu=10,.02125/1.275/.02,C2/.20/.80/.85 profile. Historical simulated modeB, current live observed-time path. No qualification transfer."
+    },
+    "orientation-02": {
+      "source_study": "random-reaching-orientation-pilot-20261014",
+      "source_case": "target-02-on",
+      "input_pool": {
+        "path": "/workspace/GATO/thesis_results/random-reaching-orientation-pilot-20261014/targets.json",
+        "sha256": "752e24d76369e94684e5767356b4b05c159efec267b1ce5e998cf4a9d9326972"
+      },
+      "input_pool_original_sha256": "752e24d76369e94684e5767356b4b05c159efec267b1ce5e998cf4a9d9326972",
+      "protocol_file": {
+        "path": "/workspace/GATO/_expr_results/random-reaching-orientation-pilot-20261014/target-02-on/protocol.json",
+        "sha256": "889398e0aaccb4f6cd3bc4274354d1be4044cceaab1952873882a3f8ab0ba94f"
+      },
+      "source_protocol": {
+        "kind": "reaching",
+        "id": "target-02",
+        "initial_state": [
+          -0.38999998569488525,
+          -1.7300000190734863,
+          -0.3799999952316284,
+          -2.3499999046325684,
+          0.0,
+          -1.2100000381469727,
+          0.03999999910593033,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "goal": [
+          0.4958480417964524,
+          -0.33382393342426564,
+          -0.2816072805764633,
+          -0.5258686898305469,
+          -0.017037030930330044,
+          -1.7885121959716148
+        ],
+        "urdf": {
+          "path": "gato/dynamics/tiago_right/tiago_right_arm.urdf",
+          "sha256": "8e1fd973a1d1c3fbddd55039e6eb17b355ebb29f46e1bd8c774b7879c2cdc5bb"
+        },
+        "gravity_m_s2": [
+          0.0,
+          0.0,
+          -9.81
+        ],
+        "N": 32,
+        "dt_s": 0.03,
+        "sim_dt_s": 0.003,
+        "timeout_s": 8.0,
+        "constant_f_ext": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "position_threshold_m": 0.05,
+        "axis_threshold_deg": 30.0,
+        "speed_L1_threshold_rad_s": 1.0,
+        "minimum_executed_displacement_m": 0.05,
+        "goal_dwell_time_s": 0.0,
+        "final_approach": false,
+        "physical_validation": {
+          "position_tolerance_rad": 0.0001,
+          "velocity_tolerance_rad_s": 0.001,
+          "effort_tolerance_Nm": 0.001,
+          "scope": "every actual RK4 state and applied control, sampled model limits"
+        },
+        "solver_params": {
+          "max_sqp_iters": 5,
+          "kkt_tol": 0.001,
+          "max_pcg_iters": 120,
+          "pcg_tol": 0.001,
+          "solve_ratio": 1.0,
+          "mu": 1.0,
+          "q_cost": 4.0,
+          "qd_cost": 0.1,
+          "u_cost": 0.0001,
+          "N_cost": 80.0,
+          "ee_orient_cost": 0.1,
+          "ee_orient_N_cost": 2.0,
+          "q_lim_cost": 0.01,
+          "vel_lim_cost": 0.1,
+          "ctrl_lim_cost": 0.05,
+          "rho": 0.01
+        },
+        "offline_timing": "solve_time",
+        "timing_mode": "B",
+        "collision_filter": false,
+        "safety_monitor": false,
+        "orientation_condition": "on",
+        "orientation_gate_enabled": true,
+        "API_goal_dimension": 6,
+        "target_quaternion_xyzw": [
+          -0.16914062517680387,
+          0.19750974616693662,
+          -0.7543037953203086,
+          0.6028325915619126
+        ],
+        "witness_q_rad": [
+          -0.48425656952541973,
+          -1.1491203326500217,
+          -0.09571051996501434,
+          -2.220643820791271,
+          0.771950084012911,
+          -0.6649610406073219,
+          0.9418359640596159
+        ],
+        "initial_guess": null,
+        "seed_policy": "production current-state/zero-control cold seed and shifted warm starts; witnesses define goals only",
+        "timing_scope": "native and public solve-wrapper time; existing modeB charges wrapper solve time, recorder overhead excluded",
+        "physical_scope": "every simulated plant substep and applied control against raw URDF bounds; no collision assessment",
+        "target_pool_sha256": "752e24d76369e94684e5767356b4b05c159efec267b1ce5e998cf4a9d9326972"
+      },
+      "metrics_file": {
+        "path": "/workspace/GATO/_expr_results/random-reaching-orientation-pilot-20261014/target-02-on/metrics.json",
+        "sha256": "861a3c1c4b39814c63245e7410d01fb7410100d40ffd1bbdf3fb1863fa138e62"
+      },
+      "success_metrics": {
+        "research_question": "RQ-control",
+        "campaign_id": "T01",
+        "execution_backend": "internal",
+        "timing_mode": "B",
+        "offline_timing": "solve_time",
+        "machine": "gtx1070",
+        "configuration_file": "protocol.json",
+        "recording_format": "task-observations-v1",
+        "task_success": true,
+        "physical_pass": true,
+        "solver_numerical_pass": null,
+        "execution_error": null,
+        "unmeasured": {
+          "solver_numerical_pass": "SB-001/SB-002 and frozen Q02 method-negative retained; no full nonlinear/KKT certificate"
+        },
+        "validation": {
+          "recording_shapes": true,
+          "finite_execution": true,
+          "recording_clock": true,
+          "initial_state_matches": true,
+          "recorded_applied_control": true
+        },
+        "task_gates": {
+          "position": true,
+          "tool_axis": true,
+          "speed_L1": true,
+          "initial_motion_required": true,
+          "positive_bounded_duration": true,
+          "controller_reached": true,
+          "completed_without_exception": true,
+          "recording_clock": true,
+          "initial_state_matches": true,
+          "executed_control": true
+        },
+        "physical_limits": {
+          "position_violation_rad": 0.0,
+          "velocity_violation_rad_s": 0.0,
+          "torque_violation_Nm": 0.0
+        },
+        "initial_distance_m": 0.22423995842592975,
+        "final_distance_m": 0.049793722525575734,
+        "final_axis_error_deg": 5.461038130757505,
+        "final_full_SO3_error_deg": 17.788166477135995,
+        "final_L1_speed_rad_s": 0.9062965691968918,
+        "executed_duration_s": 1.3067360314028338,
+        "plant_steps": 1305,
+        "common_position_speed_task_success": true,
+        "common_criterion_scope": "terminal position/speed and valid execution; independent of controller axis-gated outcome",
+        "orientation_gate_enabled": true,
+        "outcome": "task_passed",
+        "timing_distributions": {
+          "wall_ms": {
+            "count": 1235,
+            "mean": 1.0389602675219538,
+            "median": 0.651386973913759,
+            "p95": 2.997719286940992
+          },
+          "native_ms": {
+            "count": 1235,
+            "mean": 0.9196429149797571,
+            "median": 0.525,
+            "p95": 2.8619
+          },
+          "update_s": {
+            "count": 1235,
+            "mean": 0.00105808585538691,
+            "median": 0.000651386973913759,
+            "p95": 0.0029977192869409916
+          }
+        },
+        "timing_scope": "native and public solve-wrapper time; existing modeB charges wrapper solve time, recorder overhead excluded",
+        "update_fraction_above_nominal": 0.0,
+        "study": "random-local-reaching-orientation-pilot",
+        "target_id": "target-02",
+        "orientation_condition": "on",
+        "target_pool_sha256": "752e24d76369e94684e5767356b4b05c159efec267b1ce5e998cf4a9d9326972",
+        "collision_scope": "ignored; unassessed",
+        "safety_monitor": false,
+        "final_comparison": false
+      },
+      "witness_q_rad": [
+        -0.48425656952541973,
+        -1.1491203326500217,
+        -0.09571051996501434,
+        -2.220643820791271,
+        0.771950084012911,
+        -0.6649610406073219,
+        0.9418359640596159
+      ],
+      "distance_from_current_comfortable_m": 0.22423995842592975,
+      "source_start_matches_current": true,
+      "source_runtime": "fa6f6bede286c122cc41ac65f42a583da84290e0",
+      "source_collector": "7755e44ee240e85ab5aa0bfd5d304292bff92e37",
+      "source_native_module_sha256": "ddd78006da6ea6aa841f283b9db810f4ab37785fc4572732cdfb3a50e26c3b5d",
+      "setup_difference": "Historical qd=.1,mu=1,q/v/u-limit weights=.01/.1/.05 and historical native bound cost; current qd=.05,mu=10,.02125/1.275/.02,C2/.20/.80/.85 profile. Historical simulated modeB, current live observed-time path. No qualification transfer."
+    },
+    "position-75": {
+      "source_study": "tiago-cone-reaching100-20261016",
+      "source_case": "cone_075",
+      "input_pool": {
+        "path": "/workspace/GATO/_expr_results/tiago-cone-reaching100-20261016/preparation/targets.json",
+        "sha256": "4375f9165cedb011bb7fff937b9002de5ac089a369398ff505fc51a62706331a"
+      },
+      "protocol_file": {
+        "path": "/workspace/GATO/_expr_results/tiago-cone-reaching100-20261016/preparation/protocol.json",
+        "sha256": "0192d0b7e77bfbed6c228cd3c552edf1c79afd7186d4bae1269b7e13c62d5d67"
+      },
+      "source_protocol": {
+        "source_base": "85ef2ea5cf5b96726be6f4b5441f4a7c0ca041b4",
+        "timing_mode": "A",
+        "offline_timing": "controller_dt",
+        "N": 32,
+        "knot_dt_s": 0.03,
+        "feedback_s": 0.03,
+        "sim_dt_s": 0.003,
+        "timeout_s": 8.0,
+        "position_tolerance_m": 0.05,
+        "tool_axis_tolerance_deg": 30.0,
+        "velocity_l1_tolerance_rad_s": 1.0,
+        "goal_dwell_s": 0.0,
+        "final_approach": false,
+        "batch": 1,
+        "reset_rho_each_solve": false,
+        "solver_params": {
+          "max_sqp_iters": 1000,
+          "kkt_tol": 0.001,
+          "max_pcg_iters": 120,
+          "pcg_tol": 0.001,
+          "solve_ratio": 1.0,
+          "mu": 10.0,
+          "q_cost": 4.0,
+          "qd_cost": 0.05,
+          "u_cost": 1e-05,
+          "N_cost": 80.0,
+          "ee_orient_cost": 0.0,
+          "ee_orient_N_cost": 0.0,
+          "q_lim_cost": 0.02125,
+          "vel_lim_cost": 1.275,
+          "ctrl_lim_cost": 0.02,
+          "rho": 0.01
+        },
+        "limit_penalty": {
+          "kind": "C2_quadratic_continuation",
+          "reviewed_candidate": "17100c0a9500e23f72f6c4d950717f09ce9551cb",
+          "relaxation_fraction_of_limit_interval": 0.01,
+          "production_base": "b400bdf2bb6eea543b17cefcb0577d5de4d22ce2",
+          "core_change": "Reviewed C2 quadratic continuation plus explicit interior cost bounds at all value/gradient/Hessian callsites; raw limits, dynamics and controller unchanged.",
+          "cost_bounds": {
+            "joint_margin_rad": 0.2,
+            "velocity_fraction_of_physical_limit": 0.8,
+            "effort_fraction_of_physical_limit": 0.85,
+            "velocity_upper_rad_s": [
+              2.0,
+              2.0,
+              2.0,
+              2.0,
+              2.0,
+              2.0,
+              2.0
+            ],
+            "effort_upper_Nm": [
+              36.55,
+              36.55,
+              22.1,
+              22.1,
+              22.1,
+              22.1,
+              22.1
+            ],
+            "initial_states": "Unchanged, including those outside interior cost bounds; no clipping or filtering.",
+            "continuation_width": "1% of interior cost interval"
+          }
+        },
+        "initialization": "Public pose-reaching: cold repeated actual rest state and zero controls; then bsqp.common shift of previous output reanchored at actual state. Reset dual and rho once per episode; retain adaptive rho and duals across feedback solves. First t0 solve supplies first executed prefix and is recorded.",
+        "native_module_sha256": "d9bee23f90a1d7816b32db23749bd651db2a7537f94c3dfec15f1a448bb34cc8",
+        "arrival_policy": "position_and_speed_only",
+        "arrival_orientation_gate": false,
+        "orientation_required_for_arrival": false,
+        "id": "cone100-position-only-v1",
+        "status": "PREPARED_NOT_RUN",
+        "frame": "torso_lift_link: +X forward,+Y left,+Z up; apex exact currentEEF FK, not body origin",
+        "initial_q_rad": [
+          -0.5,
+          -1.4,
+          -0.3,
+          -1.7,
+          0.0,
+          -0.9,
+          0.0
+        ],
+        "initial_velocity_rad_s": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "initial_tool_xyz_torso_m": [
+          0.45567472766540734,
+          -0.28729301846437616,
+          -0.5256556575135656
+        ],
+        "reference_rotation": [
+          [
+            -0.5551015195223314,
+            0.18792312410711964,
+            0.8102760038714094
+          ],
+          [
+            0.1554753012626447,
+            -0.9335331613608865,
+            0.32302208490572387
+          ],
+          [
+            0.8171228388200215,
+            0.30528795597823727,
+            0.48898827206114204
+          ]
+        ],
+        "reference_rpy_rad": [
+          0.558114294292286,
+          -0.9564021620843778,
+          2.8685056459814384
+        ],
+        "initial_checks": {
+          "minimum_physical_joint_clearance_rad": 0.7434609527920613,
+          "minimum_cost_bound_clearance_rad": 0.5434609527920613,
+          "gravity_effort_ratio": 0.3220864051629774
+        },
+        "numerical_source_sha256": {
+          "gato/dynamics/tiago_right/tiago_right_arm.urdf": "8e1fd973a1d1c3fbddd55039e6eb17b355ebb29f46e1bd8c774b7879c2cdc5bb",
+          "python/bsqp/interface.py": "7caa7781a98126646f3f50e7569b34db1f01339331a2341e4e37ebebba3a3770",
+          "python/bsqp/common.py": "ca5a9fb41377a760c24ba9df881f93ede59301ee8c09463f9f644854e9848dcf",
+          "python/bsqp/mpc_controller.py": "ccbfcf81368685568225bad59b8de5da5678f061c40c8288be67254a59539ab4",
+          "python/bsqp/config.py": "8ed690ed1472d9a650af7510d7fe93bda6375124d6c7e0b2f7a2b7cb435c9699",
+          "tiago_src/gato_tiago/config.py": "c2287d1522f4f07a09e922af76ecddb215e5801f9b8b297e74cc5a4c849fc316",
+          "tiago_src/gato_tiago/final_approach.py": "38a4d8cf5f1455ae1f82a6476b085d36f3a492cb2e1e161fde7c8d3e9ea3a52d",
+          "tiago_src/gato_tiago/tiago_mpc_controller.py": "656bbaf7030017eeafbe85f367f24b1b8d8ce26acb2a0de77c759084ba2e4fea",
+          "gato/bsqp/bsqp.cuh": "2752e9146c8cf06d2168a142ff2265f29224384f27f75b6dc3ec395f6ef40141",
+          "gato/dynamics/tiago_right/tiago_right_plant.cuh": "9dd91de48dac76375914bdd1ad7a83075a5fa0ecd21cf6291cb6014b60eef46f",
+          "gato/dynamics/tiago_right/tiago_right_cost_limits.cuh": "388244d7201b113caacb263591cd0fe07f41d4d6a82ae4d0e0ce4482eecdd1e7",
+          "gato/dynamics/tiago_right/tiago_right_limits.cuh": "c23c92abb35e0b9163fb21a6d2eb899da6de9e52d5bed00ad490e90c08a13232"
+        },
+        "frozen_baseline_protocol_sha256": "511b99b2a0ed817f0bb881a84ca978e0de5d74d5e046321451db6231fe2c6b8f",
+        "native_module_path": "/workspace/GATO-random-reaching-joint-margins/.experiment-modules/q020/bsqpN32_tiago_right.cpython-310-x86_64-linux-gnu.so",
+        "primary_stage": "Position-only100 targets. Orientation/finalapproach/filterOFF; no automatic otherstage.",
+        "stage": "position_only",
+        "conditional_on": "New100 cone targets require focused root/independent source and sampling review; soleGPUowner executes exactfixed100 once; no retries/tuning/otherstages",
+        "final_approach_defaults": {
+          "q_cost": 400.0,
+          "N_cost": 1200.0,
+          "qd_cost": 1.0,
+          "u_cost": 0.0003,
+          "ee_orient_cost": 10.0,
+          "ee_orient_N_cost": 10.0,
+          "max_sqp_iters": 20,
+          "mu": 30.0
+        },
+        "final_approach_trigger": {
+          "distance_m": 0.075,
+          "max_joint_speed_rad_s": 0.1
+        },
+        "effective_after_trigger_solver_params": {
+          "max_sqp_iters": 1000,
+          "kkt_tol": 0.001,
+          "max_pcg_iters": 120,
+          "pcg_tol": 0.001,
+          "solve_ratio": 1.0,
+          "mu": 10.0,
+          "q_cost": 4.0,
+          "qd_cost": 0.05,
+          "u_cost": 1e-05,
+          "N_cost": 80.0,
+          "ee_orient_cost": 0.0,
+          "ee_orient_N_cost": 0.0,
+          "q_lim_cost": 0.02125,
+          "vel_lim_cost": 1.275,
+          "ctrl_lim_cost": 0.02,
+          "rho": 0.01
+        },
+        "sampler": {
+          "seed": 20261016,
+          "axis_torso": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "half_angle_deg": 45.0,
+          "radius_min_m": 0.1,
+          "radius_max_m": 0.4,
+          "proposal_distribution": "uniform cone-shell volume: uniformcos(theta),azimuth,radiuscubed",
+          "max_target_proposals": 2000,
+          "IK_random_restarts": 5,
+          "IK_max_nfev": 200,
+          "IK_tolerance_m": 0.001,
+          "IK_solver_tolerance": 1e-06,
+          "acceptance": "position residual<=1mm and actual raw joint bounds only; no orientation/softmargin/difficulty/dynamics filter"
+        },
+        "target_manifest_path": "/workspace/GATO/_expr_results/tiago-cone-reaching100-20261016/preparation/targets.json",
+        "target_manifest_sha256": "4375f9165cedb011bb7fff937b9002de5ac089a369398ff505fc51a62706331a",
+        "target_array_path": "/workspace/GATO/_expr_results/tiago-cone-reaching100-20261016/preparation/targets.npz",
+        "target_array_sha256": "73c588e6a6fe8a10e5c1379fb6659fc4119c04495d2fcd47350a525f611782fb",
+        "reused_EASY2_parameterization": {
+          "protocol_path": "/workspace/GATO/_expr_results/tiago-forward-reaches-position-20261016/position_only/protocol.json",
+          "protocol_sha256": "03617ca7121b79bed78ebf4ac837cb57375f07ceb5577c823b094c8943c4e23b",
+          "metrics": [
+            {
+              "path": "/workspace/GATO/_expr_results/tiago-forward-reaches-position-20261016/position_only/pair_00000/metrics.json",
+              "sha256": "0e5f028060503fe9aba391d63ec638f35445edaaacabc00d06a4bf5b05aeccb4"
+            },
+            {
+              "path": "/workspace/GATO/_expr_results/tiago-forward-reaches-position-20261016/position_only/pair_00001/metrics.json",
+              "sha256": "e7ab59f27c292bb9fe4079b2e0e34a674935857b9edcdb4411dd20f6f46681d4"
+            }
+          ],
+          "prior_target_apex_angles_deg": [
+            53.245577364993,
+            47.043389751747206
+          ],
+          "status": "Passed same-machine EASY2 parameterization evidence only; prior fixed goals outside45deg cone are not included/pool; no newcanonical"
+        }
+      },
+      "metrics_file": {
+        "path": "/workspace/GATO/_expr_results/tiago-cone-reaching100-20261016/position_only/pair_00075/metrics.json",
+        "sha256": "2d516113e061c1bd4a30c4abcd71a02f15b653714599214798d85240897211db"
+      },
+      "success_metrics": {
+        "pair_id": 75,
+        "outcome": "reached",
+        "complete": true,
+        "task_success": true,
+        "physical_pass": true,
+        "execution_error": null,
+        "failure_phase": null,
+        "shared_setup_failure": false,
+        "interrupted": false,
+        "simulated_seconds": 1.7999999999999718,
+        "reached_seconds": 1.7999999999999718,
+        "arrival_policy": "position_and_speed_only",
+        "arrival_orientation_gate": false,
+        "orientation_required_for_arrival": false,
+        "tool_axis_tolerance_role": "30degrees used only for descriptive first_pose_touch_seconds",
+        "stage": "position_only",
+        "final_approach_enabled": false,
+        "final_approach_switches": [],
+        "effective_solver_params_last": {
+          "max_sqp_iters": 1000,
+          "kkt_tol": 0.001,
+          "max_pcg_iters": 120,
+          "pcg_tol": 0.001,
+          "solve_ratio": 1.0,
+          "mu": 10.0,
+          "q_cost": 4.0,
+          "qd_cost": 0.05,
+          "u_cost": 1e-05,
+          "N_cost": 80.0,
+          "ee_orient_cost": 0.0,
+          "ee_orient_N_cost": 0.0,
+          "q_lim_cost": 0.02125,
+          "vel_lim_cost": 1.275,
+          "ctrl_lim_cost": 0.02,
+          "rho": 0.01
+        },
+        "first_position_touch_seconds": 1.7759999999999727,
+        "first_pose_touch_seconds": 1.7759999999999727,
+        "touch_sampling": "first dense3ms observation; rough arrival checked at30ms feedback boundary",
+        "initial": {
+          "position_error_m": 0.19730253980561943,
+          "tool_axis_error_deg": 0.0,
+          "orientation_error_deg": 6.730293540701518e-14,
+          "velocity_l1_rad_s": 0.0
+        },
+        "final": {
+          "position_error_m": 0.049140560284047306,
+          "tool_axis_error_deg": 7.97024669195546,
+          "orientation_error_deg": 9.703047084571367,
+          "velocity_l1_rad_s": 0.2828929884916576
+        },
+        "physical": {
+          "finite": true,
+          "physical_pass": true,
+          "joint": {
+            "pass_check": true,
+            "maximum_excess": 0.0,
+            "first_violation": null
+          },
+          "velocity": {
+            "pass_check": true,
+            "maximum_excess": 0.0,
+            "first_violation": null
+          },
+          "effort": {
+            "pass_check": true,
+            "maximum_excess": 0.0,
+            "first_violation": null
+          },
+          "maximum_velocity_ratio": 0.14087477101065088,
+          "maximum_effort_ratio": 0.4443199817950909
+        },
+        "last_second": {
+          "observation_seconds": 0.9989999999999712,
+          "position_error_min_m": 0.049140560284047306,
+          "position_error_max_m": 0.10159484603073282,
+          "net_position_error_reduction_m": 0.052454285746685515,
+          "joint_total_variation_L1_rad": 0.39436037418845293,
+          "maximum_joint_speed_rad_s": 0.18121158465659148,
+          "maximum_speed_L1_rad_s": 0.47642091450621765,
+          "limitation": "Observation ends at rough arrival or timeout; no post-arrival settling inference"
+        },
+        "executed_endpoint_displacement_m": 0.15131440481856023,
+        "feedback_solves": 60,
+        "actual_sqp_sum": 335,
+        "actual_pcg_iteration_sum": 4480,
+        "zero_pcg_exit_solves": 60,
+        "solve_wall_s": 0.12022889591753483,
+        "native_solve_us": 114335.0,
+        "episode_wall_s": 0.30079494800884277,
+        "timing_mode": "A",
+        "offline_timing": "controller_dt"
+      },
+      "witness_q_rad": [
+        -0.6201872217342534,
+        -0.9517951757465646,
+        -0.13045359172271992,
+        -1.5540098143581436,
+        0.09262127935893723,
+        -0.6537614676557533,
+        0.0
+      ],
+      "distance_from_current_comfortable_m": 0.3129467131582571,
+      "source_start_matches_current": false,
+      "source_start_q_rad": [
+        -0.5,
+        -1.4,
+        -0.3,
+        -1.7,
+        0.0,
+        -0.9,
+        0.0
+      ],
+      "source_start_xyz_torso_m": [
+        0.45567472766540734,
+        -0.28729301846437616,
+        -0.5256556575135656
+      ],
+      "source_target": {
+        "id": 75,
+        "name": "cone_075",
+        "proposal_id": 76,
+        "xyz_torso_m": [
+          0.6210456514514251,
+          -0.3214571565202422,
+          -0.4236087984202702
+        ],
+        "displacement_from_initial_tool_m": 0.1973025398056194,
+        "direction_torso": [
+          0.8381591232882232,
+          -0.17315609869758503,
+          0.517210063255298
+        ],
+        "cone_angle_deg": 33.053764909563405,
+        "IK_witness_q_rad": [
+          -0.6201872217342534,
+          -0.9517951757465646,
+          -0.13045359172271992,
+          -1.5540098143581436,
+          0.09262127935893723,
+          -0.6537614676557533,
+          0.0
+        ],
+        "IK_position_residual_m": 2.5856238890629127e-08,
+        "IK_selected_restart": 0,
+        "IK_witness_checks": {
+          "minimum_raw_joint_clearance_rad": 0.8894511384339177,
+          "minimum_soft_joint_clearance_rad": 0.6894511384339177,
+          "gravity_effort_ratio": 0.3137967246900947
+        },
+        "necessary_joint_displacement_time_bound_s": 0.17928192970137413,
+        "prescribed_quintic_witness": {
+          "duration_s": 6.0,
+          "samples": 81,
+          "minimum_raw_joint_clearance_rad": 0.7434609527920613,
+          "maximum_speed_ratio": 0.056025603031679416,
+          "maximum_effort_ratio": 0.3231869110378524,
+          "method": "Analytic rest-to-rest joint quintic q/v/a plus CPU Pinocchio RNEA; no plant/controller simulation",
+          "used_for_acceptance": false,
+          "limitation": "One position-IK witness only: not collision/dynamic feasibility or MPC success certificate; bad witness dynamics do not prove goal infeasibility; never MPC seed/reference"
+        }
+      },
+      "source_runtime": "3e8dd73938330adbeaf3d993db10643d0103fc9b",
+      "source_core": "85ef2ea5cf5b96726be6f4b5441f4a7c0ca041b4",
+      "source_native_module_sha256": "d9bee23f90a1d7816b32db23749bd651db2a7537f94c3dfec15f1a448bb34cc8",
+      "setup_difference": "Historical relaxed start, SQP1000 cap,u1e-5,modeA/.03feedback; current comfortableHigh start,SQP5,u1e-4,live observed-time path. No qualification transfer.",
+      "source_protocol_task_pool_note": "Omitted 100 unselected/selected pool rows from embedded protocol only; full original bytes remain at protocol_file path with SHA256 above. Selected source_target and input pool identity retained in this record. All numerical protocol fields retained."
+    },
+    "position-46": {
+      "source_study": "tiago-cone-reaching100-20261016",
+      "source_case": "cone_046",
+      "input_pool": {
+        "path": "/workspace/GATO/_expr_results/tiago-cone-reaching100-20261016/preparation/targets.json",
+        "sha256": "4375f9165cedb011bb7fff937b9002de5ac089a369398ff505fc51a62706331a"
+      },
+      "protocol_file": {
+        "path": "/workspace/GATO/_expr_results/tiago-cone-reaching100-20261016/preparation/protocol.json",
+        "sha256": "0192d0b7e77bfbed6c228cd3c552edf1c79afd7186d4bae1269b7e13c62d5d67"
+      },
+      "source_protocol": {
+        "source_base": "85ef2ea5cf5b96726be6f4b5441f4a7c0ca041b4",
+        "timing_mode": "A",
+        "offline_timing": "controller_dt",
+        "N": 32,
+        "knot_dt_s": 0.03,
+        "feedback_s": 0.03,
+        "sim_dt_s": 0.003,
+        "timeout_s": 8.0,
+        "position_tolerance_m": 0.05,
+        "tool_axis_tolerance_deg": 30.0,
+        "velocity_l1_tolerance_rad_s": 1.0,
+        "goal_dwell_s": 0.0,
+        "final_approach": false,
+        "batch": 1,
+        "reset_rho_each_solve": false,
+        "solver_params": {
+          "max_sqp_iters": 1000,
+          "kkt_tol": 0.001,
+          "max_pcg_iters": 120,
+          "pcg_tol": 0.001,
+          "solve_ratio": 1.0,
+          "mu": 10.0,
+          "q_cost": 4.0,
+          "qd_cost": 0.05,
+          "u_cost": 1e-05,
+          "N_cost": 80.0,
+          "ee_orient_cost": 0.0,
+          "ee_orient_N_cost": 0.0,
+          "q_lim_cost": 0.02125,
+          "vel_lim_cost": 1.275,
+          "ctrl_lim_cost": 0.02,
+          "rho": 0.01
+        },
+        "limit_penalty": {
+          "kind": "C2_quadratic_continuation",
+          "reviewed_candidate": "17100c0a9500e23f72f6c4d950717f09ce9551cb",
+          "relaxation_fraction_of_limit_interval": 0.01,
+          "production_base": "b400bdf2bb6eea543b17cefcb0577d5de4d22ce2",
+          "core_change": "Reviewed C2 quadratic continuation plus explicit interior cost bounds at all value/gradient/Hessian callsites; raw limits, dynamics and controller unchanged.",
+          "cost_bounds": {
+            "joint_margin_rad": 0.2,
+            "velocity_fraction_of_physical_limit": 0.8,
+            "effort_fraction_of_physical_limit": 0.85,
+            "velocity_upper_rad_s": [
+              2.0,
+              2.0,
+              2.0,
+              2.0,
+              2.0,
+              2.0,
+              2.0
+            ],
+            "effort_upper_Nm": [
+              36.55,
+              36.55,
+              22.1,
+              22.1,
+              22.1,
+              22.1,
+              22.1
+            ],
+            "initial_states": "Unchanged, including those outside interior cost bounds; no clipping or filtering.",
+            "continuation_width": "1% of interior cost interval"
+          }
+        },
+        "initialization": "Public pose-reaching: cold repeated actual rest state and zero controls; then bsqp.common shift of previous output reanchored at actual state. Reset dual and rho once per episode; retain adaptive rho and duals across feedback solves. First t0 solve supplies first executed prefix and is recorded.",
+        "native_module_sha256": "d9bee23f90a1d7816b32db23749bd651db2a7537f94c3dfec15f1a448bb34cc8",
+        "arrival_policy": "position_and_speed_only",
+        "arrival_orientation_gate": false,
+        "orientation_required_for_arrival": false,
+        "id": "cone100-position-only-v1",
+        "status": "PREPARED_NOT_RUN",
+        "frame": "torso_lift_link: +X forward,+Y left,+Z up; apex exact currentEEF FK, not body origin",
+        "initial_q_rad": [
+          -0.5,
+          -1.4,
+          -0.3,
+          -1.7,
+          0.0,
+          -0.9,
+          0.0
+        ],
+        "initial_velocity_rad_s": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "initial_tool_xyz_torso_m": [
+          0.45567472766540734,
+          -0.28729301846437616,
+          -0.5256556575135656
+        ],
+        "reference_rotation": [
+          [
+            -0.5551015195223314,
+            0.18792312410711964,
+            0.8102760038714094
+          ],
+          [
+            0.1554753012626447,
+            -0.9335331613608865,
+            0.32302208490572387
+          ],
+          [
+            0.8171228388200215,
+            0.30528795597823727,
+            0.48898827206114204
+          ]
+        ],
+        "reference_rpy_rad": [
+          0.558114294292286,
+          -0.9564021620843778,
+          2.8685056459814384
+        ],
+        "initial_checks": {
+          "minimum_physical_joint_clearance_rad": 0.7434609527920613,
+          "minimum_cost_bound_clearance_rad": 0.5434609527920613,
+          "gravity_effort_ratio": 0.3220864051629774
+        },
+        "numerical_source_sha256": {
+          "gato/dynamics/tiago_right/tiago_right_arm.urdf": "8e1fd973a1d1c3fbddd55039e6eb17b355ebb29f46e1bd8c774b7879c2cdc5bb",
+          "python/bsqp/interface.py": "7caa7781a98126646f3f50e7569b34db1f01339331a2341e4e37ebebba3a3770",
+          "python/bsqp/common.py": "ca5a9fb41377a760c24ba9df881f93ede59301ee8c09463f9f644854e9848dcf",
+          "python/bsqp/mpc_controller.py": "ccbfcf81368685568225bad59b8de5da5678f061c40c8288be67254a59539ab4",
+          "python/bsqp/config.py": "8ed690ed1472d9a650af7510d7fe93bda6375124d6c7e0b2f7a2b7cb435c9699",
+          "tiago_src/gato_tiago/config.py": "c2287d1522f4f07a09e922af76ecddb215e5801f9b8b297e74cc5a4c849fc316",
+          "tiago_src/gato_tiago/final_approach.py": "38a4d8cf5f1455ae1f82a6476b085d36f3a492cb2e1e161fde7c8d3e9ea3a52d",
+          "tiago_src/gato_tiago/tiago_mpc_controller.py": "656bbaf7030017eeafbe85f367f24b1b8d8ce26acb2a0de77c759084ba2e4fea",
+          "gato/bsqp/bsqp.cuh": "2752e9146c8cf06d2168a142ff2265f29224384f27f75b6dc3ec395f6ef40141",
+          "gato/dynamics/tiago_right/tiago_right_plant.cuh": "9dd91de48dac76375914bdd1ad7a83075a5fa0ecd21cf6291cb6014b60eef46f",
+          "gato/dynamics/tiago_right/tiago_right_cost_limits.cuh": "388244d7201b113caacb263591cd0fe07f41d4d6a82ae4d0e0ce4482eecdd1e7",
+          "gato/dynamics/tiago_right/tiago_right_limits.cuh": "c23c92abb35e0b9163fb21a6d2eb899da6de9e52d5bed00ad490e90c08a13232"
+        },
+        "frozen_baseline_protocol_sha256": "511b99b2a0ed817f0bb881a84ca978e0de5d74d5e046321451db6231fe2c6b8f",
+        "native_module_path": "/workspace/GATO-random-reaching-joint-margins/.experiment-modules/q020/bsqpN32_tiago_right.cpython-310-x86_64-linux-gnu.so",
+        "primary_stage": "Position-only100 targets. Orientation/finalapproach/filterOFF; no automatic otherstage.",
+        "stage": "position_only",
+        "conditional_on": "New100 cone targets require focused root/independent source and sampling review; soleGPUowner executes exactfixed100 once; no retries/tuning/otherstages",
+        "final_approach_defaults": {
+          "q_cost": 400.0,
+          "N_cost": 1200.0,
+          "qd_cost": 1.0,
+          "u_cost": 0.0003,
+          "ee_orient_cost": 10.0,
+          "ee_orient_N_cost": 10.0,
+          "max_sqp_iters": 20,
+          "mu": 30.0
+        },
+        "final_approach_trigger": {
+          "distance_m": 0.075,
+          "max_joint_speed_rad_s": 0.1
+        },
+        "effective_after_trigger_solver_params": {
+          "max_sqp_iters": 1000,
+          "kkt_tol": 0.001,
+          "max_pcg_iters": 120,
+          "pcg_tol": 0.001,
+          "solve_ratio": 1.0,
+          "mu": 10.0,
+          "q_cost": 4.0,
+          "qd_cost": 0.05,
+          "u_cost": 1e-05,
+          "N_cost": 80.0,
+          "ee_orient_cost": 0.0,
+          "ee_orient_N_cost": 0.0,
+          "q_lim_cost": 0.02125,
+          "vel_lim_cost": 1.275,
+          "ctrl_lim_cost": 0.02,
+          "rho": 0.01
+        },
+        "sampler": {
+          "seed": 20261016,
+          "axis_torso": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "half_angle_deg": 45.0,
+          "radius_min_m": 0.1,
+          "radius_max_m": 0.4,
+          "proposal_distribution": "uniform cone-shell volume: uniformcos(theta),azimuth,radiuscubed",
+          "max_target_proposals": 2000,
+          "IK_random_restarts": 5,
+          "IK_max_nfev": 200,
+          "IK_tolerance_m": 0.001,
+          "IK_solver_tolerance": 1e-06,
+          "acceptance": "position residual<=1mm and actual raw joint bounds only; no orientation/softmargin/difficulty/dynamics filter"
+        },
+        "target_manifest_path": "/workspace/GATO/_expr_results/tiago-cone-reaching100-20261016/preparation/targets.json",
+        "target_manifest_sha256": "4375f9165cedb011bb7fff937b9002de5ac089a369398ff505fc51a62706331a",
+        "target_array_path": "/workspace/GATO/_expr_results/tiago-cone-reaching100-20261016/preparation/targets.npz",
+        "target_array_sha256": "73c588e6a6fe8a10e5c1379fb6659fc4119c04495d2fcd47350a525f611782fb",
+        "reused_EASY2_parameterization": {
+          "protocol_path": "/workspace/GATO/_expr_results/tiago-forward-reaches-position-20261016/position_only/protocol.json",
+          "protocol_sha256": "03617ca7121b79bed78ebf4ac837cb57375f07ceb5577c823b094c8943c4e23b",
+          "metrics": [
+            {
+              "path": "/workspace/GATO/_expr_results/tiago-forward-reaches-position-20261016/position_only/pair_00000/metrics.json",
+              "sha256": "0e5f028060503fe9aba391d63ec638f35445edaaacabc00d06a4bf5b05aeccb4"
+            },
+            {
+              "path": "/workspace/GATO/_expr_results/tiago-forward-reaches-position-20261016/position_only/pair_00001/metrics.json",
+              "sha256": "e7ab59f27c292bb9fe4079b2e0e34a674935857b9edcdb4411dd20f6f46681d4"
+            }
+          ],
+          "prior_target_apex_angles_deg": [
+            53.245577364993,
+            47.043389751747206
+          ],
+          "status": "Passed same-machine EASY2 parameterization evidence only; prior fixed goals outside45deg cone are not included/pool; no newcanonical"
+        }
+      },
+      "metrics_file": {
+        "path": "/workspace/GATO/_expr_results/tiago-cone-reaching100-20261016/position_only/pair_00046/metrics.json",
+        "sha256": "db9a99e6e86e205ba1b471923d56921d2f4fa5fb830a79f29b304c267de5f9da"
+      },
+      "success_metrics": {
+        "pair_id": 46,
+        "outcome": "reached",
+        "complete": true,
+        "task_success": true,
+        "physical_pass": true,
+        "execution_error": null,
+        "failure_phase": null,
+        "shared_setup_failure": false,
+        "interrupted": false,
+        "simulated_seconds": 2.0699999999999674,
+        "reached_seconds": 2.0699999999999674,
+        "arrival_policy": "position_and_speed_only",
+        "arrival_orientation_gate": false,
+        "orientation_required_for_arrival": false,
+        "tool_axis_tolerance_role": "30degrees used only for descriptive first_pose_touch_seconds",
+        "stage": "position_only",
+        "final_approach_enabled": false,
+        "final_approach_switches": [],
+        "effective_solver_params_last": {
+          "max_sqp_iters": 1000,
+          "kkt_tol": 0.001,
+          "max_pcg_iters": 120,
+          "pcg_tol": 0.001,
+          "solve_ratio": 1.0,
+          "mu": 10.0,
+          "q_cost": 4.0,
+          "qd_cost": 0.05,
+          "u_cost": 1e-05,
+          "N_cost": 80.0,
+          "ee_orient_cost": 0.0,
+          "ee_orient_N_cost": 0.0,
+          "q_lim_cost": 0.02125,
+          "vel_lim_cost": 1.275,
+          "ctrl_lim_cost": 0.02,
+          "rho": 0.01
+        },
+        "first_position_touch_seconds": 2.0489999999999666,
+        "first_pose_touch_seconds": 2.0489999999999666,
+        "touch_sampling": "first dense3ms observation; rough arrival checked at30ms feedback boundary",
+        "initial": {
+          "position_error_m": 0.23542253469469093,
+          "tool_axis_error_deg": 0.0,
+          "orientation_error_deg": 6.730293540701518e-14,
+          "velocity_l1_rad_s": 0.0
+        },
+        "final": {
+          "position_error_m": 0.04925303703991863,
+          "tool_axis_error_deg": 11.348441827912794,
+          "orientation_error_deg": 15.358520629864797,
+          "velocity_l1_rad_s": 0.4569660343331887
+        },
+        "physical": {
+          "finite": true,
+          "physical_pass": true,
+          "joint": {
+            "pass_check": true,
+            "maximum_excess": 0.0,
+            "first_violation": null
+          },
+          "velocity": {
+            "pass_check": true,
+            "maximum_excess": 0.0,
+            "first_violation": null
+          },
+          "effort": {
+            "pass_check": true,
+            "maximum_excess": 0.0,
+            "first_violation": null
+          },
+          "maximum_velocity_ratio": 0.14244797146898563,
+          "maximum_effort_ratio": 0.4402334506695087
+        },
+        "last_second": {
+          "observation_seconds": 0.9989999999999692,
+          "position_error_min_m": 0.04925303703991863,
+          "position_error_max_m": 0.10102401610017028,
+          "net_position_error_reduction_m": 0.05177097906025165,
+          "joint_total_variation_L1_rad": 0.5141510151558646,
+          "maximum_joint_speed_rad_s": 0.24836754588476426,
+          "maximum_speed_L1_rad_s": 0.6971425513066408,
+          "limitation": "Observation ends at rough arrival or timeout; no post-arrival settling inference"
+        },
+        "executed_endpoint_displacement_m": 0.18868034765691236,
+        "feedback_solves": 69,
+        "actual_sqp_sum": 396,
+        "actual_pcg_iteration_sum": 4862,
+        "zero_pcg_exit_solves": 69,
+        "solve_wall_s": 0.14099546114448458,
+        "native_solve_us": 132836.0,
+        "episode_wall_s": 0.35630489990580827,
+        "timing_mode": "A",
+        "offline_timing": "controller_dt"
+      },
+      "witness_q_rad": [
+        -0.6056680070026252,
+        -0.9545451366708938,
+        0.027213881877267965,
+        -1.5357765652854751,
+        0.24734942149080394,
+        -0.6382570546267857,
+        0.0
+      ],
+      "distance_from_current_comfortable_m": 0.3389072031824665,
+      "source_start_matches_current": false,
+      "source_start_q_rad": [
+        -0.5,
+        -1.4,
+        -0.3,
+        -1.7,
+        0.0,
+        -0.9,
+        0.0
+      ],
+      "source_start_xyz_torso_m": [
+        0.45567472766540734,
+        -0.28729301846437616,
+        -0.5256556575135656
+      ],
+      "source_target": {
+        "id": 46,
+        "name": "cone_046",
+        "proposal_id": 47,
+        "xyz_torso_m": [
+          0.62283366815834,
+          -0.38975967048926363,
+          -0.3953397195851457
+        ],
+        "displacement_from_initial_tool_m": 0.23542253469469085,
+        "direction_torso": [
+          0.7100379779264278,
+          -0.43524572597849204,
+          0.5535406289691889
+        ],
+        "cone_angle_deg": 44.76199459907035,
+        "IK_witness_q_rad": [
+          -0.6056680070026252,
+          -0.9545451366708938,
+          0.027213881877267965,
+          -1.5357765652854751,
+          0.24734942149080394,
+          -0.6382570546267857,
+          0.0
+        ],
+        "IK_position_residual_m": 6.865186644381799e-07,
+        "IK_selected_restart": 0,
+        "IK_witness_checks": {
+          "minimum_raw_joint_clearance_rad": 0.9076843875065861,
+          "minimum_soft_joint_clearance_rad": 0.7076843875065861,
+          "gravity_effort_ratio": 0.3154971344813359
+        },
+        "necessary_joint_displacement_time_bound_s": 0.17818194533164244,
+        "prescribed_quintic_witness": {
+          "duration_s": 6.0,
+          "samples": 81,
+          "minimum_raw_joint_clearance_rad": 0.7434609527920613,
+          "maximum_speed_ratio": 0.055681857916138264,
+          "maximum_effort_ratio": 0.32275693282726176,
+          "method": "Analytic rest-to-rest joint quintic q/v/a plus CPU Pinocchio RNEA; no plant/controller simulation",
+          "used_for_acceptance": false,
+          "limitation": "One position-IK witness only: not collision/dynamic feasibility or MPC success certificate; bad witness dynamics do not prove goal infeasibility; never MPC seed/reference"
+        }
+      },
+      "source_runtime": "3e8dd73938330adbeaf3d993db10643d0103fc9b",
+      "source_core": "85ef2ea5cf5b96726be6f4b5441f4a7c0ca041b4",
+      "source_native_module_sha256": "d9bee23f90a1d7816b32db23749bd651db2a7537f94c3dfec15f1a448bb34cc8",
+      "setup_difference": "Historical relaxed start, SQP1000 cap,u1e-5,modeA/.03feedback; current comfortableHigh start,SQP5,u1e-4,live observed-time path. No qualification transfer.",
+      "source_protocol_task_pool_note": "Omitted 100 unselected/selected pool rows from embedded protocol only; full original bytes remain at protocol_file path with SHA256 above. Selected source_target and input pool identity retained in this record. All numerical protocol fields retained."
+    }
+  },
+  "CPU_preparation": {
+    "scope": "Saved witness FK, ordinary bounded example IK, eight intercepted parser/preview calls; no GPU/ROS/motion. Speed-only time values refer to each specific witness, not every IK solution or dynamically feasible motion.",
+    "cases": [
+      {
+        "case": "orientation-04",
+        "saved_witness_fk_error_m": 0.0,
+        "saved_witness_axis_error_deg": 0.0,
+        "saved_witness_min_raw_clearance_rad": 0.3819572466233808,
+        "current_start_to_saved_witness_speed_only_time_bound_s": 0.3826582526466592,
+        "witness_time_bound_scope": "specific witness only; not a necessary lower bound for every IK solution or a dynamic feasible path",
+        "normal_example_preflight": {
+          "start_joint_limits": {
+            "min_clearance_rad": 0.09346095279206112,
+            "max_violation_rad": 0.0
+          },
+          "require_tool_down": true,
+          "tool_axis_tolerance_deg": 5.0,
+          "goals": [
+            {
+              "goal_index": 0,
+              "target": [
+                0.4829671991662936,
+                -0.4927169103762848,
+                -0.3760850898386358,
+                -1.1128923187175253,
+                -0.08746442192533,
+                -2.630541825445276
+              ],
+              "ik_error_m": 5.4975443400744443e-11,
+              "tool_axis_error_deg": 0.0,
+              "ik_q": [
+                -0.6293064631700405,
+                -1.2352904873431245,
+                0.1209911675679301,
+                -2.044990320841882,
+                1.7752899085692957,
+                -0.9764313644409524,
+                0.04
+              ],
+              "ik_joint_limits": {
+                "min_clearance_rad": 0.3984706319501794,
+                "max_violation_rad": 0.0
+              }
+            }
+          ]
+        },
+        "preview_parser_cases": 2,
+        "status": "PASS"
+      },
+      {
+        "case": "orientation-02",
+        "saved_witness_fk_error_m": 0.0,
+        "saved_witness_axis_error_deg": 0.0,
+        "saved_witness_min_raw_clearance_rad": 0.22281713200079034,
+        "current_start_to_saved_witness_speed_only_time_bound_s": 0.36073438562384635,
+        "witness_time_bound_scope": "specific witness only; not a necessary lower bound for every IK solution or a dynamic feasible path",
+        "normal_example_preflight": {
+          "start_joint_limits": {
+            "min_clearance_rad": 0.09346095279206112,
+            "max_violation_rad": 0.0
+          },
+          "require_tool_down": true,
+          "tool_axis_tolerance_deg": 5.0,
+          "goals": [
+            {
+              "goal_index": 0,
+              "target": [
+                0.4958480417964524,
+                -0.33382393342426564,
+                -0.2816072805764633,
+                -0.5258686898305469,
+                -0.017037030930330044,
+                -1.7885121959716148
+              ],
+              "ik_error_m": 9.285672159840237e-10,
+              "tool_axis_error_deg": 0.0,
+              "ik_q": [
+                -0.1223131029372046,
+                -1.1464885649934236,
+                0.1146378634741054,
+                -2.155398546319127,
+                -0.01231545030889791,
+                -0.536841484334,
+                0.44
+              ],
+              "ik_joint_limits": {
+                "min_clearance_rad": 0.288062406472934,
+                "max_violation_rad": 0.0
+              }
+            }
+          ]
+        },
+        "preview_parser_cases": 2,
+        "status": "PASS"
+      },
+      {
+        "case": "position-75",
+        "saved_witness_fk_error_m": 2.5856238890629127e-08,
+        "saved_witness_axis_error_deg": 0.0,
+        "saved_witness_min_raw_clearance_rad": 0.8894511384339177,
+        "current_start_to_saved_witness_speed_only_time_bound_s": 0.3183960742567426,
+        "witness_time_bound_scope": "specific witness only; not a necessary lower bound for every IK solution or a dynamic feasible path",
+        "normal_example_preflight": {
+          "start_joint_limits": {
+            "min_clearance_rad": 0.09346095279206112,
+            "max_violation_rad": 0.0
+          },
+          "require_tool_down": false,
+          "tool_axis_tolerance_deg": 5.0,
+          "goals": [
+            {
+              "goal_index": 0,
+              "target": [
+                0.6210456514514251,
+                -0.3214571565202422,
+                -0.4236087984202702
+              ],
+              "ik_error_m": 0.00021970595619855122,
+              "tool_axis_error_deg": null,
+              "ik_q": [
+                -0.3126953259234397,
+                -0.9449850551505097,
+                -0.133357416044956,
+                -1.5165600857416976,
+                0.12567997119404226,
+                -0.771597061415137,
+                0.040000000000000036
+              ],
+              "ik_joint_limits": {
+                "min_clearance_rad": 0.8362941015217384,
+                "max_violation_rad": 0.0
+              }
+            }
+          ]
+        },
+        "preview_parser_cases": 2,
+        "status": "PASS"
+      },
+      {
+        "case": "position-46",
+        "saved_witness_fk_error_m": 6.865186644381799e-07,
+        "saved_witness_axis_error_deg": 0.0,
+        "saved_witness_min_raw_clearance_rad": 0.9076843875065861,
+        "current_start_to_saved_witness_speed_only_time_bound_s": 0.32568937388581,
+        "witness_time_bound_scope": "specific witness only; not a necessary lower bound for every IK solution or a dynamic feasible path",
+        "normal_example_preflight": {
+          "start_joint_limits": {
+            "min_clearance_rad": 0.09346095279206112,
+            "max_violation_rad": 0.0
+          },
+          "require_tool_down": false,
+          "tool_axis_tolerance_deg": 5.0,
+          "goals": [
+            {
+              "goal_index": 0,
+              "target": [
+                0.62283366815834,
+                -0.38975967048926363,
+                -0.3953397195851457
+              ],
+              "ik_error_m": 4.758440638328025e-05,
+              "tool_axis_error_deg": null,
+              "ik_q": [
+                -0.43823840165494343,
+                -0.9095402035490892,
+                0.04125741858325058,
+                -1.4920168280931818,
+                0.20914326575878556,
+                -0.7508570976883744,
+                0.039999999999999966
+              ],
+              "ik_joint_limits": {
+                "min_clearance_rad": 0.9514441246988794,
+                "max_violation_rad": 0.0
+              }
+            }
+          ]
+        },
+        "preview_parser_cases": 2,
+        "status": "PASS"
+      }
+    ],
+    "conditional_static_geometry": {
+      "scope": "Static nominal reset and saved-IK endpoints only. Non-right body positions frozen at saved first READY; no path, current-body, external-workspace or real-time safety qualification. Witness is not controller initialization or prescribed endpoint.",
+      "body_source": {
+        "path": "/workspace/GATO/_expr_results/physical-tiago-20261016/jetson-import/_expr_results/physical-arm/physical_robot/20261016T151026.236110Z-square_forward/data/full_joint_state_history.jsonl",
+        "sha256": "eae2c8b9eb248a7ab462ea81a88547e97a504bdaf8b156fde154a01e1be26bd6",
+        "line_1based": 2090,
+        "stamp_sec": 1792163446.585064,
+        "positions_by_name": {
+          "arm_left_1_joint": 0.359223675026727,
+          "arm_left_2_joint": -1.82279060474345,
+          "arm_left_3_joint": 0.46925253055875993,
+          "arm_left_4_joint": -2.320869622743347,
+          "arm_left_5_joint": -0.000158998627457206,
+          "arm_left_6_joint": -1.2001553382635564,
+          "arm_left_7_joint": 4.983539069546017e-06,
+          "arm_right_1_joint": -0.3895831832233314,
+          "arm_right_2_joint": -1.702431053155333,
+          "arm_right_3_joint": -0.38359107077065313,
+          "arm_right_4_joint": -2.3510412734830415,
+          "arm_right_5_joint": -0.007286408742456795,
+          "arm_right_6_joint": -1.2170220075887705,
+          "arm_right_7_joint": 0.06449909844062907,
+          "gripper_left_finger_joint": 8.87720363359746e-06,
+          "gripper_right_finger_joint": 1.168831811756999e-05,
+          "head_1_joint": 0.06902916843666729,
+          "head_2_joint": 0.2868540805397184,
+          "torso_lift_joint": 0.0995507783797245,
+          "wheel_front_left_joint": -1.8973538018496328e-19,
+          "wheel_front_right_joint": 0.0,
+          "wheel_rear_left_joint": -2.710505431213761e-20,
+          "wheel_rear_right_joint": -1.3552527156068805e-19
+        }
+      },
+      "geometry_provenance": {
+        "geometry_files_sha256": {
+          "/workspace/GATO-four-far-reaches/tiago_configs/collision_alpha_wrap_a3_o25_cap001/tiago_pro_collision_alpha_wrap_a3_o25_cap001.urdf": "98d18490cdf1ec9e9f3f749f43d96d0203d598344f47425e0287d1029b3894fd",
+          "/workspace/GATO-four-far-reaches/tiago_configs/comfortable_pose_collision_blacklist.json": "af70b26bd0ab6936a1d928b8e580d805097d914129f349dd351cb8d77b663e75",
+          "/workspace/GATO-four-far-reaches/tiago_configs/collision_alpha_wrap_a3_o25_cap001/meshes/base_dock_link.stl": "293092d0a0be6c9156fb1aa9642ea5c20286e706ee9faa161f45a4eec17d9bf5",
+          "/workspace/GATO-four-far-reaches/tiago_configs/collision_alpha_wrap_a3_o25_cap001/meshes/suspension_front_link.stl": "ccc0d71e6c4fd693315ee2596d3108b4b6a6f5a3eb98dabd2ecffa7c01272f19",
+          "/workspace/GATO-four-far-reaches/tiago_configs/collision_alpha_wrap_a3_o25_cap001/meshes/suspension_rear_link.stl": "ea585fcd2120ad09a70f1408ad82d21a1435204240486c33702816b52b5333eb",
+          "/workspace/GATO-four-far-reaches/tiago_configs/collision_alpha_wrap_a3_o25_cap001/meshes/torso_fixed_collision.stl": "0f95d2c770eded42543f0bde0e007807c29d3a54f1bc440b1f1f9a723111bbb3",
+          "/workspace/GATO-four-far-reaches/tiago_configs/collision_alpha_wrap_a3_o25_cap001/meshes/torso_lift_link_collision.stl": "7b66a644317cb0a0f015129ecd21c213b5d44dfa5be42fd00c96b697b9a53689",
+          "/workspace/GATO-four-far-reaches/tiago_configs/collision_alpha_wrap_a3_o25_cap001/meshes/laptop_tray_collision.stl": "749d75d19834dd0ee2ddd1c8d9aeb9710458b954d2539c99169a31c2037deafb",
+          "/workspace/GATO-four-far-reaches/tiago_configs/collision_alpha_wrap_a3_o25_cap001/meshes/arm_1_link_collision.stl": "fac97e4422c8b5035cddaafbc5016849b702c5cd6ebdecd181ba3e3e40c5aaa9",
+          "/workspace/GATO-four-far-reaches/tiago_configs/collision_alpha_wrap_a3_o25_cap001/meshes/arm_2_link_collision.stl": "1d701b53ed5cee6c2a634f53d318baffe488b61bd2be6082abff8b92bcb7929e",
+          "/workspace/GATO-four-far-reaches/tiago_configs/collision_alpha_wrap_a3_o25_cap001/meshes/arm_3_link_collision.stl": "c8ba9d1cc381e739029f51f93dabab9798bed2497aefab7191f0f8c43fe50b39",
+          "/workspace/GATO-four-far-reaches/tiago_configs/collision_alpha_wrap_a3_o25_cap001/meshes/arm_4_link_collision.stl": "9583305582846870eefbb961a4564468c90376a18fc1633c3437b3fc9e53dd00",
+          "/workspace/GATO-four-far-reaches/tiago_configs/collision_alpha_wrap_a3_o25_cap001/meshes/arm_5_link_collision.stl": "bb0c0a79eb5d3f5b686cf935206793c47c1b77207262b53b6dd412d2253a8199",
+          "/workspace/GATO-four-far-reaches/tiago_configs/collision_alpha_wrap_a3_o25_cap001/meshes/arm_6_link_collision.stl": "a8533ae8a4a8befd9a14212235074146384bafeadf3279809ac0c4f706a21890",
+          "/workspace/GATO-four-far-reaches/tiago_configs/collision_alpha_wrap_a3_o25_cap001/meshes/base_link_tc.stl": "0c975e09d276b4e05126e16d1148ebfaaef3189728c275f40e189503064a17e0",
+          "/workspace/GATO-four-far-reaches/tiago_configs/collision_alpha_wrap_a3_o25_cap001/meshes/outer_finger.stl": "77a22c23c99137704be333dce2bbc29985a3d5855c99fc29d294053a47612c02",
+          "/workspace/GATO-four-far-reaches/tiago_configs/collision_alpha_wrap_a3_o25_cap001/meshes/inner_finger.stl": "5bc1e37e954e6f893624f9ee4396552e0acefbfa71987f0adb7850c512df4f58",
+          "/workspace/GATO-four-far-reaches/tiago_configs/collision_alpha_wrap_a3_o25_cap001/meshes/fingertip.stl": "86d32c521ceebf0e7829e6aa67fbb7332b79f3236057be35335e70d0777120b9",
+          "/workspace/GATO-four-far-reaches/tiago_configs/collision_alpha_wrap_a3_o25_cap001/meshes/head_1_link_collision.stl": "0759e0403abfdeae381f4377593e46881ff7295b16c1f6a08fb91365eba5e35f",
+          "/workspace/GATO-four-far-reaches/tiago_configs/collision_alpha_wrap_a3_o25_cap001/meshes/head_2_link_collision.stl": "11597e4eff73042411fa28beb10e7af92a90b2ed508f21fc00d09069e9b7dd04"
+        },
+        "safety_monitor_sha256": "20c33c9ad1986e90daaa92c0adc6027d831ad6ee790bb0e8bef85be447067539",
+        "distance_helper_sha256": "ba2d33edae94a7e668e0b6ea4f7c98066fc8b621f45233d0afc5a6089f50ed69",
+        "monitored_pair_count": 513,
+        "fixed_joint_positions_rad": {
+          "wheel_front_left_joint": -1.8973538018496328e-19,
+          "wheel_front_right_joint": 0.0,
+          "wheel_rear_left_joint": -2.710505431213761e-20,
+          "wheel_rear_right_joint": -1.3552527156068805e-19,
+          "gripper_left_finger_joint": 8.87720363359746e-06,
+          "gripper_left_inner_finger_left_joint": 0.0,
+          "gripper_left_fingertip_left_joint": 0.0,
+          "gripper_left_inner_finger_right_joint": 0.0,
+          "gripper_left_fingertip_right_joint": 0.0,
+          "gripper_left_outer_finger_right_joint": 0.0,
+          "gripper_right_finger_joint": 1.168831811756999e-05,
+          "gripper_right_inner_finger_left_joint": 0.0,
+          "gripper_right_fingertip_left_joint": 0.0,
+          "gripper_right_inner_finger_right_joint": 0.0,
+          "gripper_right_fingertip_right_joint": 0.0,
+          "gripper_right_outer_finger_right_joint": 0.0
+        },
+        "fixed_joint_assumption": "Runtime wheel/finger joints locked at first recorded position; missing locked joints use URDF neutral. Changing recorded locked joints fail this review."
+      },
+      "checks": [
+        {
+          "case": "nominal-reset",
+          "minimum_pair": {
+            "index": 170,
+            "geometry_a": "torso_base_link_0",
+            "geometry_b": "arm_right_4_link_0",
+            "link_a": "torso_base_link",
+            "link_b": "arm_right_4_link",
+            "parent_joint_a": "universe",
+            "parent_joint_b": "arm_right_4_joint",
+            "distance_m": 0.045958899183527024,
+            "in_collision": false
+          },
+          "raw_joint_violations": [],
+          "static_40mm_clearance_pass": true
+        },
+        {
+          "case": "orientation-04",
+          "minimum_pair": {
+            "index": 169,
+            "geometry_a": "torso_base_link_0",
+            "geometry_b": "arm_right_3_link_0",
+            "link_a": "torso_base_link",
+            "link_b": "arm_right_3_link",
+            "parent_joint_a": "universe",
+            "parent_joint_b": "arm_right_3_joint",
+            "distance_m": 0.037725055336872315,
+            "in_collision": false
+          },
+          "raw_joint_violations": [],
+          "static_40mm_clearance_pass": false
+        },
+        {
+          "case": "orientation-02",
+          "minimum_pair": {
+            "index": 435,
+            "geometry_a": "arm_right_3_link_0",
+            "geometry_b": "arm_right_5_link_0",
+            "link_a": "arm_right_3_link",
+            "link_b": "arm_right_5_link",
+            "parent_joint_a": "arm_right_3_joint",
+            "parent_joint_b": "arm_right_5_joint",
+            "distance_m": 0.06417170418943834,
+            "in_collision": false
+          },
+          "raw_joint_violations": [],
+          "static_40mm_clearance_pass": true
+        },
+        {
+          "case": "position-75",
+          "minimum_pair": {
+            "index": 476,
+            "geometry_a": "arm_right_6_link_0",
+            "geometry_b": "gripper_right_outer_finger_right_link_0",
+            "link_a": "arm_right_6_link",
+            "link_b": "gripper_right_outer_finger_right_link",
+            "parent_joint_a": "arm_right_6_joint",
+            "parent_joint_b": "arm_right_7_joint",
+            "distance_m": 0.07303763552459656,
+            "in_collision": false
+          },
+          "raw_joint_violations": [],
+          "static_40mm_clearance_pass": true
+        },
+        {
+          "case": "position-46",
+          "minimum_pair": {
+            "index": 476,
+            "geometry_a": "arm_right_6_link_0",
+            "geometry_b": "gripper_right_outer_finger_right_link_0",
+            "link_a": "arm_right_6_link",
+            "link_b": "gripper_right_outer_finger_right_link",
+            "parent_joint_a": "arm_right_6_joint",
+            "parent_joint_b": "arm_right_7_joint",
+            "distance_m": 0.07303763552459652,
+            "in_collision": false
+          },
+          "raw_joint_violations": [],
+          "static_40mm_clearance_pass": true
+        },
+        {
+          "case": "orientation-04-ordinary-preflight",
+          "minimum_pair": {
+            "index": 476,
+            "geometry_a": "arm_right_6_link_0",
+            "geometry_b": "gripper_right_outer_finger_right_link_0",
+            "link_a": "arm_right_6_link",
+            "link_b": "gripper_right_outer_finger_right_link",
+            "parent_joint_a": "arm_right_6_joint",
+            "parent_joint_b": "arm_right_7_joint",
+            "distance_m": 0.07309733758154045,
+            "in_collision": false
+          },
+          "raw_joint_violations": [],
+          "static_40mm_clearance_pass": true
+        },
+        {
+          "case": "orientation-02-ordinary-preflight",
+          "minimum_pair": {
+            "index": 170,
+            "geometry_a": "torso_base_link_0",
+            "geometry_b": "arm_right_4_link_0",
+            "link_a": "torso_base_link",
+            "link_b": "arm_right_4_link",
+            "parent_joint_a": "universe",
+            "parent_joint_b": "arm_right_4_joint",
+            "distance_m": 0.05654819536012924,
+            "in_collision": false
+          },
+          "raw_joint_violations": [],
+          "static_40mm_clearance_pass": true
+        },
+        {
+          "case": "position-75-ordinary-preflight",
+          "minimum_pair": {
+            "index": 476,
+            "geometry_a": "arm_right_6_link_0",
+            "geometry_b": "gripper_right_outer_finger_right_link_0",
+            "link_a": "arm_right_6_link",
+            "link_b": "gripper_right_outer_finger_right_link",
+            "parent_joint_a": "arm_right_6_joint",
+            "parent_joint_b": "arm_right_7_joint",
+            "distance_m": 0.07309733758154048,
+            "in_collision": false
+          },
+          "raw_joint_violations": [],
+          "static_40mm_clearance_pass": true
+        },
+        {
+          "case": "position-46-ordinary-preflight",
+          "minimum_pair": {
+            "index": 476,
+            "geometry_a": "arm_right_6_link_0",
+            "geometry_b": "gripper_right_outer_finger_right_link_0",
+            "link_a": "arm_right_6_link",
+            "link_b": "gripper_right_outer_finger_right_link",
+            "parent_joint_a": "arm_right_6_joint",
+            "parent_joint_b": "arm_right_7_joint",
+            "distance_m": 0.07309733758154044,
+            "in_collision": false
+          },
+          "raw_joint_violations": [],
+          "static_40mm_clearance_pass": true
+        }
+      ]
+    }
+  }
+}

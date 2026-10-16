@@ -11,6 +11,8 @@ and the explicit `example.run(...)` or `example.run_experiment(...)` call:
   tracking with 12 s / 8 s period and duration, keeping .03 s prediction knots.
 - `figure8_8s.py`: one 8 s figure-eight with ordinary .03 s prediction knots.
 - `reach_goals.py`: three calls to `tiago_reach_target.py`, one goal per call.
+- `far_reaches.py --case <name>`: one of four independent candidate reaches,
+  two pose goals and two XYZ goals selected from historical simulation successes.
 - `square_forward.py`: one sequential call for four forward-facing pose goals,
   with one comfortable reset and the selected final-approach settings.
 - `preflight_tracking.py` / `preflight_reaching.py`: one modest 100.636 mm reach
@@ -116,6 +118,76 @@ reviewed commit and restore only the requested new `.py` files to preserve local
 physical backend edits and the existing tracking native module/build paths.
 Set the new launcher's backend/review/topic constants only after the same
 physical review required by the existing launchers.
+
+## Four far-reaching candidates
+
+`far_reaches.py` selects one goal per manual invocation. Each starts from
+`comfortable_high_clearance`, resets independently and requests `MOVE` through
+the existing example. Defaults are Gazebo and physical review false. Optional
+`--ros-sea-absolute` uses the unchanged feedback option. Preview is CPU-only:
+
+```bash
+python3 tiago_examples/physical_arm/far_reaches.py --case orientation-04 --preview
+python3 tiago_examples/physical_arm/far_reaches.py --case orientation-02 --preview
+python3 tiago_examples/physical_arm/far_reaches.py --case position-75 --preview
+python3 tiago_examples/physical_arm/far_reaches.py --case position-46 --preview
+```
+
+All XYZ coordinates are meters in `torso_lift_link`, for `arm_right_tool_link`.
+Positive X is forward and negative Y is right. Distances below are from the
+current nominal comfortable tool [.325346, -.227981, -.381658] m.
+
+| Case | XYZ target m | Distance mm | Historical success only |
+| --- | --- | ---: | --- |
+| orientation-04 | [.4829671992, -.4927169104, -.3760850898] | 308.156 | pilot target-04 ON, 1.3571 s, 49.982 mm / 20.107° axis |
+| orientation-02 | [.4958480418, -.3338239334, -.2816072806] | 224.240 | pilot target-02 ON, 1.3067 s, 49.794 mm / 5.461° axis |
+| position-75 | [.6210456515, -.3214571565, -.4236087984] | 312.947 | cone100 ID75, 1.80 s, 49.141 mm |
+| position-46 | [.6228336682, -.3897596705, -.3953397196] | 338.907 | cone100 ID46, 2.07 s, 49.253 mm |
+
+The orientation targets use their exact saved source RPY, respectively
+[-1.1128923187, -.0874644219, -2.6305418254] and
+[-.5258686898, -.0170370309, -1.7885121960] rad, with existing public pose costs
+.1 stage / 2 terminal. Position-only goals supply XYZ and zero orientation costs.
+All four use the **current** reaching profile and explicit costs, N32/.03 s,
+B1/SQP5/PCG120, qd.05/u.0001/mu10 and .02125/1.275/.02 limit weights.
+Final approach is off. Each has 8 s, 5 cm position, speed L1<=1 rad/s, zero dwell;
+pose goals also require <=30° tool-axis error. Full rotation error is separate.
+The 125 Hz effort publication setting does not guarantee that MPC or feedback rate.
+
+The historical pilot used the same start and SQP5 but qd.1/mu1 and different
+limit costs/native bounds. The cone study used relaxed q=[-.5,-1.4,-.3,-1.7,0,-.9,0],
+SQP1000, u1e-5 and mode A; its ID75/46 source distances were 197.303/235.423 mm.
+Its 45° half-angle describes target displacement around torso +X, not tool
+orientation. All four historical cases passed their sampled raw q/v/effort
+checks. They establish candidate provenance; **none was run under this new
+manual protocol**, and they do not qualify physical reset/motion paths.
+
+CPU checks confirm the saved FK witnesses and ordinary bounded example IK
+from comfortable. A conditional static endpoint screen froze the non-right-arm
+body at the first saved READY state of physical square run
+`20261016T151026.236110Z-square_forward`. The historical orientation-04 witness
+fails the 4 cm margin at 37.725 mm; retain that failure. The existing ordinary
+preflight's alternative witness for that pose clears 73.097 mm. Its other three
+preflight endpoints clear >=56.548 mm; nominal reset clears 45.959 mm.
+These are different redundant witnesses, not prescribed controller endpoints,
+and neither a witness nor static clearance checks the executed/reset path.
+Actual body, tool and external workspace require on-site review. No collision
+threshold, guard or solver setting is relaxed.
+
+The source protocols, exact goals/witnesses, historical metrics, hashes, body
+snapshot identity and CPU endpoint results are retained in
+`far_reaches_sources.json`. Original easy physical XYZ reaches all timed out;
+the square also failed its gates and final approach never activated. Those
+failures remain evidence; this preparation adds no tuning or success claim.
+
+After the appropriate preflight/path/workspace review, invoke one selected case
+by omitting `--preview`; add the optional SEA flag only after its separate review.
+Each writes `_expr_results/physical-arm/<backend>/<UTC>-far_reach-<case>/data/`
+with launcher settings, ordinary state/command/timing/partial-failure records and
+handback. Use `check_collisions.py` on the `data/` leaf after any separately
+reviewed run. Fetch only the new launcher/source table into an existing Jetson
+checkout to preserve local backend settings and native build paths; configure
+its backend/review/topic constants after review. Native source/profile unchanged.
 
 ## Forward-square final experiment
 
