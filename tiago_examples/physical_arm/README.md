@@ -142,7 +142,83 @@ and estimated-velocity data; `expected_gravity_torque` is not measured effort.
 The option has local CPU/message-serialization validation only until explicit
 read-only stream validation and separately authorized physical testing.
 
-## Later Jetson use
+Local tests cover sustained 50 Hz SEA/full-body input with 125 Hz polling,
+irregular delivery, short losses, stale streams and two-sample recovery. At 50 Hz
+the same timestamped state is held between arrivals; velocity uses the actual
+source interval. A 24-case seeded synthetic study also covers stationary/smooth
+motion, 50/125/1000 Hz sources, regular/jittered delivery and .1/1 mrad independent
+position noise. These are estimator checks, not closed-loop qualification.
+With 1 mrad noise, the .01 s filter leaves roughly .055–.081 rad/s velocity error
+RMS pooled across joints/time, and only 0–.83% of stationary samples meet the reset's speed-only
+condition (L1 <=.1 rad/s). At .1 mrad, 99.8–100% meet it. Smooth low-noise 50 Hz
+motion also shows a small filtering-lag penalty. We therefore need passive real
+stream measurements before choosing a filter setting; defaults are unchanged.
+Reproduce without ROS/GPU:
+
+```bash
+PYTHONPATH=tiago_src:python python3 tests/python/sea_feedback_synthetic.py --output _expr_results/sea-noise-check
+```
+
+## Prepare the Jetson before the lab
+
+Stay inside the existing TIAGo ROS container, at this checkout's root (normally
+`/workspace` in our container). Check out `felix-final-tiago-expr` and fast-forward
+it; preserve any local edits. The archived overbuilt branch is a different
+history, so do not merge it into this branch. The following preparation only
+builds client software and previews configuration; it requires no robot access.
+
+An older container can acquire the optional SeaState client type without an
+image rebuild. Load the existing PAL controller-interface overlay first, select
+loopback discovery, then build this small additional package:
+
+```bash
+source /opt/gato-pal-interfaces/setup.bash
+source tiago_tools/ros_simulation.sh
+colcon --log-base build/sea-client/log build \
+  --base-paths tiago_tools/pal_interfaces/sea_state_msgs \
+  --build-base build/sea-client/build \
+  --install-base build/sea-client/install --merge-install \
+  --cmake-args -DBUILD_TESTING=OFF \
+    -DPYTHON_EXECUTABLE=/usr/bin/python3 -DPython3_EXECUTABLE=/usr/bin/python3
+source build/sea-client/install/local_setup.bash
+python3 -c 'from sea_state_msgs.msg import SeaState; from gato_tiago.ros_tiago import validate_controller_manager_interfaces; validate_controller_manager_interfaces(); print("client interfaces OK")'
+python3 tiago_examples/physical_arm/native_build.py --cuda-architecture 87
+python3 tiago_examples/physical_arm/reach_goals.py --preview
+python3 tiago_examples/physical_arm/reach_goals.py --preview --ros-sea-absolute
+python3 tiago_examples/physical_arm/observe_sea_feedback.py --help
+PYTHONPATH="tiago_src:python:$PYTHONPATH" python3 -m pytest -q tests/python/test_tiago_sea_feedback.py tests/python/test_tiago_passive_sea_observer.py
+```
+
+Use the same Python environment for build and run, preserving the sourced ROS
+`PYTHONPATH`. The native command prepares both isolated N32 profiles for sm87;
+it only compiles and can reuse unchanged builds. The normal feedback path needs
+no SeaState package. MODE_40W is user-confirmed; no host power/clock checks or
+changes are required. Do not launch a task/preflight as a preparation check:
+those scripts reset and move the arm after confirmation.
+
+## At the lab: passive feedback check
+
+In each new container shell, source the robot profile and then the additional
+client overlay. Before any motion, while the robot is already stationary, run:
+
+```bash
+source tiago_tools/ros_tiago.sh
+source build/sea-client/install/local_setup.bash
+python3 tiago_examples/physical_arm/observe_sea_feedback.py --duration 20
+```
+
+This standalone observer creates a subscription only: no arm client, command
+publishers or controller calls. It records raw encoder channels and the same
+velocity estimator at nominal 125 Hz into a fresh
+`_expr_results/physical-arm/passive-sea/*.jsonl`, plus a summary of delivered
+rates/gaps, position variation and velocity RMS. JSONL contains consumed samples;
+callback/interval summaries cover all callbacks received by this observer. Its
+delivery rates do not qualify production delivery. It does not check full-body
+freshness or qualify the controller. Position variation is a noise estimate
+only if the arm is stationary. Review those measurements, encoder/model
+conventions and the existing full-body stream before enabling the option.
+
+## Later physical runs
 
 Review the Gazebo task/reset paths and collision reports, actual tool/full-body
 configuration and workspace. Then change each relevant script's `BACKEND` to
@@ -150,10 +226,10 @@ configuration and workspace. Then change each relevant script's `BACKEND` to
 
 ```bash
 source tiago_tools/ros_tiago.sh
-python3 tiago_examples/physical_arm/native_build.py --cuda-architecture 87
+source build/sea-client/install/local_setup.bash  # Only needed for SEA feedback.
 ```
 
 Run the same family preflights/tasks manually. Physical launches require the
-Jetson ARM64/sm87 build and the TIAGo/domain2 profile. MODE_40W is user-confirmed;
-no host power/clock commands or changes. No KKT acceptance gate or automatic
-retries/tuning. Preparation performs no robot motion.
+Jetson ARM64/sm87 build and the TIAGo/domain2 profile. Add `--ros-sea-absolute`
+only when selecting the optional feedback path. No KKT acceptance gate or
+automatic retries/tuning. Preparation performs no robot motion.

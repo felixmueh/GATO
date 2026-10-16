@@ -192,3 +192,103 @@ def test_abs_position_is_sufficient_without_optional_motor_channel(client):
     arm._on_sea_state(second)
     np.testing.assert_allclose(arm.latest_state().qd, 2.)
     assert arm.latest_state().feedback_metadata["sea_motor_position"] is None
+
+
+def test_sustained_50hz_feedback_holds_between_125hz_polls(client):
+    from sea_feedback_synthetic import delivery_schedule
+
+    arm = client.arm
+    source_times, ticks, selected = delivery_schedule(50., duration_sec=3.)
+    body_times = .004 + np.arange(150) / 50.  # Independent 50 Hz body phase.
+    body_index, last_body = 0, None
+    base, speed = np.arange(7) * .05, np.linspace(-.3, .3, 7)
+    last_sea, last_state, delivered = None, None, 0
+    held_polls = 0
+    for tick, selected_index in zip(ticks, selected):
+        client.clock.now = 1. + tick
+        if body_index < len(body_times) and body_times[body_index] <= tick:
+            while body_index < len(body_times) and body_times[body_index] <= tick:
+                last_body = body_times[body_index]
+                body_index += 1
+            body = message(50. + last_body, .4,
+                           names=(*ros.RIGHT_ARM_JOINTS, "torso_lift_joint", "wheel_right_joint"))
+            body.velocity[-1] = float("nan")
+            arm._on_joint_state(body)
+        if selected_index >= 0:
+            source_t = source_times[selected_index]
+            last_sea = message(100. + source_t, base + speed * source_t)
+            arm._on_sea_state(last_sea)
+            delivered += 1
+        elif last_sea is not None:
+            # Even a duplicate callback at an extra poll must not refresh source state.
+            arm._on_sea_state(last_sea)
+        state = arm.latest_state()
+        if delivered < 2 or last_body is None:
+            assert state is None
+            continue
+        assert state is not None
+        source_t = state.stamp_sec - 100.
+        np.testing.assert_allclose(state.q, base + speed * source_t, rtol=0, atol=1e-12)
+        np.testing.assert_allclose(state.qd, speed, rtol=0, atol=1e-10)
+        assert state.body_stamp_sec == pytest.approx(50. + last_body)
+        assert state.age_sec < .04
+        assert state.joint_positions["torso_lift_joint"] == pytest.approx(.6)
+        if selected_index < 0 and last_state is not None:
+            held_polls += 1
+            assert state.seq == last_state.seq
+            assert state.stamp_sec == last_state.stamp_sec
+            assert state.arm_received_monotonic_sec == last_state.arm_received_monotonic_sec
+            np.testing.assert_array_equal(state.qd, last_state.qd)
+        last_state = state
+    assert delivered == len(source_times) == 151
+    assert state.seq == 150  # One startup sample, then one estimate per advancing source.
+    assert held_polls > 200
+
+
+@pytest.mark.parametrize("rate", [50., 125.])
+def test_irregular_rate_and_delivery_jitter_keep_source_time_velocity(rate):
+    from sea_feedback_synthetic import delivery_schedule, sea_message
+
+    source_times, ticks, selected = delivery_schedule(rate, jitter=True, duration_sec=3.)
+    estimator = ros.SeaAbsoluteVelocityEstimator()
+    speed = np.linspace(-.25, .4, 7)
+    estimates, delivered_times, receive_times = [], [], []
+    for tick, index in zip(ticks, selected):
+        if index < 0:
+            continue
+        t = source_times[index]
+        q = .2 + speed * t
+        result = estimator.update(sea_message(t, q), 1. + tick)
+        delivered_times.append(t)
+        receive_times.append(tick)
+        if result is not None:
+            measured_q, qd, stamp = result
+            np.testing.assert_array_equal(measured_q, q)
+            np.testing.assert_allclose(qd, speed, rtol=0, atol=1e-10)
+            assert stamp == pytest.approx(100. + t)
+            estimates.append(result)
+    assert len(estimates) == len(delivered_times) - 1
+    assert max(np.diff(delivered_times)) < .1
+    assert max(np.diff(receive_times)) < .1
+    assert max(np.diff(delivered_times)) > 2. / rate  # Includes short losses/burst.
+
+
+@pytest.mark.parametrize("rate", [1000., 125., 50.])
+@pytest.mark.parametrize("jitter", [False, True])
+@pytest.mark.parametrize("noise_std", [.0001, .001])
+def test_seeded_stationary_noise_attenuation_without_position_filter(rate, jitter, noise_std):
+    from sea_feedback_synthetic import run_case
+
+    metrics, rows = run_case(rate, noise_std, "stationary", jitter=jitter)
+    # This is a chosen iid-noise protocol, not a universal safety/noise bound.
+    assert metrics["qd_error_rms_rad_s"] < metrics["raw_derivative_error_rms_rad_s"]
+    assert metrics["delivered_callback_rate_hz"] <= 125.
+    assert metrics["max_delivered_source_gap_sec"] < .1
+    assert metrics["max_callback_gap_sec"] < .1
+    assert metrics["estimator_unavailable_callbacks"] == 1
+    # A raw noisy position is returned, including its noise; no position smoothing.
+    assert metrics["q_raw_error_rms_rad"] > .9 * noise_std
+    assert metrics["q_raw_error_rms_rad"] < 1.1 * noise_std
+    assert metrics["q_matches_input_exactly"] is True
+    for row in rows:
+        np.testing.assert_array_equal(row["q"], row["observed_q"])
