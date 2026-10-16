@@ -1,0 +1,13 @@
+cmake_minimum_required(VERSION 3.24)
+project(pinocchio_qdldl_reference LANGUAGES CXX)
+find_package(Python3 REQUIRED COMPONENTS Interpreter Development.Module)
+execute_process(COMMAND "${Python3_EXECUTABLE}" -m pybind11 --cmakedir
+  OUTPUT_VARIABLE PYBIND11_DIR OUTPUT_STRIP_TRAILING_WHITESPACE COMMAND_ERROR_IS_FATAL ANY)
+list(APPEND CMAKE_PREFIX_PATH "${PYBIND11_DIR}")
+find_package(pybind11 CONFIG REQUIRED)
+include("${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/qdldl.cmake")
+set_target_properties(qdldlstatic PROPERTIES POSITION_INDEPENDENT_CODE ON)
+pybind11_add_module(cpu_qdldl bridge.cpp)
+target_compile_features(cpu_qdldl PRIVATE cxx_std_17)
+target_include_directories(cpu_qdldl PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../../gato")
+target_link_libraries(cpu_qdldl PRIVATE qdldlstatic)
