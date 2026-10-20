@@ -125,12 +125,16 @@ C++17 toolchain are required. Architecture defaults to CMake `native`; `--arch 8
 can be supplied explicitly for the Orin target. No desktop paths are hardcoded.
 A single compiler job limits Jetson build memory use. Use fresh output paths.
 
-If the container lacks the public GRiD package, install it into the same active
-Python environment before building:
+The felix-devel container creates `/opt/gato-venv` with **uv**; that environment
+may not contain pip. Install a missing public GRiD package with the image's uv
+into that Python environment:
 
 ```bash
-python -m pip install "grid-rbd==0.5.1"
+uv pip install --python /opt/gato-venv/bin/python "grid-rbd==0.5.1"
 ```
+
+For other environments with pip available, `python -m pip install
+"grid-rbd==0.5.1"` also works. No container rebuild is needed.
 
 Configure/build failures print the last40 lines of each log and retain complete
 `stdout.log`, `stderr.log` and command/status metadata in the build output
