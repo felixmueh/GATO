@@ -125,11 +125,23 @@ C++17 toolchain are required. Architecture defaults to CMake `native`; `--arch 8
 can be supplied explicitly for the Orin target. No desktop paths are hardcoded.
 A single compiler job limits Jetson build memory use. Use fresh output paths.
 
+If the container lacks the public GRiD package, install it into the same active
+Python environment before building:
+
+```bash
+python -m pip install "grid-rbd==0.5.1"
+```
+
+Configure/build failures print the last40 lines of each log and retain complete
+`stdout.log`, `stderr.log` and command/status metadata in the build output
+directory. `freeze` requires all selected modules to have built successfully;
+chain build and freeze with `&&` to avoid a secondary missing-module failure.
+
 ```bash
 python research/preconditioners/jetson_scaling.py run \
   --output _expr_results/jetson-scaling-plan --dry-run
 python research/preconditioners/jetson_scaling.py build \
-  --output _expr_results/jetson-scaling-build
+  --output _expr_results/jetson-scaling-build && \
 python research/preconditioners/jetson_scaling.py freeze \
   --output _expr_results/jetson-scaling-frozen
 ```

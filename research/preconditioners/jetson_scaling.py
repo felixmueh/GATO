@@ -56,6 +56,14 @@ def build(args):
         with (output/'stdout.log').open('w') as out,(output/'stderr.log').open('w') as err:
             for cmd in commands: subprocess.run(cmd,cwd=args.checkout,env=environment(args.checkout),stdout=out,stderr=err,check=True)
         metadata.update(state='complete',modules={n:dict(path=str(native_path(args.checkout,int(n))),sha256=sha256(native_path(args.checkout,int(n)))) for n in args.knots.split(',')})
+    except subprocess.CalledProcessError as exc:
+        metadata.update(state='failed',error=repr(exc),failed_command=exc.cmd,returncode=exc.returncode)
+        print(f"Build failed (exit {exc.returncode}); full logs: {output}",file=sys.stderr)
+        for name in ('stdout.log','stderr.log'):
+            path=output/name
+            print(f"\n{name} (last 40 lines):",file=sys.stderr)
+            print('\n'.join(path.read_text(errors='replace').splitlines()[-40:]),file=sys.stderr)
+        return exc.returncode if exc.returncode>0 else 1
     except BaseException as exc: metadata.update(state='failed',error=repr(exc));raise
     finally:
         write_json(output/'build.json',metadata)
