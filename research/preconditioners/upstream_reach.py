@@ -78,6 +78,8 @@ def transfer_total(metrics):
     if not isinstance(metrics, dict):
         return None
     totals = metrics.get("totals", metrics)
+    if metrics.get("transfer_measurement_available", totals.get("transfer_measurement_available", True)) is False:
+        return None
     return float(totals["transfer_wall_us"]) if "transfer_wall_us" in totals else None
 
 

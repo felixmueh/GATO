@@ -1,7 +1,24 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/numpy.h>
 #include <pybind11/stl.h>
+#include "../research/preconditioners/upstream_timing.cuh"
+// Include original runtime declarations first, then instrument native/generated
+// host copy callsites. Kernels and GLASS arithmetic remain source-unchanged.
+#define cudaMemcpy upstream_bench::copy
+#define cudaMemcpyAsync upstream_bench::copy_async
+#define cudaMemcpy2D upstream_bench::copy_2d
+#include "types.cuh"
+#include "bsqp/kernels/pcg.cuh"
+#undef cudaMemcpy
+#undef cudaMemcpyAsync
+#undef cudaMemcpy2D
+#include "../research/preconditioners/upstream_pcg_timing.cuh"
+#define cudaMemcpy upstream_bench::copy
+#define cudaMemcpyAsync upstream_bench::copy_async
+#define cudaMemcpy2D upstream_bench::copy_2d
+#define solve_pcg_batched upstream_bench::solve_measured
 #include "bsqp/bsqp.cuh"
+#undef solve_pcg_batched
 #include "types.cuh"
 #include "utils/cuda.cuh"
 #include "utils/dlpack.h"
@@ -737,6 +754,32 @@ class PyBSQP {
 
 PYBIND11_MODULE(MODULE_NAME(KNOT_POINTS, GATO_PLANT_NAME, GATO_MODULE_VARIANT), m)
 {
+        m.def("set_method", &upstream_bench::set_method);
+        m.def("prepare", &upstream_bench::prepare);
+        m.def("reset_metrics", &upstream_bench::reset_metrics);
+        m.def("metrics", [] {
+                py::dict totals; py::list rows;
+                double pcg_wall = 0.0, pcg_gpu = 0.0;
+                for (const auto& record : upstream_bench::records) {
+                        py::dict row;
+                        row["additional_transfer_wall_us"] = record.additional_transfer_wall_us;
+                        row["pcg_compute_wall_us"] = record.pcg_compute_wall_us;
+                        row["pcg_gpu_us"] = record.pcg_gpu_us;
+                        rows.append(row); pcg_wall += record.pcg_compute_wall_us; pcg_gpu += record.pcg_gpu_us;
+                }
+                totals["method"] = upstream_bench::method;
+                totals["transfer_measurement_available"] = upstream_bench::method != "normal_raw" && !upstream_bench::uncovered_copy;
+                totals["native_copy_wall_us"] = upstream_bench::native_copy_wall_us;
+                totals["additional_transfer_wall_us"] = upstream_bench::additional_transfer_wall_us;
+                totals["transfer_wall_us"] = upstream_bench::native_copy_wall_us + upstream_bench::additional_transfer_wall_us;
+                totals["native_copy_calls"] = upstream_bench::native_copy_calls;
+                totals["native_copy_bytes"] = upstream_bench::native_copy_bytes;
+                totals["uncovered_copy"] = upstream_bench::uncovered_copy;
+                totals["pcg_compute_wall_us"] = pcg_wall; totals["pcg_gpu_us"] = pcg_gpu;
+                totals["pcg_calls"] = upstream_bench::records.size(); totals["records"] = rows;
+                totals["transfer_scope"] = "Explicit H2D/D2H cudaMemcpy/cudaMemcpyAsync/cudaMemcpy2D in bindings, BSQP and included generated helpers; prior compute fenced before timer; D2D remains compute";
+                return totals;
+        });
         m.attr("NATIVE_SOURCE_ID") = GATO_NATIVE_SOURCE_ID;
         m.attr("KNOT_POINTS") = KNOT_POINTS;      // to check num knots for current module
         m.attr("NUM_BODIES") = grid::NUM_BODIES;  // body-major f_ext is 6*NUM_BODIES per (solve, knot)
@@ -775,3 +818,7 @@ PYBIND11_MODULE(MODULE_NAME(KNOT_POINTS, GATO_PLANT_NAME, GATO_MODULE_VARIANT), 
         REGISTER_BSQP_CLASS(float);
 #endif
 }
+
+#undef cudaMemcpy
+#undef cudaMemcpyAsync
+#undef cudaMemcpy2D
