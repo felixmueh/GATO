@@ -35,7 +35,10 @@ def base_metadata(checkout):
 
 
 def locks(checkout):
-    handles = [open(checkout / '.gpu.lock', 'a'), open('/tmp/a2rlab-timing.lock', 'a')]
+    common = Path(subprocess.check_output(['git','rev-parse','--git-common-dir'],cwd=checkout,text=True).strip())
+    if not common.is_absolute(): common = (checkout/common).resolve()
+    shared_lock = common.parent / '.gpu.lock'
+    handles = [open(shared_lock, 'a'), open('/tmp/a2rlab-timing.lock', 'a')]
     deadline = time.monotonic() + 45
     for handle in handles:
         while True:

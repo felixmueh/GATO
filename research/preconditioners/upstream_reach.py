@@ -105,6 +105,7 @@ def main(argv=None):
     ap.add_argument("--checkout", type=Path, default=ROOT, help="public source/native checkout to evaluate")
     ap.add_argument("--config", type=Path, default=Path(__file__).with_name("upstream_reach_config.json"))
     ap.add_argument("--method", default="normal")
+    ap.add_argument("--knots", type=int, choices=(128,256,512))
     ap.add_argument("--linsys", choices=("pcg", "bdsv"))
     ap.add_argument("--primary-timing", choices=("wall", "compute_excluding_transfers"), default="compute_excluding_transfers")
     ap.add_argument("--task-file", type=Path, help="pre-frozen public pickplace/fig8 task; no per-run IK generation")
@@ -115,6 +116,8 @@ def main(argv=None):
     output = args.output.resolve()
     output.mkdir(parents=True, exist_ok=False)
     config = json.loads(args.config.read_text())
+    if args.knots is not None: config["knots"] = args.knots
+    config["prediction_duration_s"] = (config["knots"]-1)*config["dt_s"]
     native_method, linsys, algorithm = resolve_algorithm(args.method, args.linsys)
     config.update(linsys=linsys, native_method=native_method, algorithm=algorithm,
                   iteration_count_semantics="actual PCG iterations" if linsys == "pcg" else "native direct-solve bookkeeping, not CG iterations")
@@ -166,6 +169,7 @@ def main(argv=None):
             raise RuntimeError("requested method requires native set_method()")
         if hasattr(native, "set_end_to_end_mode"):
             native.set_end_to_end_mode(args.primary_timing == "wall")
+        if hasattr(native,"pcg_resource_info"): config["pcg_resource_info"] = native.pcg_resource_info()
         if hasattr(native, "prepare"):
             native.prepare()
         if hasattr(native, "shared_memory_info"):
@@ -290,6 +294,15 @@ def main(argv=None):
             except BaseException:
                 config["shared_memory_info_export_error"] = traceback.format_exc()
             write_json(output / "config.json", config)
+        if native_method in ("cpu_native_control","symmetric_stair","block_sgs","schwarz","incomplete_cholesky","block_jacobi","polynomial2","polynomial3"):
+            if "pcg_resource_info" in config:
+                config["pcg_resource_info"]["resource_kernel"] = "native_pcg_baseline"
+                config["pcg_resource_info"]["resource_scope"] = "Baseline feasibility check only; host-PCG GPU matvec does not use native-PCG dynamic scratch"
+            write_json(output / "config.json", config)
+            metrics["preconditioner_backend"] = "host public GLASS-formula PCG, CPU preconditioner, GPU bdmv"
+            metrics["pcg_gpu_event_scope"] = "GPU matvec kernel events only; not complete PCG wall"
+            metrics["additional_copy_byte_call_counts_complete"] = False
+            metrics["additional_copy_accounting_note"] = "CPU bridge copy WALLS are measured and subtracted; inherited candidate does not count additional copy bytes/calls. Native-only counts are complete for instrumented native callsites."
         write_json(output / "metrics.json", metrics)
         write_json(output / "solve_records.json", records)
         write_json(output / "task_stats.json", stats)
@@ -312,6 +325,8 @@ def main(argv=None):
         native_times = np.asarray([r["native_solve_wall_us"] for r in successful], dtype=float)
         feedback_calls = sum(r["phase"] == "feedback" for r in records)
         adjusted_us = wall_us - transfer_us if wall_us is not None and transfer_us is not None else None
+        if args.primary_timing == "compute_excluding_transfers" and wall_us is not None and (adjusted_us is None or adjusted_us < 0):
+            error = error or "Transfer subtraction unavailable or invalid; primary compute comparison cannot be reported"
         realized_s = plant_t[-1] if plant_t else None
         terminal_ee = None
         if mpc is not None and plant_q:

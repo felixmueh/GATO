@@ -760,7 +760,12 @@ class PyBSQP {
 
 PYBIND11_MODULE(MODULE_NAME(KNOT_POINTS, GATO_PLANT_NAME, GATO_MODULE_VARIANT), m)
 {
-        m.def("set_method", &upstream_bench::set_method);
+        m.def("set_method", [](const std::string& requested){
+#ifdef PRECOND_CPU_BENCH
+                if(upstream_cpu::available(requested)){upstream_bench::method=requested;return;}
+#endif
+                upstream_bench::set_method(requested);
+        });
         m.def("set_end_to_end_mode",[](bool enabled){
                 if(enabled&&upstream_bench::method=="dummy")throw std::invalid_argument("Dummy calibration requires instrumented mode");
                 upstream_bench::end_to_end_mode=enabled;
@@ -792,6 +797,13 @@ PYBIND11_MODULE(MODULE_NAME(KNOT_POINTS, GATO_PLANT_NAME, GATO_MODULE_VARIANT), 
                 return result;
         });
         m.def("prepare", &upstream_bench::prepare);
+        m.def("pcg_resource_info",[]{
+                const auto resource=upstream_bench::prepare_resources();py::dict value;
+                value["knots"]=KNOT_POINTS;value["dynamic_bytes"]=resource.dynamic_bytes;
+                value["static_bytes"]=resource.static_bytes;value["normal_limit_bytes"]=resource.normal_limit;
+                value["optin_limit_bytes"]=resource.optin_limit;value["launch_performed"]=false;
+                value["method"]=upstream_bench::method;return value;
+        });
         m.def("reset_metrics", &upstream_bench::reset_metrics);
         m.def("metrics", [] {
                 py::dict totals; py::list rows;
@@ -802,6 +814,12 @@ PYBIND11_MODULE(MODULE_NAME(KNOT_POINTS, GATO_PLANT_NAME, GATO_MODULE_VARIANT), 
                         row["additional_transfer_wall_us"] = record.additional_transfer_wall_us;
                         row["pcg_compute_wall_us"] = record.pcg_compute_wall_us;
                         row["pcg_gpu_us"] = record.pcg_gpu_us;
+                        row["backend"]=record.backend;
+                        row["cpu_setup_us"]=record.cpu_setup_us;row["cpu_apply_us"]=record.cpu_apply_us;
+                        row["cpu_algebra_us"]=record.cpu_algebra_us;row["matvec_gpu_us"]=record.matvec_gpu_us;
+                        row["configured_initial_shift"]=record.configured_initial_shift;
+                        row["actual_shift_known"]=record.actual_shift_known;
+                        row["input_projection_relative"]=record.input_projection_relative;
                         row["setup_wall_us"] = record.setup_wall_us;
                         row["cpu_apply_wall_us"] = record.cpu_apply_wall_us;
                         row["host_factor_write_wall_us"]=record.host_factor_write_wall_us;

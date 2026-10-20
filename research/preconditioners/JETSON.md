@@ -1,3 +1,5 @@
+> Latest transfer-subtracted N128/256/512 comparison: [JETSON_SCALING.md](JETSON_SCALING.md). This document preserves the earlier distinct actual-wall managed-memory preparation.
+
 # Portable Jetson experiment entry point
 
 The user runs this experiment branch manually inside the existing container.

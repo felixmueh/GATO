@@ -20,6 +20,11 @@ struct Record {
   double additional_transfer_wall_us = 0.0, pcg_compute_wall_us = 0.0, pcg_gpu_us = 0.0;
   double setup_wall_us = 0.0, cpu_apply_wall_us = 0.0;
   double host_factor_write_wall_us = 0.0;
+  double cpu_setup_us=0, cpu_apply_us=0, cpu_algebra_us=0, matvec_gpu_us=0;
+  float configured_initial_shift=0;
+  double input_projection_relative=0;
+  bool actual_shift_known=true;
+  std::string backend="native_glass";
   bool pcg_gpu_event_measured=true;
   uint64_t additional_copy_calls=0,additional_copy_bytes=0;
 };
@@ -87,7 +92,7 @@ inline void set_method(const std::string& requested) {
     throw std::invalid_argument("Block LDLT candidate is not compiled in this module");
 #endif
   }
-  if (requested != "normal_raw" && requested != "normal" && requested != "dummy")
+  if (requested != "normal_raw" && requested != "normal" && requested != "dummy" && requested != "gpu_polynomial2" && requested != "gpu_polynomial3")
     throw std::invalid_argument("Unavailable public preconditioner benchmark method: " + requested);
   method = requested;
 }

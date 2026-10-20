@@ -204,10 +204,10 @@ foreach(pair ${GATO_MODULE_PAIRS})
                                                       ${GATO_GRID_INCLUDE_DIRS})
     # Isolated research candidate: Eigen is used by host factor setup only.
     # No fast-math/optimizer/native kernel options change for this comparison.
-    if(MODULE_NAME STREQUAL "bsqpN128_indy7")
+    if(plant STREQUAL "indy7" AND (knot EQUAL 128 OR knot EQUAL 256 OR knot EQUAL 512))
       find_path(PRECOND_EIGEN_INCLUDE Eigen/Dense PATH_SUFFIXES eigen3 REQUIRED)
       target_include_directories(${MODULE_NAME} PRIVATE ${PRECOND_EIGEN_INCLUDE})
-      target_compile_definitions(${MODULE_NAME} PRIVATE PRECOND_BLOCK_LDLT EIGEN_NO_CUDA EIGEN_DONT_PARALLELIZE)
+      target_compile_definitions(${MODULE_NAME} PRIVATE PRECOND_BLOCK_LDLT PRECOND_CPU_BENCH PRECOND_GPU_POLYNOMIAL EIGEN_NO_CUDA EIGEN_DONT_PARALLELIZE)
       if(PRECOND_MANAGED_S)
         target_compile_definitions(${MODULE_NAME} PRIVATE PRECOND_MANAGED_S)
       endif()

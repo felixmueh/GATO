@@ -13,10 +13,10 @@ import numpy as np
 from upstream_reach import ROOT, sha256, write_json
 
 
-def native_path(checkout):
-    paths = list((checkout / 'python/gato').glob('bsqpN128_indy7*.so'))
+def native_path(checkout, knots=128):
+    paths = list((checkout / 'python/gato').glob(f'bsqpN{knots}_indy7*.so'))
     if len(paths) != 1:
-        raise RuntimeError(f'Expected exactly one prebuilt Indy7 N128 module, got {paths}')
+        raise RuntimeError(f'Expected exactly one prebuilt Indy7 N{knots} module, got {paths}')
     return paths[0]
 
 
@@ -32,7 +32,9 @@ def freeze(args):
     (output / 'config.json').write_bytes(config_source.read_bytes())
     urdf = Path(gato.robot_urdf('indy7'))
     model = pin.buildModelFromUrdf(str(urdf))
-    module = native_path(checkout)
+    knot_counts = [int(n) for n in args.knots.split(",")]
+    modules = {str(n): native_path(checkout,n) for n in knot_counts}
+    module = modules[str(knot_counts[0])]
     manifest = dict(protocol='public-ldlt-generalization-v1', checkout=str(checkout),
         binary_checkout_source_commit=subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=checkout, text=True).strip(),
         harness_source_commit=subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip(),
@@ -40,7 +42,9 @@ def freeze(args):
         worker_sha256=sha256(__file__), driver_sha256=sha256(Path(__file__).with_name('upstream_reach.py')),
         module_filename=module.name, module_sha256=sha256(module), urdf_sha256=sha256(urdf),
         public_tasks_sha256=sha256(checkout / 'python/gato/tasks.py'), config_sha256=sha256(output / 'config.json'),
-        repeats=3, methods=['normal', 'block_ldlt'], cases=[], state='freezing')
+        repeats=3, methods=['normal', 'block_ldlt'], cases=[], state='freezing',
+        knot_counts=knot_counts, reference_padding_knots=max(knot_counts),
+        module_sha256_by_knots={n:sha256(path) for n,path in modules.items()})
     write_json(output / 'manifest.json', manifest)
     try:
         specifications = [('pickplace', seed, None) for seed in range(2, 8)]
@@ -52,7 +56,7 @@ def freeze(args):
                 case = dict(case_id=case_id, task=kind, seed=seed, scenario=scenario)
             else:
                 scenario = tasks.fig8_scenarios(model, 'indy7', 1, seed=seed, dt=.01, ratio_range=(ratio, ratio))[0]
-                reference, sim_time = tasks.fig8_reference(scenario, 128, periods=2)
+                reference, sim_time = tasks.fig8_reference(scenario, max(knot_counts), periods=2)
                 reference_file = output / (case_id + '-reference.npz')
                 np.savez_compressed(reference_file, reference=np.asarray(reference))
                 case = dict(case_id=case_id, task=kind, seed=seed, ratio=ratio, periods=2,
@@ -72,11 +76,11 @@ def freeze(args):
     print(json.dumps(manifest), flush=True)
 
 
-def validate(tasks_dir, checkout):
+def validate(tasks_dir, checkout, knots=128):
     manifest = json.loads((tasks_dir / 'manifest.json').read_text())
     if manifest['state'] != 'complete' or len(manifest['cases']) != 9:
         raise RuntimeError('Shared frozen-task setup incomplete; no cases may start')
-    if sha256(native_path(checkout)) != manifest['module_sha256']:
+    if sha256(native_path(checkout,knots)) != manifest.get('module_sha256_by_knots', {'128':manifest['module_sha256']}).get(str(knots)):
         raise RuntimeError('Prebuilt native/LDLT module differs from frozen identity; no rebuild/fallback')
     if sha256(tasks_dir / 'config.json') != manifest['config_sha256']:
         raise RuntimeError('Frozen task parameter file changed')
@@ -90,30 +94,30 @@ def validate(tasks_dir, checkout):
     return manifest
 
 
-def command(checkout, tasks_dir, case, method, output, primary_timing, linsys=None):
+def command(checkout, tasks_dir, case, method, output, primary_timing, linsys=None, knots=128):
     cmd = [sys.executable, str(Path(__file__).resolve()), 'run', '--checkout', str(checkout),
             '--tasks', str(tasks_dir), '--case', case, '--method', method,
-            '--primary-timing', primary_timing, '--output', str(output)]
+            '--primary-timing', primary_timing, '--knots', str(knots), '--output', str(output)]
     return cmd + ['--linsys', linsys] if linsys else cmd
 
 
 def run(args):
     tasks_dir, checkout = args.tasks.resolve(), args.checkout.resolve()
-    manifest = validate(tasks_dir, checkout)
+    manifest = validate(tasks_dir, checkout,args.knots)
     case = next((c for c in manifest['cases'] if c['case_id'] == args.case), None)
     if case is None:
         raise ValueError(f'Unknown frozen case {args.case}')
     from upstream_reach import main
     cmd = ['--checkout', str(checkout), '--config', str(tasks_dir / 'config.json'),
                  '--task-file', str(tasks_dir / case['file']), '--method', args.method,
-                 '--primary-timing', args.primary_timing,
+                 '--primary-timing', args.primary_timing, '--knots', str(args.knots),
                  '--output', str(args.output)]
     return main(cmd + ['--linsys', args.linsys] if args.linsys else cmd)
 
 
 def campaign(args):
     tasks_dir, checkout, output = args.tasks.resolve(), args.checkout.resolve(), args.output.resolve()
-    manifest = validate(tasks_dir, checkout)
+    manifest = validate(tasks_dir, checkout,args.knots)
     output.mkdir(parents=True, exist_ok=False)
     requested = args.cases.split(',') if args.cases else [c['case_id'] for c in manifest['cases']]
     unknown = set(requested) - {c['case_id'] for c in manifest['cases']}
@@ -131,7 +135,7 @@ def campaign(args):
     if not methods or len(set(methods)) != len(methods):
         raise ValueError('--methods must be a nonempty list without duplicates')
     write_json(output / 'campaign_config.json', dict(cases=[c['case_id'] for c in selected], methods=methods,
-        repeats=repeats, preflight=args.preflight, process_count=len(selected) * len(methods) * repeats,
+        repeats=repeats, knots=args.knots, preflight=args.preflight, process_count=len(selected) * len(methods) * repeats,
         primary_timing=args.primary_timing, manifest_sha256=sha256(tasks_dir / 'manifest.json'),
         harness_source_commit=subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip()))
     status = []
@@ -140,7 +144,7 @@ def campaign(args):
             order = methods if repeat % 2 == 0 else list(reversed(methods))
             for method in order:
                 name = f"{case['case_id']}-{method}-r{repeat}"
-                cmd = command(checkout, tasks_dir, case['case_id'], method, output / name, args.primary_timing, args.linsys)
+                cmd = command(checkout, tasks_dir, case['case_id'], method, output / name, args.primary_timing, args.linsys,args.knots)
                 with (output / (name + '.stdout')).open('w') as stdout, (output / (name + '.stderr')).open('w') as stderr:
                     begin = time.perf_counter_ns()
                     result = subprocess.run(cmd, stdout=stdout, stderr=stderr)
@@ -160,6 +164,7 @@ def main():
         s = sub.add_parser(action)
         s.add_argument('--checkout', type=Path, required=True)
         s.add_argument('--output', type=Path, required=True)
+        s.add_argument('--knots', default='128' if action=='freeze' else 128, type=str if action=='freeze' else int)
         if action != 'freeze':
             s.add_argument('--tasks', type=Path, required=True)
             s.add_argument('--primary-timing', choices=('wall', 'compute_excluding_transfers'), default='compute_excluding_transfers')

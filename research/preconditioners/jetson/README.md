@@ -1,3 +1,5 @@
+> Latest transfer-subtracted N128/256/512 comparison: [JETSON_SCALING.md](../JETSON_SCALING.md). This document preserves the earlier distinct actual-wall managed-memory preparation.
+
 # Explicit CPU/GPU shared-RAM experiment
 
 This isolated branch starts at public LDLT candidate `16dd835`. It prepares
