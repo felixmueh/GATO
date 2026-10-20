@@ -2,6 +2,7 @@
 """Prepare/run existing public PCG preconditioners at 128/256/512 knots on Jetson."""
 from __future__ import annotations
 import argparse
+import csv
 import json
 from pathlib import Path
 import shutil
@@ -30,8 +31,8 @@ def plan(args):
     # InitialN128 retained successful runs took0.4-0.8s compute. These planning
     # allowances include startup/copies/largerN; target preflight supersedes them.
     return dict(protocol='public-jetson-preconditioner-scaling-v1', knots=knots, methods=methods,cases=cases,repeats=repeats,
-        process_count=len(jobs),jobs=jobs,primary_timing='whole_task_wall_us - all measured explicit H2D/D2H copy wall',
-        secondary_timing='actual whole_task_wall_us; instrumented and includes measurement fences',
+        process_count=len(jobs),jobs=jobs,primary_result_field='sqp_iteration_compute_mean_ms',primary_timing='sqp_iteration_compute_mean_ms: full native BSQP B1/SQP1 wall per attempt minus only in-interval native/candidate H2D/D2H copy walls',
+        secondary_timing='per-SQP wall, per-SQP compute median/p95 and zero/nonzero-PCG strata; whole-task compute/wall retained',
         dt_s=.01,prediction_duration_s={str(n):(n-1)*.01 for n in knots},
         estimate=dict(status='rough planning allowance, not measured Jetson runtime; failed cases can consume full task budget',
             minutes_range=[len(jobs)*5/60,len(jobs)*30/60],raw_MiB_range=[len(jobs)*2,len(jobs)*20],
@@ -92,13 +93,41 @@ def run(args):
         write_json(output/'launch.json',metadata)
         for handle in held:handle.close()
 
+def summarize(args):
+    """One CSV row per independent process; retain failures and zero-PCG strata."""
+    rows=[]
+    for path in sorted(args.input.resolve().glob("N*/*/summary.json")):
+        summary=json.loads(path.read_text()); config=json.loads(path.with_name("config.json").read_text())
+        row=dict(knots=config["knots"],method=config["method"],case_id=config.get("task_id"),
+            process_id=path.parent.name,error=summary.get("error"),
+            all_goals_reached=summary.get("all_goals_reached"),
+            tracking_completed=(summary.get("tracking") or {}).get("completed_requested_duration"))
+        for key in ("sqp_iteration_count","sqp_iteration_compute_mean_ms","sqp_iteration_compute_median_ms",
+                    "sqp_iteration_compute_p95_ms","sqp_iteration_wall_mean_ms","sqp_iteration_wall_median_ms",
+                    "sqp_iteration_wall_p95_ms","sqp_iteration_transfer_mean_ms","pcg_iterations_total",
+                    "whole_task_compute_us","whole_task_wall_us","realized_physical_duration_s"):
+            row[key]=summary.get(key)
+        for kind in ("zero_pcg","nonzero_pcg"):
+            group=summary.get("sqp_iteration_"+kind,{})
+            for key in ("count","compute_mean_ms","wall_mean_ms"):
+                row[kind+"_"+key]=group.get(key)
+        rows.append(row)
+    if not rows:raise ValueError("No N*/<process>/summary.json files found; no table written")
+    args.output.parent.mkdir(parents=True,exist_ok=True)
+    with args.output.open("x",newline="") as stream:
+        writer=csv.DictWriter(stream,fieldnames=list(rows[0]));writer.writeheader();writer.writerows(rows)
+    print(json.dumps(dict(output=str(args.output),process_rows=len(rows),scope="One row per independent process; do not estimate repeat uncertainty from serial SQP samples")))
+    return 0
+
+
 def main():
     p=argparse.ArgumentParser(description=__doc__);sub=p.add_subparsers(dest='action',required=True)
-    for action in ('build','freeze','run'):
+    for action in ('build','freeze','run','summarize'):
         s=sub.add_parser(action);s.add_argument('--checkout',type=Path,default=ROOT);s.add_argument('--output',type=Path,required=True)
         s.add_argument('--knots',default='128,256,512')
         if action=='build':
             s.add_argument('--jobs',type=int,default=1);s.add_argument('--arch',default='native');s.add_argument('--build-dir',type=Path)
+        elif action=='summarize':s.add_argument('--input',type=Path,required=True)
         elif action=='run':
             s.add_argument('--tasks',type=Path);s.add_argument('--methods',default=METHODS);s.add_argument('--cases');s.add_argument('--full',action='store_true')
             s.add_argument('--repeats',type=int,default=3);s.add_argument('--preflight',action='store_true');s.add_argument('--dry-run',action='store_true')
@@ -106,6 +135,7 @@ def main():
     knot_counts=[int(n) for n in args.knots.split(',')]
     if not knot_counts or len(set(knot_counts))!=len(knot_counts) or set(knot_counts)-{128,256,512}:
         p.error('--knots must be distinct values from128,256,512')
+    if args.action=='summarize':return summarize(args)
     if args.action=='freeze':
         return subprocess.call([sys.executable,str(Path(__file__).with_name('verification_worker.py')),'freeze','--checkout',str(args.checkout),
             '--output',str(args.output.resolve()),'--knots',args.knots],env=environment(args.checkout))

@@ -98,6 +98,42 @@ def resolve_algorithm(method, linsys=None):
     return method, linsys, "GPU native damped-stair PCG" if method in ("normal", "normal_shared", "normal_raw", "native") else method
 
 
+def summarize_sqp_iterations(records, metrics):
+    """Join completed calls AFTER timing; only the B1/SQP1 preset is meaningful."""
+    completed=[r for r in records if "stats" in r]
+    native=metrics.get("native_sqp_solves")
+    if native is None or len(native)!=len(completed):
+        raise ValueError("Native SQP timing records do not match completed observed solves")
+    for record,solve in zip(completed,native):
+        if solve["batch_size"]!=1 or solve["max_sqp_iters"]!=1 or solve["actual_sqp_iters"]!=1:
+            raise ValueError("Per-iteration timing requires B1/SQP1 with one attempted iteration per solve")
+        if int(np.asarray(record["stats"]["sqp_iters"]).sum())!=1:
+            raise ValueError("Observed SQP count differs from native timing record")
+        if int(np.asarray(record["stats"]["pcg_iters"]).sum())!=solve["pcg_iters"]:
+            raise ValueError("Observed PCG count differs from native timing record")
+        if abs(float(record["native_solve_wall_us"])-solve["native_wall_us"])>1e-6:
+            raise ValueError("Native SQP timing interval differs from returned native solve wall")
+        transfer=solve["native_copy_us"]+solve["candidate_copy_us"]
+        if solve["compute_us"] is not None:
+            if abs(solve["compute_us"]-(solve["native_wall_us"]-transfer))>1e-6 or solve["compute_us"]<0:
+                raise ValueError("Native SQP transfer subtraction is inconsistent")
+        record["sqp_iteration"]=dict(solve)
+    def describe(group):
+        result={"count":len(group)}
+        for label,key in (("wall","native_wall_us"),("compute","compute_us"),("transfer","transfer_us")):
+            values=[r[key]/1000 for r in group if r[key] is not None]
+            for statistic,fn in (("mean",np.mean),("median",np.median),("p95",lambda v:np.percentile(v,95))):
+                result[f"{label}_{statistic}_ms"]=float(fn(values)) if len(values)==len(group) and values else None
+        return result
+    all_stats=describe(native)
+    result={"sqp_iteration_count":len(native),"sqp_iteration_timing_scope":"Full existing native BSQP solve interval, B1/SQP1; one attempted iteration including zero-PCG stopping shortcuts; native+candidate in-interval copies removed only from compute fields"}
+    for key,value in all_stats.items():
+        if key!="count":result["sqp_iteration_"+key]=value
+    result["sqp_iteration_zero_pcg"]=describe([r for r in native if r["zero_pcg_shortcut"]])
+    result["sqp_iteration_nonzero_pcg"]=describe([r for r in native if not r["zero_pcg_shortcut"]])
+    return result
+
+
 def main(argv=None):
     worker_entry = time.perf_counter_ns()
     ap = argparse.ArgumentParser(description=__doc__)
@@ -118,6 +154,8 @@ def main(argv=None):
     config = json.loads(args.config.read_text())
     if args.knots is not None: config["knots"] = args.knots
     config["prediction_duration_s"] = (config["knots"]-1)*config["dt_s"]
+    if config["batch_size"]!=1 or config["solver_params"]["max_sqp_iters"]!=1:
+        raise ValueError("This per-SQP experiment supports only B1/SQP1; do not divide a general solve wall by iterations")
     native_method, linsys, algorithm = resolve_algorithm(args.method, args.linsys)
     config.update(linsys=linsys, native_method=native_method, algorithm=algorithm,
                   iteration_count_semantics="actual PCG iterations" if linsys == "pcg" else "native direct-solve bookkeeping, not CG iterations")
@@ -303,6 +341,12 @@ def main(argv=None):
             metrics["pcg_gpu_event_scope"] = "GPU matvec kernel events only; not complete PCG wall"
             metrics["additional_copy_byte_call_counts_complete"] = False
             metrics["additional_copy_accounting_note"] = "CPU bridge copy WALLS are measured and subtracted; inherited candidate does not count additional copy bytes/calls. Native-only counts are complete for instrumented native callsites."
+        sqp_iteration_summary={}
+        try:
+            sqp_iteration_summary=summarize_sqp_iterations(records,metrics)
+        except (ValueError,KeyError,TypeError) as exc:
+            error=error or str(exc)
+            sqp_iteration_summary={"sqp_iteration_timing_error":str(exc)}
         write_json(output / "metrics.json", metrics)
         write_json(output / "solve_records.json", records)
         write_json(output / "task_stats.json", stats)
@@ -386,9 +430,16 @@ def main(argv=None):
             physical_limits=physical_limits(model, np.asarray(plant_q), np.asarray(plant_v), np.asarray(plant_u))
                 if model is not None and plant_q else {"checked": False},
             merit_description="native initial/final/min merit retained per call; includes penalties, not a separately evaluated trajectory objective")
+        summary.update(sqp_iteration_summary)
+        summary["primary_comparison_metric"]="sqp_iteration_compute_mean_ms" if args.primary_timing!="wall" else "sqp_iteration_wall_mean_ms"
+        summary["primary_comparison_time_ms"]=summary.get(summary["primary_comparison_metric"])
         write_json(output / "summary.json", summary)
         def shown(value):
             return f"{value:.3f}" if value is not None else "unavailable"
+        print(f"FULL SQP ITERATION compute mean/median/p95 {shown(summary.get('sqp_iteration_compute_mean_ms'))}/"
+              f"{shown(summary.get('sqp_iteration_compute_median_ms'))}/{shown(summary.get('sqp_iteration_compute_p95_ms'))} ms | "
+              f"{summary.get('sqp_iteration_count',0)} attempts | "
+              f"zero-PCG {summary.get('sqp_iteration_zero_pcg',{}).get('count',0)}; nonzero-PCG {summary.get('sqp_iteration_nonzero_pcg',{}).get('count',0)}",flush=True)
         print(f"WHOLE EPISODE wall {shown(summary['whole_episode_wall_ms'])} ms | "
               f"{len(records)} solver calls ({summary['initial_plan_calls']} initial + {feedback_calls} feedback) | "
               f"wall/call {shown(summary['episode_wall_per_solver_call_ms'])} ms | sim {shown(realized_s)} s", flush=True)

@@ -22,18 +22,40 @@ GPU polynomial and exact LDLT use the existing GPU callback recurrence.
 AMG failed all four earlier N128 episodes; those results remain evidence and
 AMG is excluded explicitly from this scaling plan. No AMGCL dependency is needed.
 
-Primary `whole_task_compute_us` equals actual whole-task wall minus **all measured
-explicit H2D/D2H copy walls**, including existing native I/O and candidate bridge
-copies. Previous GPU computation is fenced before each copy timer; that waiting,
-CPU setup/application/packing, launch costs, D2D copies and remaining synchronization
-stay charged. Whole-task wall includes reset/initial plan, feedback solves,
-controller, Pinocchio plant and in-memory recording; construction/preparation and
-serialization are outside. Actual instrumented whole wall and full subprocess
-wall are also retained. Compute subtraction estimates this particular execution
-with explicit copy stages removed; it is not an exact prediction of a zero-copy
-implementation, since instrumentation/ownership fences and changed scheduling
-can still cost time. Native/candidate GPU events are separate from host wall;
-CPU-PCG event totals cover GPU matvecs only.
+Primary **`sqp_iteration_compute_mean_ms`** is full native SQP time per attempted
+iteration, excluding only measured copies within the same native interval.
+The preset is explicitly B1/SQP1: each native BSQP solve attempts exactly one
+SQP iteration, including the intended zero-PCG stopping shortcut. Native timing
+starts at the existing `sqp_start_time` and stops at `sqp_end_time`. Experiment
+counter snapshots at those boundaries subtract disjoint native and candidate
+H2D/D2H copy walls. CPU factorization/application, formation, PCG, step computation,
+merit/line search when executed, launch and remaining synchronization costs stay
+charged. Python binding uploads/downloads, controller, plant and helper Python
+work are outside this primary native boundary. No whole-episode copy total is
+subtracted from an individual native solve.
+
+`summary.json` gives `sqp_iteration_compute_mean_ms`,
+`sqp_iteration_compute_median_ms`, `sqp_iteration_compute_p95_ms`, corresponding
+`sqp_iteration_wall_*_ms`, and `sqp_iteration_transfer_*_ms`. Groups
+`sqp_iteration_zero_pcg` and `sqp_iteration_nonzero_pcg` each retain count and
+wall/compute statistics; shortcuts remain in the all-attempt mean. Per-call
+native wall/copy/compute records are joined to `solve_records.json` **after** the
+task; `metrics.json` also retains the complete `native_sqp_solves` list.
+Per-iteration reporting rejects B>1 or SQP budgets other than1 rather than dividing
+a general solve duration by its iteration count. Mean/median/p95 within an episode
+are descriptive; compare uncertainty across separate process repeats.
+
+Secondary `whole_task_compute_us` remains actual whole-task wall minus all measured
+explicit H2D/D2H copy walls, including native and bridge copies. Whole-task wall
+includes reset/initial plan, feedback solves, controller, Pinocchio plant and
+in-memory recording; construction/preparation and serialization are outside.
+Actual instrumented whole wall and full subprocess wall are retained. Existing
+`primary_task_time_us` is a compatibility field for that whole-episode metric;
+use the new `primary_comparison_metric`/`primary_comparison_time_ms` for the SQP
+comparison. Previous GPU work is fenced before copy timers; its waiting remains
+charged. Subtraction estimates this execution with explicit copy stages removed,
+not an exact zero-copy implementation. Native/candidate GPU events are separate
+from host wall; CPU-PCG event totals cover GPU matvecs only.
 
 Use explicit device allocations/copies for this cohort. Jetson shared physical
 RAM does not automatically remove `cudaMemcpy`; managed runtime migration cannot
@@ -112,6 +134,9 @@ python research/preconditioners/jetson_scaling.py freeze \
   --output _expr_results/jetson-scaling-frozen
 ```
 
+After updating this branch for SQP-iteration reporting, rebuild and freeze a
+**new** input directory: previous frozen manifests pin previous binary hashes.
+
 Build logs/commands, module hashes, source commit/dirty state and frozen input
 hashes are retained. Modules are Indy7 float B1, N128/256/512. Native PCG scratch
 is31,328/62,048/123,488 bytes respectively (plus static bytes); the exact resource query
@@ -156,8 +181,14 @@ this selection with Felix before execution. Preparation does not run it.
 python research/preconditioners/jetson_scaling.py run \
   --tasks _expr_results/jetson-scaling-frozen \
   --output _expr_results/jetson-scaling-short --dry-run
-# After reviewing the plan and target preflight budget, run the same command
-# with a new output path and without --dry-run.
+# After reviewing the plan and target preflight budget, run:
+python research/preconditioners/jetson_scaling.py run \
+  --tasks _expr_results/jetson-scaling-frozen \
+  --output _expr_results/jetson-scaling-short-run \
+  --knots 128,256,512 --repeats 3
+python research/preconditioners/jetson_scaling.py summarize \
+  --input _expr_results/jetson-scaling-short-run \
+  --output _expr_results/jetson-scaling-short-run/sqp-iterations.csv
 ```
 
 `--full` explicitly requests all9 frozen cases:891 episodes. `--methods`,
