@@ -88,6 +88,18 @@ def run(args):
             with (output/f'N{n}.stdout').open('w') as out,(output/f'N{n}.stderr').open('w') as err:
                 start=time.monotonic();result=subprocess.run(cmd,cwd=args.checkout,env=environment(args.checkout),stdout=out,stderr=err)
             statuses.append(dict(knots=n,returncode=result.returncode,wall_s=time.monotonic()-start,command=cmd));write_json(output/'status.json',statuses)
+            print(f"N{n}: campaign exit {result.returncode}; logs {output/f'N{n}.stdout'} and {output/f'N{n}.stderr'}",flush=True)
+            if result.returncode:
+                status_file=output/f'N{n}'/'status.json'
+                attempts=json.loads(status_file.read_text()) if status_file.exists() else []
+                logs=[output/f'N{n}.stderr',output/f'N{n}.stdout']
+                for attempt in attempts:
+                    if attempt['returncode']:
+                        name=f"{attempt['case_id']}-{attempt['method']}-r{attempt['repeat']}"
+                        logs.extend(output/f'N{n}'/(name+suffix) for suffix in ('.stderr','.stdout'))
+                for path in logs:
+                    lines=path.read_text(errors='replace').splitlines()
+                    if lines: print(f"\n{path} (last 20 lines):\n"+'\n'.join(lines[-20:]),file=sys.stderr,flush=True)
         metadata.update(state='complete' if all(s['returncode']==0 for s in statuses) else 'completed_with_failures')
         return int(any(s['returncode'] for s in statuses))
     except BaseException as exc:metadata.update(state='failed',error=repr(exc));raise
@@ -103,12 +115,29 @@ def run(args):
 
 def summarize(args):
     """One CSV row per independent process; retain failures and zero-PCG strata."""
-    rows=[]
-    for path in sorted(args.input.resolve().glob("N*/*/summary.json")):
-        summary=json.loads(path.read_text()); config=json.loads(path.with_name("config.json").read_text())
-        row=dict(knots=config["knots"],method=config["method"],case_id=config.get("task_id"),
-            repeat=int(path.parent.name.rsplit("-r",1)[1]),
-            process_id=path.parent.name,error=summary.get("error"),
+    root=args.input.resolve();rows=[]
+    launch=root/'launch.json'
+    jobs=json.loads(launch.read_text()).get('plan',{}).get('jobs',[]) if launch.exists() else []
+    if not jobs:
+        for path in sorted(root.glob('N*/*/summary.json')):
+            config=json.loads(path.with_name('config.json').read_text())
+            jobs.append(dict(knots=config['knots'],method=config['method'],case_id=config.get('task_id'),repeat=int(path.parent.name.rsplit('-r',1)[1])))
+    status=root/'status.json'
+    horizon_status={r['knots']:r['returncode'] for r in json.loads(status.read_text())} if status.exists() else {}
+    for job in jobs:
+        name=f"{job['case_id']}-{job['method']}-r{job['repeat']}"
+        horizon=root/f"N{job['knots']}";path=horizon/name/'summary.json'
+        summary=json.loads(path.read_text()) if path.exists() else {}
+        status=horizon/'status.json'
+        attempts=json.loads(status.read_text()) if status.exists() else []
+        attempt=next((r for r in attempts if (r['case_id'],r['method'],r['repeat'])==(job['case_id'],job['method'],job['repeat'])),{})
+        error=summary.get('error') or summary.get('sqp_iteration_timing_error')
+        if not path.exists():error='No summary produced; inspect saved horizon/process stderr logs'
+        elif attempt.get('returncode'):error=error or f"Process exited with code {attempt['returncode']}"
+        row=dict(knots=job['knots'],method=job['method'],case_id=job['case_id'],repeat=job['repeat'],
+            process_id=name,error=error,summary_present=path.exists(),
+            process_returncode=attempt.get('returncode'),horizon_returncode=horizon_status.get(job['knots']),
+            stderr_path=str(horizon/(name+'.stderr')) if (horizon/(name+'.stderr')).exists() else str(root/f"N{job['knots']}.stderr"),
             all_goals_reached=summary.get("all_goals_reached"),
             tracking_completed=(summary.get("tracking") or {}).get("completed_requested_duration"))
         for key in ("sqp_iteration_count","sqp_iteration_compute_mean_ms","sqp_iteration_compute_median_ms",
@@ -121,11 +150,11 @@ def summarize(args):
             for key in ("count","compute_mean_ms","wall_mean_ms"):
                 row[kind+"_"+key]=group.get(key)
         rows.append(row)
-    if not rows:raise ValueError("No N*/<process>/summary.json files found; no table written")
+    if not rows:raise ValueError("No planned jobs or N*/<process>/summary.json files found; no table written")
     args.output.parent.mkdir(parents=True,exist_ok=True)
     with args.output.open("x",newline="") as stream:
         writer=csv.DictWriter(stream,fieldnames=list(rows[0]));writer.writeheader();writer.writerows(rows)
-    print(json.dumps(dict(output=str(args.output),process_rows=len(rows),scope="One row per independent process; do not estimate repeat uncertainty from serial SQP samples")))
+    print(json.dumps(dict(output=str(args.output),process_rows=len(rows),missing_summaries=sum(not r['summary_present'] for r in rows),scope="One row per scheduled process, including missing summaries; do not estimate repeat uncertainty from serial SQP samples")))
     return 0
 
 

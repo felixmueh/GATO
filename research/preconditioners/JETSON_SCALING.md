@@ -45,6 +45,13 @@ Per-iteration reporting rejects B>1 or SQP budgets other than1 rather than divid
 a general solve duration by its iteration count. Mean/median/p95 within an episode
 are descriptive; compare uncertainty across separate process repeats.
 
+The CSV collector includes every scheduled process from `launch.json`, even
+when a crash or shared setup failure prevented `summary.json` from being
+written. Such rows have empty timings, an explicit missing-summary error,
+available process/horizon return codes and a saved stderr path. Collection
+does not rerun episodes or overwrite an existing CSV. The launcher prints
+per-horizon exit status and failed-process log tails while retaining full logs.
+
 Secondary `whole_task_compute_us` remains actual whole-task wall minus all measured
 explicit H2D/D2H copy walls, including native and bridge copies. Whole-task wall
 includes reset/initial plan, feedback solves, controller, Pinocchio plant and

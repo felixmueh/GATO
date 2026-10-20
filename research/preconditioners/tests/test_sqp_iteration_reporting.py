@@ -4,6 +4,13 @@ import sys
 import unittest
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 from upstream_reach import summarize_sqp_iterations
+import csv
+import contextlib
+import io
+import json
+import tempfile
+from types import SimpleNamespace
+from jetson_scaling import summarize
 
 class NativeIterationReporting(unittest.TestCase):
     def fixture(self):
@@ -37,5 +44,33 @@ class NativeIterationReporting(unittest.TestCase):
         summary=summarize_sqp_iterations(records,metrics)
         self.assertIsNone(summary['sqp_iteration_compute_mean_ms'])
         self.assertAlmostEqual(summary['sqp_iteration_wall_mean_ms'],.750)
+
+class ScheduledFailureReporting(unittest.TestCase):
+    def test_retains_crashed_process_and_failed_horizon_without_summaries(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory)
+            jobs=[dict(knots=n,case_id='reach-seed2',method=m,repeat=0)
+                  for n,m in ((128,'normal'),(128,'dummy'),(512,'normal'))]
+            (root/'launch.json').write_text(json.dumps(dict(plan=dict(jobs=jobs))))
+            (root/'status.json').write_text(json.dumps([dict(knots=128,returncode=1),dict(knots=512,returncode=1)]))
+            passed=root/'N128/reach-seed2-normal-r0';passed.mkdir(parents=True)
+            (passed/'summary.json').write_text(json.dumps(dict(sqp_iteration_compute_mean_ms=8.25)))
+            (root/'N128/status.json').write_text(json.dumps([
+                dict(case_id='reach-seed2',method='normal',repeat=0,returncode=0),
+                dict(case_id='reach-seed2',method='dummy',repeat=0,returncode=-11)]))
+            (root/'N512.stderr').write_text('shared setup failure retained here')
+            output=root/'table.csv'
+            with contextlib.redirect_stdout(io.StringIO()):summarize(SimpleNamespace(input=root,output=output))
+            with output.open() as stream:rows=list(csv.DictReader(stream))
+            self.assertEqual(len(rows),3)
+            self.assertEqual(rows[0]['sqp_iteration_compute_mean_ms'],'8.25')
+            self.assertEqual(rows[0]['error'],'')
+            self.assertEqual(rows[1]['process_returncode'],'-11')
+            for row in rows[1:]:
+                self.assertEqual(row['summary_present'],'False')
+                self.assertEqual(row['sqp_iteration_compute_mean_ms'],'')
+                self.assertIn('No summary',row['error'])
+            self.assertEqual(rows[2]['horizon_returncode'],'1')
+            self.assertEqual(rows[2]['stderr_path'],str(root/'N512.stderr'))
 
 if __name__=='__main__':unittest.main()
