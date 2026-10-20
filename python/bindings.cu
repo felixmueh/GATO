@@ -17,8 +17,14 @@
 #define cudaMemcpyAsync upstream_bench::copy_async
 #define cudaMemcpy2D upstream_bench::copy_2d
 #define solve_pcg_batched upstream_bench::solve_measured
+#ifdef PRECOND_MANAGED_S
+#define PRECOND_ALLOCATE_S upstream_bench::allocate_schur_s
+#endif
 #include "bsqp/bsqp.cuh"
 #undef solve_pcg_batched
+#ifdef PRECOND_ALLOCATE_S
+#undef PRECOND_ALLOCATE_S
+#endif
 #include "types.cuh"
 #include "utils/cuda.cuh"
 #include "utils/dlpack.h"
@@ -755,11 +761,42 @@ class PyBSQP {
 PYBIND11_MODULE(MODULE_NAME(KNOT_POINTS, GATO_PLANT_NAME, GATO_MODULE_VARIANT), m)
 {
         m.def("set_method", &upstream_bench::set_method);
+        m.def("set_end_to_end_mode",[](bool enabled){
+                if(enabled&&upstream_bench::method=="dummy")throw std::invalid_argument("Dummy calibration requires instrumented mode");
+                upstream_bench::end_to_end_mode=enabled;
+        });
+        m.def("shared_memory_info",[]{
+                py::dict result;int device=0;cudaDeviceProp property{};
+                upstream_bench::check(cudaGetDevice(&device));upstream_bench::check(cudaGetDeviceProperties(&property,device));
+                result["device_index"]=device;result["device_name"]=property.name;
+                result["integrated"]=property.integrated;result["managedMemory"]=property.managedMemory;
+                result["concurrentManagedAccess"]=property.concurrentManagedAccess;
+                result["directManagedMemAccessFromHost"]=property.directManagedMemAccessFromHost;
+                result["pageableMemoryAccess"]=property.pageableMemoryAccess;
+                result["pageableMemoryAccessUsesHostPageTables"]=property.pageableMemoryAccessUsesHostPageTables;
+                result["canMapHostMemory"]=property.canMapHostMemory;
+                result["managed_s_compiled"]=upstream_bench::managed_s_compiled();
+                result["method"]=upstream_bench::method;
+                result["requested_s_allocation"]=upstream_bench::shared_method()?"cudaMallocManaged":"cudaMalloc";
+                result["s_allocation_count"]=upstream_bench::s_allocation_count;
+                result["last_s_allocation_managed"]=upstream_bench::last_s_allocation_managed;
+                result["factor_allocation"]=upstream_bench::method=="block_ldlt_shared"?"cudaMallocManaged":"cudaMalloc or unused";
+                result["end_to_end_mode"]=upstream_bench::end_to_end_mode;
+#if defined(PRECOND_BLOCK_LDLT) && defined(PRECOND_MANAGED_S)
+                result["shared_s_pointer_verified"]=upstream_precond::last_shared_s_pointer_verified;
+#else
+                result["shared_s_pointer_verified"]=false;
+#endif
+                result["ownership_policy"]="GPU idle before CPU managed reads; CPU factor writes and fence before GPU launch; no simultaneous CPU/GPU access";
+                result["physical_sharing_claim"]="Managed allocation is explicit; integrated capability is recorded. Discrete-GPU validation does not establish Jetson performance.";
+                return result;
+        });
         m.def("prepare", &upstream_bench::prepare);
         m.def("reset_metrics", &upstream_bench::reset_metrics);
         m.def("metrics", [] {
                 py::dict totals; py::list rows;
-                double pcg_wall = 0.0, pcg_gpu = 0.0, setup_wall = 0.0, cpu_apply_wall = 0.0;
+                double pcg_wall = 0.0, pcg_gpu = 0.0, setup_wall = 0.0, cpu_apply_wall = 0.0,host_writes=0.0;
+                uint64_t additional_calls=0,additional_bytes=0;
                 for (const auto& record : upstream_bench::records) {
                         py::dict row;
                         row["additional_transfer_wall_us"] = record.additional_transfer_wall_us;
@@ -767,23 +804,40 @@ PYBIND11_MODULE(MODULE_NAME(KNOT_POINTS, GATO_PLANT_NAME, GATO_MODULE_VARIANT), 
                         row["pcg_gpu_us"] = record.pcg_gpu_us;
                         row["setup_wall_us"] = record.setup_wall_us;
                         row["cpu_apply_wall_us"] = record.cpu_apply_wall_us;
+                        row["host_factor_write_wall_us"]=record.host_factor_write_wall_us;
+                        row["pcg_gpu_event_measured"]=record.pcg_gpu_event_measured;
+                        additional_calls+=record.additional_copy_calls;additional_bytes+=record.additional_copy_bytes;host_writes+=record.host_factor_write_wall_us;
+                        row["additional_copy_calls"]=record.additional_copy_calls;row["additional_copy_bytes"]=record.additional_copy_bytes;
+                        if(!record.pcg_gpu_event_measured)row["pcg_gpu_us"]=py::none();
+                        if(upstream_bench::end_to_end_mode)row["pcg_compute_wall_us"]=py::none();
                         setup_wall+=record.setup_wall_us;cpu_apply_wall+=record.cpu_apply_wall_us;
                         rows.append(row); pcg_wall += record.pcg_compute_wall_us; pcg_gpu += record.pcg_gpu_us;
                 }
                 totals["method"] = upstream_bench::method;
-                totals["transfer_measurement_available"] = upstream_bench::method != "normal_raw" && !upstream_bench::uncovered_copy;
+                totals["transfer_measurement_available"] = !upstream_bench::end_to_end_mode && upstream_bench::method != "normal_raw" && !upstream_bench::uncovered_copy;
+                totals["end_to_end_mode"]=upstream_bench::end_to_end_mode;
+                totals["primary_timing"]="whole_task_wall_us; no transfer subtraction in end_to_end_mode";
+                totals["pcg_compute_wall_available"]=!upstream_bench::end_to_end_mode;
+                totals["pcg_gpu_event_scope"]=upstream_bench::end_to_end_mode?"not collected; BSQP outer event may include host setup idle and is not fused-kernel timing":"isolated PCG CUDA events";
                 totals["native_copy_wall_us"] = upstream_bench::native_copy_wall_us;
                 totals["additional_transfer_wall_us"] = upstream_bench::additional_transfer_wall_us;
                 totals["transfer_wall_us"] = upstream_bench::native_copy_wall_us + upstream_bench::additional_transfer_wall_us;
                 totals["native_copy_calls"] = upstream_bench::native_copy_calls;
                 totals["native_copy_bytes"] = upstream_bench::native_copy_bytes;
+                totals["additional_copy_calls"]=additional_calls;totals["additional_copy_bytes"]=additional_bytes;
+                totals["all_host_device_copy_calls"]=upstream_bench::native_copy_calls+additional_calls;
+                totals["all_host_device_copy_bytes"]=upstream_bench::native_copy_bytes+additional_bytes;
                 totals["uncovered_copy"] = upstream_bench::uncovered_copy;
                 totals["pcg_compute_wall_us"] = pcg_wall; totals["pcg_gpu_us"] = pcg_gpu;
                 totals["setup_wall_us"]=setup_wall;totals["cpu_setup_us"]=setup_wall;
+                totals["host_factor_write_wall_us"]=host_writes;
                 totals["cpu_apply_wall_us"]=cpu_apply_wall;totals["cpu_apply_us"]=cpu_apply_wall;
-                totals["preconditioner_backend"]=upstream_bench::method=="block_ldlt"?"CPU strip block LDLT setup, GPU apply inside public GLASS-formula recurrence":"native public GLASS";
+                totals["preconditioner_backend"]=upstream_bench::method=="block_ldlt_shared"?"CPU reads managed S, CPU factor writes managed L/Dinv, GPU apply; no S/factor cudaMemcpy":upstream_bench::method=="block_ldlt"?"CPU strip block LDLT setup, GPU apply inside public GLASS-formula recurrence":"native public GLASS";
                 totals["pcg_calls"] = upstream_bench::records.size(); totals["records"] = rows;
-                totals["transfer_scope"] = "Explicit H2D/D2H cudaMemcpy/cudaMemcpyAsync/cudaMemcpy2D in bindings, BSQP and included generated helpers; prior compute fenced before timer; D2D remains compute";
+                if(upstream_bench::end_to_end_mode){totals["pcg_compute_wall_us"]=py::none();totals["pcg_gpu_us"]=py::none();}
+                totals["transfer_scope"] = upstream_bench::end_to_end_mode?
+                    "E2E: native copies pass through unchanged with byte/call counters only; all I/O, host factor writes and managed-runtime/cache costs remain in actual whole-task wall; no subtraction":
+                    "Instrumented mode: disjoint native and candidate H2D/D2H copy walls; prior compute fenced before timers; D2D remains compute";
                 return totals;
         });
         m.attr("NATIVE_SOURCE_ID") = GATO_NATIVE_SOURCE_ID;

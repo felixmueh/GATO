@@ -19,6 +19,7 @@ option(GATO_FAST_MATH "Compile CUDA with -use_fast_math (disable for tight-toler
 option(GATO_BUILD_DEMO "Build the bsqp C++ demo executable" ON)
 option(GATO_EXACT_HESSIAN "Compile the exact-Hessian (SO-SQP) stage-projection path; OFF keeps the device tree preprocessor-identical to the GN-only solver" OFF)
 option(GATO_CONTACT_FORCES "Append a per-knot contact wrench to the control vector (f_c extends u; a module-ABI change, so it builds as the separate _fc module variant); OFF keeps the baseline solver bit-identical" OFF)
+option(PRECOND_MANAGED_S "Experimental explicit managed Schur S/factor handoff (runtime method opt-in)" OFF)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
 # NOTE: -G is an nvcc flag and lives in the CUDA debug flags only; ASan on a CUDA
@@ -207,6 +208,9 @@ foreach(pair ${GATO_MODULE_PAIRS})
       find_path(PRECOND_EIGEN_INCLUDE Eigen/Dense PATH_SUFFIXES eigen3 REQUIRED)
       target_include_directories(${MODULE_NAME} PRIVATE ${PRECOND_EIGEN_INCLUDE})
       target_compile_definitions(${MODULE_NAME} PRIVATE PRECOND_BLOCK_LDLT EIGEN_NO_CUDA EIGEN_DONT_PARALLELIZE)
+      if(PRECOND_MANAGED_S)
+        target_compile_definitions(${MODULE_NAME} PRIVATE PRECOND_MANAGED_S)
+      endif()
     endif()
 
     target_compile_definitions(${MODULE_NAME} PRIVATE

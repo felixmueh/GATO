@@ -1268,7 +1268,11 @@ class BSQP {
                 gpuErrchk(cudaMemset(d_lambda_batch_, 0, VEC_SIZE_PADDED * BT));
 
                 // Allocate Schur system memory
+#ifdef PRECOND_ALLOCATE_S
+                gpuErrchk(PRECOND_ALLOCATE_S(&schur_system_batch_.d_S_batch, B3D_MATRIX_SIZE_PADDED * BT));
+#else
                 gpuErrchk(cudaMalloc(&schur_system_batch_.d_S_batch, B3D_MATRIX_SIZE_PADDED * BT));
+#endif
                 gpuErrchk(cudaMalloc(&schur_system_batch_.d_P_inv_batch, B3D_MATRIX_SIZE_PADDED * BT));
                 gpuErrchk(cudaMalloc(&schur_system_batch_.d_gamma_batch, VEC_SIZE_PADDED * BT));
                 gpuErrchk(cudaMemset(schur_system_batch_.d_S_batch, 0, B3D_MATRIX_SIZE_PADDED * BT));

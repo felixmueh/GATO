@@ -6,6 +6,9 @@
 #include "upstream_timing.cuh"
 #ifdef PRECOND_BLOCK_LDLT
 #include "block_ldlt_solver.cuh"
+#ifdef PRECOND_MANAGED_S
+#include "block_ldlt_shared.cuh"
+#endif
 #endif
 
 namespace upstream_bench {
@@ -34,6 +37,9 @@ inline Buffers& buffers() { static thread_local Buffers result; return result; }
 inline void prepare() { (void)buffers();
 #ifdef PRECOND_BLOCK_LDLT
   if(method=="block_ldlt")upstream_precond::prepare_block_ldlt();
+#ifdef PRECOND_MANAGED_S
+  if(method=="block_ldlt_shared")upstream_precond::prepare_block_ldlt_shared();
+#endif
 #endif
 }
 
@@ -41,6 +47,10 @@ template<typename T>
 void solve_measured(uint32_t batch_size, T* lambda, SchurSystem<T> schur, T* epsilon,
                     uint32_t cap, int32_t* flags, uint32_t* iterations) {
   static_assert(std::is_same<T, float>::value, "Public timing benchmark supports float only");
+  if(end_to_end_mode&&(method=="normal"||method=="normal_shared")){
+    records.emplace_back();records.back().pcg_gpu_event_measured=false;
+    solve_pcg_batched<T>(batch_size,lambda,schur,epsilon,cap,flags,iterations);return;
+  }
   if (method == "normal_raw") {
     solve_pcg_batched<T>(batch_size, lambda, schur, epsilon, cap, flags, iterations);
     return;
@@ -49,17 +59,25 @@ void solve_measured(uint32_t batch_size, T* lambda, SchurSystem<T> schur, T* eps
   auto& h = buffers();
   // Await formation before measuring PCG. This wait remains inside the whole
   // reach wall boundary and is never subtracted as a transfer.
-  check(cudaDeviceSynchronize());
+  if(!end_to_end_mode)check(cudaDeviceSynchronize());
   const auto begin = Clock::now(); records.emplace_back(); auto& record = records.back();
+  record.pcg_gpu_event_measured=!end_to_end_mode;
   try {
 #ifdef PRECOND_BLOCK_LDLT
-    if(method=="block_ldlt"){
+    if(method=="block_ldlt"||method=="block_ldlt_shared"){
       upstream_precond::BlockLdltStats stats;
       auto preserve=[&]{record.additional_transfer_wall_us=stats.transfer_wall_us;
         additional_transfer_wall_us+=stats.transfer_wall_us;record.setup_wall_us=stats.cpu_setup_us;
+        record.additional_copy_calls=stats.transfer_calls;record.additional_copy_bytes=stats.transfer_bytes;
         record.pcg_gpu_us=stats.pcg_gpu_us;
         record.pcg_compute_wall_us=elapsed(begin)-stats.transfer_wall_us;};
-      try{upstream_precond::solve_block_ldlt(batch_size,lambda,schur,epsilon,cap,flags,iterations,stats);}
+      try{
+#ifdef PRECOND_MANAGED_S
+        if(method=="block_ldlt_shared")upstream_precond::solve_block_ldlt_shared(batch_size,lambda,schur,epsilon,cap,flags,iterations,stats,record.host_factor_write_wall_us,!end_to_end_mode);
+        else
+#endif
+        upstream_precond::solve_block_ldlt(batch_size,lambda,schur,epsilon,cap,flags,iterations,stats,!end_to_end_mode);
+      }
       catch(...){preserve();throw;}
       preserve();return;
     }
