@@ -125,16 +125,30 @@ C++17 toolchain are required. Architecture defaults to CMake `native`; `--arch 8
 can be supplied explicitly for the Orin target. No desktop paths are hardcoded.
 A single compiler job limits Jetson build memory use. Use fresh output paths.
 
-The felix-devel container creates `/opt/gato-venv` with **uv**; that environment
-may not contain pip. Install a missing public GRiD package with the image's uv
-into that Python environment:
+The observed Jetson container has read-only `/opt/gato-venv`, no pip in that
+environment and no uv on PATH. Reuse its existing packages through a small
+writable virtual environment in this checkout. The `.pth` entry processes the
+original environment's own `.pth` files too, preserving Pinocchio/cmeel imports:
 
 ```bash
-uv pip install --python /opt/gato-venv/bin/python "grid-rbd==0.5.1"
+/opt/gato-venv/bin/python -m venv .venv-precond
+.venv-precond/bin/python - <<'PY'
+import site
+from pathlib import Path
+Path(site.getsitepackages()[0], "container-packages.pth").write_text(
+    'import site; site.addsitedir("/opt/gato-venv/lib/python3.10/site-packages")\n'
+)
+PY
+source .venv-precond/bin/activate
+python -m pip install "grid-rbd==0.5.1"
+PYTHONPATH=python python -m gato._grid
 ```
 
-For other environments with pip available, `python -m pip install
-"grid-rbd==0.5.1"` also works. No container rebuild is needed.
+Keep this environment active for build, freeze, run and summarize; reactivate
+with `source .venv-precond/bin/activate` in a new shell. The base environment is
+unchanged; no sudo or container rebuild is needed. On other images with a
+writable active environment, pip or `uv pip install --python <interpreter>` can
+install the same pinned package directly.
 
 Configure/build failures print the last40 lines of each log and retain complete
 `stdout.log`, `stderr.log` and command/status metadata in the build output

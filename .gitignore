@@ -48,6 +48,7 @@ Makefile
 python/*.egg-info/
 
 .venv
+.venv-precond/
 .venv-cpu-baseline/
 uv.lock
 
