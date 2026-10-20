@@ -150,6 +150,16 @@ unchanged; no sudo or container rebuild is needed. On other images with a
 writable active environment, pip or `uv pip install --python <interpreter>` can
 install the same pinned package directly.
 
+ARM CUDA builds define `EIGEN_DONT_VECTORIZE` for the three experiment modules.
+`EIGEN_NO_CUDA` alone leaves host NEON intrinsics enabled in the CUDA translation
+unit and NVCC reports undefined `__builtin_aarch64_*` identifiers from
+`arm_neon.h`. Disabling Eigen explicit SIMD follows
+[Eigen's CUDA guidance](https://eigen.tuxfamily.org/dox/TopicCUDA.html). Host
+compiler auto-vectorization is not disabled. CPU timings therefore describe
+this build, not a fully NEON-optimized CPU implementation; moving Eigen code
+to separate host C++ translation units is a possible later performance study.
+Existing x86 build flags remain unchanged. Target rebuild validation is pending.
+
 Configure/build failures print the last40 lines of each log and retain complete
 `stdout.log`, `stderr.log` and command/status metadata in the build output
 directory. `freeze` requires all selected modules to have built successfully;

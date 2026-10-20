@@ -5,6 +5,28 @@ not Jetson measurements, a new performance ranking, or physical qualification.
 The prepared protocol is [JETSON_SCALING.md](JETSON_SCALING.md); the separate
 research decision is [CPU_SPIKE_RECOMMENDATION.md](CPU_SPIKE_RECOMMENDATION.md).
 
+## ARM Eigen/NVCC build correction
+
+User's target compilation reports undefined `__builtin_aarch64_*` intrinsics
+from `arm_neon.h`. The added CPU Eigen headers are compiled inside bindings.cu;
+`EIGEN_NO_CUDA` enables host-only Eigen but leaves host explicit SIMD enabled.
+ARM experiment targets now add `EIGEN_DONT_VECTORIZE`, following Eigen's CUDA
+guidance. Stock upstream aeacf16 bindings/CMake have no added Eigen integration.
+This is an experiment portability correction, not an upstream solver repair.
+
+Retained `_expr_results/arm-eigen-build-fix/` checks: existing CPU IC/SGS/Schwarz/
+Jacobi mathematical tests and LDLT reconstruction tests pass with the new flag.
+The N128/D12 CUDA application test compiles and passes on desktop sm61 (maximum
+absolute error2.08616e-7). CMake configuration with simulated ARM processor
+selects the definition for all three N128/256/512 targets; the existing x86
+configuration has no such definition. The simulated processor check does not
+cross-compile or validate ARM. Actual target rebuild remains pending.
+
+CPU timings on ARM will reflect disabled Eigen explicit SIMD; host compiler
+auto-vectorization is unchanged. Fully NEON-optimized CPU timings would need
+Eigen code moved into separate host C++ translation units. No timing ranking or
+whole-episode performance claim is made by these functional build checks.
+
 ## SQP-iteration reporting update
 
 C++ timing hooks at0ee8922 and reporting ata38f25c were checked in a fresh

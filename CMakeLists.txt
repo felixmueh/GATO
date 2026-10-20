@@ -208,6 +208,15 @@ foreach(pair ${GATO_MODULE_PAIRS})
       find_path(PRECOND_EIGEN_INCLUDE Eigen/Dense PATH_SUFFIXES eigen3 REQUIRED)
       target_include_directories(${MODULE_NAME} PRIVATE ${PRECOND_EIGEN_INCLUDE})
       target_compile_definitions(${MODULE_NAME} PRIVATE PRECOND_BLOCK_LDLT PRECOND_CPU_BENCH PRECOND_GPU_POLYNOMIAL EIGEN_NO_CUDA EIGEN_DONT_PARALLELIZE)
+      # EIGEN_NO_CUDA leaves host SIMD enabled. On ARM this pulls arm_neon.h
+      # into bindings.cu, whose GCC intrinsics NVCC cannot parse. Eigen requires
+      # disabling host SIMD in CUDA translation units (TopicCUDA.html).
+      # Keep historical x86 builds unchanged; this is a target build limitation,
+      # not a claim about a separate, NEON-optimized C++ CPU implementation.
+      if(CMAKE_SYSTEM_PROCESSOR MATCHES "^(aarch64|arm64|ARM64)$")
+        target_compile_definitions(${MODULE_NAME} PRIVATE EIGEN_DONT_VECTORIZE)
+        message(STATUS "${MODULE_NAME}: ARM CUDA build disables Eigen explicit SIMD")
+      endif()
       if(PRECOND_MANAGED_S)
         target_compile_definitions(${MODULE_NAME} PRIVATE PRECOND_MANAGED_S)
       endif()
