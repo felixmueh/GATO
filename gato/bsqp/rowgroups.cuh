@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <type_traits>
+#include <stdexcept>
 #include "settings.h"
 #include "constants.h"
 #include "utils/cuda.cuh"
@@ -921,6 +922,23 @@ template<typename T>
 __host__ size_t get_row_group_telemetry_smem_size()
 {
         return sizeof(T) * (KNOT_POINTS * TELEMETRY_MAX_ROWS + rowgroup_eval_scratch_ct<T>());
+}
+
+// Configure at solver construction, outside the native solve timer. Small
+// modules make no additional CUDA calls; large carves must fit this device.
+template<typename T>
+__host__ void configure_row_group_telemetry_smem()
+{
+        const size_t bytes = get_row_group_telemetry_smem_size<T>();
+        if (bytes <= 48 * 1024) return;
+        int device = 0, optin_limit = 0;
+        cudaFuncAttributes attributes{};
+        gpuErrchk(cudaGetDevice(&device));
+        gpuErrchk(cudaDeviceGetAttribute(&optin_limit, cudaDevAttrMaxSharedMemoryPerBlockOptin, device));
+        gpuErrchk(cudaFuncGetAttributes(&attributes, row_group_telemetry_batched_kernel<T>));
+        if (bytes + attributes.sharedSizeBytes > static_cast<size_t>(optin_limit))
+                throw std::runtime_error("Constraint telemetry scratch exceeds device opt-in shared-memory capacity; no kernel launched");
+        gpuErrchk(cudaFuncSetAttribute(row_group_telemetry_batched_kernel<T>, cudaFuncAttributeMaxDynamicSharedMemorySize, static_cast<int>(bytes)));
 }
 
 template<typename T>

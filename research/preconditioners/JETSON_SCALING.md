@@ -193,6 +193,37 @@ against normal/opt-in limits and configures opt-in before task timing, without
 launching a null-pointer kernel. The existing launch helpers remain intact.
 Target resource/finite-solve validation remains pending until Jetson execution.
 
+### N512 telemetry launch correction
+
+The first Jetson calibration at8f6e4a2 completed both N128 episodes. Native and
+dummy recorded158calls/4031PCG iterations each and SQP compute means8.25084/
+8.32180ms (one process each, not repeat uncertainty). Both N512 processes
+aborted at the unchanged upstream telemetry launch in rowgroups.cuh:933.
+The Indy7 telemetry carve is61,384bytes atN512 and lacked the required >48KiB
+opt-in. Felix authorized the narrow launch correction separately.
+
+Both BSQP constructors now configure that telemetry kernel before allocation,
+outside the native SQP timer. Oversized requests check compiled static plus
+dynamic bytes against the device opt-in limit before setting the attribute.
+N128/N256 fitting requests make no new CUDA calls. The kernel arithmetic,
+telemetry, launches, transfer subtraction and native timer boundaries remain
+unchanged. Target validation of the correction is pending. Rebuild and freeze
+new inputs; retain the original failed calibration, old binaries and manifests.
+
+```bash
+python research/preconditioners/jetson_scaling.py build \
+  --output _expr_results/jetson-sqp-build-retry4 && \
+python research/preconditioners/jetson_scaling.py freeze \
+  --output _expr_results/jetson-sqp-inputs-retry2
+python research/preconditioners/jetson_scaling.py run \
+  --tasks _expr_results/jetson-sqp-inputs-retry2 \
+  --output _expr_results/jetson-sqp-calibration-retry1 \
+  --knots 128,512 --methods normal,dummy --cases reach-seed2 --preflight
+python research/preconditioners/jetson_scaling.py summarize \
+  --input _expr_results/jetson-sqp-calibration-retry1 \
+  --output _expr_results/jetson-sqp-calibration-retry1/sqp-iterations.csv
+```
+
 ## Bounded checks, short protocol and full selection
 
 The launcher executes nothing for `--dry-run`; the exact job list and rough budget

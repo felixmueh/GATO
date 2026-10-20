@@ -42,6 +42,7 @@ class BSQP {
               q_pos_cost_(0.0), fc_cost_(gato::constants::FC_SIZE > 0 ? static_cast<T>(1e-2) : static_cast<T>(0)),
               rho_(1e-3), adapt_rho_(true)
         {
+                rows::configure_row_group_telemetry_smem<T>();
                 allocate_memory();
                 init_batched_hyperparams();
         }
@@ -52,6 +53,7 @@ class BSQP {
             : batch_size_(batch_size), max_sqp_iters_(max_sqp_iters), max_pcg_iters_(max_pcg_iters), pcg_tol_(pcg_tol), solve_ratio_(solve_ratio), mu_(mu), q_cost_(q_cost), qd_cost_(qd_cost),
               u_cost_(u_cost), N_cost_(N_cost), q_lim_cost_(q_lim_cost), vel_lim_cost_(vel_lim_cost), ctrl_lim_cost_(ctrl_lim_cost), q_pos_cost_(0.0), fc_cost_(gato::constants::FC_SIZE > 0 ? static_cast<T>(1e-2) : static_cast<T>(0)), rho_(rho), adapt_rho_(true)
         {
+                rows::configure_row_group_telemetry_smem<T>();
                 allocate_memory();
                 init_batched_hyperparams();
         }

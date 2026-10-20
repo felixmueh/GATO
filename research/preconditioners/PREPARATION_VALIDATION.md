@@ -5,6 +5,39 @@ not Jetson measurements, a new performance ranking, or physical qualification.
 The prepared protocol is [JETSON_SCALING.md](JETSON_SCALING.md); the separate
 research decision is [CPU_SPIKE_RECOMMENDATION.md](CPU_SPIKE_RECOMMENDATION.md).
 
+## Authorized telemetry opt-in and failure reporting
+
+First user-run Jetson calibration at8f6e4a2: N128 normal/dummy each reaches all
+three goals with158calls/4031PCG iterations; transfer-excluded SQP means8.25084
+and8.32180ms differ0.86%. Each N512 process exits at the unchanged upstream
+rowgroups.cuh:933 telemetry launch with `GPUassert: invalid argument`. The
+target raw data remains in `/workspace/_expr_results/jetson-sqp-calibration/`
+on Jetson; only the provided CSV/log excerpts are available on desktop so far.
+This is not an N512 calibration pass or a repeated timing estimate.
+
+Felix authorized the narrow telemetry-kernel shared-memory opt-in. A read-only
+independent review found no practical blockers: constructors configure before
+allocation/native timing; large carves validate actual compiled static plus
+dynamic bytes against device capacity; fitting sizes add no CUDA calls; kernel
+arithmetic and native timing/transfer boundaries remain unchanged.
+
+`tests/telemetry_smem_probe.cu` compiles forN128/256/512 and makes **no kernel
+launches**. Desktop GTX1070 reports dynamic telemetry16,840/31,688/61,384bytes,
+static0 and normal/opt-in limits49,152. N128/N256 retain their original dynamic
+allowance; N512 is safely rejected before any launch, as required on this
+hardware. Command/build/probe outputs are retained under
+`_expr_results/telemetry-optin-fix/attempt2/`; the first failed probe build
+(missing GATO_PLANT_HEADER definition) remains in its parent. This proves
+source compilation and capacity handling, not supported N512 target execution.
+Jetson rebuild and finite-task validation of the corrected source are pending.
+
+The CSV collector now enumerates the saved launch plan, preserving missing
+summaries as explicit rows with empty timings, return codes and log paths.
+Four CPU reporting tests pass, including a crashed process and a failed
+horizon with no summaries; recollecting the existing six desktop native/dummy/
+LDLT episodes retains all six with zero missing summaries. No solver or timing
+rerun was needed for this reporting-only correction.
+
 ## ARM Eigen/NVCC build correction
 
 User's target compilation reports undefined `__builtin_aarch64_*` intrinsics
