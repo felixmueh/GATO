@@ -97,8 +97,30 @@ namespace plant {
 // from the URDF <limit> tags. They reference JOINT_LIMIT_MARGIN above.
 #include "limits.cuh"
 
+#ifndef GATO_SMOOTH_JOINT_FRICTION
+#define GATO_SMOOTH_JOINT_FRICTION 0
+#endif
+#if GATO_SMOOTH_JOINT_FRICTION && (USE_EXACT_HESSIAN || GATO_CONTACT_FORCES)
+#error "Smooth joint friction currently supports the default first-order variant only"
+#endif
+
 namespace gato {
 namespace plant {
+        static_assert(!GATO_SMOOTH_JOINT_FRICTION || NQ == NV,
+                      "Smooth joint friction supports fixed-base scalar joints only");
+        inline constexpr int JOINT_FRICTION_SCRATCH_COUNT = GATO_SMOOTH_JOINT_FRICTION ? NQ : 0;
+
+#if GATO_SMOOTH_JOINT_FRICTION
+        template<typename T>
+        __device__ void effective_joint_torque(T* s_effective, const T* s_u, const T* s_qd)
+        {
+                for (int i = threadIdx.x + threadIdx.y * blockDim.x; i < NQ; i += blockDim.x * blockDim.y) {
+                        const T* coeff = JOINT_FRICTION_DATA<T>[i];
+                        s_effective[i] = s_u[i] - coeff[1] * s_qd[i] - coeff[0] * tanh(s_qd[i] / coeff[2]);
+                }
+                __syncthreads();
+        }
+#endif
 
         // Limit tables cover the ACTUATED joints only (NU rows): the floating
         // base free-joint has no URDF <limit> tags and its dofs are unbounded.
@@ -248,12 +270,18 @@ namespace plant {
                 // d_workspace == nullptr: at the in-smem placement default the inner keeps all
                 // scratch in shared memory (INNER_WORKSPACE_BYTES == 0). d_f_ext is body-major
                 // 6*NUM_BODIES (or nullptr); gravity is now the last argument.
-                grid::forward_dynamics_inner<T>(s_qdd, s_q, s_qd, s_u, s_XImats, s_topology_helpers, s_temp, /*d_workspace*/nullptr, d_f_ext, gato::plant::GRAVITY<T>());
+                const T* s_applied = s_u;
+#if GATO_SMOOTH_JOINT_FRICTION
+                T* s_effective = s_XITemp + grid::FORWARD_DYNAMICS_DYNAMIC_SHARED_MEM_COUNT + FC_PERSIST_COUNT;
+                effective_joint_torque<T>(s_effective, s_u, s_qd);
+                s_applied = s_effective;
+#endif
+                grid::forward_dynamics_inner<T>(s_qdd, s_q, s_qd, s_applied, s_XImats, s_topology_helpers, s_temp, /*d_workspace*/nullptr, d_f_ext, gato::plant::GRAVITY<T>());
         }
 
         __host__ __device__ constexpr unsigned forward_dynamics_smem_ct()
         {
-                return grid::FORWARD_DYNAMICS_DYNAMIC_SHARED_MEM_COUNT + FC_PERSIST_COUNT;
+                return grid::FORWARD_DYNAMICS_DYNAMIC_SHARED_MEM_COUNT + FC_PERSIST_COUNT + JOINT_FRICTION_SCRATCH_COUNT;
         }
 
         template<typename T, bool INCLUDE_DU = true>
@@ -287,7 +315,13 @@ namespace plant {
                 grid::minv_inner<T>(s_Minv, s_q, s_XImats, s_topology_helpers, s_temp, /*d_workspace*/nullptr);
                 T* s_c = s_temp;
                 grid::inverse_dynamics_inner<T>(s_c, s_vaf, s_q, s_qd, s_XImats, s_topology_helpers, &s_temp[6], d_f_ext, GRAVITY<T>());
-                grid::forward_dynamics_finish<T>(s_qdd, s_u, s_c, s_Minv);
+                const T* s_applied = s_u;
+#if GATO_SMOOTH_JOINT_FRICTION
+                T* s_effective = s_XITemp + grid::FD_DU_MAX_SHARED_MEM_COUNT + FC_PERSIST_COUNT;
+                effective_joint_torque<T>(s_effective, s_u, s_qd);
+                s_applied = s_effective;
+#endif
+                grid::forward_dynamics_finish<T>(s_qdd, s_applied, s_c, s_Minv);
                 // finish WRITES s_qdd (parallel over rows); inner_vaf READS it under a
                 // different thread mapping — GRiD's own generated finish→vaf composition
                 // emits this sync, our hand-rolled copy dropped it (racecheck WAW family,
@@ -297,6 +331,18 @@ namespace plant {
                 // Inverse-dynamics gradient is not f_ext-threaded in GRiD (matches prior GATO behavior,
                 // which also omitted d_f_ext on the gradient). d_temp_spill == nullptr (USE_DA_DF_SPILL=false).
                 grid::inverse_dynamics_gradient_inner<T>(s_dc_du, s_q, s_qd, s_vaf, s_XImats, s_topology_helpers, s_temp, /*d_temp_spill*/nullptr, GRAVITY<T>());
+
+#if GATO_SMOOTH_JOINT_FRICTION
+                // dc/dv includes the passive-torque derivative. The rigid ID gradient
+                // above uses the corrected acceleration, preserving the q dependence too.
+                __syncthreads();
+                for (int i = threadIdx.x + threadIdx.y * blockDim.x; i < NQ; i += blockDim.x * blockDim.y) {
+                        const T* coeff = JOINT_FRICTION_DATA<T>[i];
+                        const T t = tanh(s_qd[i] / coeff[2]);
+                        s_dc_du[NQ * NQ + i * NQ + i] += coeff[1] + coeff[0] / coeff[2] * (static_cast<T>(1) - t * t);
+                }
+                __syncthreads();
+#endif
 
                 // Option A: GATO keeps its own hand-composition df_du = -Minv * dc_du and packs
                 // dqdd/du = Minv into s_df_du[2*NQ*NQ..] itself (the integrator gradient reads it there).
@@ -354,7 +400,7 @@ namespace plant {
 
         __host__ __device__ constexpr unsigned forward_dynamics_gradient_smem_ct()
         {
-                return grid::FD_DU_MAX_SHARED_MEM_COUNT + FC_PERSIST_COUNT;
+                return grid::FD_DU_MAX_SHARED_MEM_COUNT + FC_PERSIST_COUNT + JOINT_FRICTION_SCRATCH_COUNT;
         }
 
 #if USE_EXACT_HESSIAN

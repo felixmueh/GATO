@@ -133,7 +133,29 @@ def _fmt(v):
     return repr(float(v))
 
 
-def _write_limits(robot, out_path, name, urdf_name):
+def _joint_friction_config(robot, smoothing):
+    """Opt-in scalar or per-joint tanh widths; URDF passive terms stay off otherwise."""
+    if smoothing is None:
+        return None
+    if (not isinstance(smoothing, (int, float, list, tuple)) or isinstance(smoothing, bool)
+            or (isinstance(smoothing, (list, tuple)) and
+                any(not isinstance(v, (int, float)) or isinstance(v, bool) for v in smoothing))):
+        raise ValueError("joint_friction_smoothing requires a JSON numeric scalar or list")
+    joints = robot.get_joints_ordered_by_id()
+    if any(j.jtype not in ("revolute", "continuous", "prismatic") or
+           getattr(j, "is_mimic", False) for j in joints):
+        raise ValueError("smooth joint friction requires independent fixed-base scalar joints")
+    widths = ([float(smoothing)] * len(joints) if isinstance(smoothing, (int, float))
+              else [float(v) for v in smoothing])
+    if len(widths) != len(joints) or any(not math.isfinite(v) or v <= 0 for v in widths):
+        raise ValueError("joint_friction_smoothing must give positive finite velocity widths for every joint")
+    rows = [(float(j.friction), float(j.damping), w) for j, w in zip(joints, widths)]
+    if any(not math.isfinite(v) or v < 0 for row in rows for v in row[:2]):
+        raise ValueError("URDF friction/damping coefficients must be finite and nonnegative")
+    return rows
+
+
+def _write_limits(robot, out_path, name, urdf_name, joint_friction_smoothing=None):
     """Emit the per-robot limits.cuh from the parsed URDF <limit> tags.
 
     Floating base: the synthesized base free-joint carries no <limit> tags and
@@ -178,6 +200,14 @@ def _write_limits(robot, out_path, name, urdf_name):
                        f"{_fmt(hi)} + JOINT_LIMIT_MARGIN<T>()}}{comma}  // {jname}")
         out.append("        };")
     out += ["", "}  // namespace plant", "}  // namespace gato", ""]
+    friction = _joint_friction_config(robot, joint_friction_smoothing)
+    if friction is not None:
+        out += ["#define GATO_SMOOTH_JOINT_FRICTION 1", "namespace gato { namespace plant {",
+                "// [Coulomb, viscous, tanh velocity width], from URDF plus explicit opt-in.",
+                "template<class T>",
+                f"__device__ constexpr T JOINT_FRICTION_DATA[{nq}][3] = {{"]
+        out += ["    {" + ", ".join(_fmt(v) for v in row) + "}," for row in friction]
+        out += ["};", "}}", ""]
     Path(out_path).write_text("\n".join(out))
 
 
@@ -200,7 +230,7 @@ GATO_ALGORITHMS = (
 )
 
 
-def _codegen_key(urdf_path, ee_frame, collision_res, contact_frames, floating_base):
+def _codegen_key(urdf_path, ee_frame, collision_res, contact_frames, floating_base, joint_friction_smoothing=None):
     """Cache key of the URDF
     bytes, the pinned grid-rbd release (the emitter: its version and bundled
     source/peer provenance), the consumed algorithm set and the codegen options.
@@ -215,12 +245,14 @@ def _codegen_key(urdf_path, ee_frame, collision_res, contact_frames, floating_ba
     h.update(json.dumps(_grid.require(), sort_keys=True).encode())
     h.update(repr((tuple(GATO_ALGORITHMS), ee_frame, collision_res,
                    tuple(contact_frames) if contact_frames else None, bool(floating_base))).encode())
+    if joint_friction_smoothing is not None:
+        h.update(repr(("smooth-joint-friction-v1", joint_friction_smoothing)).encode())
     return h.hexdigest()[:16]
 
 
 def codegen(urdf_path, name, ee_frame="EE", algorithm_list=None, out_dir=None,
             register=True, collision_res=0.15, contact_frames=None,
-            floating_base=False):
+            floating_base=False, joint_friction_smoothing=None):
     """Generate gato/dynamics/<name>/{grid.cuh, limits.cuh} + register the robot.
 
     Returns the registry metadata dict. This is the single codegen path — both
@@ -245,11 +277,20 @@ def codegen(urdf_path, name, ee_frame="EE", algorithm_list=None, out_dir=None,
     None (default) bakes [ee_frame] — every GATO plant carries its EE contact
     map; pass [] to opt out.
 
+    joint_friction_smoothing: opt-in positive scalar or per-joint velocity widths
+    (rad/s for revolute joints, m/s for prismatic). Enables BOTH URDF viscous
+    damping and Coulomb friction c*tanh(v/width), with matching first derivatives.
+    Default None ignores passive URDF tags, as before. Fixed-base scalar joints
+    and the default first-order solver variant only; GRiD passive dynamics remain
+    disabled to avoid double counting. This does not model stiction.
+
     floating_base: parse/generate with a quaternion free-flyer root: the modules
     run the grid_plant SE(3) step/linearization path (SI-EULER integrator,
     tangent state cost). ee_frame is then the base-pose target frame (go2:
     imu_joint).
     """
+    if joint_friction_smoothing is not None and floating_base:
+        raise ValueError("smooth joint friction requires fixed-base scalar joints")
     urdf_path = Path(urdf_path).resolve()
     if not urdf_path.exists():
         raise FileNotFoundError(f"URDF not found: {urdf_path}")
@@ -260,7 +301,7 @@ def codegen(urdf_path, name, ee_frame="EE", algorithm_list=None, out_dir=None,
     robot = _parse_urdf(urdf_path, ee_frame, floating_base=floating_base)
     # Limits first: it validates every joint has bounded <limit> tags (cheap),
     # so an unsupported robot fails before the expensive grid.cuh generation.
-    _write_limits(robot, out_dir / "limits.cuh", name, urdf_path.name)
+    _write_limits(robot, out_dir / "limits.cuh", name, urdf_path.name, joint_friction_smoothing)
     from grid_codegen.GRiDCodeGenerator import GRiDCodeGenerator
 
     # LAUNCH_CONFIG_ROBOT: the launch_configs dir is keyed by the URDF filename
@@ -325,6 +366,8 @@ def codegen(urdf_path, name, ee_frame="EE", algorithm_list=None, out_dir=None,
     meta = {"nq": robot.get_num_pos(), "nv": robot.get_num_vel(),
             "ee_frame": ee_frame, "urdf": urdf_rel,
             "floating_base": bool(floating_base)}
+    if joint_friction_smoothing is not None:
+        meta["joint_friction"] = _joint_friction_config(robot, joint_friction_smoothing)
     if collision_res is not None:
         meta["collision"] = {"res": float(collision_res), "n_spheres": n_spheres}
     if contact_frames:
@@ -336,7 +379,7 @@ def codegen(urdf_path, name, ee_frame="EE", algorithm_list=None, out_dir=None,
 
 def build(urdf_path, name=None, N=(32,), ee_frame="EE", arch=None, jobs=4,
           build_dir=None, collision_res=0.15, contact_frames=None,
-          floating_base=False, contact_forces=False, exact_hessian=False):
+          floating_base=False, contact_forces=False, exact_hessian=False, joint_friction_smoothing=None):
     """Codegen + compile the bsqpN{N}_<name> solver modules for a URDF.
 
     Args:
@@ -361,6 +404,8 @@ def build(urdf_path, name=None, N=(32,), ee_frame="EE", arch=None, jobs=4,
             (bsqpN{N}_{name}_fc / _eh), loaded with BSQP(..., variant=...).
     Returns: list of built (name, N) pairs.
     """
+    if joint_friction_smoothing is not None and (floating_base or exact_hessian or contact_forces):
+        raise ValueError("smooth joint friction supports fixed-base first-order dynamics only")
     name = name or Path(urdf_path).stem
     if contact_forces and exact_hessian:
         raise ValueError("contact_forces and exact_hessian are separate module variants — build one at a time")
@@ -372,14 +417,15 @@ def build(urdf_path, name=None, N=(32,), ee_frame="EE", arch=None, jobs=4,
     Ns = [int(n) for n in ([N] if isinstance(N, int) else N)]
 
     root = repo_root()
-    key = _codegen_key(urdf_path, ee_frame, collision_res, contact_frames, floating_base)
+    key = _codegen_key(urdf_path, ee_frame, collision_res, contact_frames, floating_base, joint_friction_smoothing)
     have = load_registry().get(name, {})
     headers = [root / "gato" / "dynamics" / name / f for f in ("grid.cuh", "limits.cuh")]
     if have.get("codegen_key") == key and all(h.exists() for h in headers):
         print(f"[gato.build] {name}: codegen inputs unchanged (URDF, GRiD pin, algorithm set, options) — skipping codegen")
     else:
         meta = codegen(urdf_path, name, ee_frame=ee_frame, collision_res=collision_res,
-                       contact_frames=contact_frames, floating_base=floating_base)
+                       contact_frames=contact_frames, floating_base=floating_base,
+                       joint_friction_smoothing=joint_friction_smoothing)
         _update_registry(name, {**meta, "codegen_key": key})
 
     try:

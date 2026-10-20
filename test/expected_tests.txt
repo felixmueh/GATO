@@ -88,6 +88,12 @@ test/test_controller.py::test_reseed_triggers_hold_seed_and_forces_cold
 test/test_controller.py::test_shift_warm_start_math
 test/test_controller.py::test_step_result_wiring
 test/test_controller.py::test_warm_start_mode_validated
+test/test_controller_limits.py::test_batch_reports_the_winner
+test/test_controller_limits.py::test_caller_configuration_stands
+test/test_controller_limits.py::test_default_installs_admm_limit_rows
+test/test_controller_limits.py::test_explicit_mechanisms_and_overrides
+test/test_controller_limits.py::test_off_installs_nothing
+test/test_controller_limits.py::test_per_box_rho
 test/test_controller_replay.py::test_replay_host_torch_jax_parity_without_timings[admm-1-fr3]
 test/test_controller_replay.py::test_replay_host_torch_jax_parity_without_timings[admm-1-gen3]
 test/test_controller_replay.py::test_replay_host_torch_jax_parity_without_timings[admm-1-iiwa14]
@@ -116,12 +122,6 @@ test/test_controller_replay.py::test_replay_inputs_are_repeatable[ur5e]
 test/test_controller_replay.py::test_replay_launcher_preview_and_window_guard
 test/test_controller_replay.py::test_replay_parity_refuses_mismatch
 test/test_controller_replay.py::test_replay_refuses_unapproved_or_dirty_timing
-test/test_controller_limits.py::test_batch_reports_the_winner
-test/test_controller_limits.py::test_caller_configuration_stands
-test/test_controller_limits.py::test_default_installs_admm_limit_rows
-test/test_controller_limits.py::test_explicit_mechanisms_and_overrides
-test/test_controller_limits.py::test_off_installs_nothing
-test/test_controller_limits.py::test_per_box_rho
 test/test_cpp_interface.py::test_paths_cli_formats
 test/test_cpp_interface.py::test_paths_resolve_vendored_robot
 test/test_cpp_interface.py::test_standalone_cpp_example_builds_and_runs
@@ -476,6 +476,11 @@ test/test_smoke_solve.py::test_solve_finite_and_deterministic[8-indy7-64]
 test/test_smoke_solve.py::test_solve_finite_and_deterministic[8-indy7-8]
 test/test_smoke_solve.py::test_solve_finite_and_deterministic[8-ur5e-64]
 test/test_smoke_solve.py::test_terminal_merit_ignores_stale_shared_memory
+test/test_smooth_friction.py::test_smoothing_changes_codegen_identity_only_when_enabled
+test/test_smooth_friction.py::test_smoothing_explicit_and_validated
+test/test_smooth_friction.py::test_unsupported_variants_fail_before_codegen[option0]
+test/test_smooth_friction.py::test_unsupported_variants_fail_before_codegen[option1]
+test/test_smooth_friction.py::test_unsupported_variants_fail_before_codegen[option2]
 test/test_tasks.py::test_generators_on_every_arm[fr3]
 test/test_tasks.py::test_generators_on_every_arm[gen3]
 test/test_tasks.py::test_generators_on_every_arm[iiwa14]
