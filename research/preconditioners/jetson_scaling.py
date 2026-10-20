@@ -99,6 +99,7 @@ def summarize(args):
     for path in sorted(args.input.resolve().glob("N*/*/summary.json")):
         summary=json.loads(path.read_text()); config=json.loads(path.with_name("config.json").read_text())
         row=dict(knots=config["knots"],method=config["method"],case_id=config.get("task_id"),
+            repeat=int(path.parent.name.rsplit("-r",1)[1]),
             process_id=path.parent.name,error=summary.get("error"),
             all_goals_reached=summary.get("all_goals_reached"),
             tracking_completed=(summary.get("tracking") or {}).get("completed_requested_duration"))
