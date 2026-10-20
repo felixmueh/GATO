@@ -954,6 +954,9 @@ class BSQP {
                 uint32_t ls_iters_run = 0;  // iterations that reached merit+line-search
 
                 auto sqp_start_time = std::chrono::high_resolution_clock::now();
+#ifdef PRECOND_NATIVE_SQP_BEGIN
+                PRECOND_NATIVE_SQP_BEGIN();
+#endif
 
                 // set d_dz_batch_ to zero
                 gpuErrchk(cudaMemset(d_dz_batch_, 0, TRAJ_SIZE * batch_size_ * sizeof(T)));
@@ -1198,6 +1201,9 @@ class BSQP {
                         }
                 }
                 auto sqp_end_time = std::chrono::high_resolution_clock::now();
+#ifdef PRECOND_NATIVE_SQP_END
+                PRECOND_NATIVE_SQP_END(std::chrono::duration_cast<std::chrono::microseconds>(sqp_end_time - sqp_start_time).count());
+#endif
                 gpuErrchk(cudaMemset(d_kkt_converged_batch_, 0, batch_size_ * sizeof(int32_t)));
                 gpuErrchk(cudaMemcpyAsync(d_drho_batch_, h_drho_batch_init_.data(), batch_size_ * sizeof(T), cudaMemcpyHostToDevice));
                 sqp_stats.solve_time_us = std::chrono::duration_cast<std::chrono::microseconds>(sqp_end_time - sqp_start_time).count();

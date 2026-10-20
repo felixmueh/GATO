@@ -20,7 +20,11 @@
 #ifdef PRECOND_MANAGED_S
 #define PRECOND_ALLOCATE_S upstream_bench::allocate_schur_s
 #endif
+#define PRECOND_NATIVE_SQP_BEGIN() const auto precond_native_sqp_snapshot=upstream_bench::begin_native_sqp()
+#define PRECOND_NATIVE_SQP_END(wall_us) upstream_bench::end_native_sqp(precond_native_sqp_snapshot,wall_us,batch_size_,max_sqp_iters_,h_sqp_iters_B_,h_pcg_iters_)
 #include "bsqp/bsqp.cuh"
+#undef PRECOND_NATIVE_SQP_BEGIN
+#undef PRECOND_NATIVE_SQP_END
 #undef solve_pcg_batched
 #ifdef PRECOND_ALLOCATE_S
 #undef PRECOND_ALLOCATE_S
@@ -831,6 +835,23 @@ PYBIND11_MODULE(MODULE_NAME(KNOT_POINTS, GATO_PLANT_NAME, GATO_MODULE_VARIANT), 
                         setup_wall+=record.setup_wall_us;cpu_apply_wall+=record.cpu_apply_wall_us;
                         rows.append(row); pcg_wall += record.pcg_compute_wall_us; pcg_gpu += record.pcg_gpu_us;
                 }
+                py::list native_solves;
+                const bool copy_measurement_available=!upstream_bench::end_to_end_mode && upstream_bench::method!="normal_raw" && !upstream_bench::uncovered_copy;
+                for(const auto& solve:upstream_bench::native_sqp_solves){
+                        py::dict row;
+                        row["native_wall_us"]=solve.native_wall_us;
+                        row["native_copy_us"]=solve.native_copy_us;
+                        row["candidate_copy_us"]=solve.candidate_copy_us;
+                        row["transfer_us"]=solve.native_copy_us+solve.candidate_copy_us;
+                        row["compute_us"]=copy_measurement_available?py::cast(solve.native_wall_us-solve.native_copy_us-solve.candidate_copy_us):py::none();
+                        row["transfer_measurement_available"]=copy_measurement_available;
+                        row["batch_size"]=solve.batch_size;row["max_sqp_iters"]=solve.max_sqp_iters;
+                        row["actual_sqp_iters"]=solve.actual_sqp_iters;row["pcg_iters"]=solve.pcg_iters;
+                        row["zero_pcg_shortcut"]=solve.actual_sqp_iters==1 && solve.pcg_iters==0;
+                        native_solves.append(row);
+                }
+                totals["native_sqp_solves"]=native_solves;
+                totals["native_sqp_timing_scope"]="Existing BSQP sqp_start_time/end_time interval; only disjoint native/candidate copies within that interval subtracted. B1/SQP1 solve is one attempted iteration, including zero-PCG shortcuts.";
                 totals["method"] = upstream_bench::method;
                 totals["transfer_measurement_available"] = !upstream_bench::end_to_end_mode && upstream_bench::method != "normal_raw" && !upstream_bench::uncovered_copy;
                 totals["end_to_end_mode"]=upstream_bench::end_to_end_mode;

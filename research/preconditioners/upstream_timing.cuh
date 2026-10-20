@@ -29,6 +29,26 @@ struct Record {
   uint64_t additional_copy_calls=0,additional_copy_bytes=0;
 };
 inline std::vector<Record> records;
+// Snapshots bracket the existing BSQP native solve timer. They do not include
+// Python binding uploads/downloads or the post-timer BSQP reset/telemetry I/O.
+struct NativeSqpSnapshot {double native_copy_us, candidate_copy_us;};
+struct NativeSqpSolve {
+  double native_wall_us=0,native_copy_us=0,candidate_copy_us=0;
+  uint32_t batch_size=0,max_sqp_iters=0,actual_sqp_iters=0,pcg_iters=0;
+};
+inline std::vector<NativeSqpSolve> native_sqp_solves;
+inline NativeSqpSnapshot begin_native_sqp(){return {native_copy_wall_us,additional_transfer_wall_us};}
+inline void end_native_sqp(NativeSqpSnapshot snapshot,double native_wall_us,
+                          uint32_t batch_size,uint32_t max_sqp_iters,
+                          const uint32_t* actual_sqp_iters,const uint32_t* pcg_iters){
+  NativeSqpSolve result;
+  result.native_wall_us=native_wall_us;
+  result.native_copy_us=native_copy_wall_us-snapshot.native_copy_us;
+  result.candidate_copy_us=additional_transfer_wall_us-snapshot.candidate_copy_us;
+  result.batch_size=batch_size;result.max_sqp_iters=max_sqp_iters;
+  if(batch_size){result.actual_sqp_iters=actual_sqp_iters[0];if(result.actual_sqp_iters)result.pcg_iters=pcg_iters[0];}
+  native_sqp_solves.push_back(result);
+}
 inline double elapsed(Clock::time_point start) {
   return std::chrono::duration<double, std::micro>(Clock::now() - start).count();
 }
@@ -99,7 +119,7 @@ inline void set_method(const std::string& requested) {
 inline void reset_metrics() {
   check(cudaDeviceSynchronize());
   native_copy_wall_us = additional_transfer_wall_us = 0.0;
-  native_copy_calls = native_copy_bytes = 0; uncovered_copy = false; records.clear();
+  native_copy_calls = native_copy_bytes = 0; uncovered_copy = false; records.clear(); native_sqp_solves.clear();
 }
 }  // namespace upstream_bench
 
