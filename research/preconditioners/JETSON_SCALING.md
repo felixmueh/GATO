@@ -101,9 +101,9 @@ git fetch https://github.com/felixmueh/GATO.git felix-new-expr/jetson-precond
 git worktree add ../GATO-preconditioner-scaling -b felix-new-expr/jetson-precond FETCH_HEAD
 ```
 
-Alternatively, import the supplied source bundle in an existing public GATO
-clone. The bundle receipt pins the earlier preparation commit; the publication
-documentation update does not change experiment code:
+The earlier source bundle pins preparation1119440 and does **not** contain the
+later SQP-iteration reporting update. Use the published branch above for the
+current experiment. For reproducing that historical preparation only:
 
 ```bash
 git fetch /path/to/jetson-preconditioner-scaling.bundle \

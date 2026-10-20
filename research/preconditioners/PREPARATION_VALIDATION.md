@@ -5,6 +5,44 @@ not Jetson measurements, a new performance ranking, or physical qualification.
 The prepared protocol is [JETSON_SCALING.md](JETSON_SCALING.md); the separate
 research decision is [CPU_SPIKE_RECOMMENDATION.md](CPU_SPIKE_RECOMMENDATION.md).
 
+## SQP-iteration reporting update
+
+C++ timing hooks at0ee8922 and reporting ata38f25c were checked in a fresh
+N128 desktop cohort under `_expr_results/sqp-iteration-timing/`. Release sm61
+build passes in the environment below. Native, dummy and block-LDLT each finish
+reach-seed2 and tracking-seed11; CPU native control and incomplete Cholesky each
+finish reach-seed2. All eight episodes have finite saved plans and no reporting
+or execution error. Across1,764 attempted SQP iterations, native wall matches
+returned solve wall exactly; in-interval copies are positive, compute is
+positive and equals wall minus copies, and B1/SQP1 counts agree. Three CPU
+reporting tests cover mismatched mappings, unmeasured copies and zero-PCG
+shortcut retention. CSV collection passes on the native/dummy/LDLT runs.
+
+Reproduction after `build --knots 128 --arch 61` and `freeze --knots 128`:
+
+```bash
+python research/preconditioners/jetson_scaling.py run \
+  --tasks _expr_results/sqp-iteration-timing/frozen \
+  --output _expr_results/sqp-iteration-timing/native-check \
+  --knots 128 --methods normal,dummy,block_ldlt \
+  --cases reach-seed2,tracking-seed11 --preflight
+python research/preconditioners/jetson_scaling.py run \
+  --tasks _expr_results/sqp-iteration-timing/frozen \
+  --output _expr_results/sqp-iteration-timing/cpu-check \
+  --knots 128 --methods cpu_native_control,incomplete_cholesky \
+  --cases reach-seed2 --preflight
+python -m unittest discover -s research/preconditioners/tests \
+  -p test_sqp_iteration_reporting.py -v
+```
+
+Module SHA256 is
+`1a0a2426e76dfd392a0d147d7875705ed7c379c94f4ff480448c484808f84fcd`.
+Build began at0ee8922 while Python reporting was being implemented; C++ files
+remained unchanged through a38f25c. Clocks were sampled during runs. These are
+one-process functional checks, not a timing ranking. Larger-N binaries and
+Jetson execution of the new instrumentation remain pending; rebuild and use a
+fresh frozen-input directory on target.
+
 ## Completed
 
 - Python syntax/help and dry-run schedules pass: short 198 episodes, full 891,
@@ -73,5 +111,6 @@ desktop artifacts and are not supplied as Jetson binaries.
 Jetson ARM64 build, actual N256/N512 resource/finite-task checks, target
 normal/dummy calibration and the selected repeated comparison remain pending.
 No Jetson execution occurred. The short and full schedules are prepared plans,
-not completed results. Astra's approximate triangular-application spike is a
-proposal only; PCG and all existing preconditioner algorithms remain unchanged.
+not completed results. Astra's approximate triangular-application spike was
+tested separately with a negative N128 replay outcome; it is excluded here.
+PCG and all existing preconditioner algorithms remain unchanged.
