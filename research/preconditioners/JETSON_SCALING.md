@@ -94,7 +94,7 @@ python research/preconditioners/jetson_scaling.py freeze \
 
 Build logs/commands, module hashes, source commit/dirty state and frozen input
 hashes are retained. Modules are Indy7 float B1, N128/256/512. Native PCG scratch
-is about31/62/123KiB respectively (plus static bytes); the exact resource query
+is31,328/62,048/123,488 bytes respectively (plus static bytes); the exact resource query
 is saved per run. N512 requires a device supporting that per-block opt-in carve;
 GTX1070 cannot launch it. Preparation checks actual kernel static+dynamic bytes
 against normal/opt-in limits and configures opt-in before task timing, without
