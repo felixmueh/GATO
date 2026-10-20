@@ -75,6 +75,7 @@ def run(args):
             cmd=[sys.executable,str(Path(__file__).with_name('verification_worker.py')),'campaign','--checkout',str(args.checkout),
                 '--tasks',str(args.tasks.resolve()),'--output',str(output/f'N{n}'),'--knots',str(n),'--primary-timing','compute_excluding_transfers',
                 '--cases',','.join(planned['cases']),'--methods',','.join(planned['methods']),'--repeats',str(planned['repeats'])]
+            if args.preflight: cmd.append('--preflight')
             with (output/f'N{n}.stdout').open('w') as out,(output/f'N{n}.stderr').open('w') as err:
                 start=time.monotonic();result=subprocess.run(cmd,cwd=args.checkout,env=environment(args.checkout),stdout=out,stderr=err)
             statuses.append(dict(knots=n,returncode=result.returncode,wall_s=time.monotonic()-start,command=cmd));write_json(output/'status.json',statuses)
@@ -85,6 +86,8 @@ def run(args):
         if process:
             process.terminate();process.wait();thread.join(timeout=2);error.close()
             metadata['clock_monitor_returncode']=process.returncode
+            sample_file=output/'clock-samples.jsonl'
+            metadata['clock_monitor_raw_line_count']=sum(1 for _ in sample_file.open()) if sample_file.exists() else 0
         metadata['clock_monitor_attempted']=process is not None
         write_json(output/'launch.json',metadata)
         for handle in held:handle.close()
@@ -100,6 +103,9 @@ def main():
             s.add_argument('--tasks',type=Path);s.add_argument('--methods',default=METHODS);s.add_argument('--cases');s.add_argument('--full',action='store_true')
             s.add_argument('--repeats',type=int,default=3);s.add_argument('--preflight',action='store_true');s.add_argument('--dry-run',action='store_true')
     args=p.parse_args();args.checkout=args.checkout.resolve()
+    knot_counts=[int(n) for n in args.knots.split(',')]
+    if not knot_counts or len(set(knot_counts))!=len(knot_counts) or set(knot_counts)-{128,256,512}:
+        p.error('--knots must be distinct values from128,256,512')
     if args.action=='freeze':
         return subprocess.call([sys.executable,str(Path(__file__).with_name('verification_worker.py')),'freeze','--checkout',str(args.checkout),
             '--output',str(args.output.resolve()),'--knots',args.knots],env=environment(args.checkout))
