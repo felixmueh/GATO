@@ -208,7 +208,9 @@ dynamic bytes against the device opt-in limit before setting the attribute.
 N128/N256 fitting requests make no new CUDA calls. The kernel arithmetic,
 telemetry, launches, transfer subtraction and native timer boundaries remain
 unchanged. Target validation of the correction is pending. Rebuild and freeze
-new inputs; retain the original failed calibration, old binaries and manifests.
+new inputs; retain the original failed calibration and manifests. Before a
+rebuild, the launcher now archives pre-existing selected module files under the
+new build output's `previous_modules/`, recording and checking their hashes.
 
 ```bash
 python research/preconditioners/jetson_scaling.py build \

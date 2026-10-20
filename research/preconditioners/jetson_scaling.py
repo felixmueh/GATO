@@ -53,6 +53,15 @@ def build(args):
         '-DCMAKE_CUDA_ARCHITECTURES='+args.arch],[cmake,'--build',str(build_dir),'--parallel',str(args.jobs)]]
     metadata['commands']=commands; held=locks(args.checkout)
     try:
+        previous=[]
+        for n in args.knots.split(','):
+            for path in sorted((args.checkout/'python/gato').glob(f'bsqpN{n}_indy7*.so')):
+                saved=output/'previous_modules'/path.name;saved.parent.mkdir(parents=True,exist_ok=True)
+                shutil.copy2(path,saved)
+                digest=sha256(saved)
+                if digest!=sha256(path):raise RuntimeError(f'Previous-module archive differs from source: {path}')
+                previous.append(dict(path=str(path),saved_path=str(saved),sha256=digest))
+        metadata['previous_modules']=previous;write_json(output/'build.json',metadata)
         with (output/'stdout.log').open('w') as out,(output/'stderr.log').open('w') as err:
             for cmd in commands: subprocess.run(cmd,cwd=args.checkout,env=environment(args.checkout),stdout=out,stderr=err,check=True)
         metadata.update(state='complete',modules={n:dict(path=str(native_path(args.checkout,int(n))),sha256=sha256(native_path(args.checkout,int(n)))) for n in args.knots.split(',')})
