@@ -59,9 +59,29 @@ retuning/retries and independent scheduled cases continue.
 
 ## Obtain the prepared branch
 
-The preparation branch is local and has not been pushed. Import the supplied
-Git bundle inside the Jetson container; no remote branch is assumed. In an
-existing public GATO clone, fetch it and create an isolated checkout:
+The prepared experiment is published as `felix-new-expr/jetson-precond` in
+<https://github.com/felixmueh/GATO>. The main workspace's older `Mo0dy/GATO`
+origin redirects there. Inside the existing Jetson container, fetch that
+origin and create an isolated checkout:
+
+```bash
+git fetch origin felix-new-expr/jetson-precond
+git worktree add ../GATO-preconditioner-scaling -b felix-new-expr/jetson-precond \
+  origin/felix-new-expr/jetson-precond
+cd ../GATO-preconditioner-scaling
+```
+
+If the local origin instead points to `A2R-Lab/GATO`, fetch the published
+repository explicitly and use `FETCH_HEAD` as the worktree start point:
+
+```bash
+git fetch https://github.com/felixmueh/GATO.git felix-new-expr/jetson-precond
+git worktree add ../GATO-preconditioner-scaling -b felix-new-expr/jetson-precond FETCH_HEAD
+```
+
+Alternatively, import the supplied source bundle in an existing public GATO
+clone. The bundle receipt pins the earlier preparation commit; the publication
+documentation update does not change experiment code:
 
 ```bash
 git fetch /path/to/jetson-preconditioner-scaling.bundle \
