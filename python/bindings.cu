@@ -759,12 +759,15 @@ PYBIND11_MODULE(MODULE_NAME(KNOT_POINTS, GATO_PLANT_NAME, GATO_MODULE_VARIANT), 
         m.def("reset_metrics", &upstream_bench::reset_metrics);
         m.def("metrics", [] {
                 py::dict totals; py::list rows;
-                double pcg_wall = 0.0, pcg_gpu = 0.0;
+                double pcg_wall = 0.0, pcg_gpu = 0.0, setup_wall = 0.0, cpu_apply_wall = 0.0;
                 for (const auto& record : upstream_bench::records) {
                         py::dict row;
                         row["additional_transfer_wall_us"] = record.additional_transfer_wall_us;
                         row["pcg_compute_wall_us"] = record.pcg_compute_wall_us;
                         row["pcg_gpu_us"] = record.pcg_gpu_us;
+                        row["setup_wall_us"] = record.setup_wall_us;
+                        row["cpu_apply_wall_us"] = record.cpu_apply_wall_us;
+                        setup_wall+=record.setup_wall_us;cpu_apply_wall+=record.cpu_apply_wall_us;
                         rows.append(row); pcg_wall += record.pcg_compute_wall_us; pcg_gpu += record.pcg_gpu_us;
                 }
                 totals["method"] = upstream_bench::method;
@@ -776,6 +779,9 @@ PYBIND11_MODULE(MODULE_NAME(KNOT_POINTS, GATO_PLANT_NAME, GATO_MODULE_VARIANT), 
                 totals["native_copy_bytes"] = upstream_bench::native_copy_bytes;
                 totals["uncovered_copy"] = upstream_bench::uncovered_copy;
                 totals["pcg_compute_wall_us"] = pcg_wall; totals["pcg_gpu_us"] = pcg_gpu;
+                totals["setup_wall_us"]=setup_wall;totals["cpu_setup_us"]=setup_wall;
+                totals["cpu_apply_wall_us"]=cpu_apply_wall;totals["cpu_apply_us"]=cpu_apply_wall;
+                totals["preconditioner_backend"]=upstream_bench::method=="block_ldlt"?"CPU strip block LDLT setup, GPU apply inside public GLASS-formula recurrence":"native public GLASS";
                 totals["pcg_calls"] = upstream_bench::records.size(); totals["records"] = rows;
                 totals["transfer_scope"] = "Explicit H2D/D2H cudaMemcpy/cudaMemcpyAsync/cudaMemcpy2D in bindings, BSQP and included generated helpers; prior compute fenced before timer; D2D remains compute";
                 return totals;

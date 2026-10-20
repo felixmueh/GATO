@@ -16,6 +16,7 @@ inline uint64_t native_copy_calls = 0, native_copy_bytes = 0;
 inline bool uncovered_copy = false;
 struct Record {
   double additional_transfer_wall_us = 0.0, pcg_compute_wall_us = 0.0, pcg_gpu_us = 0.0;
+  double setup_wall_us = 0.0, cpu_apply_wall_us = 0.0;
 };
 inline std::vector<Record> records;
 inline double elapsed(Clock::time_point start) {
@@ -62,6 +63,13 @@ inline cudaError_t copy_2d(void* dst, size_t dst_pitch, const void* src, size_t 
   return status;
 }
 inline void set_method(const std::string& requested) {
+  if(requested=="block_ldlt"){
+#ifdef PRECOND_BLOCK_LDLT
+    method=requested;return;
+#else
+    throw std::invalid_argument("Block LDLT candidate is not compiled in this module");
+#endif
+  }
   if (requested != "normal_raw" && requested != "normal" && requested != "dummy")
     throw std::invalid_argument("Unavailable public preconditioner benchmark method: " + requested);
   method = requested;

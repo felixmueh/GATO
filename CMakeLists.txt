@@ -201,6 +201,13 @@ foreach(pair ${GATO_MODULE_PAIRS})
     target_include_directories(${MODULE_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/gato
                                                       ${GATO_PLANT_ROOT}/${plant}
                                                       ${GATO_GRID_INCLUDE_DIRS})
+    # Isolated research candidate: Eigen is used by host factor setup only.
+    # No fast-math/optimizer/native kernel options change for this comparison.
+    if(MODULE_NAME STREQUAL "bsqpN128_indy7")
+      find_path(PRECOND_EIGEN_INCLUDE Eigen/Dense PATH_SUFFIXES eigen3 REQUIRED)
+      target_include_directories(${MODULE_NAME} PRIVATE ${PRECOND_EIGEN_INCLUDE})
+      target_compile_definitions(${MODULE_NAME} PRIVATE PRECOND_BLOCK_LDLT EIGEN_NO_CUDA EIGEN_DONT_PARALLELIZE)
+    endif()
 
     target_compile_definitions(${MODULE_NAME} PRIVATE
       KNOT_POINTS=${knot}

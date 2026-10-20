@@ -4,6 +4,9 @@
 #include <memory>
 #include <type_traits>
 #include "upstream_timing.cuh"
+#ifdef PRECOND_BLOCK_LDLT
+#include "block_ldlt_solver.cuh"
+#endif
 
 namespace upstream_bench {
 struct Buffers {
@@ -28,7 +31,11 @@ struct Buffers {
   Buffers& operator=(const Buffers&) = delete;
 };
 inline Buffers& buffers() { static thread_local Buffers result; return result; }
-inline void prepare() { (void)buffers(); }
+inline void prepare() { (void)buffers();
+#ifdef PRECOND_BLOCK_LDLT
+  if(method=="block_ldlt")upstream_precond::prepare_block_ldlt();
+#endif
+}
 
 template<typename T>
 void solve_measured(uint32_t batch_size, T* lambda, SchurSystem<T> schur, T* epsilon,
@@ -45,6 +52,18 @@ void solve_measured(uint32_t batch_size, T* lambda, SchurSystem<T> schur, T* eps
   check(cudaDeviceSynchronize());
   const auto begin = Clock::now(); records.emplace_back(); auto& record = records.back();
   try {
+#ifdef PRECOND_BLOCK_LDLT
+    if(method=="block_ldlt"){
+      upstream_precond::BlockLdltStats stats;
+      auto preserve=[&]{record.additional_transfer_wall_us=stats.transfer_wall_us;
+        additional_transfer_wall_us+=stats.transfer_wall_us;record.setup_wall_us=stats.cpu_setup_us;
+        record.pcg_gpu_us=stats.pcg_gpu_us;
+        record.pcg_compute_wall_us=elapsed(begin)-stats.transfer_wall_us;};
+      try{upstream_precond::solve_block_ldlt(batch_size,lambda,schur,epsilon,cap,flags,iterations,stats);}
+      catch(...){preserve();throw;}
+      preserve();return;
+    }
+#endif
     if (method == "dummy") {
       const auto transfer_begin = Clock::now();
       constexpr size_t matrix_bytes = gato::constants::B3D_MATRIX_SIZE_PADDED * sizeof(float);
