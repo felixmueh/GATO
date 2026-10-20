@@ -57,6 +57,23 @@ Tracking duration/error, finiteness, controller-call counts and merits are saved
 No KKT or exact-determinism gate is added. Failed cases stay failed without
 retuning/retries and independent scheduled cases continue.
 
+## Obtain the prepared branch
+
+The preparation branch is local and has not been pushed. Import the supplied
+Git bundle inside the Jetson container; no remote branch is assumed. In an
+existing public GATO clone, fetch it and create an isolated checkout:
+
+```bash
+git fetch /path/to/jetson-preconditioner-scaling.bundle \
+  felix-precond-timing/jetson-scaling:felix-precond-timing/jetson-scaling
+git worktree add ../GATO-preconditioner-scaling felix-precond-timing/jetson-scaling
+cd ../GATO-preconditioner-scaling
+```
+
+The supplied receipt identifies the final branch commit and bundle hash. Keep
+existing local modifications separate; do not reset an occupied branch. The
+bundle contains source, not desktop binaries or raw results.
+
 ## Build and frozen inputs
 
 Run inside the existing Jetson container from this checkout, using the Python
