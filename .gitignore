@@ -47,6 +47,9 @@ Makefile
 
 python/*.egg-info/
 
+# Local experiment artifacts
+_expr_data/
+
 .venv
 .venv-cpu-baseline/
 uv.lock

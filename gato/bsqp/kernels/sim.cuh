@@ -42,7 +42,8 @@ void sim_forward_batched_kernel(
     T *d_uk,
     void *d_GRiD_mem,
     T *d_f_ext_batch,
-    T dt
+    T dt,
+    const T* d_friction_widths = nullptr
 ) {
     const uint32_t solve_idx = blockIdx.y;
     // states are STORED format (XU_STATE_SIZE == STATE_SIZE on fixed base)
@@ -70,7 +71,8 @@ void sim_forward_batched_kernel(
         s_temp,
         d_GRiD_mem,
         dt,
-        d_f_ext
+        d_f_ext,
+        d_friction_widths
     );
 #endif
     __syncthreads();
@@ -93,7 +95,8 @@ void sim_forward_batched(
     T *d_uk,
     void *d_GRiD_mem,
     T *d_f_ext_batch,
-    T dt
+    T dt,
+    const T* d_friction_widths = nullptr
 ) {
     dim3 grid(1, batch_size);
     dim3 block(SIM_FORWARD_THREADS);
@@ -107,7 +110,8 @@ void sim_forward_batched(
         d_uk,
         d_GRiD_mem,
         d_f_ext_batch,
-        dt
+        dt,
+        d_friction_widths
     );
         gpuErrchk(cudaGetLastError());  // launch-config failures must not pass silently
 }

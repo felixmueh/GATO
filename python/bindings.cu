@@ -704,6 +704,11 @@ class PyBSQP {
                 return lam;
         }
 
+        void set_joint_friction_smoothing(DenseArray widths)
+        {
+                solver_.set_joint_friction_smoothing(checked_ptr(widths, gato::constants::NQ, "joint_friction_smoothing"));
+        }
+
         void set_cost_weights(T q_cost, T qd_cost, T u_cost, T N_cost, T q_lim_cost, T vel_lim_cost, T ctrl_lim_cost)
         {
                 solver_.set_cost_weights(q_cost, qd_cost, u_cost, N_cost, q_lim_cost, vel_lim_cost, ctrl_lim_cost);
@@ -861,6 +866,7 @@ class PyBSQP {
             .def("debug_setup_kkt", &PyBSQP<Type>::debug_setup_kkt)                                                                                                                                    \
             .def("debug_contact_dynamics", &PyBSQP<Type>::debug_contact_dynamics, py::arg("q"), py::arg("qd"), py::arg("u"), py::arg("fc"))                                                             \
             .def("get_lambda", &PyBSQP<Type>::get_lambda)                                                                                                                                              \
+            .def("set_joint_friction_smoothing", &PyBSQP<Type>::set_joint_friction_smoothing) \
             .def("set_cost_weights", &PyBSQP<Type>::set_cost_weights)                                                                                                                                  \
             .def("set_q_pos_cost", &PyBSQP<Type>::set_q_pos_cost)                                                                                                                                 \
             .def("set_fc_cost", &PyBSQP<Type>::set_fc_cost)                                                                                                                                            \
@@ -900,6 +906,7 @@ PYBIND11_MODULE(MODULE_NAME(KNOT_POINTS, GATO_PLANT_NAME, GATO_MODULE_VARIANT), 
 {
         m.attr("NATIVE_SOURCE_ID") = GATO_NATIVE_SOURCE_ID;
         m.attr("KNOT_POINTS") = KNOT_POINTS;      // to check num knots for current module
+        m.attr("SMOOTH_JOINT_FRICTION") = bool(GATO_SMOOTH_JOINT_FRICTION);
         m.attr("NUM_BODIES") = grid::NUM_BODIES;  // body-major f_ext is 6*NUM_BODIES per (solve, knot)
         m.attr("NUM_COLLISION_SPHERES") = gato::plant::NCC;  // clearance rows per knot (CL-2)
         m.attr("EXACT_HESSIAN_AVAILABLE") = bool(USE_EXACT_HESSIAN);  // SO-SQP path compiled in?

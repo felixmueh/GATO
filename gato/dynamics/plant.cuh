@@ -112,11 +112,12 @@ namespace plant {
 
 #if GATO_SMOOTH_JOINT_FRICTION
         template<typename T>
-        __device__ void effective_joint_torque(T* s_effective, const T* s_u, const T* s_qd)
+        __device__ void effective_joint_torque(T* s_effective, const T* s_u, const T* s_qd, const T* d_friction_widths)
         {
                 for (int i = threadIdx.x + threadIdx.y * blockDim.x; i < NQ; i += blockDim.x * blockDim.y) {
                         const T* coeff = JOINT_FRICTION_DATA<T>[i];
-                        s_effective[i] = s_u[i] - coeff[1] * s_qd[i] - coeff[0] * tanh(s_qd[i] / coeff[2]);
+                        const T width = d_friction_widths ? d_friction_widths[i] : static_cast<T>(1);
+                        s_effective[i] = s_u[i] - coeff[1] * s_qd[i] - coeff[0] * tanh(s_qd[i] / width);
                 }
                 __syncthreads();
         }
@@ -247,7 +248,7 @@ namespace plant {
 #endif
 
         template<typename T>
-        __device__ void forward_dynamics(T* s_qdd, T* s_q, T* s_qd, T* s_u, T* s_XITemp, void* d_dynMem_const, T* d_f_ext = nullptr)
+        __device__ void forward_dynamics(T* s_qdd, T* s_q, T* s_qd, T* s_u, T* s_XITemp, void* d_dynMem_const, T* d_f_ext = nullptr, const T* d_friction_widths = nullptr)
         {
                 // TOPOLOGY_HELPERS_COUNT == 0 for fixed serial chains; the inners never
                 // dereference a zero-count helper buffer, so a null pointer is safe.
@@ -273,7 +274,7 @@ namespace plant {
                 const T* s_applied = s_u;
 #if GATO_SMOOTH_JOINT_FRICTION
                 T* s_effective = s_XITemp + grid::FORWARD_DYNAMICS_DYNAMIC_SHARED_MEM_COUNT + FC_PERSIST_COUNT;
-                effective_joint_torque<T>(s_effective, s_u, s_qd);
+                effective_joint_torque<T>(s_effective, s_u, s_qd, d_friction_widths);
                 s_applied = s_effective;
 #endif
                 grid::forward_dynamics_inner<T>(s_qdd, s_q, s_qd, s_applied, s_XImats, s_topology_helpers, s_temp, /*d_workspace*/nullptr, d_f_ext, gato::plant::GRAVITY<T>());
@@ -285,7 +286,7 @@ namespace plant {
         }
 
         template<typename T, bool INCLUDE_DU = true>
-        __device__ void forward_dynamics_and_gradient(T* s_df_du, T* s_qdd, const T* s_q, const T* s_qd, const T* s_u, T* s_temp_in, void* d_dynMem_const, T* d_f_ext = nullptr)
+        __device__ void forward_dynamics_and_gradient(T* s_df_du, T* s_qdd, const T* s_q, const T* s_qd, const T* s_u, T* s_temp_in, void* d_dynMem_const, T* d_f_ext = nullptr, const T* d_friction_widths = nullptr)
         {
                 T*                   s_XITemp = s_temp_in;
                 grid::robotModel<T>* d_robotModel = (grid::robotModel<T>*)d_dynMem_const;
@@ -318,7 +319,7 @@ namespace plant {
                 const T* s_applied = s_u;
 #if GATO_SMOOTH_JOINT_FRICTION
                 T* s_effective = s_XITemp + grid::FD_DU_MAX_SHARED_MEM_COUNT + FC_PERSIST_COUNT;
-                effective_joint_torque<T>(s_effective, s_u, s_qd);
+                effective_joint_torque<T>(s_effective, s_u, s_qd, d_friction_widths);
                 s_applied = s_effective;
 #endif
                 grid::forward_dynamics_finish<T>(s_qdd, s_applied, s_c, s_Minv);
@@ -338,8 +339,9 @@ namespace plant {
                 __syncthreads();
                 for (int i = threadIdx.x + threadIdx.y * blockDim.x; i < NQ; i += blockDim.x * blockDim.y) {
                         const T* coeff = JOINT_FRICTION_DATA<T>[i];
-                        const T t = tanh(s_qd[i] / coeff[2]);
-                        s_dc_du[NQ * NQ + i * NQ + i] += coeff[1] + coeff[0] / coeff[2] * (static_cast<T>(1) - t * t);
+                        const T width = d_friction_widths ? d_friction_widths[i] : static_cast<T>(1);
+                        const T t = tanh(s_qd[i] / width);
+                        s_dc_du[NQ * NQ + i * NQ + i] += coeff[1] + coeff[0] / width * (static_cast<T>(1) - t * t);
                 }
                 __syncthreads();
 #endif

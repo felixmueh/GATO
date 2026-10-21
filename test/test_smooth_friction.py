@@ -17,7 +17,7 @@ def test_smoothing_explicit_and_validated():
         with pytest.raises(ValueError, match="positive finite"):
             builder._joint_friction_config(robot(), width)
     for width in (True, "1", ["1"]):
-        with pytest.raises(ValueError, match="JSON numeric"):
+        with pytest.raises(ValueError, match="numeric scalar"):
             builder._joint_friction_config(robot(), width)
     r = robot(); r.get_joints_ordered_by_id()[0].damping = -1
     with pytest.raises(ValueError, match="nonnegative"):
@@ -32,10 +32,96 @@ def test_smoothing_changes_codegen_identity_only_when_enabled(urdfs):
     original = builder._codegen_key(*args)
     assert builder._codegen_key(*args, None) == original
     assert builder._codegen_key(*args, 1.) != original
-    assert builder._codegen_key(*args, .5) != builder._codegen_key(*args, 1.)
+    assert builder._codegen_key(*args, .5) == builder._codegen_key(*args, 1.)
 
 
 @pytest.mark.parametrize("option", [{"floating_base": True}, {"variant": "eh"}, {"variant": "fc"}])
 def test_unsupported_variants_fail_before_codegen(option):
     with pytest.raises(ValueError, match="first-order"):
         register_robot("unused", "does-not-exist.urdf", joint_friction_smoothing=1., **option)
+
+
+def test_width_validation_and_setter_copy():
+    import numpy as np
+    from gato import BSQP
+    from gato._friction import smoothing_widths
+    for value in (0., -1., np.nan, np.inf, 1e-100, 1e100, [], [1., 2., 3.]):
+        with pytest.raises(ValueError, match="positive finite"):
+            smoothing_widths(value, 2)
+    for value in (True, "1", ["1"], [[1., 2.]], 1j):
+        with pytest.raises(ValueError, match="numeric scalar"):
+            smoothing_widths(value, 2)
+    uploads = []
+    solver = BSQP.__new__(BSQP)
+    solver.lib = SimpleNamespace(SMOOTH_JOINT_FRICTION=True)
+    solver.nq = 2
+    solver.solver = SimpleNamespace(set_joint_friction_smoothing=lambda values: uploads.append(values.copy()))
+    values = np.array([.03, .06], dtype=np.float32)
+    solver.set_joint_friction_smoothing(values)
+    values[:] = 4
+    np.testing.assert_array_equal(uploads[-1], np.array([.03, .06], dtype=np.float32))
+    previous = solver.joint_friction_smoothing.copy()
+    with pytest.raises(ValueError):
+        solver.set_joint_friction_smoothing([.03, np.nan])
+    np.testing.assert_array_equal(solver.joint_friction_smoothing, previous)
+    assert len(uploads) == 1
+    solver.set_joint_friction_smoothing(.25)
+    np.testing.assert_array_equal(uploads[-1], [.25, .25])
+    solver.lib.SMOOTH_JOINT_FRICTION = False
+    with pytest.raises(ValueError, match="rebuild"):
+        solver.set_joint_friction_smoothing(.1)
+
+
+def test_reregister_changes_default_without_codegen_or_module_identity(tmp_path, monkeypatch, urdfs):
+    import numpy as np
+    from gato import _cache, robot_info
+    cache = tmp_path / "cache"
+    monkeypatch.setenv("GATO_CACHE_DIR", str(cache))
+    name = "runtime_friction_indy"
+    register_robot(name, urdfs["indy7"], N=[8], collision_res=None, joint_friction_smoothing=.03)
+    first = _cache.robot_entry(name)
+    directory = cache / "robots" / first["codegen_key"] / name
+    headers = {p.name: (p.read_bytes(), p.stat().st_mtime_ns) for p in directory.glob("*.cuh")}
+    module_key = _cache.module_key(first, 8, "default", directory.parent, "120")[0]
+    def forbid_codegen(*args, **kwargs):
+        pytest.fail("Changing runtime widths must not regenerate headers")
+    monkeypatch.setattr(builder, "codegen", forbid_codegen)
+    widths = np.linspace(.04, .09, 6)
+    register_robot(name, urdfs["indy7"], N=[8], collision_res=None, joint_friction_smoothing=widths)
+    second = _cache.robot_entry(name)
+    assert first["codegen_key"] == second["codegen_key"]
+    assert _cache.module_key(second, 8, "default", directory.parent, "120")[0] == module_key
+    np.testing.assert_allclose(robot_info(name)["joint_friction_smoothing"], widths)
+    assert headers == {p.name: (p.read_bytes(), p.stat().st_mtime_ns) for p in directory.glob("*.cuh")}
+    with pytest.raises(ValueError, match="positive finite"):
+        register_robot(name, urdfs["indy7"], N=[8], collision_res=None, joint_friction_smoothing=-1.)
+    assert _cache.robot_entry(name) == second  # failed update leaves the default intact
+
+
+def test_constructor_uses_registration_default_and_instance_override(monkeypatch):
+    import numpy as np
+    from gato import interface
+    class Native:
+        def __init__(self, *args):
+            self.widths = None
+        def set_joint_friction_smoothing(self, values):
+            self.widths = values.copy()
+        def set_rho_adaptation(self, value):
+            pass
+    module = SimpleNamespace(BSQP_float=Native, NQ=2, NV=2, SMOOTH_JOINT_FRICTION=True)
+    monkeypatch.setattr(interface.importlib, "import_module", lambda name: module)
+    monkeypatch.setattr(interface, "_pin_available", lambda: False)
+    monkeypatch.setattr(interface, "robot_info", lambda name: {"joint_friction_smoothing": [.03, .04]})
+    monkeypatch.setattr(interface.BSQP, "set_f_ext_B", lambda *args: None)
+    first = interface.BSQP("unused", batch_size=1, N=8, dt=.01, plant_type="mock", linsys="pcg")
+    second = interface.BSQP("unused", batch_size=1, N=8, dt=.01, plant_type="mock", linsys="pcg",
+                            joint_friction_smoothing=.2)
+    np.testing.assert_allclose(first.solver.widths, [.03, .04])
+    np.testing.assert_allclose(second.solver.widths, [.2, .2])
+    first.set_joint_friction_smoothing(.1)
+    np.testing.assert_allclose(second.solver.widths, [.2, .2])
+    module.SMOOTH_JOINT_FRICTION = False
+    disabled = interface.BSQP("unused", batch_size=1, N=8, dt=.01, plant_type="mock", linsys="pcg")
+    assert disabled.solver.widths is None
+    with pytest.raises(ValueError, match="rebuild"):
+        interface.BSQP("unused", batch_size=1, N=8, dt=.01, plant_type="mock", joint_friction_smoothing=.1)

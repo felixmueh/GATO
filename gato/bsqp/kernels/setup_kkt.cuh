@@ -201,6 +201,7 @@ __global__ __launch_bounds__(KKT_THREADS) void setup_kkt_system_batched_kernel(T
                                             const T* __restrict__       d_lam_hi_batch,                    // per-solve AL duals (nullable; MECH_AL only)
                                             const T* __restrict__       d_lam_lo_batch,
                                             const grid_collision::Environment<T> env,                      // obstacle set (COLLISION rows; empty default = no-op)
+                                            const T* __restrict__       d_friction_widths,
                                             const T* __restrict__       d_admm_rho_scale_batch             // per-solve ADMM rho adaptation scale (nullable -> 1)
 #if USE_EXACT_HESSIAN
                                             ,
@@ -287,7 +288,7 @@ __global__ __launch_bounds__(KKT_THREADS) void setup_kkt_system_batched_kernel(T
                 // tangent A|B over grid_plant (SE(3) dIntegrate blocks); c = traj ⊟ pred
                 gato::plant::compute_linearized_dynamics_floating<T, INTEGRATOR_TYPE>(s_xux_k, s_A_k, s_B_k, s_c_k, s_temp, d_GRiD_mem, timestep, d_f_ext);
 #else
-                gato::plant::compute_linearized_dynamics<T, INTEGRATOR_TYPE, ANGLE_WRAP, true>(s_xux_k, s_A_k, s_B_k, s_c_k, s_temp, d_GRiD_mem, timestep, d_f_ext);
+                gato::plant::compute_linearized_dynamics<T, INTEGRATOR_TYPE, ANGLE_WRAP, true>(s_xux_k, s_A_k, s_B_k, s_c_k, s_temp, d_GRiD_mem, timestep, d_f_ext, d_friction_widths);
 #endif
                 __syncthreads();
 
@@ -427,7 +428,7 @@ __host__ size_t get_setup_kkt_system_batched_smem_size(int exact_hessian = 0, in
 }
 
 template<typename T>
-__host__ void setup_kkt_system_batched(uint32_t batch_size, KKTSystem<T> kkt, ProblemInputs<T> inputs, T* d_xu_traj_batch, T* d_f_ext_batch, void* d_GRiD_mem, T q_cost, T qd_cost, T u_cost, T N_cost, T q_lim_cost, T vel_lim_cost, T ctrl_lim_cost, const int32_t* d_kkt_converged_batch, const T* d_knot_cost_weights, const gato::rows::RowGroupDesc<T>* d_row_groups = nullptr, int32_t n_row_groups = 0, const T* d_lam_hi_batch = nullptr, const T* d_lam_lo_batch = nullptr, int32_t exact_hessian = 0, const T* d_lambda_batch = nullptr, int32_t has_collision = 0, const grid_collision::Environment<T>& env = grid_collision::Environment<T>{}, const T* d_admm_rho_scale_batch = nullptr, T q_pos_cost = 0, const T* d_q_nom = nullptr, T fc_cost = 0, const T* d_u_cost_vec = nullptr, const T* d_q_pos_w_vec = nullptr, const T* d_fc_ref = nullptr)
+__host__ void setup_kkt_system_batched(uint32_t batch_size, KKTSystem<T> kkt, ProblemInputs<T> inputs, T* d_xu_traj_batch, T* d_f_ext_batch, void* d_GRiD_mem, T q_cost, T qd_cost, T u_cost, T N_cost, T q_lim_cost, T vel_lim_cost, T ctrl_lim_cost, const int32_t* d_kkt_converged_batch, const T* d_knot_cost_weights, const gato::rows::RowGroupDesc<T>* d_row_groups = nullptr, int32_t n_row_groups = 0, const T* d_lam_hi_batch = nullptr, const T* d_lam_lo_batch = nullptr, int32_t exact_hessian = 0, const T* d_lambda_batch = nullptr, int32_t has_collision = 0, const grid_collision::Environment<T>& env = grid_collision::Environment<T>{}, const T* d_admm_rho_scale_batch = nullptr, T q_pos_cost = 0, const T* d_q_nom = nullptr, T fc_cost = 0, const T* d_u_cost_vec = nullptr, const T* d_q_pos_w_vec = nullptr, const T* d_fc_ref = nullptr, const T* d_friction_widths = nullptr)
 {
 #if !USE_EXACT_HESSIAN
         (void)exact_hessian;  // path compiled out (settings.h USE_EXACT_HESSIAN)
@@ -473,6 +474,7 @@ __host__ void setup_kkt_system_batched(uint32_t batch_size, KKTSystem<T> kkt, Pr
                                                                                d_lam_hi_batch,
                                                                                d_lam_lo_batch,
                                                                                env,
+                                                                               d_friction_widths,
                                                                                d_admm_rho_scale_batch
 #if USE_EXACT_HESSIAN
                                                                                ,

@@ -206,6 +206,9 @@ class BSQP:
             built modules / registry.
         variant: "default" | "fc" (contact-force controls appended to u) |
             "eh" (exact-Hessian SO-SQP). Variant modules are separate ABIs.
+        joint_friction_smoothing: optional positive scalar/per-joint velocity widths.
+            Requires a friction-enabled module; defaults to registered widths.
+            Runtime per solver, shared across batch lanes, independent of costs.
         rho_batch / mu_batch / pcg_tol_batch: optional per-solve (B,) overrides.
 
     Construction needs numpy and the module only. pinocchio is loaded lazily
@@ -228,7 +231,7 @@ class BSQP:
     """
 
     def __init__(self, model_path, batch_size, N, dt, params=None, *,
-                 plant_type=None, variant=None,
+                 plant_type=None, variant=None, joint_friction_smoothing=None,
                  rho_batch=None, mu_batch=None, pcg_tol_batch=None, **overrides):
         params = SolverParams.from_mapping(params)
         if overrides:
@@ -306,6 +309,13 @@ class BSQP:
         self._data = None
         self._ee_frame_id = None
         self.nq, self.nv = int(base.NQ), int(base.NV)
+        self.joint_friction_smoothing = None
+        if bool(getattr(base, "SMOOTH_JOINT_FRICTION", False)):
+            if joint_friction_smoothing is None:
+                joint_friction_smoothing = robot_info(plant_type).get("joint_friction_smoothing", 1.0)
+            self.set_joint_friction_smoothing(joint_friction_smoothing)
+        elif joint_friction_smoothing is not None:
+            raise ValueError("module does not support runtime smooth joint friction; register with joint_friction_smoothing and rebuild")
         if _pin_available():
             if (self.nq, self.nv) != (self.model.nq, self.model.nv):
                 raise ValueError(
@@ -1107,6 +1117,21 @@ spherizer), so margin is extra safety on top.
     def get_collision_admm_state(self):
         """COLLISION-band ADMM (z, y): dict of (B, N, n_spheres) arrays."""
         return self.solver.get_collision_admm_state()
+
+    def set_joint_friction_smoothing(self, widths):
+        """Set positive scalar/per-joint velocity widths without compilation.
+
+        The module must have smooth joint friction enabled at registration.
+        Values apply to this solver's entire batch/horizon, between solve calls.
+        Revolute widths are rad/s; prismatic widths are m/s. Does not reset the
+        caller's warm start, change URDF coefficients, or enable passive losses.
+        """
+        if not bool(getattr(self.lib, "SMOOTH_JOINT_FRICTION", False)):
+            raise ValueError("module does not support runtime smooth joint friction; register with joint_friction_smoothing and rebuild")
+        from ._friction import smoothing_widths
+        values = smoothing_widths(widths, self.nq)
+        self.solver.set_joint_friction_smoothing(values)
+        self.joint_friction_smoothing = values.copy()
 
     def set_cost_weights(self, q_cost=None, qd_cost=None, u_cost=None, N_cost=None,
                          q_lim_cost=None, vel_lim_cost=None, ctrl_lim_cost=None):

@@ -217,7 +217,7 @@ __device__ void integrator_gradient_inner(T* s_Ak, T* s_Bk, T* s_dqdd, T dt)
 }
 
 template<typename T, unsigned INTEGRATOR_TYPE = 2, bool ANGLE_WRAP = false>
-__device__ void sim_step(T* s_xkp1, T* s_xk, T* s_uk, T* s_temp, void* d_dynMem_const, T dt, T* d_f_ext = nullptr)
+__device__ void sim_step(T* s_xkp1, T* s_xk, T* s_uk, T* s_temp, void* d_dynMem_const, T dt, T* d_f_ext = nullptr, const T* d_friction_widths = nullptr)
 {
         GATO_FIXED_BASE_ONLY(T);
         T* s_q = s_xk;
@@ -229,16 +229,16 @@ __device__ void sim_step(T* s_xkp1, T* s_xk, T* s_uk, T* s_temp, void* d_dynMem_
         T* s_extra_temp = s_temp + STATE_SIZE / 2;
 
         if (d_f_ext == nullptr) {
-                forward_dynamics<T>(s_qdd, s_q, s_qd, s_u, s_extra_temp, d_dynMem_const);
+                forward_dynamics<T>(s_qdd, s_q, s_qd, s_u, s_extra_temp, d_dynMem_const, nullptr, d_friction_widths);
         } else {
-                forward_dynamics<T>(s_qdd, s_q, s_qd, s_u, s_extra_temp, d_dynMem_const, d_f_ext);
+                forward_dynamics<T>(s_qdd, s_q, s_qd, s_u, s_extra_temp, d_dynMem_const, d_f_ext, d_friction_widths);
         }
         __syncthreads();
         integrator_inner(s_qkp1, s_qdkp1, s_q, s_qd, s_qdd, dt);
 }
 
 template<typename T, unsigned INTEGRATOR_TYPE = 2, bool ANGLE_WRAP = false>
-__device__ T compute_integrator_error(T* s_xuk, T* s_xkp1, T* s_temp, void* d_dynMem_const, T dt, T* d_f_ext = nullptr)
+__device__ T compute_integrator_error(T* s_xuk, T* s_xkp1, T* s_temp, void* d_dynMem_const, T dt, T* d_f_ext = nullptr, const T* d_friction_widths = nullptr)
 {
         GATO_FIXED_BASE_ONLY(T);
         T* s_q = s_xuk;
@@ -251,9 +251,9 @@ __device__ T compute_integrator_error(T* s_xuk, T* s_xkp1, T* s_temp, void* d_dy
         T* s_extra_temp = s_err + STATE_SIZE / 2;
 
         if (d_f_ext == nullptr) {
-                forward_dynamics<T>(s_qdd, s_q, s_qd, s_u, s_extra_temp, d_dynMem_const);
+                forward_dynamics<T>(s_qdd, s_q, s_qd, s_u, s_extra_temp, d_dynMem_const, nullptr, d_friction_widths);
         } else {
-                forward_dynamics<T>(s_qdd, s_q, s_qd, s_u, s_extra_temp, d_dynMem_const, d_f_ext);
+                forward_dynamics<T>(s_qdd, s_q, s_qd, s_u, s_extra_temp, d_dynMem_const, d_f_ext, d_friction_widths);
         }
         integrator_error_inner<T, INTEGRATOR_TYPE, ANGLE_WRAP, true>(s_err, s_qkp1, s_qdkp1, s_q, s_qd, s_qdd, dt, s_extra_temp);
         __syncthreads();
@@ -263,7 +263,7 @@ __device__ T compute_integrator_error(T* s_xuk, T* s_xkp1, T* s_temp, void* d_dy
 }
 
 template<typename T, unsigned INTEGRATOR_TYPE = 2, bool ANGLE_WRAP = false, bool COMPUTE_INTEGRATOR_ERROR = false>
-__device__ __forceinline__ void compute_linearized_dynamics(T* s_xux, T* s_Ak, T* s_Bk, T* s_out, T* s_temp, void* d_dynMem_const, T dt, T* d_f_ext = nullptr)
+__device__ __forceinline__ void compute_linearized_dynamics(T* s_xux, T* s_Ak, T* s_Bk, T* s_out, T* s_temp, void* d_dynMem_const, T dt, T* d_f_ext = nullptr, const T* d_friction_widths = nullptr)
 {
         GATO_FIXED_BASE_ONLY(T);
         T* s_q = s_xux;
@@ -274,9 +274,9 @@ __device__ __forceinline__ void compute_linearized_dynamics(T* s_xux, T* s_Ak, T
         T* s_extra_temp = s_dqdd + STATE_SIZE / 2 * (STATE_SIZE + CONTROL_SIZE);
 
         if (d_f_ext == nullptr) {  // no external wrench
-                forward_dynamics_and_gradient<T>(s_dqdd, s_qdd, s_q, s_qd, s_u, s_extra_temp, d_dynMem_const);
+                forward_dynamics_and_gradient<T>(s_dqdd, s_qdd, s_q, s_qd, s_u, s_extra_temp, d_dynMem_const, nullptr, d_friction_widths);
         } else {
-                forward_dynamics_and_gradient<T>(s_dqdd, s_qdd, s_q, s_qd, s_u, s_extra_temp, d_dynMem_const, d_f_ext);
+                forward_dynamics_and_gradient<T>(s_dqdd, s_qdd, s_q, s_qd, s_u, s_extra_temp, d_dynMem_const, d_f_ext, d_friction_widths);
         }
 
         if (COMPUTE_INTEGRATOR_ERROR) {

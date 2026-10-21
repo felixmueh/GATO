@@ -198,6 +198,9 @@ def register_robot(name, urdf_path, *, N=(32,), ee_frame="EE", floating_base=Fal
     ``joint_friction_smoothing`` explicitly enables both URDF damping and smooth
     Coulomb friction. Supply a scalar or per-joint positive velocity width
     (rad/s for revolute, m/s for prismatic). None leaves all passive terms off.
+    Numeric widths are defaults for new solvers, not compilation inputs. Updating
+    widths preserves generated headers and module identity; existing solvers keep
+    their widths until set_joint_friction_smoothing is called.
     Only the default fixed-base first-order solver variant is supported.
     """
     from .builder import _codegen_key, codegen
@@ -229,12 +232,17 @@ def register_robot(name, urdf_path, *, N=(32,), ee_frame="EE", floating_base=Fal
         else:
             meta = json.loads((dyn / "meta.json").read_text())
         meta = dict(meta, urdf=str(urdf_path))
+        if joint_friction_smoothing is not None:
+            from ._friction import smoothing_widths
+            # Runtime defaults belong to registration, not shared generated headers.
+            meta["joint_friction_smoothing"] = smoothing_widths(joint_friction_smoothing, meta["nq"]).tolist()
+            meta["joint_friction"] = [list(row[:2]) + [width] for row, width in zip(meta["joint_friction"], meta["joint_friction_smoothing"])]
         entry = {"name": name, "codegen_key": key, "urdf": str(urdf_path),
                  "urdf_sha256": hashlib.sha256(urdf_path.read_bytes()).hexdigest(),
                  "options": {"ee_frame": ee_frame, "floating_base": bool(floating_base),
                              "collision_res": collision_res,
                              "contact_frames": list(contact_frames) if contact_frames else None,
-                             "joint_friction_smoothing": joint_friction_smoothing},
+                             "joint_friction_smoothing": meta.get("joint_friction_smoothing")},
                  "N": sorted({int(n) for n in ([N] if isinstance(N, int) else N)}),
                  "variant": variant, "meta": meta, "registered": time.strftime("%Y-%m-%dT%H:%M:%S")}
         data = load_manifest(cache)

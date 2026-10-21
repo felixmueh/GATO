@@ -3,15 +3,37 @@
 ```python
 gato.register_robot("my_arm", "arm.urdf", N=[32], ee_frame="tool_joint",
                     joint_friction_smoothing=1.0)  # rad/s; per-joint list also accepted
-solver = gato.BSQP("arm.urdf", plant_type="my_arm", N=32, dt=0.002)
+solver = gato.BSQP("arm.urdf", plant_type="my_arm", batch_size=1, N=32, dt=0.002,
+                   joint_friction_smoothing=0.03)  # optional constructor override
+solver.set_joint_friction_smoothing(0.06)  # no compilation; a per-joint vector also works
 ```
 
 The opt-in reads `<dynamics friction="c" damping="b"/>` in independent joint
 order. It enables both passive terms, using actuator torque minus
 `b*v + c*tanh(v/width)`. Width uses rad/s for revolute joints and m/s for
-prismatic joints. None (the default) preserves rigid-body dynamics and ignores
+prismatic joints. Registration with None (the default) preserves rigid-body dynamics and ignores
 those URDF tags. GRiD's hard-sign passive option remains disabled, avoiding
-any double counting. Coefficients and widths participate in the model cache key.
+any double counting. URDF coefficients and friction-enabled versus disabled
+support participate in the model cache key. Numeric widths do not.
+
+Registration stores default widths for newly constructed Python solvers; an
+explicit constructor argument overrides them. Re-registering with different
+widths updates that default while reusing generated headers and compiled modules.
+Existing solvers retain their values. Each solver owns an independent device
+buffer shared by its batch lanes and knots. Setters copy a small width vector
+between calls and do not reset trajectory warm starts or duals. Concurrent
+updates/solves on one instance are unsupported, as for other solver setters.
+
+Widths must be positive and finite after conversion to float32. Changing width
+cannot enable losses in a module built without them; register the opt-in and
+build that module first. Earlier compile-time-width binaries require one rebuild.
+The native C++ solver defaults to width 1 in each joint; Python applies the
+registration default during construction. Runtime setters also validate values
+at the native boundary. Friction-disabled solvers allocate no width buffer.
+
+Record `solver.joint_friction_smoothing` alongside the model identity: a module
+hash alone no longer identifies the effective smoothing law. This array is a
+snapshot; use the setter to change the device values.
 
 The fixed-base adapter evaluates the modified dynamics and includes
 `b + c/width*(1-tanh(v/width)**2)` on the inverse-dynamics velocity diagonal

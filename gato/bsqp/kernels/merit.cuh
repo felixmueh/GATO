@@ -88,6 +88,7 @@ compute_merit_batched_kernel(T* __restrict__       d_merit_partial_batch,  // pe
                                           const T* __restrict__       d_z_admm_batch,                    // per-solve ADMM row state (nullable; only with
                                           const T* __restrict__       d_y_admm_batch,                    // set_admm_merit — adds the AL-form ADMM value term)
                                           const grid_collision::Environment<T> env,                      // obstacle set (COLLISION rows; empty default = no-op)
+                                          const T* __restrict__       d_friction_widths,
                                           const T* __restrict__       d_admm_rho_scale_batch)            // per-solve ADMM rho adaptation scale (nullable -> 1)
 {
         // launched with 3D grid (KNOT_POINTS, batch_size, num_alphas)
@@ -208,7 +209,7 @@ compute_merit_batched_kernel(T* __restrict__       d_merit_partial_batch,  // pe
 #if GATO_FLOATING_STEP
                 constraint_k = gato::plant::compute_integrator_error_floating<T, INTEGRATOR_TYPE>(s_xux_k, s_xux_k + XU_KNOT_STRIDE, s_temp, d_robot_model, timestep, d_f_ext);
 #else
-                constraint_k = gato::plant::compute_integrator_error<T, INTEGRATOR_TYPE, ANGLE_WRAP>(s_xux_k, s_xux_k + XU_KNOT_STRIDE, s_temp, d_robot_model, timestep, d_f_ext);
+                constraint_k = gato::plant::compute_integrator_error<T, INTEGRATOR_TYPE, ANGLE_WRAP>(s_xux_k, s_xux_k + XU_KNOT_STRIDE, s_temp, d_robot_model, timestep, d_f_ext, d_friction_widths);
 #endif
         } else {
                 d_xu_k = get_offset_xu<T>(d_xu_traj_batch, solve_idx, 0);
@@ -324,7 +325,8 @@ __host__ void compute_merit_batched(uint32_t                    batch_size,
                                   T                           fc_cost = 0,
                                   const T*                    d_u_cost_vec = nullptr,
                                   const T*                    d_q_pos_w_vec = nullptr,
-                                  const T*                    d_fc_ref = nullptr)
+                                  const T*                    d_fc_ref = nullptr,
+                                  const T*                    d_friction_widths = nullptr)
 {
         dim3   grid(KNOT_POINTS, batch_size, NumAlphas);
         dim3   thread_block(grid::MAX_PERF_LEVEL_THREADS);  // regen removed grid::SUGGESTED_THREADS
@@ -363,6 +365,7 @@ __host__ void compute_merit_batched(uint32_t                    batch_size,
                                                                                     d_z_admm_batch,
                                                                                     d_y_admm_batch,
                                                                                     env,
+                                                                                    d_friction_widths,
                                                                                     d_admm_rho_scale_batch);
         gpuErrchk(cudaGetLastError());  // launch-config failures must not pass silently
         const uint32_t n_slots = batch_size * NumAlphas;
