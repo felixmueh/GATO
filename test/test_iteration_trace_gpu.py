@@ -4,6 +4,8 @@ GATO_TEST_ITERATION_TRACE_GPU=1 pytest test/test_iteration_trace_gpu.py \
   --basetemp=_expr_data/iteration-trace-gpu
 Run only in a coordinated quiet GPU window. Build/outputs remain in basetemp.
 """
+import ctypes
+import gc
 import os
 
 import numpy as np
@@ -19,6 +21,14 @@ pytestmark = [pytest.mark.gpu, pytest.mark.slow, pytest.mark.self_building_gpu,
 
 
 def test_actual_outer_snapshots_final_output_and_stopping(tmp_path, monkeypatch, urdfs):
+    from gato import _cache
+    ensure_module = _cache.ensure_module
+
+    def ensure_with_half_cores(*args, **kwargs):
+        kwargs["jobs"] = max(1, len(os.sched_getaffinity(0)) // 2)
+        return ensure_module(*args, **kwargs)
+
+    monkeypatch.setattr(_cache, "ensure_module", ensure_with_half_cores)
     monkeypatch.setenv("GATO_CACHE_DIR", str(tmp_path / "cache"))
     name, N, B = "iteration_trace_indy", 8, 2
     gato.register_robot(name, urdfs["indy7"], N=[N])
@@ -61,9 +71,16 @@ def test_actual_outer_snapshots_final_output_and_stopping(tmp_path, monkeypatch,
     np.testing.assert_array_equal(quiet.iteration_trace.pcg_iters, tr.pcg_iters)
     np.testing.assert_allclose(quiet.xu, r.xu, atol=2e-5, rtol=2e-5)
 
-    # Existing practical shortcut remains active outside ADMM.
+    np.savez_compressed(tmp_path / "trace-regression.npz", seed=expected_seed,
+                        xu=tr.xu, pcg_iters=tr.pcg_iters,
+                        line_search_ran=tr.line_search_ran, final=r.xu)
+
+    # Exercise the existing zero-work shortcut deterministically outside ADMM.
+    # A zero inner cap supplies zero PCG counts by construction; this is a
+    # boundary/metadata fixture and makes no claim about stationarity.
     shortcut = gato.BSQP(urdfs["indy7"], batch_size=B, N=N, dt=.01,
-                         plant_type=name, max_sqp_iters=1000, linsys="pcg", pcg_tol=1e20)
+                         plant_type=name, max_sqp_iters=1000, linsys="pcg",
+                         max_pcg_iters=0)
     stopped = shortcut.solve(x, ref, capture_iterations=True).iteration_trace
     assert stopped.stop_reason == "zero_pcg" and stopped.iterations_run == 1
     assert not stopped.line_search_ran.any() and not stopped.pcg_iters.any()
@@ -75,3 +92,40 @@ def test_actual_outer_snapshots_final_output_and_stopping(tmp_path, monkeypatch,
     assert budget.iteration_trace.stop_reason == "budget"
     assert budget.iteration_trace.iterations_run == 1
     np.testing.assert_array_equal(budget.iteration_trace.xu[-1], budget.xu)
+
+    # The NumPy capsule owns snapshots independently of the result and solver.
+    retained = tr.xu
+    expected = retained.copy()
+    del tr, r, s
+    gc.collect()
+    np.testing.assert_array_equal(retained, expected)
+
+    # Exercise the real native device-pointer entry point without requiring an
+    # optional tensor framework. Inputs use the CUDA runtime already linked by
+    # the module; no new public allocator or dependency is added for inspection.
+    cudart = ctypes.CDLL("libcudart.so.12")
+    cudart.cudaMalloc.argtypes = [ctypes.POINTER(ctypes.c_void_p), ctypes.c_size_t]
+    cudart.cudaMemcpy.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_size_t, ctypes.c_int]
+    cudart.cudaFree.argtypes = [ctypes.c_void_p]
+    pointers = []
+    try:
+        for values in (x, ref):
+            values = np.ascontiguousarray(values, dtype=np.float32)
+            pointer = ctypes.c_void_p()
+            assert cudart.cudaMalloc(ctypes.byref(pointer), values.nbytes) == 0
+            pointers.append(pointer)
+            assert cudart.cudaMemcpy(pointer, values.ctypes.data, values.nbytes, 1) == 0  # host -> device
+        device_solver = make()
+        raw = device_solver.solver.solve_device(0, device_solver.dt,
+                                                pointers[0].value, pointers[1].value,
+                                                capture_iterations=True)
+        device_xu = raw["XU"].numpy()
+        device_trace = raw["iteration_trace"]
+        cold_host = make().solve(x, ref, capture_iterations=True)
+        np.testing.assert_array_equal(device_trace["xu"][-1], device_xu)
+        np.testing.assert_array_equal(device_trace["xu"][0], cold_host.iteration_trace.xu[0])
+        np.testing.assert_allclose(device_xu, cold_host.xu, atol=2e-5, rtol=2e-5)
+        assert device_trace["iterations_run"] == 3
+    finally:
+        for pointer in pointers:
+            assert cudart.cudaFree(pointer) == 0
