@@ -2,6 +2,9 @@
 
 GATO_TEST_FRICTION_GPU=1 pytest test/test_runtime_friction_gpu.py
 The test builds one N8 friction-enabled module in pytest's temporary cache.
+Upstream conftest skips GPU collection if no modules are discoverable at all;
+bootstrap a normal module first, or invoke this function directly with the same
+pytest MonkeyPatch/tmp_path fixtures in a coordinated validation harness.
 Set --basetemp to the owning checkout's _expr_data/ directory for retained data.
 """
 import os
@@ -22,6 +25,10 @@ def test_runtime_width_value_gradient_merit_and_instance_isolation(tmp_path, mon
     monkeypatch.setenv("GATO_CACHE_DIR", str(tmp_path / "cache"))
     # A fixed existing arm topology, with explicit nonzero passive coefficients.
     tree = ET.parse(urdfs["indy7"])
+    # Preserve normal collision codegen: the native adapter consumes its symbols.
+    # The temporary URDF must still resolve the existing mesh assets.
+    for mesh in tree.getroot().iter("mesh"):
+        mesh.set("filename", str((urdfs["indy7"].parent / mesh.get("filename")).resolve()))
     for joint in tree.getroot().findall("joint"):
         if joint.get("type") in ("revolute", "prismatic", "continuous"):
             dynamics = joint.find("dynamics")
@@ -32,7 +39,7 @@ def test_runtime_width_value_gradient_merit_and_instance_isolation(tmp_path, mon
     urdf = tmp_path / "runtime_width.urdf"
     tree.write(urdf)
     name = "runtime_width_indy"
-    gato.register_robot(name, urdf, N=[8], collision_res=None, joint_friction_smoothing=.03)
+    gato.register_robot(name, urdf, N=[8], joint_friction_smoothing=.03)
     params = dict(max_sqp_iters=1, q_cost=0., qd_cost=0., u_cost=0., N_cost=0.,
                   q_lim_cost=0., vel_lim_cost=0., ctrl_lim_cost=0., mu=1., linsys="pcg")
     a = gato.BSQP(urdf, batch_size=1, N=8, dt=.002, plant_type=name, **params)
