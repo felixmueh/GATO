@@ -111,7 +111,10 @@ def test_constructor_uses_registration_default_and_instance_override(monkeypatch
     module = SimpleNamespace(BSQP_float=Native, NQ=2, NV=2, SMOOTH_JOINT_FRICTION=True)
     monkeypatch.setattr(interface.importlib, "import_module", lambda name: module)
     monkeypatch.setattr(interface, "_pin_available", lambda: False)
-    monkeypatch.setattr(interface, "robot_info", lambda name: {"joint_friction_smoothing": [.03, .04]})
+    from gato import _cache
+    # A packaged module wins over a same-name user cache registration.
+    monkeypatch.setattr(builder, "load_registry", lambda: {"mock": {"joint_friction_smoothing": [.03, .04]}})
+    monkeypatch.setattr(_cache, "robot_entry", lambda name: {"codegen_key": "other", "meta": {"joint_friction_smoothing": [.8, .9]}})
     monkeypatch.setattr(interface.BSQP, "set_f_ext_B", lambda *args: None)
     first = interface.BSQP("unused", batch_size=1, N=8, dt=.01, plant_type="mock", linsys="pcg")
     second = interface.BSQP("unused", batch_size=1, N=8, dt=.01, plant_type="mock", linsys="pcg",
