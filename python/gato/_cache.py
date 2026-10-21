@@ -336,7 +336,8 @@ def load_module(name: str, N: int, variant: str = "default", *, cache: Path | No
     """Import the cached module for (name, N, variant) as ``gato.<modname>``;
     None when the robot is not registered."""
     cache = cache or cache_dir()
-    if resolve(name, cache) is None:
+    resolved = resolve(name, cache)
+    if resolved is None:
         return None
     so = find_module(name, N, variant, cache) if not build_if_missing else ensure_module(name, N, variant, cache=cache)
     if so is None:
@@ -349,6 +350,10 @@ def load_module(name: str, N: int, variant: str = "default", *, cache: Path | No
     mod = importlib.util.module_from_spec(spec)
     sys.modules[fullname] = mod
     spec.loader.exec_module(mod)
+    # Preserve the origin even when subsequent constructors import sys.modules.
+    # Runtime defaults must follow this registration, not a same-name bundled robot.
+    mod._GATO_CACHE_DIR = str(cache.resolve())
+    mod._GATO_CODEGEN_KEY = resolved[0]["codegen_key"]
     return mod
 
 

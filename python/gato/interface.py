@@ -312,7 +312,16 @@ class BSQP:
         self.joint_friction_smoothing = None
         if bool(getattr(base, "SMOOTH_JOINT_FRICTION", False)):
             if joint_friction_smoothing is None:
-                joint_friction_smoothing = robot_info(plant_type).get("joint_friction_smoothing", 1.0)
+                cache_origin = getattr(base, "_GATO_CACHE_DIR", None)
+                if cache_origin is None:
+                    info = robot_info(plant_type)
+                else:
+                    from . import _cache
+                    resolved = _cache.resolve(plant_type, Path(cache_origin))
+                    if resolved is None or resolved[0]["codegen_key"] != base._GATO_CODEGEN_KEY:
+                        raise ValueError("loaded module differs from the current robot registration; restart the process before constructing a solver")
+                    info = resolved[0]["meta"]
+                joint_friction_smoothing = info.get("joint_friction_smoothing", 1.0)
             self.set_joint_friction_smoothing(joint_friction_smoothing)
         elif joint_friction_smoothing is not None:
             raise ValueError("module does not support runtime smooth joint friction; register with joint_friction_smoothing and rebuild")

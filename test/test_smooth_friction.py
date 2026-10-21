@@ -125,3 +125,69 @@ def test_constructor_uses_registration_default_and_instance_override(monkeypatch
     assert disabled.solver.widths is None
     with pytest.raises(ValueError, match="rebuild"):
         interface.BSQP("unused", batch_size=1, N=8, dt=.01, plant_type="mock", joint_friction_smoothing=.1)
+
+
+def test_cached_module_defaults_follow_its_registration_on_name_collision(tmp_path, monkeypatch):
+    import numpy as np
+    from gato import _cache, interface
+    class Native:
+        def __init__(self, *args):
+            self.widths = None
+        def set_joint_friction_smoothing(self, values):
+            self.widths = values.copy()
+        def set_rho_adaptation(self, value):
+            pass
+    cache = tmp_path / "cache"
+    entry = {"codegen_key": "registered-key", "meta": {"joint_friction_smoothing": [.03, .04]}}
+    module = SimpleNamespace(BSQP_float=Native, NQ=2, NV=2, SMOOTH_JOINT_FRICTION=True,
+                             _GATO_CACHE_DIR=str(cache), _GATO_CODEGEN_KEY="registered-key")
+    loaded = False
+    def import_module(name):
+        if not loaded:
+            raise ImportError("No bundled module at this horizon")
+        return module
+    def load_module(*args):
+        nonlocal loaded
+        loaded = True
+        return module
+    def resolve(name, cache_path):
+        assert cache_path == cache  # follows module origin, not a later environment change
+        return entry, cache / "robots" / entry["codegen_key"]
+    monkeypatch.setattr(interface.importlib, "import_module", import_module)
+    monkeypatch.setattr(_cache, "load_module", load_module)
+    monkeypatch.setattr(_cache, "resolve", resolve)
+    monkeypatch.setattr(interface, "_pin_available", lambda: False)
+    monkeypatch.setattr(interface, "robot_info", lambda name: {"joint_friction_smoothing": [1., 1.]})
+    monkeypatch.setattr(interface.BSQP, "set_f_ext_B", lambda *args: None)
+    first = interface.BSQP("unused", batch_size=1, N=8, dt=.01, plant_type="indy7", linsys="pcg")
+    np.testing.assert_allclose(first.solver.widths, [.03, .04])
+    entry["meta"]["joint_friction_smoothing"] = [.05, .06]
+    # Module now comes from import_module (sys.modules); registration remains authoritative.
+    second = interface.BSQP("unused", batch_size=1, N=8, dt=.01, plant_type="indy7", linsys="pcg")
+    np.testing.assert_allclose(second.solver.widths, [.05, .06])
+    np.testing.assert_allclose(first.solver.widths, [.03, .04])
+    entry["codegen_key"] = "different-robot"
+    with pytest.raises(ValueError, match="restart the process"):
+        interface.BSQP("unused", batch_size=1, N=8, dt=.01, plant_type="indy7", linsys="pcg")
+
+
+def test_cache_loader_records_module_registration_origin(tmp_path, monkeypatch):
+    import sys
+    from gato import _cache
+    cache = tmp_path / "cache"
+    entry = {"codegen_key": "test-key"}
+    module = SimpleNamespace()
+    monkeypatch.setattr(_cache, "resolve", lambda name, path: (entry, cache / "robots/test-key"))
+    monkeypatch.setattr(_cache, "ensure_module", lambda *args, **kwargs: cache / "fake.so")
+    spec = SimpleNamespace(loader=SimpleNamespace(exec_module=lambda value: None))
+    monkeypatch.setattr(_cache.importlib.util, "spec_from_file_location", lambda *args: spec)
+    monkeypatch.setattr(_cache.importlib.util, "module_from_spec", lambda value: module)
+    fullname = "gato.bsqpN8_test_registration_origin"
+    assert fullname not in sys.modules
+    try:
+        result = _cache.load_module("test_registration_origin", 8, cache=cache)
+        assert result._GATO_CACHE_DIR == str(cache.resolve())
+        assert result._GATO_CODEGEN_KEY == "test-key"
+        assert _cache.load_module("test_registration_origin", 8, cache=cache) is result
+    finally:
+        sys.modules.pop(fullname, None)
