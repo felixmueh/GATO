@@ -195,7 +195,7 @@ def pytest_collection_modifyitems(config, items):
         # whole run is ~30s warm — no need for GRiD-style marker scoping), so
         # every item gets the plugin's gpu_proof marker.
         item.add_marker(pytest.mark.gpu_proof)
-        if not HAVE_MODULES and "gpu" in item.keywords:
+        if not HAVE_MODULES and "gpu" in item.keywords and "self_building_gpu" not in item.keywords:
             item.add_marker(skip)
 
 

@@ -14,6 +14,8 @@
 #include <stdexcept>
 #include <limits>
 #include <cmath>
+#include <memory>
+#include "utils/iteration_trace.h"
 #include "settings.h"
 #include "constants.h"
 #include "types.cuh"
@@ -959,15 +961,38 @@ class BSQP {
         // row j lives at [(j + 1) * STATE_SIZE, (j + 2) * STATE_SIZE))
         void copy_lambda_to_host(T* h_out) { gpuErrchk(cudaMemcpy(h_out, d_lambda_batch_, VEC_SIZE_PADDED * batch_size_ * sizeof(T), cudaMemcpyDeviceToHost)); }
 
-        SQPStats<T> solve(T* d_xu_traj_batch, ProblemInputs<T> inputs)
+        SQPStats<T> solve(T* d_xu_traj_batch, ProblemInputs<T> inputs, IterationTrace<T>* iteration_trace = nullptr)
         {
                 SQPStats<T> sqp_stats(batch_size_);
                 PCGStats    pcg_stats(batch_size_);
+
+                // Explicit inspection only. Keep the normal path free of trace
+                // allocations, copies and launches. Device snapshots use the same
+                // stream as the updates; no per-iteration host synchronization.
+                std::unique_ptr<T, void(*)(T*)> trace_device(nullptr, [](T* p) { if (p) cudaFree(p); });
+                const size_t trace_stride = static_cast<size_t>(batch_size_) * XU_TRAJ_SIZE;
+                if (iteration_trace) {
+                        const size_t elements = iteration_trace_elements<T>(batch_size_, XU_TRAJ_SIZE, max_sqp_iters_);
+                        *iteration_trace = IterationTrace<T>{};
+                        iteration_trace->pcg_iters.reserve(static_cast<size_t>(max_sqp_iters_) * batch_size_);
+                        iteration_trace->line_search_ran.reserve(max_sqp_iters_);
+                        T* buffer = nullptr;
+                        const auto status = cudaMalloc(&buffer, elements * sizeof(T));
+                        if (status != cudaSuccess) throw std::runtime_error(std::string("iteration capture allocation: ") + cudaGetErrorString(status));
+                        trace_device.reset(buffer);
+                }
+                const auto capture_current = [&](uint32_t slot) {
+                        if (iteration_trace) {
+                                gpuErrchk(cudaMemcpyAsync(trace_device.get() + static_cast<size_t>(slot) * trace_stride,
+                                                         d_xu_traj_batch, trace_stride * sizeof(T), cudaMemcpyDeviceToDevice));
+                        }
+                };
 
                 const T* d_knot_w = use_knot_cost_weights_ ? d_knot_cost_weights_ : nullptr;
                 uint32_t ls_iters_run = 0;  // iterations that reached merit+line-search
 
                 auto sqp_start_time = std::chrono::high_resolution_clock::now();
+                capture_current(0);
 
                 // set d_dz_batch_ to zero
                 gpuErrchk(cudaMemset(d_dz_batch_, 0, TRAJ_SIZE * batch_size_ * sizeof(T)));
@@ -1019,7 +1044,11 @@ class BSQP {
                                 iter_cost_hist_[i - 1] = iter_us;
                                 if (iter_us > iter_cost_max_us) { iter_cost_max_us = iter_us; }
                                 const double predicted_us = iter_cost_hist_[i] > 0.0 ? iter_cost_hist_[i] : iter_cost_max_us;
-                                if (elapsed_us + predicted_us > time_budget_us_) { sqp_stats.budget_hit = true; break; }
+                                if (elapsed_us + predicted_us > time_budget_us_) {
+                                        sqp_stats.budget_hit = true;
+                                        if (iteration_trace) iteration_trace->stop_reason = "budget";
+                                        break;
+                                }
                         }
                         iters_started = i + 1;
                         setup_kkt_system_batched<T>(batch_size_, kkt_system_batch_, inputs, d_xu_traj_batch, f_ext_ptr(), d_GRiD_mem_, q_cost_, qd_cost_, u_cost_, N_cost_, q_lim_cost_, vel_lim_cost_, ctrl_lim_cost_, d_kkt_converged_batch_, d_knot_w, d_row_groups_, n_row_groups_, d_lam_hi_, d_lam_lo_, exact_hessian_ ? 1 : 0, d_lambda_batch_, coop_carve_flag(), h_env_, admm_rho_scale_ptr(), q_pos_cost_, d_q_nom_, fc_cost_, d_u_cost_vec_, d_q_pos_w_vec_, d_fc_ref_, d_friction_widths_);
@@ -1106,6 +1135,9 @@ class BSQP {
                         gpuErrchk(cudaEventSynchronize(sync_event_));
 
                         for (uint32_t b = 0; b < batch_size_; ++b) { pcg_stats.num_iterations[b] = static_cast<int>(h_pcg_iters_[b]); }
+                        if (iteration_trace) {
+                                for (uint32_t b = 0; b < batch_size_; ++b) iteration_trace->pcg_iters.push_back(static_cast<int32_t>(h_pcg_iters_[b]));
+                        }
                         if (collect_stats_) {
                                 // sync_event_ was recorded after pcg_stop_event_ on the same
                                 // stream, so both timing events have completed by here.
@@ -1127,7 +1159,14 @@ class BSQP {
                                 h_sqp_iters_B_[b] += 1;
                         }
 
-                        if (num_solved >= batch_size_ * solve_ratio_) break;
+                        if (num_solved >= batch_size_ * solve_ratio_) {
+                                if (iteration_trace) {
+                                        iteration_trace->stop_reason = "zero_pcg";
+                                        iteration_trace->line_search_ran.push_back(0);
+                                        capture_current(i + 1);
+                                }
+                                break;
+                        }
 
                         gpuErrchk(cudaMemcpyAsync(d_kkt_converged_batch_, h_kkt_converged_batch_, batch_size_ * sizeof(int32_t), cudaMemcpyHostToDevice));
 
@@ -1169,6 +1208,10 @@ class BSQP {
                         // within every SQP iteration.
                         if (admm_active_ && admm_rho_adapt_) {
                                 rows::admm_adapt_rho_scale_batched<T>(batch_size_, d_admm_rho_scale_batch_, d_admm_resid_, d_kkt_converged_batch_);
+                        }
+                        if (iteration_trace) {
+                                iteration_trace->line_search_ran.push_back(1);
+                                capture_current(i + 1);
                         }
                 }
 
@@ -1223,6 +1266,13 @@ class BSQP {
                 }
                 memset(h_kkt_converged_batch_, 0, batch_size_ * sizeof(int32_t));
                 memset(h_sqp_iters_B_, 0, batch_size_ * sizeof(uint32_t));
+
+                // One bulk host read after the timed solve. No full workspace is
+                // captured, and only actual iterations are exposed to callers.
+                if (iteration_trace) {
+                        iteration_trace->xu.resize((iteration_trace->line_search_ran.size() + 1) * trace_stride);
+                        gpuErrchk(cudaMemcpy(iteration_trace->xu.data(), trace_device.get(), iteration_trace->xu.size() * sizeof(T), cudaMemcpyDeviceToHost));
+                }
 
                 return sqp_stats;
         }

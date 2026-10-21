@@ -222,12 +222,13 @@ class PyBSQP {
                 return static_cast<T*>(buf.ptr);
         }
 
-        py::dict solve(DenseArray xu_traj_batch, T timestep, DenseArray x_s_batch, DenseArray reference_traj_batch)
+        py::dict solve(DenseArray xu_traj_batch, T timestep, DenseArray x_s_batch, DenseArray reference_traj_batch, bool capture_iterations = false)
         {
                 auto inputs = upload_problem(xu_traj_batch, timestep, x_s_batch, reference_traj_batch);
 
                 // Solve
-                SQPStats<T> stats = solver_.solve(d_xu_traj_batch_, inputs);
+                IterationTrace<T> trace;
+                SQPStats<T> stats = solver_.solve(d_xu_traj_batch_, inputs, capture_iterations ? &trace : nullptr);
 
                 // Copy trajectory back: device -> pinned -> straight into the output
                 // py::array (no intermediate std::vector + second copy)
@@ -238,13 +239,14 @@ class PyBSQP {
 
                 py::dict result = collect_stats(stats);
                 result["XU"] = xu_out;
+                if (capture_iterations) result["iteration_trace"] = trace_result(std::move(trace));
                 return result;
         }
 
         // The device-side solve both device paths end in: the staged x_s / reference
         // and the trajectory buffer are complete, solve, hand the solution out as a
         // DeviceArray copy (the buffer itself keeps the solution for solve_resident).
-        py::dict solve_staged_to_device(T timestep)
+        py::dict solve_staged_to_device(T timestep, bool capture_iterations = false)
         {
                 gpuErrchk(cudaDeviceSynchronize());
                 ProblemInputs<T> inputs;
@@ -252,13 +254,37 @@ class PyBSQP {
                 inputs.d_x_s_batch = d_x_s_batch_;
                 inputs.d_reference_traj_batch = d_reference_traj_batch_;
 
-                SQPStats<T> stats = solver_.solve(d_xu_traj_batch_, inputs);
+                IterationTrace<T> trace;
+                SQPStats<T> stats = solver_.solve(d_xu_traj_batch_, inputs, capture_iterations ? &trace : nullptr);
 
                 DeviceArray xu_out = DeviceArray::alloc({static_cast<int64_t>(batch_size_), static_cast<int64_t>(XU_TRAJ_SIZE)});
                 gpuErrchk(cudaMemcpy(reinterpret_cast<void*>(xu_out.data_ptr()), d_xu_traj_batch_, XU_TRAJ_SIZE * batch_size_ * sizeof(T), cudaMemcpyDeviceToDevice));
                 gpuErrchk(cudaDeviceSynchronize());
                 py::dict result = collect_stats(stats);
                 result["XU"] = xu_out;
+                if (capture_iterations) result["iteration_trace"] = trace_result(std::move(trace));
+                return result;
+        }
+
+        // Move the bulk host read into NumPy ownership without another full
+        // trajectory copy. The trace always lives on the CPU, also for CUDA inputs.
+        py::dict trace_result(IterationTrace<T>&& trace)
+        {
+                const auto K = static_cast<py::ssize_t>(trace.line_search_ran.size());
+                auto* values = new std::vector<T>(std::move(trace.xu));
+                py::capsule owner(values, [](void* p) { delete static_cast<std::vector<T>*>(p); });
+                const auto B = static_cast<py::ssize_t>(batch_size_);
+                const auto S = static_cast<py::ssize_t>(XU_TRAJ_SIZE);
+                py::dict result;
+                result["xu"] = py::array_t<T>({K + 1, B, S}, {B * S * (py::ssize_t)sizeof(T), S * (py::ssize_t)sizeof(T), (py::ssize_t)sizeof(T)}, values->data(), owner);
+                py::array_t<int32_t> pcg({K, B});
+                if (K) memcpy(pcg.mutable_data(), trace.pcg_iters.data(), K * B * sizeof(int32_t));
+                py::array_t<bool> ls(K);
+                for (py::ssize_t i = 0; i < K; ++i) ls.mutable_data()[i] = trace.line_search_ran[i] != 0;
+                result["pcg_iters"] = pcg;
+                result["line_search_ran"] = ls;
+                result["stop_reason"] = trace.stop_reason;
+                result["iterations_run"] = K;
                 return result;
         }
 
@@ -269,7 +295,7 @@ class PyBSQP {
         // overwritten by x_s. The returned "XU" is a DeviceArray (DLPack-exportable);
         // the caller's buffers are never written. Inputs must be complete on the
         // device: work queued on non-blocking streams needs a sync first.
-        py::dict solve_device(uintptr_t xu_ptr, T timestep, uintptr_t x_ptr, uintptr_t ref_ptr)
+        py::dict solve_device(uintptr_t xu_ptr, T timestep, uintptr_t x_ptr, uintptr_t ref_ptr, bool capture_iterations = false)
         {
                 if (!x_ptr || !ref_ptr) { throw py::value_error("solve_device: x_s and reference device pointers are required"); }
                 gpuErrchk(cudaMemcpy(d_x_s_batch_, reinterpret_cast<const void*>(x_ptr), XU_STATE_SIZE * batch_size_ * sizeof(T), cudaMemcpyDeviceToDevice));
@@ -283,7 +309,7 @@ class PyBSQP {
                         fill_hold_warm_start_kernel<T><<<batch_size_, 256>>>(d_xu_traj_batch_, d_x_s_batch_, KNOT_POINTS, XU_STATE_SIZE, CONTROL_SIZE);
                         gpuErrchk(cudaPeekAtLastError());
                 }
-                return solve_staged_to_device(timestep);
+                return solve_staged_to_device(timestep, capture_iterations);
         }
 
         // ---- device-resident warm start (MPCController's device path) ----------
@@ -836,8 +862,8 @@ class PyBSQP {
         py::class_<PyBSQP<Type>>(m, "BSQP_" #Type, py::module_local()) /* every module defines the same C++ type; a global registration collides when two solver modules load in one process */                                                                                                                                                 \
             .def(py::init<const uint32_t, const uint32_t, const uint32_t, const Type, const Type, const Type, const Type, const Type, const Type, const Type, const Type, \
                           const Type, const Type, const Type>())                                                                                                                                    \
-            .def("solve", &PyBSQP<Type>::solve)                                                                                                                                                    \
-            .def("solve_device", &PyBSQP<Type>::solve_device, py::arg("xu_ptr"), py::arg("timestep"), py::arg("x_ptr"), py::arg("ref_ptr"))                                                      \
+            .def("solve", &PyBSQP<Type>::solve, py::arg("xu_traj_batch"), py::arg("timestep"), py::arg("x_s_batch"), py::arg("reference_traj_batch"), py::arg("capture_iterations") = false)                   \
+            .def("solve_device", &PyBSQP<Type>::solve_device, py::arg("xu_ptr"), py::arg("timestep"), py::arg("x_ptr"), py::arg("ref_ptr"), py::arg("capture_iterations") = false)                        \
             .def("solve_resident", &PyBSQP<Type>::solve_resident, py::arg("x_ptr"), py::arg("x_batched"), py::arg("ref_ptr"), py::arg("ref_batched"), py::arg("timestep"))                     \
             .def("resident_set_device", &PyBSQP<Type>::resident_set_device, py::arg("xu_ptr"), py::arg("batched"))                                                                             \
             .def("resident_set_host", &PyBSQP<Type>::resident_set_host, py::arg("xu"))                                                                                                         \
@@ -907,6 +933,7 @@ PYBIND11_MODULE(MODULE_NAME(KNOT_POINTS, GATO_PLANT_NAME, GATO_MODULE_VARIANT), 
         m.attr("NATIVE_SOURCE_ID") = GATO_NATIVE_SOURCE_ID;
         m.attr("KNOT_POINTS") = KNOT_POINTS;      // to check num knots for current module
         m.attr("SMOOTH_JOINT_FRICTION") = bool(GATO_SMOOTH_JOINT_FRICTION);
+        m.attr("ITERATION_CAPTURE_AVAILABLE") = true;
         m.attr("NUM_BODIES") = grid::NUM_BODIES;  // body-major f_ext is 6*NUM_BODIES per (solve, knot)
         m.attr("NUM_COLLISION_SPHERES") = gato::plant::NCC;  // clearance rows per knot (CL-2)
         m.attr("EXACT_HESSIAN_AVAILABLE") = bool(USE_EXACT_HESSIAN);  // SO-SQP path compiled in?

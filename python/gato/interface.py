@@ -128,6 +128,25 @@ class SolverStats:
 
 
 @dataclass(frozen=True)
+class IterationTrace:
+    """Optional inspection of one native solve, always host NumPy arrays.
+
+    ``xu[0]`` is the actual seed after knot-0 replacement (and host floating
+    quaternion healing); ``xu[i+1]`` is the current accepted trajectory after
+    outer iteration i. A zero-PCG shortcut repeats the previous trajectory
+    and has ``line_search_ran[i] == False``. Rejected line searches also keep
+    the trajectory unchanged but have ``line_search_ran[i] == True``.
+    The count includes the shortcut and can exceed ``stats.ls_num_iters``.
+    PCG rows stay available even with general statistics collection disabled.
+    """
+    xu: np.ndarray               # (K+1, B, xu_size) float32, seed then iterations
+    pcg_iters: np.ndarray        # (K, B) int32, same linsys semantics as SolverStats
+    line_search_ran: np.ndarray  # (K,) bool, whole-batch outer boundary
+    stop_reason: str             # "zero_pcg" | "budget" | "max_sqp_iters"
+    iterations_run: int          # K actual outer iterations, including shortcut
+
+
+@dataclass(frozen=True)
 class SolveResult:
     """Result of one batched solve.
 
@@ -144,6 +163,7 @@ class SolveResult:
     # n_actuated entries are torques an MPC applies; fc is the solver's contact
     # explanation. 0 = legacy default (all of nu is actuated).
     n_actuated: int = 0
+    iteration_trace: IterationTrace = None
 
     @property
     def batch_size(self):
@@ -526,7 +546,7 @@ class BSQP:
             if bad.any():
                 XU_B[bad, k * step:k * step + self.nx] = xcur_B[bad]
 
-    def _solve_device(self, xcur_B, eepos_goals_B, xu_warm):
+    def _solve_device(self, xcur_B, eepos_goals_B, xu_warm, capture_iterations=False):
         """solve() on CUDA inputs: validate, hand device pointers to the binding."""
         from . import _arrays
         B = self.batch_size
@@ -539,9 +559,11 @@ class BSQP:
             if not _arrays.is_cuda(xu_warm):
                 raise TypeError("xu_warm must live on the same device as xcur_B for the device path")
             xu_ptr, keep_xu = _arrays.device_f32(xu_warm, B * self.xu_size, "xu_warm")
+        if capture_iterations:
+            return self.solver.solve_device(int(xu_ptr), self.dt, int(x_ptr), int(g_ptr), capture_iterations=True)
         return self.solver.solve_device(int(xu_ptr), self.dt, int(x_ptr), int(g_ptr))
 
-    def solve(self, xcur_B, eepos_goals_B, xu_warm=None, *, budget_s=None):
+    def solve(self, xcur_B, eepos_goals_B, xu_warm=None, *, budget_s=None, capture_iterations=False):
         """Solve the batch from states ``xcur_B`` (B, nx) toward the EE reference
         ``eepos_goals_B`` (B, 6N) — see the class docstring for both layouts.
 
@@ -569,12 +591,25 @@ class BSQP:
         trip; a device ``xu_warm`` is used as given (its knot-0 states are
         replaced by ``xcur_B``; the floating-base quaternion healing of the
         host path is not applied). CPU tensors go through the host path.
+
+        ``capture_iterations=True`` records the actual seed and the current
+        trajectory after every outer SQP iteration in ``iteration_trace``.
+        This is a fresh single solve, with existing stopping rules. Capture
+        allocates at most 256 MiB of device trajectories, then copies actual
+        snapshots to host once at return; larger requests fail before the
+        SQP loop. Per-iteration device copies add overhead and count toward
+        ``budget_s``, so a budget may stop at a different iteration count.
+        Allocation and final host transfer are outside ``solve_time_us``;
+        measure the whole call to include inspection overhead. False keeps
+        the normal path free of trace allocations, copies and launches.
         """
         from . import _arrays
+        if capture_iterations and not getattr(self.lib, "ITERATION_CAPTURE_AVAILABLE", False):
+            raise RuntimeError("iteration capture requires a rebuilt native module with ITERATION_CAPTURE_AVAILABLE")
         self._apply_budget(budget_s)
         in_kind = _arrays.kind(xcur_B)
         if _arrays.is_cuda(xcur_B):
-            raw = self._solve_device(xcur_B, eepos_goals_B, xu_warm)
+            raw = self._solve_device(xcur_B, eepos_goals_B, xu_warm, capture_iterations)
             xu = _arrays.from_device(raw["XU"], in_kind)
         else:
             xcur_np = _arrays.to_numpy(xcur_B).reshape(self.batch_size, self.nx)
@@ -588,7 +623,10 @@ class BSQP:
             if self.floating_base:
                 self._heal_floating_warm_start(XU_B, xcur_np)
 
-            raw = self.solver.solve(XU_B, self.dt, xcur_np, goals_np)
+            if capture_iterations:
+                raw = self.solver.solve(XU_B, self.dt, xcur_np, goals_np, capture_iterations=True)
+            else:
+                raw = self.solver.solve(XU_B, self.dt, xcur_np, goals_np)
             xu = np.array(raw["XU"], dtype=np.float32, copy=True)
             if in_kind != "numpy":
                 xu = _arrays.like(xu, in_kind, device=getattr(xcur_B, "device", None))
@@ -683,9 +721,17 @@ class BSQP:
             admm_linsys_iters=(np.asarray(raw["admm_linsys_iters"], dtype=np.int32).reshape(B)
                                if "admm_linsys_iters" in raw else None),
         )
+        trace_raw = raw.get("iteration_trace")
+        trace = None if trace_raw is None else IterationTrace(
+            xu=np.asarray(trace_raw["xu"], dtype=np.float32),
+            pcg_iters=np.asarray(trace_raw["pcg_iters"], dtype=np.int32).reshape(-1, B),
+            line_search_ran=np.asarray(trace_raw["line_search_ran"], dtype=bool),
+            stop_reason=str(trace_raw["stop_reason"]),
+            iterations_run=int(trace_raw["iterations_run"]),
+        )
         return SolveResult(xu=xu, solve_time_us=stats.solve_time_us,
                            stats=stats, nx=self.nx, nu=self.nu, N=self.N,
-                           n_actuated=self.n_actuated)
+                           n_actuated=self.n_actuated, iteration_trace=trace)
 
     # rows::Mechanism enum values (rowgroups.cuh)
     _MECHS = MECHS

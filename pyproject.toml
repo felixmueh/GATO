@@ -119,6 +119,7 @@ gato = ["_registry.json"]
 testpaths = ["test"]
 markers = [
     "gpu: needs a CUDA GPU with built solver modules (deselect with -m 'not gpu')",
+    "self_building_gpu: explicitly opted-in GPU regression builds its own module and needs no prebuilt module",
     "slow: long-running codegen/build tests (deselect with -m 'not slow')",
     "gpu_proof: outcome recorded in the signed pytest-gpu-proof receipt (auto-applied to ALL tests by test/conftest.py)",
 ]

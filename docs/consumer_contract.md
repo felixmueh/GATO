@@ -195,6 +195,52 @@ disagreement isolated to the `coriolis` probe points at damping instead.
 - The measured state enters as a hard initial-state constraint (x_0 is data;
   don't put state limits at knot 0 — they'd be unsatisfiable under violation).
 
+### Explicit per-SQP trajectory inspection
+
+`BSQP.solve(..., capture_iterations=True)` adds `SolveResult.iteration_trace`;
+the default is `None`. This runs one native solve from the supplied state and
+seed with the usual finite `max_sqp_iters`, optional `budget_s`, and existing
+stopping rules. It does not resume an earlier solve. `solve_warm` remains the
+resident MPC interface and does not request inspection.
+
+The trace contains host NumPy arrays, including when solve inputs are CUDA
+tensors:
+
+| Field | Shape/type | Meaning |
+| --- | --- | --- |
+| `xu` | `(K+1, B, xu_size)` float32 | Actual seed, then current accepted trajectory after each outer iteration |
+| `pcg_iters` | `(K, B)` int32 | Linear-system iteration counts, with the same semantics as `SolverStats` |
+| `line_search_ran` | `(K,)` bool | Whether that whole-batch outer iteration reached line search |
+| `iterations_run` | integer K | Actual outer iterations, including a final zero-PCG shortcut |
+| `stop_reason` | string | `zero_pcg`, `budget`, or `max_sqp_iters`, recorded at the actual loop exit |
+
+`xu[0]` includes knot-0 measured-state replacement and, for host floating-base
+inputs, quaternion healing. `xu[i+1]` aligns with `pcg_iters[i]` and
+`line_search_ran[i]`. The final entry equals the returned solution. The
+zero-PCG shortcut records an unchanged trajectory with `line_search_ran=False`;
+a rejected line search can also repeat the trajectory, with
+`line_search_ran=True`. K can therefore exceed `stats.ls_num_iters`. Capture
+counts remain available with `set_collect_stats(False)`; existing stats are
+unchanged. In a partial-batch stopping ratio, `zero_pcg` describes reaching
+that ratio, not a claim that every lane stopped.
+
+The native solver preallocates `(max_sqp_iters+1)*B*xu_size*sizeof(float)`
+device bytes only on request, capped at 256 MiB (N128/B1/1000 is about 10 MiB).
+It enqueues device copies at outer boundaries, without extra kernels or host
+synchronization, then transfers actual snapshots to the host once. Allocation,
+the final host transfer and deallocation are outside `solve_time_us`; the
+per-iteration copy cost is included. Measure host call wall time to include
+all inspection overhead. A budgeted inspection may stop at a different K due
+to this overhead. Disabled capture adds no allocation, copy or kernel launch.
+Older native modules still run ordinary solves; capture requires rebuilding
+and advertises `ITERATION_CAPTURE_AVAILABLE=True`.
+
+For compact binary storage, save `trace.xu`, `trace.pcg_iters` and
+`trace.line_search_ran` with `numpy.savez`/`savez_compressed`, alongside the
+stop reason, original state/reference, effective configuration, model/source
+identities and this fresh inspection's identity. Do not relabel it as the
+original MPC episode or an exact continuation.
+
 ### Controller call timing on October 19
 
 Quiet RTX 5090, source `34a4d30`, N64, batch size 1, PCG, no constraint
