@@ -321,7 +321,8 @@ class BSQP:
                     if resolved is None or resolved[0]["codegen_key"] != base._GATO_CODEGEN_KEY:
                         raise ValueError("loaded module differs from the current robot registration; restart the process before constructing a solver")
                     info = resolved[0]["meta"]
-                joint_friction_smoothing = info.get("joint_friction_smoothing", 1.0)
+                from ._friction import registered_smoothing_widths
+                joint_friction_smoothing = registered_smoothing_widths(info, self.nq)
             self.set_joint_friction_smoothing(joint_friction_smoothing)
         elif joint_friction_smoothing is not None:
             raise ValueError("module does not support runtime smooth joint friction; register with joint_friction_smoothing and rebuild")

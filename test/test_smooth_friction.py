@@ -98,7 +98,8 @@ def test_reregister_changes_default_without_codegen_or_module_identity(tmp_path,
     assert _cache.robot_entry(name) == second  # failed update leaves the default intact
 
 
-def test_constructor_uses_registration_default_and_instance_override(monkeypatch):
+@pytest.mark.parametrize("legacy", [False, True])
+def test_constructor_uses_registration_default_and_instance_override(monkeypatch, legacy):
     import numpy as np
     from gato import interface
     class Native:
@@ -113,7 +114,8 @@ def test_constructor_uses_registration_default_and_instance_override(monkeypatch
     monkeypatch.setattr(interface, "_pin_available", lambda: False)
     from gato import _cache
     # A packaged module wins over a same-name user cache registration.
-    monkeypatch.setattr(builder, "load_registry", lambda: {"mock": {"joint_friction_smoothing": [.03, .04]}})
+    defaults = {"joint_friction": [[.3, .15, .03], [.3, .15, .04]]} if legacy else {"joint_friction_smoothing": [.03, .04]}
+    monkeypatch.setattr(builder, "load_registry", lambda: {"mock": defaults})
     monkeypatch.setattr(_cache, "robot_entry", lambda name: {"codegen_key": "other", "meta": {"joint_friction_smoothing": [.8, .9]}})
     monkeypatch.setattr(interface.BSQP, "set_f_ext_B", lambda *args: None)
     first = interface.BSQP("unused", batch_size=1, N=8, dt=.01, plant_type="mock", linsys="pcg")
@@ -194,3 +196,17 @@ def test_cache_loader_records_module_registration_origin(tmp_path, monkeypatch):
         assert _cache.load_module("test_registration_origin", 8, cache=cache) is result
     finally:
         sys.modules.pop(fullname, None)
+
+
+@pytest.mark.parametrize("meta", [
+    {"joint_friction": None},
+    {"joint_friction": [[.3, .15]]},
+    {"joint_friction": [[.3, .15, .03], [.3, .15]]},
+    {"joint_friction": [[.3, .15, .03], [.3, .15, 0.]]},
+    {"joint_friction": [[.3, .15, .03], ["bad", .15, .04]]},
+    {"joint_friction_smoothing": None, "joint_friction": [[.3, .15, .03], [.3, .15, .04]]},
+])
+def test_malformed_registration_defaults_fail(meta):
+    from gato._friction import registered_smoothing_widths
+    with pytest.raises(ValueError):
+        registered_smoothing_widths(meta, 2)

@@ -27,6 +27,8 @@ updates/solves on one instance are unsupported, as for other solver setters.
 Widths must be positive and finite after conversion to float32. Changing width
 cannot enable losses in a module built without them; register the opt-in and
 build that module first. Earlier compile-time-width binaries require one rebuild.
+Existing registration metadata with `[Coulomb, viscous, width]` rows retains
+its width defaults when its module is rebuilt. Malformed defaults raise an error.
 The native C++ solver defaults to width 1 in each joint; Python applies the
 registration default during construction. Runtime setters also validate values
 at the native boundary. Friction-disabled solvers allocate no width buffer.
