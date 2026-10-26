@@ -10,6 +10,7 @@ configurations in a freshly shuffled order (fixed seed).
 |---|---|---|
 | `bench_merit_threads.py` | merit block size 32 / 64 / 256 and the fused launch at 64, N32, B1/B4/B16 | produced the 24 October tables on v0.1.5 (`4d5f8c2`), run from `results/` of that checkout |
 | `bench_horizons.py` | (1) merit block size 32 vs 64 at N64–N512; (2) `pcg`, `bdsv` and `bdsv_first` at N32–N512, with the PCG iteration counts of every SQP iteration | follow-up to the 24 October comment, branch based on v0.1.6 |
+| `bdsv_golden_check.py` | `pcg` and `bdsv` on the golden problem of `test/test_parity_golden.py` (indy7 N32/64/128): merits next to the stored goldens, per-iteration counts and accepted steps | reproducer for `bdsv` returning the seed on the Orin; needs `pip install pytest` |
 
 ## Run the follow-up on the Jetson
 
