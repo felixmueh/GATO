@@ -213,8 +213,44 @@ def algorithms_for(floating_base, cost_frames=None, com=False):
     return GATO_ALGORITHMS + ("frame_jacobian",) + (("com", "ccrba") if com else ())
 
 
+def _normalize_joint_armature(joint_armature, nv):
+    """Canonical joint-space rotor inertias; an explicit zero vector is neutral."""
+    if joint_armature is None:
+        return None
+    if isinstance(joint_armature, (str, bytes)):
+        raise ValueError("joint_armature must be a sequence of finite nonnegative inertias")
+    try:
+        values = tuple(float(value) for value in joint_armature)
+    except (TypeError, ValueError, OverflowError) as exc:
+        raise ValueError("joint_armature must be a sequence of finite nonnegative inertias") from exc
+    if len(values) != nv:
+        raise ValueError(f"joint_armature must have nv={nv} entries, got {len(values)}")
+    if any(not math.isfinite(value) or value < 0.0 for value in values):
+        raise ValueError("joint_armature entries must be finite and nonnegative")
+    return values if any(values) else None
+
+
+def _grid_codegen_source_id():
+    """Hash the installed emitter, whose own sources are absent from its peer provenance.
+
+    Experimental nonzero-armature headers need this in addition to the pinned
+    release/peer identity: an editable emitter can change without a version bump.
+    Relative paths keep equivalent installations at different locations equal.
+    """
+    import hashlib
+    import grid_codegen
+    root = Path(grid_codegen.__file__).resolve().parent
+    h = hashlib.sha256()
+    for source in sorted(root.rglob("*.py")):
+        h.update(source.relative_to(root).as_posix().encode())
+        h.update(b"\0")
+        h.update(source.read_bytes())
+        h.update(b"\0")
+    return h.hexdigest()
+
+
 def _codegen_key(urdf_path, ee_frame, collision_res, contact_frames, floating_base, joint_dynamics=False, friction_width=0.03,
-                 cost_frames=None, com=False):
+                 cost_frames=None, com=False, joint_armature=None):
     """Cache key of the URDF
     bytes, the pinned grid-rbd release (the emitter: its version and bundled
     source/peer provenance), the consumed algorithm set and the codegen options.
@@ -233,13 +269,19 @@ def _codegen_key(urdf_path, ee_frame, collision_res, contact_frames, floating_ba
         h.update(f"joint_dynamics tanh {float(friction_width)!r}".encode())
     if cost_frames:             # extra named cost frames beyond the end-effector target (frame 0)
         h.update(repr(("cost_frames", tuple(cost_frames))).encode())
+    if joint_armature is not None:
+        robot = _parse_urdf(urdf_path, ee_frame, floating_base=floating_base)
+        joint_armature = _normalize_joint_armature(joint_armature, robot.get_num_vel())
+        if joint_armature is not None:
+            h.update(repr(("joint_armature", joint_armature)).encode())
+            h.update(_grid_codegen_source_id().encode())
     return h.hexdigest()[:16]
 
 
 def codegen(urdf_path, name, ee_frame="EE", algorithm_list=None, out_dir=None,
             register=True, collision_res=0.15, contact_frames=None,
             floating_base=False, joint_dynamics=False, friction_width=0.03,
-            cost_frames=None, com=False):
+            cost_frames=None, com=False, joint_armature=None):
     """Generate gato/dynamics/<name>/{grid.cuh, limits.cuh} + register the robot.
 
     Returns the registry metadata dict. This is the single codegen path — both
@@ -279,6 +321,12 @@ def codegen(urdf_path, name, ee_frame="EE", algorithm_list=None, out_dir=None,
     smoothing and should be matched to the plan step; it is part of the
     codegen key.
 
+    joint_armature: per-velocity joint-space rotor inertia in kg m^2, added
+    to the mass-matrix diagonal. None or an nv-length all-zero vector keeps
+    the existing codegen path. Nonzero values require GRiD's armature support
+    (fixed-base cardinal-axis revolute joints); GRiD validates that topology.
+    The values and actual emitter source identity are part of the cache key.
+
     cost_frames: URDF joint names (articulated or fixed, addressed by their
     URDF name) baked as extra cost frames for the cost menu's frame terms,
     after the end-effector target, which is always cost frame 0 (the imu on
@@ -292,6 +340,7 @@ def codegen(urdf_path, name, ee_frame="EE", algorithm_list=None, out_dir=None,
     out_dir.mkdir(parents=True, exist_ok=True)
 
     robot = _parse_urdf(urdf_path, ee_frame, floating_base=floating_base)
+    joint_armature = _normalize_joint_armature(joint_armature, robot.get_num_vel())
     if joint_dynamics and not float(friction_width) > 0.0:
         raise ValueError(f"friction_width must be positive (rad/s), got {friction_width!r}")
     cost_frames = [str(f) for f in (cost_frames or [])]
@@ -312,6 +361,8 @@ def codegen(urdf_path, name, ee_frame="EE", algorithm_list=None, out_dir=None,
                       USE_JOINT_DYNAMICS=bool(joint_dynamics))
     if joint_dynamics:
         gen_kwargs.update(FRICTION_MODEL="tanh", FRICTION_WIDTH=float(friction_width))
+    if joint_armature is not None:
+        gen_kwargs["JOINT_ARMATURE"] = joint_armature
     if floating_base:
         gen_kwargs["LAUNCH_CONFIG_ROBOT"] = Path(urdf_path).stem
     gen = GRiDCodeGenerator(robot, **gen_kwargs)
@@ -370,6 +421,9 @@ def codegen(urdf_path, name, ee_frame="EE", algorithm_list=None, out_dir=None,
         meta["joint_dynamics"] = True
         meta["friction_model"] = "tanh"
         meta["friction_width"] = float(friction_width)
+    if joint_armature is not None:
+        meta["joint_armature"] = list(joint_armature)
+        meta["grid_codegen_source_sha256"] = _grid_codegen_source_id()
     if collision_res is not None:
         meta["collision"] = {"res": float(collision_res), "n_spheres": n_spheres}
     if contact_frames:
@@ -386,7 +440,7 @@ def build(urdf_path, name=None, N=(32,), ee_frame="EE", arch=None, jobs=4,
           build_dir=None, collision_res=0.15, contact_frames=None,
           floating_base=False, contact_forces=False, exact_hessian=False,
           joint_dynamics=False, friction_width=0.03, merit_threads=None,
-          cost_frames=None, integrator=None, com=False):
+          cost_frames=None, integrator=None, com=False, joint_armature=None):
     """Codegen + compile the bsqpN{N}_<name> solver modules for a URDF.
 
     Args:
@@ -412,6 +466,8 @@ def build(urdf_path, name=None, N=(32,), ee_frame="EE", arch=None, jobs=4,
         joint_dynamics / friction_width: bake the URDF's <dynamics damping>
             and smooth friction into the dynamics (see codegen()); both are
             part of the codegen key.
+        joint_armature: per-velocity joint-space rotor inertias in kg m^2
+            (see codegen()); nonzero values are part of the codegen key.
         merit_threads: the merit kernel's block size (a multiple of 32), for
             GPUs with few SMs (issue #19); None reads GATO_MERIT_THREADS from
             the environment, and unset means the generated per-robot maximum.
@@ -442,8 +498,11 @@ def build(urdf_path, name=None, N=(32,), ee_frame="EE", arch=None, jobs=4,
     Ns = [int(n) for n in ([N] if isinstance(N, int) else N)]
 
     root = repo_root()
+    if joint_armature is not None:
+        robot = _parse_urdf(urdf_path, ee_frame, floating_base=floating_base)
+        joint_armature = _normalize_joint_armature(joint_armature, robot.get_num_vel())
     key = _codegen_key(urdf_path, ee_frame, collision_res, contact_frames, floating_base, joint_dynamics, friction_width,
-                       cost_frames, com)
+                       cost_frames, com, joint_armature)
     have = load_registry().get(name, {})
     headers = [root / "gato" / "dynamics" / name / f for f in ("grid.cuh", "limits.cuh")]
     if have.get("codegen_key") == key and all(h.exists() for h in headers):
@@ -452,7 +511,7 @@ def build(urdf_path, name=None, N=(32,), ee_frame="EE", arch=None, jobs=4,
         meta = codegen(urdf_path, name, ee_frame=ee_frame, collision_res=collision_res,
                        contact_frames=contact_frames, floating_base=floating_base,
                        joint_dynamics=joint_dynamics, friction_width=friction_width,
-                       cost_frames=cost_frames, com=com)
+                       cost_frames=cost_frames, com=com, joint_armature=joint_armature)
         _update_registry(name, {**meta, "codegen_key": key})
 
     try:
