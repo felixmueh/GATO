@@ -9,8 +9,28 @@ configurations in a freshly shuffled order (fixed seed).
 | Script | What it measures | Status |
 |---|---|---|
 | `bench_merit_threads.py` | merit block size 32 / 64 / 256 and the fused launch at 64, N32, B1/B4/B16 | produced the 24 October tables on v0.1.5 (`4d5f8c2`), run from `results/` of that checkout |
-| `bench_horizons.py` | (1) merit block size 32 vs 64 at N64–N512; (2) `pcg`, `bdsv` and `bdsv_first` at N32–N512, with the PCG iteration counts of every SQP iteration | follow-up to the 24 October comment, branch based on v0.1.6 |
-| `bdsv_golden_check.py` | `pcg` and `bdsv` on the golden problem of `test/test_parity_golden.py` (indy7 N32/64/128): merits next to the stored goldens, per-iteration counts and accepted steps | reproducer for `bdsv` returning the seed on the Orin; needs `pip install pytest` |
+| `bench_horizons.py` | (1) merit block size 32 vs 64 at N64–N512; (2) `pcg`, `bdsv` and `bdsv_first` at N32–N512, with the PCG iteration counts of every SQP iteration | follow-up to the 24 October comment on v0.1.6 (branch `experiment/issue19-orin-horizons`); the linear-system study alone reruns on v0.1.7 (this branch), after the bdsv fix |
+| `bdsv_golden_check.py` | `pcg` and `bdsv` on the golden problem of `test/test_parity_golden.py` (indy7 N32/64/128): merits next to the stored goldens, per-iteration counts and accepted steps | reproducer for `bdsv` returning the seed on the Orin before v0.1.7, and the check of the fix; needs `pip install pytest` |
+
+## Rerun the linear-system study on v0.1.7
+
+This branch is v0.1.7 (`c9da6a5`) with the scripts of `experiment/issue19-orin-horizons`
+unchanged. An empty `--merit-horizons` drops the merit block-size study: 45
+configurations, 450 runs, the default-block-size modules at N32 to N512.
+
+```bash
+git clone --branch experiment/issue19-orin-linsys https://github.com/felixmueh/GATO.git gato-issue19
+cd gato-issue19
+./tools/install.sh --no-regen
+source .venv/bin/activate
+python -c "import gato; print(gato.__version__)"   # 0.1.7
+python issue19/bench_horizons.py --merit-horizons "" --dry-run
+mkdir -p issue19/results
+python issue19/bench_horizons.py --merit-horizons "" --out issue19/results/linsys-0.1.7 \
+  2>&1 | tee issue19/results/linsys-0.1.7.log
+pip install pytest                                 # the benchmark leaves the default modules installed
+python issue19/bdsv_golden_check.py | tee issue19/results/bdsv_golden_check-0.1.7.log
+```
 
 ## Run the follow-up on the Jetson
 
